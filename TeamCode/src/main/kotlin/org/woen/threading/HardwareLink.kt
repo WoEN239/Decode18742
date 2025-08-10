@@ -33,6 +33,9 @@ class HardwareLink(private val _modules: Array<IModule<Any>>): DisposableHandle 
     }
 
     override fun dispose() {
+        for(i in _modules)
+            i.dispose()
+
         _coroutineExecutor.shutdown()
         coroutineScope.cancel()
     }
