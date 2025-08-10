@@ -40,6 +40,5 @@ class HotRun private constructor(): DisposableHandle {
 
     override fun dispose() {
         HardwareThreads.restart()
-        HardwareLink.restart()
     }
 }
