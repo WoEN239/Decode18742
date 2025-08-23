@@ -1,6 +1,7 @@
 package org.woen.threading
 
 import kotlinx.coroutines.DisposableHandle
+import org.firstinspires.ftc.ftccommon.external.OnCreate
 import org.woen.modules.IModule
 
 class HardwareThreads private constructor(): DisposableHandle {
@@ -14,6 +15,11 @@ class HardwareThreads private constructor(): DisposableHandle {
         fun restart(){
             INSTANCE?.dispose()
             init()
+        }
+
+        @OnCreate
+        fun a(){
+
         }
     }
 
