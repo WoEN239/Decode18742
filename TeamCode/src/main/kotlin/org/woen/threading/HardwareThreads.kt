@@ -5,11 +5,15 @@ import org.woen.modules.IModule
 
 class HardwareThreads private constructor(): DisposableHandle {
     companion object{
-        var INSTANCE = HardwareThreads()
+        var INSTANCE : HardwareThreads? = null
+
+        fun init(){
+            INSTANCE = HardwareThreads()
+        }
 
         fun restart(){
-            INSTANCE.dispose()
-            INSTANCE = HardwareThreads()
+            INSTANCE?.dispose()
+            init()
         }
     }
 

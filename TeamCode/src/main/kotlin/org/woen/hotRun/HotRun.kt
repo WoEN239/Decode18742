@@ -2,16 +2,20 @@ package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import kotlinx.coroutines.DisposableHandle
-import org.woen.threading.HardwareLink
 import org.woen.threading.HardwareThreads
 
 class HotRun private constructor(): DisposableHandle {
     companion object{
-        var INSTANCE = HotRun()
+        var INSTANCE: HotRun? = null
+
+        fun init(){
+            INSTANCE = HotRun()
+            HardwareThreads.init()
+        }
 
         fun restart(){
-            INSTANCE.dispose()
-            INSTANCE = HotRun()
+            INSTANCE?.dispose()
+            init()
         }
     }
 
@@ -39,6 +43,6 @@ class HotRun private constructor(): DisposableHandle {
     }
 
     override fun dispose() {
-        HardwareThreads.restart()
+        HardwareThreads.INSTANCE?.dispose()
     }
 }

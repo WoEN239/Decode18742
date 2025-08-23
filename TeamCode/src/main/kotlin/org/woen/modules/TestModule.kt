@@ -1,5 +1,6 @@
 package org.woen.modules
 
+import com.acmerobotics.dashboard.FtcDashboard
 import org.woen.threading.IHardwareDevice
 
 data class A(var a: Int = 5)
@@ -19,10 +20,6 @@ class TestModule: IModule<A> {
 
     override fun isBusy(): Boolean {
         return false
-    }
-
-    override fun getDevices(): Array<IHardwareDevice> {
-        return arrayOf()
     }
 
     override fun dispose() {
