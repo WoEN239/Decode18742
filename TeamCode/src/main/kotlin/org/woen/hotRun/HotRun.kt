@@ -2,11 +2,14 @@ package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import kotlinx.coroutines.DisposableHandle
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.HardwareThreads
+import java.util.concurrent.atomic.AtomicReference
 
 class HotRun private constructor(): DisposableHandle {
     companion object{
         var INSTANCE: HotRun? = null
+            private set
 
         fun init(){
             INSTANCE = HotRun()
@@ -19,7 +22,7 @@ class HotRun private constructor(): DisposableHandle {
         }
     }
 
-    var currentRunState = RunState.STOP
+    var currentRunState = AtomicReference(RunState.STOP)
         private set
 
     enum class RunState{
@@ -29,17 +32,19 @@ class HotRun private constructor(): DisposableHandle {
     }
 
     fun run(opMode: LinearOpMode){
-        currentRunState = RunState.INIT
+        ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
+
+        currentRunState.set(RunState.INIT)
 
         opMode.waitForStart()
 
-        currentRunState = RunState.RUN
+        currentRunState.set(RunState.RUN)
 
         while (opMode.opModeIsActive()){
 
         }
 
-        currentRunState = RunState.STOP
+        currentRunState.set(RunState.STOP)
     }
 
     override fun dispose() {
