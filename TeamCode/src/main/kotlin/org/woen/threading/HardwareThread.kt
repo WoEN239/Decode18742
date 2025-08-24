@@ -17,7 +17,7 @@ class HardwareThread(val link: HardwareLink): DisposableHandle  {
         for(i in _devices)
             i.init()
 
-        while (Thread.currentThread().isInterrupted){
+        while (!Thread.currentThread().isInterrupted){
             for(i in _devices)
                 i.update()
 
