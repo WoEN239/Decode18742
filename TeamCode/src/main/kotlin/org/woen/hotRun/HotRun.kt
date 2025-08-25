@@ -6,17 +6,17 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.HardwareThreads
 import java.util.concurrent.atomic.AtomicReference
 
-class HotRun private constructor(): DisposableHandle {
-    companion object{
+class HotRun private constructor() : DisposableHandle {
+    companion object {
         var INSTANCE: HotRun? = null
             private set
 
-        fun init(){
+        fun init() {
             INSTANCE = HotRun()
             HardwareThreads.init()
         }
 
-        fun restart(){
+        fun restart() {
             INSTANCE?.dispose()
             init()
         }
@@ -25,13 +25,13 @@ class HotRun private constructor(): DisposableHandle {
     var currentRunState = AtomicReference(RunState.STOP)
         private set
 
-    enum class RunState{
+    enum class RunState {
         INIT,
         STOP,
         RUN
     }
 
-    fun run(opMode: LinearOpMode){
+    fun run(opMode: LinearOpMode) {
         ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
 
         currentRunState.set(RunState.INIT)
@@ -40,7 +40,7 @@ class HotRun private constructor(): DisposableHandle {
 
         currentRunState.set(RunState.RUN)
 
-        while (opMode.opModeIsActive()){
+        while (opMode.opModeIsActive()) {
 
         }
 
