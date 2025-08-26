@@ -104,7 +104,8 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
                     _temporarySenders =
                         _temporarySenders.filter {
-                            it.first.seconds() > 0.0 } as ArrayList
+                            it.first.seconds() > 0.0
+                        } as ArrayList
                 }
 
                 _driverTelemetry?.let {
@@ -113,7 +114,12 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
                     }
                 }
 
-                FtcDashboard.getInstance().sendTelemetryPacket(_dashboardPacket)
+                val dash = FtcDashboard.getInstance()
+
+                synchronized(dash) {
+                    dash.clearTelemetry()
+                    dash.sendTelemetryPacket(_dashboardPacket)
+                }
 
                 _dashboardPacket = TelemetryPacket()
             } else {
