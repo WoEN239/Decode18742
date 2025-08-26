@@ -37,6 +37,7 @@ class HotRun private constructor() : DisposableHandle {
         currentRunState.set(RunState.INIT)
 
         opMode.waitForStart()
+        opMode.resetRuntime()
 
         currentRunState.set(RunState.RUN)
 

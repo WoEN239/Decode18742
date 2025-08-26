@@ -12,7 +12,7 @@ class TestModule : IModule<A> {
         })
 
         ThreadedTelemetry.LAZY_INSTANCE.addSender {
-            it.addData("c", 4)
+            it.addData("c", System.currentTimeMillis())
         }
     }
 
