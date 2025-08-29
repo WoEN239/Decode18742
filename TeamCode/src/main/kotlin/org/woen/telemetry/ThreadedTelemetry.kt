@@ -1,10 +1,13 @@
 package org.woen.telemetry
 
+import android.R
 import android.content.Context
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.config.ValueProvider
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
+import com.qualcomm.robotcore.robot.Robot
+import com.qualcomm.robotcore.util.RobotLog
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.internal.synchronized
@@ -216,6 +219,11 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
     fun drawRect(center: Vec2, size: Vec2, rot: Double = 0.0, color: Color) =
         drawRect(center, size, rot, color.toString())
+
+    fun log(vararg strs: String){
+        for(i in strs)
+            RobotLog.dd("18742robot", "robot[" + Thread.currentThread().name + "]: " + i)
+    }
 
     override fun dispose() {
         _thread.interrupt()
