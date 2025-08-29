@@ -1,12 +1,10 @@
 package org.woen.telemetry
 
-import android.R
 import android.content.Context
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.config.ValueProvider
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
-import com.qualcomm.robotcore.robot.Robot
 import com.qualcomm.robotcore.util.RobotLog
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -15,6 +13,7 @@ import org.firstinspires.ftc.ftccommon.external.OnCreate
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.woen.hotRun.HotRun
+import org.woen.utils.events.SimpleEvent
 import org.woen.utils.timers.ReversedElapsedTime
 import org.woen.utils.units.Color
 import org.woen.utils.units.Vec2
@@ -54,7 +53,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
     fun initConfigs() {
         val configs = ThreadedConfigs::class.declaredMemberProperties.filter {
-            it.returnType.classifier == AtomicValueProvider::class &&
+            (it.returnType.classifier == AtomicValueProvider::class || it.returnType.classifier == AtomicEventProvider::class) &&
                     it.findAnnotation<ThreadedConfig>() != null
         }
 
@@ -69,6 +68,26 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
         }
     }
 
+    init {
+        ThreadedConfigs.UPDATE_HZ.onSet += ::onUpdateHZChanged
+
+        onUpdateHZChanged(ThreadedConfigs.UPDATE_HZ.get())
+    }
+
+    @OptIn(InternalCoroutinesApi::class)
+    private fun onUpdateHZChanged(value: Int){
+        val dash = FtcDashboard.getInstance()
+
+        synchronized(dash){
+            dash.telemetryTransmissionInterval = 1000 / value
+        }
+    }
+
+    override fun dispose() {
+        ThreadedConfigs.UPDATE_HZ.onSet -= ::onUpdateHZChanged
+        _thread.interrupt()
+    }
+
     private var _temporarySenders =
         arrayListOf<Pair<ReversedElapsedTime, (ThreadedTelemetry) -> Unit>>()
 
@@ -78,11 +97,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
         sender: (ThreadedTelemetry) -> Unit
     ) = _temporarySenders.add(Pair(timer, sender))
 
-    private val _telemetrySenders = arrayListOf<(ThreadedTelemetry) -> Unit>()
-
-    @Synchronized
-    fun addSender(sender: (ThreadedTelemetry) -> Unit) =
-        _telemetrySenders.add(sender)
+    val onTelemetrySend = SimpleEvent<ThreadedTelemetry>()
 
     private var _driverTelemetry: Telemetry? = null
     private var _dashboardPacket = TelemetryPacket()
@@ -96,10 +111,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     private var _thread = thread(start = true) {
         while (!Thread.currentThread().isInterrupted) {
             if (HotRun.INSTANCE != null && HotRun.INSTANCE?.currentRunState?.get() != HotRun.RunState.STOP) {
-                synchronized(_telemetrySenders) {
-                    for (i in _telemetrySenders)
-                        i.invoke(this)
-                }
+                onTelemetrySend.invoke(this)
 
                 synchronized(_temporarySenders) {
                     for (i in _temporarySenders)
@@ -111,6 +123,9 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
                         } as ArrayList
                 }
 
+                _dashboardPacket.addLine("\n")
+                drawRect(Vec2.ZERO, Vec2.ZERO, 0.0, Color.RED)
+
                 _driverTelemetry?.let {
                     synchronized(it) {
                         _driverTelemetry?.update()
@@ -120,7 +135,6 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
                 val dash = FtcDashboard.getInstance()
 
                 synchronized(dash) {
-                    dash.clearTelemetry()
                     dash.sendTelemetryPacket(_dashboardPacket)
                 }
 
@@ -152,6 +166,8 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
             }
 
             _dashboardPacket.addLine(i)
+
+            logWithTag(i, "18742telemetry")
         }
     }
 
@@ -168,6 +184,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
             }
         }
 
+        logWithTag("$name: $data", "18742telemetry")
         _dashboardPacket.put(name, data)
     }
 
@@ -221,15 +238,15 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
         drawRect(center, size, rot, color.toString())
 
     fun log(vararg strs: String){
-        for(i in strs)
-            RobotLog.dd("18742robot", "robot[" + Thread.currentThread().name + "]: " + i)
+        for(i in strs) {
+            logWithTag(i, "18742robot")
+        }
     }
 
-    override fun dispose() {
-        _thread.interrupt()
-    }
+    fun logWithTag(str: String, tag: String) =
+        RobotLog.dd(tag, "robot[" + Thread.currentThread().name + "]: " + str)
 
-    class AtomicValueProvider<T>(default: T) : ValueProvider<T> {
+    open class AtomicValueProvider<T>(default: T) : ValueProvider<T> {
         private var data = AtomicReference(default)
 
         override fun get(): T = data.get()
@@ -237,6 +254,17 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
         override fun set(value: T?) {
             if (value != null)
                 data.set(value)
+        }
+    }
+
+    class AtomicEventProvider<T>(default: T): AtomicValueProvider<T>(default){
+        val onSet = SimpleEvent<T>()
+
+        override fun set(value: T?) {
+            super.set(value)
+
+            if(value != null)
+                onSet(value)
         }
     }
 }
