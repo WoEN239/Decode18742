@@ -69,9 +69,9 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     }
 
     init {
-        ThreadedConfigs.UPDATE_HZ.onSet += ::onUpdateHZChanged
+        ThreadedConfigs.TELEMETRY_UPDATE_HZ.onSet += ::onUpdateHZChanged
 
-        onUpdateHZChanged(ThreadedConfigs.UPDATE_HZ.get())
+        onUpdateHZChanged(ThreadedConfigs.TELEMETRY_UPDATE_HZ.get())
     }
 
     @OptIn(InternalCoroutinesApi::class)
@@ -84,7 +84,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     }
 
     override fun dispose() {
-        ThreadedConfigs.UPDATE_HZ.onSet -= ::onUpdateHZChanged
+        ThreadedConfigs.TELEMETRY_UPDATE_HZ.onSet -= ::onUpdateHZChanged
         _thread.interrupt()
     }
 
@@ -110,7 +110,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     @OptIn(InternalCoroutinesApi::class)
     private var _thread = thread(start = true) {
         while (!Thread.currentThread().isInterrupted) {
-            if (HotRun.INSTANCE != null && HotRun.INSTANCE?.currentRunState?.get() != HotRun.RunState.STOP) {
+            if (HotRun.INSTANCE != null && HotRun.INSTANCE?.currentRunState?.get() != HotRun.RunState.STOP && ThreadedConfigs.TELEMETRY_ENABLE.get()){
                 onTelemetrySend.invoke(this)
 
                 synchronized(_temporarySenders) {
@@ -149,7 +149,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
                 _dashboardPacket = TelemetryPacket()
             }
 
-            Thread.sleep((1000.0 / ThreadedConfigs.UPDATE_HZ.get()).toLong())
+            Thread.sleep((1000.0 / ThreadedConfigs.TELEMETRY_UPDATE_HZ.get()).toLong())
         }
     }
 
