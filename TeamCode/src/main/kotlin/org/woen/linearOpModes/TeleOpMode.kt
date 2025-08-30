@@ -7,6 +7,7 @@ import org.woen.hotRun.HotRun
 
 @TeleOp
 class TeleOpMode: LinearOpMode() {
+
     override fun runOpMode() {
         if(HotRun.INSTANCE == null)
             HotRun.init()

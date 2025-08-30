@@ -13,6 +13,7 @@ import org.firstinspires.ftc.ftccommon.external.OnCreate
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.woen.hotRun.HotRun
+import org.woen.threading.ThreadManager
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.timers.ReversedElapsedTime
 import org.woen.utils.units.Color
@@ -85,7 +86,6 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
     override fun dispose() {
         ThreadedConfigs.TELEMETRY_UPDATE_HZ.onSet -= ::onUpdateHZChanged
-        _thread.interrupt()
     }
 
     private var _temporarySenders =
@@ -108,7 +108,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     }
 
     @OptIn(InternalCoroutinesApi::class)
-    private var _thread = thread(start = true) {
+    private var _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted) {
             if (HotRun.INSTANCE != null && HotRun.INSTANCE?.currentRunState?.get() != HotRun.RunState.STOP && ThreadedConfigs.TELEMETRY_ENABLE.get()){
                 onTelemetrySend.invoke(this)
@@ -151,7 +151,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
             Thread.sleep((1000.0 / ThreadedConfigs.TELEMETRY_UPDATE_HZ.get()).toLong())
         }
-    }
+    })
 
     @OptIn(InternalCoroutinesApi::class)
     fun addLines(vararg lines: String) {

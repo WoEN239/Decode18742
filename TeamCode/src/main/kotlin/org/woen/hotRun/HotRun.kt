@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import kotlinx.coroutines.DisposableHandle
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.HardwareThreads
+import org.woen.threading.ThreadManager
 import java.util.concurrent.atomic.AtomicReference
 
 class HotRun private constructor() : DisposableHandle {
@@ -18,6 +19,7 @@ class HotRun private constructor() : DisposableHandle {
 
         fun restart() {
             INSTANCE?.dispose()
+            ThreadManager.restart()
             init()
         }
     }
@@ -32,6 +34,7 @@ class HotRun private constructor() : DisposableHandle {
     }
 
     fun run(opMode: LinearOpMode) {
+        ThreadManager.LAZY_INSTANCE.attachExceptionHandler()
         ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
 
         currentRunState.set(RunState.INIT)
