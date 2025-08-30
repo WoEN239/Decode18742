@@ -11,7 +11,7 @@ class HardwareThread(val link: HardwareLink): DisposableHandle  {
         _devices.addAll(devices)
     }
 
-    private val _thread = thread(start = true) {
+    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         var lastJob: Job? = null
 
         for(i in _devices)
@@ -24,11 +24,9 @@ class HardwareThread(val link: HardwareLink): DisposableHandle  {
             if(lastJob == null || lastJob.isCompleted)
                 lastJob = link.update()
         }
-    }
+    })
 
     override fun dispose() {
-        _thread.interrupt()
-
         for(i in _devices)
             i.dispose()
     }
