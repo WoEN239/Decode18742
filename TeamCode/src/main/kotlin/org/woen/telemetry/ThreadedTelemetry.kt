@@ -28,7 +28,7 @@ annotation class ThreadedConfig(val category: String, val name: String = "")
 
 class ThreadedTelemetry private constructor() : DisposableHandle {
     companion object {
-        var _nullableInstance: ThreadedTelemetry? = null
+        private var _nullableInstance: ThreadedTelemetry? = null
 
         val LAZY_INSTANCE: ThreadedTelemetry
             get() {
@@ -39,7 +39,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
             }
 
         fun restart() {
-            LAZY_INSTANCE.dispose()
+            _nullableInstance?.dispose()
             _nullableInstance = null
         }
 
@@ -89,7 +89,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     }
 
     private var _temporarySenders =
-        arrayListOf<Pair<ReversedElapsedTime, (ThreadedTelemetry) -> Unit>>()
+        mutableSetOf<Pair<ReversedElapsedTime, (ThreadedTelemetry) -> Unit>>()
 
     @Synchronized
     fun startTemporarySender(
@@ -110,7 +110,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     @OptIn(InternalCoroutinesApi::class)
     private var _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted) {
-            if (HotRun.INSTANCE != null && HotRun.INSTANCE?.currentRunState?.get() != HotRun.RunState.STOP && ThreadedConfigs.TELEMETRY_ENABLE.get()){
+            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.STOP && ThreadedConfigs.TELEMETRY_ENABLE.get()){
                 onTelemetrySend.invoke(this)
 
                 synchronized(_temporarySenders) {
@@ -120,7 +120,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
                     _temporarySenders =
                         _temporarySenders.filter {
                             it.first.seconds() > 0.0
-                        } as ArrayList
+                        } as MutableSet<Pair<ReversedElapsedTime, (ThreadedTelemetry) -> Unit>>
                 }
 
                 _dashboardPacket.addLine("\n")
