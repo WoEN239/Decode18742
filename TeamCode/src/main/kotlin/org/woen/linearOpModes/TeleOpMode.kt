@@ -9,9 +9,6 @@ import org.woen.hotRun.HotRun
 @TeleOp
 class TeleOpMode: GamepadOpMode() {
     override fun runOpMode() {
-        if(HotRun.INSTANCE == null)
-            HotRun.init()
-
-        HotRun.INSTANCE?.run(this)
+        HotRun.LAZY_INSTANCE.run(this, HotRun.RunMode.MANUAL)
     }
 }

@@ -13,7 +13,6 @@ import org.woen.threading.ThreadManager
 class FullRestart: LinearOpMode() {
     override fun runOpMode() {
         HotRun.restart()
-        ThreadedTelemetry.restart()
 
         OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).startActiveOpMode()
 
