@@ -1,8 +1,6 @@
 package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import kotlinx.coroutines.DisposableHandle
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.HardwareThreads
 import org.woen.threading.ThreadManager
