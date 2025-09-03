@@ -89,7 +89,7 @@ class ThreadedServo(val name: String,
                                         (_servoTime.seconds() - t3).pow(2) / 2)
                     }
 
-                    return@runBlocking
+                    return@withLock
                 }
 
                 if (_servoTime.seconds() <= t5) {
