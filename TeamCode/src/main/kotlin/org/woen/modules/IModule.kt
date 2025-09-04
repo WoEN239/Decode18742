@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package org.woen.modules
 
 import kotlinx.coroutines.DisposableHandle

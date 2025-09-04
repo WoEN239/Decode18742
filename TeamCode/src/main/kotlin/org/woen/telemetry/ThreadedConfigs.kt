@@ -14,7 +14,7 @@ object ThreadedConfigs {
     var DEFAULT_SERVO_V_MAX = ThreadedTelemetry.AtomicValueProvider(270.0)
 
     @ThreadedConfig(category = "SERVO_ANGLE")
-    var DEFAULT_SERVO_A = ThreadedTelemetry.AtomicValueProvider(270.0)
+    var DEFAULT_SERVO_A = ThreadedTelemetry.AtomicValueProvider(100.0)
 
     @ThreadedConfig(category = "SERVO_ANGLE")
     var DEFAULT_SERVO_OFFSET = ThreadedTelemetry.AtomicValueProvider(0.1)

@@ -24,8 +24,12 @@ class HardwareThreads private constructor(): DisposableHandle {
         }
     }
 
-    val CONTROL = HardwareThread(HardwareLink(arrayOf(TestModule())))
-    val EXPANSION = HardwareThread(HardwareLink(arrayOf()))
+    val CONTROL = HardwareThread(HardwareLink())
+    val EXPANSION = HardwareThread(HardwareLink())
+
+    fun initModules() {
+        CONTROL.link.addModules(TestModule())
+    }
 
     override fun dispose() {
         CONTROL.dispose()

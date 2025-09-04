@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.IHardwareDevice
 import org.woen.utils.servoAngle.ServoAngle
 import kotlin.math.abs
@@ -87,6 +88,8 @@ class ThreadedServo(val name: String,
                                 y0 + sign * (t2Pow + Vmax * (t3 - t2) + Vmax *
                                         (_servoTime.seconds() - t3) - a *
                                         (_servoTime.seconds() - t3).pow(2) / 2)
+
+                        _device.angle = currentAngle
                     }
 
                     return@withLock
@@ -99,6 +102,8 @@ class ThreadedServo(val name: String,
                         y0 + sign * (a * t4.pow(2) / 2 + sqrt(yAbs / a) * a *
                                 (_servoTime.seconds() - t4) - a *
                                 (_servoTime.seconds() - t4).pow(2) / 2)
+
+                    _device.angle = currentAngle
                 }
             }
         }
