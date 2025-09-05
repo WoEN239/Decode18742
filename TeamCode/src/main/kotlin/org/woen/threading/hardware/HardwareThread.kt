@@ -1,4 +1,4 @@
-package org.woen.threading
+package org.woen.threading.hardware
 
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import kotlinx.coroutines.DisposableHandle
@@ -10,6 +10,7 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
 import org.woen.hotRun.HotRun.RunState.STOP
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadManager
 import org.woen.utils.updateCounter.UpdateCounter
 import kotlin.concurrent.thread
 
@@ -51,7 +52,7 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
         }
     }
 
-    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
+    private val _thread = ThreadManager.Companion.LAZY_INSTANCE.register(thread(start = true) {
         var lastJob: Job? = null
 
         while (!Thread.currentThread().isInterrupted) {

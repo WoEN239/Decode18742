@@ -1,4 +1,4 @@
-package org.woen.threading
+package org.woen.threading.hardware
 
 import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlinx.coroutines.DisposableHandle

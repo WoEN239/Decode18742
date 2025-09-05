@@ -2,7 +2,7 @@ package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
 import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.HardwareThreads
+import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedGamepad
 import java.util.concurrent.atomic.AtomicReference

@@ -1,11 +1,10 @@
-package org.woen.threading
+package org.woen.threading.hardware
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
-import org.woen.modules.TestModule
 import java.util.concurrent.Executors
 
 class HardwareLink{
