@@ -1,4 +1,4 @@
-package org.woen.threading.exponentialFilter
+package org.woen.utils.exponentialFilter
 
 import com.qualcomm.robotcore.util.ElapsedTime
 

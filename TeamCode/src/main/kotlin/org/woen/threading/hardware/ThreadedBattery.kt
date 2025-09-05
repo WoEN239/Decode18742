@@ -2,8 +2,6 @@ package org.woen.threading.hardware
 
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.VoltageSensor
-import org.woen.threading.HardwareThreads
-import org.woen.threading.IHardwareDevice
 import java.util.concurrent.atomic.AtomicReference
 
 class ThreadedBattery private constructor(): IHardwareDevice {

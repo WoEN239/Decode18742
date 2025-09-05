@@ -1,10 +1,7 @@
-package org.woen.threading
+package org.woen.threading.hardware
 
-import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlinx.coroutines.DisposableHandle
-import org.firstinspires.ftc.ftccommon.external.OnCreate
 import org.woen.modules.TestModule
-import org.woen.telemetry.ThreadedTelemetry
 
 class HardwareThreads private constructor(): DisposableHandle {
     companion object{
