@@ -7,7 +7,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.telemetry.ThreadedConfigs
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.IHardwareDevice
 import org.woen.utils.servoAngle.ServoAngle
 import kotlin.math.abs

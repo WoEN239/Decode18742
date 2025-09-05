@@ -1,7 +1,6 @@
 package org.woen.threading
 
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
-import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
@@ -11,7 +10,7 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
 import org.woen.hotRun.HotRun.RunState.STOP
 import org.woen.telemetry.ThreadedTelemetry
-import org.woen.utils.updateCouneter.UpdateCounter
+import org.woen.utils.updateCounter.UpdateCounter
 import kotlin.concurrent.thread
 
 class HardwareThread(val link: HardwareLink) : DisposableHandle {
@@ -33,10 +32,21 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
                 val hardwareMap =
                     OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
 
-                for (i in devices)
+                for (i in devices) {
                     i.init(hardwareMap)
+                    _devices.add(i)
+                }
+            }
+        }
+    }
 
-                _devices.addAll(devices)
+    fun removeDevices(vararg devices: IHardwareDevice){
+        runBlocking {
+            _devicesMutex.withLock {
+                for(i in devices){
+                    if(_devices.contains(i))
+                        _devices.remove(i)
+                }
             }
         }
     }
