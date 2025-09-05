@@ -5,6 +5,7 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedGamepad
+import org.woen.threading.hardware.ThreadedBattery
 import java.util.concurrent.atomic.AtomicReference
 
 class HotRun private constructor() {
@@ -25,6 +26,7 @@ class HotRun private constructor() {
             HardwareThreads.restart()
             ThreadedGamepad.restart()
             ThreadedTelemetry.restart()
+            ThreadedBattery.restart()
         }
     }
 
