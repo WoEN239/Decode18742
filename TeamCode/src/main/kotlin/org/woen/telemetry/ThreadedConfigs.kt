@@ -20,4 +20,7 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "SERVO_ANGLE")
     var DEFAULT_SERVO_OFFSET = ThreadedTelemetry.AtomicValueProvider(0.1)
+
+    @ThreadedConfig(category = "THREAD_POOL")
+    var THREAD_POOL_THREADS_COUNT = ThreadedTelemetry.AtomicValueProvider(5)
 }

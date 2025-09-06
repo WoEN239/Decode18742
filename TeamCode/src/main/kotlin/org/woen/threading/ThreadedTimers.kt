@@ -3,10 +3,10 @@ package org.woen.threading
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -31,7 +31,7 @@ class ThreadedTimers private constructor() : DisposableHandle {
 
     private val _timersExecutor = Executors.newSingleThreadExecutor()
     private val _timersCoroutineDispatcher = _timersExecutor.asCoroutineDispatcher()
-    private val _timersCoroutineScope = CoroutineScope(_timersCoroutineDispatcher)
+    private val _timersCoroutineScope = CoroutineScope(_timersCoroutineDispatcher + Job())
 
     interface ITimer {
         suspend fun start()

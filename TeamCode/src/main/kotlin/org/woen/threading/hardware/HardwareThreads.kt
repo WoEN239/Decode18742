@@ -1,7 +1,6 @@
 package org.woen.threading.hardware
 
 import kotlinx.coroutines.DisposableHandle
-import org.woen.modules.TestModule
 
 class HardwareThreads private constructor(): DisposableHandle {
     companion object{
@@ -26,7 +25,7 @@ class HardwareThreads private constructor(): DisposableHandle {
     val EXPANSION = HardwareThread(HardwareLink())
 
     fun initModules() {
-        CONTROL.link.addModules(TestModule())
+
     }
 
     override fun dispose() {

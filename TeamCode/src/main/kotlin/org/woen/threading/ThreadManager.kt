@@ -3,6 +3,8 @@ package org.woen.threading
 import android.os.Handler
 import android.os.Looper
 import kotlinx.coroutines.DisposableHandle
+import org.woen.telemetry.ThreadedConfigs
+import java.util.concurrent.Executors
 
 class ThreadManager : DisposableHandle {
     companion object {
@@ -22,6 +24,8 @@ class ThreadManager : DisposableHandle {
             _nullableInstance = null
         }
     }
+
+    val globalThreadPool = Executors.newFixedThreadPool(ThreadedConfigs.THREAD_POOL_THREADS_COUNT.get())
 
     private val _allThreads = mutableSetOf<Thread>()
 
@@ -46,5 +50,7 @@ class ThreadManager : DisposableHandle {
     override fun dispose() {
         for (i in _allThreads)
             i.interrupt()
+
+        globalThreadPool.shutdown()
     }
 }
