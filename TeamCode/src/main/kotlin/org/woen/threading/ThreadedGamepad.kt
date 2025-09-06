@@ -11,6 +11,7 @@ class ThreadedGamepad private constructor() {
     companion object{
         private var _nullableInstance: ThreadedGamepad? = null
 
+        @get:Synchronized
         val LAZY_INSTANCE: ThreadedGamepad
             get() {
                 if(_nullableInstance == null)

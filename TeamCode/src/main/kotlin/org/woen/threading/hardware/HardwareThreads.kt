@@ -7,6 +7,7 @@ class HardwareThreads private constructor(): DisposableHandle {
     companion object{
         private var _nullableInstance: HardwareThreads? = null
 
+        @get:Synchronized
         val LAZY_INSTANCE : HardwareThreads
             get() {
                 if(_nullableInstance == null)
