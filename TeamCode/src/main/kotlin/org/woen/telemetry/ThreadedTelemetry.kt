@@ -33,6 +33,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadedTelemetry? = null
 
+        @get:Synchronized
         val LAZY_INSTANCE: ThreadedTelemetry
             get() {
                 if (_nullableInstance == null)

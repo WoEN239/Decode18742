@@ -78,5 +78,7 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
     override fun dispose() {
         for (i in _devices)
             i.dispose()
+
+        link.dispose()
     }
 }

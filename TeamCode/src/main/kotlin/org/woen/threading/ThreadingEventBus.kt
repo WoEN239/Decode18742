@@ -14,6 +14,7 @@ class ThreadingEventBus private constructor() {
     companion object {
         private var _nullableInstance: ThreadingEventBus? = null
 
+        @get:Synchronized
         val LAZY_INSTANCE: ThreadingEventBus
             get() {
                 if (_nullableInstance == null)

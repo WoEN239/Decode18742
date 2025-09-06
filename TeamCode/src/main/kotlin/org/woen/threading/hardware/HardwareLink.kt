@@ -1,13 +1,14 @@
 package org.woen.threading.hardware
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
 import java.util.concurrent.Executors
 
-class HardwareLink{
+class HardwareLink: DisposableHandle{
     companion object{
         private val _coroutineExecutor = Executors.newSingleThreadExecutor()
         private val _coroutineDispatcher = _coroutineExecutor.asCoroutineDispatcher()
@@ -29,5 +30,9 @@ class HardwareLink{
                 i.process(data)
             }
         }
+    }
+
+    override fun dispose() {
+        _coroutineExecutor.shutdown()
     }
 }

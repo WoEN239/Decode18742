@@ -8,6 +8,7 @@ class ThreadedBattery private constructor(): IHardwareDevice {
     companion object{
         private var _nullableInstance: ThreadedBattery? = null
 
+        @get:Synchronized
         val LAZY_INSTANCE: ThreadedBattery
             get() {
                 if(_nullableInstance == null)

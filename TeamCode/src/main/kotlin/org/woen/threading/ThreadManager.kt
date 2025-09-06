@@ -8,6 +8,7 @@ class ThreadManager : DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadManager? = null
 
+        @get:Synchronized
         val LAZY_INSTANCE: ThreadManager
             get() {
                 if (_nullableInstance == null)

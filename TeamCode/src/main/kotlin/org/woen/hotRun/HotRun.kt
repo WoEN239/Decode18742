@@ -5,6 +5,7 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedTimers
 import org.woen.threading.hardware.ThreadedBattery
 import java.util.concurrent.atomic.AtomicReference
 
@@ -12,6 +13,7 @@ class HotRun private constructor() {
     companion object {
         private var _nullableInstance: HotRun? = null
 
+        @get:Synchronized
         val LAZY_INSTANCE: HotRun
             get() {
                 if(_nullableInstance == null)
@@ -27,6 +29,7 @@ class HotRun private constructor() {
             ThreadedGamepad.restart()
             ThreadedTelemetry.restart()
             ThreadedBattery.restart()
+            ThreadedTimers.restart()
         }
     }
 
