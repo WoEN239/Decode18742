@@ -1,5 +1,6 @@
 package org.woen.utils.regulator
 
+import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.threading.hardware.ThreadedBattery
 import kotlin.math.pow
@@ -44,7 +45,7 @@ class Regulator(val parameters: RegulatorParameters) {
 
         val uI = _integral * parameters.kI
 
-        val u = uP + uI + uD + uF + uG + uSG + uPow
+        var u = uP + uI + uD + uF + uG + uSG + uPow
 
         if (err * _errOld < 0.0f && parameters.resetI)
             resetIntegral()
@@ -60,6 +61,9 @@ class Regulator(val parameters: RegulatorParameters) {
 
         _deltaTime.reset()
         _errOld = err
+
+        if(parameters.limitU >= 0.0)
+            u = clamp(u, -parameters.limitU, parameters.limitU)
 
         return u
     }

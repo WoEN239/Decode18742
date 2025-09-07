@@ -6,5 +6,5 @@ import kotlinx.coroutines.DisposableHandle
 
 interface IModule: DisposableHandle {
     fun process()
-    fun isBusy(): Boolean
+    val isBusy: Boolean
 }

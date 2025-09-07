@@ -25,7 +25,7 @@ data class Angle(var angle: Double){
         angle = chop(angle)
     }
 
-    fun toDegree() = angle / PI * 180
+    fun ofDegree() = angle / PI * 180
 
     override fun equals(other: Any?): Boolean {
         if(other == null)
@@ -52,6 +52,10 @@ data class Angle(var angle: Double){
 
     operator fun div(ang: Angle) = Angle(chop(angle / ang.angle))
     operator fun div(ang: Double) = Angle(chop(angle / ang))
+
+    override fun toString(): String {
+        return ofDegree().toString() + "°"
+    }
 }
 
 operator fun Double.plus(ang: Angle) = Angle(chop(this + ang.angle))

@@ -8,7 +8,6 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.qualcomm.robotcore.util.RobotLog
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -117,13 +116,13 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
     fun setDriveTelemetry(telemetry: Telemetry) {
         runBlocking {
-            _driveTelmetryMutex.withLock {
+            _driveTelemetryMutex.withLock {
                 _driverTelemetry = telemetry
             }
         }
     }
 
-    private val _driveTelmetryMutex = Mutex()
+    private val _driveTelemetryMutex = Mutex()
 
     @OptIn(InternalCoroutinesApi::class)
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
@@ -149,7 +148,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
                 drawRect(Vec2.ZERO, Vec2.ZERO, 0.0, Color.RED)
 
                 runBlocking {
-                    _driveTelmetryMutex.withLock {
+                    _driveTelemetryMutex.withLock {
                         _driverTelemetry?.update()
                     }
                 }
@@ -159,7 +158,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
                 _dashboardPacket = TelemetryPacket()
             } else {
                 runBlocking {
-                    _driveTelmetryMutex.withLock {
+                    _driveTelemetryMutex.withLock {
                         _driverTelemetry?.clearAll()
                     }
                 }
@@ -184,7 +183,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
         for (i in lines) {
             runBlocking {
-                _driveTelmetryMutex.withLock {
+                _driveTelemetryMutex.withLock {
                     _driverTelemetry?.addLine(i)
                 }
             }
@@ -203,7 +202,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
             return
 
         runBlocking {
-            _driveTelmetryMutex.withLock {
+            _driveTelemetryMutex.withLock {
                 _driverTelemetry?.addData(name, data)
             }
         }
@@ -267,7 +266,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
         }
     }
 
-    fun logWithTag(str: String, tag: String) =
+    private fun logWithTag(str: String, tag: String) =
         RobotLog.dd(tag, "robot[" + Thread.currentThread().name + "]: " + str)
 
     open class AtomicValueProvider<T>(default: T) : ValueProvider<T> {

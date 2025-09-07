@@ -33,7 +33,7 @@ class HardwareLink : DisposableHandle {
     fun update(): Job = _coroutineScope.launch {
         _modulesMutex.withLock {
             for (i in _modules) {
-                if (!i.isBusy())
+                if (!i.isBusy)
                     i.process()
             }
         }

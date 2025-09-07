@@ -62,4 +62,8 @@ data class Vec2(@JvmField var x: Double, @JvmField var y: Double) {
         result = 31 * result + y.hashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "($x, $y)"
+    }
 }

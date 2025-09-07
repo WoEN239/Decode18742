@@ -37,4 +37,26 @@ data class Orientation(var pos: Vec2, var angl: Angle) {
     operator fun div(orientation: Orientation) = Orientation(pos / orientation.pos, angl / orientation.angl)
     operator fun div(orientation: Vec2) = Orientation(pos / orientation, angl)
     operator fun div(orientation: Angle) = Orientation(pos, angl / orientation)
+
+    override fun toString(): String {
+        return "$pos $angl"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if(other == null)
+            return false
+
+        if(other is Orientation && other.pos == pos && other.angl == angl)
+            return true
+
+        return false
+    }
+
+    override fun hashCode(): Int {
+        var result = pos.hashCode()
+        result = 31 * result + angl.hashCode()
+        result = 31 * result + x.hashCode()
+        result = 31 * result + y.hashCode()
+        return result
+    }
 }

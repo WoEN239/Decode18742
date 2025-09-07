@@ -88,7 +88,7 @@ class HotRun private constructor() {
         opModeStartEvent.invoke(opMode)
 
         while (opMode.opModeIsActive()) {
-
+            opModeUpdateEvent.invoke(opMode)
         }
 
         currentRunState.set(RunState.STOP)

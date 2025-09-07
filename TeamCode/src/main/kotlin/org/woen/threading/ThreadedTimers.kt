@@ -81,10 +81,10 @@ class ThreadedTimers private constructor() : DisposableHandle {
 
             _activeTime.reset()
 
-            while (!suppler() && _activeTime.seconds() < timeout)
+            while (!suppler() && (_activeTime.seconds() < timeout || timeout < 0.0))
                 delay(5)
 
-            if (_activeTime.seconds() >= timeout)
+            if (_activeTime.seconds() >= timeout && timeout >= 0.0)
                 timeoutFunction()
             else
                 function()
