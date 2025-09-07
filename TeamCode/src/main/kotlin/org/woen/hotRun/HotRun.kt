@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.ThreadManager
+import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedTimers
 import org.woen.threading.hardware.ThreadedBattery
@@ -24,12 +25,14 @@ class HotRun private constructor() {
 
         fun restart() {
             _nullableInstance = null
+
             ThreadManager.restart()
             HardwareThreads.restart()
             ThreadedGamepad.restart()
             ThreadedTelemetry.restart()
             ThreadedBattery.restart()
             ThreadedTimers.restart()
+            ThreadedEventBus.restart()
         }
     }
 

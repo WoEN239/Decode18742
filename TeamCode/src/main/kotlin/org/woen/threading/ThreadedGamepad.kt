@@ -6,58 +6,75 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ThreadedGamepad private constructor() {
-    companion object{
+    companion object {
         private var _nullableInstance: ThreadedGamepad? = null
 
-        @get:Synchronized
+        private val _instanceMutex = Mutex()
+
         val LAZY_INSTANCE: ThreadedGamepad
-            get() {
-                if(_nullableInstance == null)
-                    _nullableInstance = ThreadedGamepad()
+            get() =
+                runBlocking {
+                    _instanceMutex.withLock {
+                        if (_nullableInstance == null)
+                            _nullableInstance = ThreadedGamepad()
 
-                return _nullableInstance!!
+                        return@withLock _nullableInstance!!
+                    }
+                }
+
+        fun restart() {
+            runBlocking {
+                _instanceMutex.withLock {
+                    _nullableInstance = null
+                }
             }
-
-        fun restart(){
-            _nullableInstance = null
         }
     }
 
-    interface IListener{
+    interface IListener {
         fun update(gamepadData: Gamepad)
     }
 
-    private class HoldListener(val activateState: Boolean, val buttonSuppler: (Gamepad) -> Boolean,
-                               val onTriggered: () -> Unit, val listenerCoroutineScope: CoroutineScope): IListener{
+    private class HoldListener(
+        val activateState: Boolean, val buttonSuppler: (Gamepad) -> Boolean,
+        val onTriggered: () -> Unit, val listenerCoroutineScope: CoroutineScope
+    ) : IListener {
         override fun update(gamepadData: Gamepad) {
-            if(buttonSuppler(gamepadData) == activateState)
+            if (buttonSuppler(gamepadData) == activateState)
                 listenerCoroutineScope.launch {
                     onTriggered()
                 }
         }
     }
-    
-    private class ClickListener(val activationState: Boolean, val buttonSuppler: (Gamepad) -> Boolean,
-                                val onTriggered: () -> Unit, val listenerCoroutineScope: CoroutineScope): IListener{
+
+    private class ClickListener(
+        val activationState: Boolean, val buttonSuppler: (Gamepad) -> Boolean,
+        val onTriggered: () -> Unit, val listenerCoroutineScope: CoroutineScope
+    ) : IListener {
         private var oldState = false
-        
+
         override fun update(gamepadData: Gamepad) {
             val currentState = buttonSuppler(gamepadData)
-            
-            if(currentState != oldState && currentState == activationState){
+
+            if (currentState != oldState && currentState == activationState) {
                 listenerCoroutineScope.launch {
                     onTriggered()
                 }
             }
-            
+
             oldState = currentState
         }
     }
 
-    private class AnalogListener(val inputSuppler: (Gamepad) -> Double,
-                                 val onTriggered: (Double) -> Unit, val listenerCoroutineScope: CoroutineScope): IListener {
+    private class AnalogListener(
+        val inputSuppler: (Gamepad) -> Double,
+        val onTriggered: (Double) -> Unit, val listenerCoroutineScope: CoroutineScope
+    ) : IListener {
         override fun update(gamepadData: Gamepad) {
             val data = inputSuppler(gamepadData)
 
@@ -68,28 +85,38 @@ class ThreadedGamepad private constructor() {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun createHoldUpListener(buttonSuppler: (Gamepad) -> Boolean, onTriggered: () -> Unit,
-                             listenerCoroutineScope: CoroutineScope = GlobalScope) =
+    fun createHoldUpListener(
+        buttonSuppler: (Gamepad) -> Boolean, onTriggered: () -> Unit,
+        listenerCoroutineScope: CoroutineScope = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
+    ) =
         HoldListener(false, buttonSuppler, onTriggered, listenerCoroutineScope) as IListener
-    
+
     @OptIn(DelicateCoroutinesApi::class)
-    fun createHoldDownListener(buttonSuppler: (Gamepad) -> Boolean, onTriggered: () -> Unit,
-                               listenerCoroutineScope: CoroutineScope = GlobalScope) =
+    fun createHoldDownListener(
+        buttonSuppler: (Gamepad) -> Boolean, onTriggered: () -> Unit,
+        listenerCoroutineScope: CoroutineScope = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
+    ) =
         HoldListener(true, buttonSuppler, onTriggered, listenerCoroutineScope) as IListener
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun createClickUpListener(buttonSuppler: (Gamepad) -> Boolean, onTriggered: () -> Unit,
-                              listenerCoroutineScope: CoroutineScope = GlobalScope) =
+    fun createClickUpListener(
+        buttonSuppler: (Gamepad) -> Boolean, onTriggered: () -> Unit,
+        listenerCoroutineScope: CoroutineScope = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
+    ) =
         ClickListener(false, buttonSuppler, onTriggered, listenerCoroutineScope) as IListener
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun createClickDownListener(buttonSuppler: (Gamepad) -> Boolean, onTriggered: () -> Unit,
-                                listenerCoroutineScope: CoroutineScope = GlobalScope) =
+    fun createClickDownListener(
+        buttonSuppler: (Gamepad) -> Boolean, onTriggered: () -> Unit,
+        listenerCoroutineScope: CoroutineScope = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
+    ) =
         ClickListener(true, buttonSuppler, onTriggered, listenerCoroutineScope) as IListener
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun createAnalogListener(inputSuppler: (Gamepad) -> Double, onTriggered: (Double) -> Unit,
-                             listenerCoroutineScope: CoroutineScope = GlobalScope) =
+    fun createAnalogListener(
+        inputSuppler: (Gamepad) -> Double, onTriggered: (Double) -> Unit,
+        listenerCoroutineScope: CoroutineScope = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
+    ) =
         AnalogListener(inputSuppler, onTriggered, listenerCoroutineScope) as IListener
 
     private val _allListeners = mutableSetOf<IListener>()
@@ -97,9 +124,9 @@ class ThreadedGamepad private constructor() {
     @Synchronized
     fun addListener(listener: IListener) = _allListeners.add(listener)
 
-    fun initCallbacks(opMode: GamepadOpMode){
+    fun initCallbacks(opMode: GamepadOpMode) {
         opMode.gamepad1Callback += {
-            for(i in _allListeners)
+            for (i in _allListeners)
                 i.update(it)
         }
     }

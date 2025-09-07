@@ -2,7 +2,6 @@ package org.woen.threading
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -10,21 +9,28 @@ import kotlinx.coroutines.sync.withLock
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
-class ThreadingEventBus private constructor() {
+class ThreadedEventBus private constructor() {
     companion object {
-        private var _nullableInstance: ThreadingEventBus? = null
+        private var _nullableInstance: ThreadedEventBus? = null
 
-        @get:Synchronized
-        val LAZY_INSTANCE: ThreadingEventBus
-            get() {
-                if (_nullableInstance == null)
-                    _nullableInstance = ThreadingEventBus()
+        private val _instanceMutex = Mutex()
 
-                return _nullableInstance!!
+        val LAZY_INSTANCE: ThreadedEventBus
+            get() = runBlocking {
+                _instanceMutex.withLock {
+                    if (_nullableInstance == null)
+                        _nullableInstance = ThreadedEventBus()
+
+                    return@withLock _nullableInstance!!
+                }
             }
 
         fun restart() {
-            _nullableInstance = null
+            runBlocking {
+                _instanceMutex.withLock {
+                    _nullableInstance = null
+                }
+            }
         }
     }
 
@@ -36,7 +42,7 @@ class ThreadingEventBus private constructor() {
     fun <T : Any> subscribe(
         event: KClass<T>,
         callback: (T) -> Unit,
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
     ) {
         runBlocking {
             _eventsMutex.withLock {

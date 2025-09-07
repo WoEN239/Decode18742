@@ -7,6 +7,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -14,18 +17,25 @@ class ThreadedTimers private constructor() : DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadedTimers? = null
 
-        @get:Synchronized
-        val LAZY_INSTANCE: ThreadedTimers
-            get() {
-                if (_nullableInstance == null)
-                    _nullableInstance = ThreadedTimers()
+        private val _instanceMutex = Mutex()
 
-                return _nullableInstance!!
+        val LAZY_INSTANCE: ThreadedTimers
+            get() = runBlocking {
+                _instanceMutex.withLock {
+                    if (_nullableInstance == null)
+                        _nullableInstance = ThreadedTimers()
+
+                    return@withLock _nullableInstance!!
+                }
             }
 
         fun restart() {
-            _nullableInstance?.dispose()
-            _nullableInstance = null
+            runBlocking {
+                _instanceMutex.withLock {
+                    _nullableInstance?.dispose()
+                    _nullableInstance = null
+                }
+            }
         }
     }
 

@@ -33,18 +33,25 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadedTelemetry? = null
 
-        @get:Synchronized
-        val LAZY_INSTANCE: ThreadedTelemetry
-            get() {
-                if (_nullableInstance == null)
-                    _nullableInstance = ThreadedTelemetry()
+        private val _instanceMutex = Mutex()
 
-                return _nullableInstance!!
+        val LAZY_INSTANCE: ThreadedTelemetry
+            get() = runBlocking {
+                _instanceMutex.withLock {
+                    if (_nullableInstance == null)
+                        _nullableInstance = ThreadedTelemetry()
+
+                    return@withLock _nullableInstance!!
+                }
             }
 
         fun restart() {
-            _nullableInstance?.dispose()
-            _nullableInstance = null
+            runBlocking {
+                _instanceMutex.withLock {
+                    _nullableInstance?.dispose()
+                    _nullableInstance = null
+                }
+            }
         }
 
         @OnCreate
@@ -126,7 +133,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
                 val telemetry = this
 
-                runBlocking{
+                runBlocking {
                     _temporarySendersMutex.withLock {
                         for (i in _temporarySenders)
                             i.second.invoke(telemetry)

@@ -2,7 +2,13 @@ package org.woen.threading
 
 import android.os.Handler
 import android.os.Looper
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.woen.telemetry.ThreadedConfigs
 import java.util.concurrent.Executors
 
@@ -10,22 +16,32 @@ class ThreadManager : DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadManager? = null
 
-        @get:Synchronized
-        val LAZY_INSTANCE: ThreadManager
-            get() {
-                if (_nullableInstance == null)
-                    _nullableInstance = ThreadManager()
+        private val _instanceMutex = Mutex()
 
-                return _nullableInstance!!
-            }
+        val LAZY_INSTANCE: ThreadManager
+            get() =
+                runBlocking {
+                    _instanceMutex.withLock {
+                        if (_nullableInstance == null)
+                            _nullableInstance = ThreadManager()
+
+                        return@withLock _nullableInstance!!
+                    }
+                }
 
         fun restart() {
-            _nullableInstance?.dispose()
-            _nullableInstance = null
+            runBlocking {
+                _instanceMutex.withLock {
+                    _nullableInstance?.dispose()
+                    _nullableInstance = null
+                }
+            }
         }
     }
 
-    val globalThreadPool = Executors.newFixedThreadPool(ThreadedConfigs.THREAD_POOL_THREADS_COUNT.get())
+    private val _threadPool =
+        Executors.newFixedThreadPool(ThreadedConfigs.THREAD_POOL_THREADS_COUNT.get())
+    val globalCoroutineScope = CoroutineScope(_threadPool.asCoroutineDispatcher() + Job())
 
     private val _allThreads = mutableSetOf<Thread>()
 
@@ -51,6 +67,6 @@ class ThreadManager : DisposableHandle {
         for (i in _allThreads)
             i.interrupt()
 
-        globalThreadPool.shutdown()
+        _threadPool.shutdown()
     }
 }

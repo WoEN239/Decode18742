@@ -2,24 +2,35 @@ package org.woen.threading.hardware
 
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.VoltageSensor
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.atomic.AtomicReference
 
-class ThreadedBattery private constructor(): IHardwareDevice {
-    companion object{
+class ThreadedBattery private constructor() : IHardwareDevice {
+    companion object {
         private var _nullableInstance: ThreadedBattery? = null
 
-        @get:Synchronized
+        private val _instanceMutex = Mutex()
+
         val LAZY_INSTANCE: ThreadedBattery
-            get() {
-                if(_nullableInstance == null)
-                    _nullableInstance = ThreadedBattery()
+            get() =
+                runBlocking {
+                    _instanceMutex.withLock {
+                        if(_nullableInstance == null)
+                            _nullableInstance = ThreadedBattery()
 
-                return _nullableInstance!!
+                        return@withLock _nullableInstance!!
+                    }
+                }
+
+        fun restart() {
+            runBlocking {
+                _instanceMutex.withLock {
+                    _nullableInstance?.let { HardwareThreads.LAZY_INSTANCE.CONTROL.removeDevices(it) }
+                    _nullableInstance = null
+                }
             }
-
-        fun restart(){
-            _nullableInstance?.let { HardwareThreads.LAZY_INSTANCE.CONTROL.removeDevices(it) }
-            _nullableInstance = null
         }
     }
 
@@ -29,7 +40,7 @@ class ThreadedBattery private constructor(): IHardwareDevice {
 
     var currentVoltage: Double
         get() = _atomicVoltage.get()
-        private set(value){
+        private set(value) {
             _atomicVoltage.set(value)
         }
 

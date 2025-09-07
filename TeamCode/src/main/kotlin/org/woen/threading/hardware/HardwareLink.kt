@@ -15,20 +15,16 @@ class HardwareLink: DisposableHandle{
         private val _coroutineScope = CoroutineScope(_coroutineDispatcher + Job())
     }
 
-    private val _modules = mutableSetOf<IModule<Any>>()
+    private val _modules = mutableSetOf<IModule>()
 
-    fun addModules(vararg modules: IModule<*>){
-        for(i in modules)
-            _modules.add(i as IModule<Any>)
+    fun addModules(vararg modules: IModule){
+        _modules.addAll(modules)
     }
 
     fun update(): Job = _coroutineScope.launch {
         for(i in _modules){
-            if(!i.isBusy()){
-                val data = i.getData()
-
-                i.process(data)
-            }
+            if(!i.isBusy())
+                i.process()
         }
     }
 
