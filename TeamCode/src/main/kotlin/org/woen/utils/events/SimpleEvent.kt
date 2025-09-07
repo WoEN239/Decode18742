@@ -1,21 +1,37 @@
 package org.woen.utils.events
 
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
 class SimpleEvent<T> {
     private val listeners = mutableSetOf<(T) -> Unit>()
 
-    @Synchronized
-    operator fun plusAssign(listener: (T) -> Unit){
-        listeners.add(listener)
+    private val _listenersMutex = Mutex()
+
+    operator fun plusAssign(listener: (T) -> Unit) {
+        runBlocking {
+            _listenersMutex.withLock {
+                listeners.add(listener)
+            }
+        }
     }
 
-    @Synchronized
-    operator fun minusAssign(listener: (T) -> Unit){
-        listeners.remove(listener)
+    operator fun minusAssign(listener: (T) -> Unit) {
+        runBlocking {
+            _listenersMutex.withLock {
+                if (listeners.contains(listener))
+                    listeners.remove(listener)
+            }
+        }
     }
 
-    @Synchronized
-    operator fun invoke(data: T){
-        for(i in listeners)
-            i.invoke(data)
+    operator fun invoke(data: T) {
+        runBlocking {
+            _listenersMutex.withLock {
+                for (i in listeners)
+                    i.invoke(data)
+            }
+        }
     }
 }

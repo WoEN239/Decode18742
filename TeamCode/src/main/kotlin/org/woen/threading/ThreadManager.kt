@@ -45,6 +45,8 @@ class ThreadManager : DisposableHandle {
 
     private val _allThreads = mutableSetOf<Thread>()
 
+    private val _allThreadsMutex = Mutex()
+
     private var _mainHandler: Handler? = null
 
     fun attachExceptionHandler() {
@@ -58,14 +60,22 @@ class ThreadManager : DisposableHandle {
             }
         }
 
-        _allThreads.add(thread)
+        runBlocking {
+            _allThreadsMutex.withLock {
+                _allThreads.add(thread)
+            }
+        }
 
         return thread
     }
 
     override fun dispose() {
-        for (i in _allThreads)
-            i.interrupt()
+        runBlocking {
+            _allThreadsMutex.withLock {
+                for (i in _allThreads)
+                    i.interrupt()
+            }
+        }
 
         _threadPool.shutdown()
     }

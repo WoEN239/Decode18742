@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
 import com.qualcomm.robotcore.hardware.Gamepad
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -119,15 +118,26 @@ class ThreadedGamepad private constructor() {
     ) =
         AnalogListener(inputSuppler, onTriggered, listenerCoroutineScope) as IListener
 
+    private val _listenersMutex = Mutex()
+
     private val _allListeners = mutableSetOf<IListener>()
 
     @Synchronized
-    fun addListener(listener: IListener) = _allListeners.add(listener)
+    fun addListener(listener: IListener) =
+        runBlocking {
+            _listenersMutex.withLock {
+                _allListeners.add(listener)
+            }
+        }
 
     fun initCallbacks(opMode: GamepadOpMode) {
         opMode.gamepad1Callback += {
-            for (i in _allListeners)
-                i.update(it)
+            runBlocking {
+                _listenersMutex.withLock {
+                    for (i in _allListeners)
+                        i.update(it)
+                }
+            }
         }
     }
 }
