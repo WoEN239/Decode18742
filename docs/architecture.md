@@ -21,9 +21,7 @@
 
 Пример реализации:
 
-
-``Kotlin
-
+```Kotlin
 class MyModule: IModule {
     private var _currentJob: Job? = null //отслеживание текущей задачи
 
@@ -40,8 +38,7 @@ class MyModule: IModule {
         _currentJob?.cancel() //освобождение ресурсов
     }
 }
-
-``
+```
 
 Для того что, чтобы _привязать_ модуль к хардварному потоку и в целом сделать модуль активным надо в
 классе [HardwareThreads](../TeamCode/src/main/kotlin/org/woen/threading/hardware/HardwareThreads.kt)
@@ -50,13 +47,11 @@ class MyModule: IModule {
 
 Пример:
 
-``Kotlin
-
+```Kotlin
 fun initModules() {
     CONTROL.link.addModules(MyModule())
 }
-
-``
+```
 
 Там же можно отключать включать модули.
 
@@ -68,16 +63,14 @@ fun initModules() {
 
 ## ThreadManager
 Система, которая автоматизирует освобождение ресурсов потоков, чтобы поток автоматически закрылся
-его надо зарегистрировать в менеджере: ``ThreadManager.LAZY_INSTANCE.register(поток)``.
+его надо зарегистрировать в менеджере: ```ThreadManager.LAZY_INSTANCE.register(поток)```.
 Так же в нем есть пространство для куратин: 
 
-`` 
-
+``` 
 ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
     //код в куратине
 }
-
-``
+```
 
 ## HotRun
 Данная система ускоряет запуск опмода по средством того что большая часть созданных потоков/обьектов не пересоздается для нового запуска.
@@ -87,8 +80,7 @@ ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
 ## ThreadedTimers
 Система позволяет запустить действие, которое выполнится через какое время / событие / событие или таймаут пример:
 
-``Kotlin
-
+```Kotlin
 ThreadedTimers.LAZY_INSTANCE.startTimer(ThreadedTimers.Timer(5.0) { //старт таймера на 5 секунд
     //действие которое выполнится через 5 секунд
 })
@@ -100,19 +92,16 @@ ThreadedTimers.LAZY_INSTANCE.startTimer(ThreadedTimers.SupplerTimer({услов�
 ThreadedTimers.LAZY_INSTANCE.startTimer(ThreadedTimers.SupplerTimer({условие}, { //старт таймера до момента истечения времени или того что условие станет истинным, фактически таймер с таймаутом
     //действие
 }, 5.0))
-
-``
+```
 
 ## ThreadedGamepad
 Система для получения доступа к геймпаду, посредству добавления листинеров разного типа к нему пример:
 
-``Kotlin
-
+```Kotlin
 ThreadedGamepad.LAZY_INSTANCE.addListener(ThreadedGamepad.createClickDownListener({it.circle}, { // добавление листинера который однократно среагирует когда круг на геймпаде будет нажат
     //действие
 }))
-
-``
+```
 
 Листинеры бывают разных типов:
 createHoldUpListener - постоянно вызывается когда кнопка не нажата
@@ -126,8 +115,7 @@ createAnalogListener - постоянно вызывается, нужно дл�
 ![EventBus](EventBus.jpg)
 пример:
 
-``Kotlin
-
+```Kotlin
 class EventA(val a: Double)
 
 ThreadedEventBus.LAZY_INSTANCE.subscribe(EventA::class, { //подписчик 1
@@ -139,17 +127,16 @@ ThreadedEventBus.LAZY_INSTANCE.subscribe(EventA::class, { //подписчик 2
 })
 
 ThreadedEventBus.LAZY_INSTANCE.invoke(EventA(5.0)) //поочереди произойдут действие 1, потом действие 2
-
-``
+```
 
 ## ThreadedBattery
-Система батареи, позволяет узнать текущий воьтаж: ``ThreadedBattery.LAZY_INSTANCE.currentVoltage`` или преоброзовать вольтаж в питание на мотор: ``ThreadedBattery.LAZY_INSTANCE.voltageToPower(питание)``
+Система батареи, позволяет узнать текущий воьтаж: ```ThreadedBattery.LAZY_INSTANCE.currentVoltage``` или преоброзовать вольтаж в питание на мотор: ```ThreadedBattery.LAZY_INSTANCE.voltageToPower(питание)```
 
 ## ThreadedTelemetry
 Система многопоточной телеметрии, с помощью нее можно:
-отправлять строку в лог: ``ThreadedTelemetry.LAZY_INSTANCE.log(строка)``
-постоянно слать что-то в телеметрию драйвер хаба или дашборд: ``ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += { it.addData("name", 5.0) }``
-слать чето в телеметрию на протяжении какогото времени: ``ThreadedTelemetry.LAZY_INSTANCE.startTemporarySender(ReversedElapsedTime(5.0)) { it.addLine("line) } // шлет line 5 секунд``
+отправлять строку в лог: ```ThreadedTelemetry.LAZY_INSTANCE.log(строка)```
+постоянно слать что-то в телеметрию драйвер хаба или дашборд: ```ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += { it.addData("name", 5.0) }```
+слать чето в телеметрию на протяжении какогото времени: ```ThreadedTelemetry.LAZY_INSTANCE.startTemporarySender(ReversedElapsedTime(5.0)) { it.addLine("line) } // шлет line 5 секунд```
 
 функции того что можно слать в телеметрию:
 addLines - шлет строку
@@ -176,17 +163,17 @@ AtomicValueProvider - просто число, AtomicEventProvider - число 
 ## Regulator
 Регулятор с большим количеством настроек пример:
 
-``Kotlin
+```Kotlin
 val regulator = Regulator(RegulatorParameters(kP = 5.0)) //создание П регулятора
 regulator.start()
         
 motor.power = regulator.update(ThreadedBattery.LAZY_INSTANCE.voltageToPower(err)) //обновление регулятора и подача управляющего воздействия
-``
+```
 
 ## ElapsedTime, ElapsedTimeExtra, ReversedElapsedTime
 ресетуемые и паузенные часы пример:
 
-``Kotlin
+```Kotlin
 val time = ElapsedTime()
 time.reset()
 
@@ -205,7 +192,7 @@ val reversedTime = ReversedElapsedTime()
 reversedTime = resetWithStartSeconds(5.0)
 
 reversedTime.seconds()
-``
+```
 
 ## UpdateCounter
 Считает количество обновлений в секунду
