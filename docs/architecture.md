@@ -20,6 +20,8 @@
 освободить все занятые ресурсы, которые могут создать утечку памяти/ утечку потока
 
 Пример реализации:
+
+
 ``Kotlin
 
 class MyModule: IModule {
@@ -47,6 +49,7 @@ class MyModule: IModule {
 и вызвать метод addModules, где через запятую перечислить инстанцы модулей
 
 Пример:
+
 ``Kotlin
 
 fun initModules() {
@@ -67,6 +70,7 @@ fun initModules() {
 Система, которая автоматизирует освобождение ресурсов потоков, чтобы поток автоматически закрылся
 его надо зарегистрировать в менеджере: ``ThreadManager.LAZY_INSTANCE.register(поток)``.
 Так же в нем есть пространство для куратин: 
+
 `` 
 
 ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
