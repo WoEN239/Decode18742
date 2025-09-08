@@ -23,4 +23,7 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "THREAD_POOL")
     var THREAD_POOL_THREADS_COUNT = ThreadedTelemetry.AtomicValueProvider(5)
+
+    @ThreadedConfig(category = "ODOMETRY")
+    var VELOCITY_FILTER_K = ThreadedTelemetry.AtomicEventProvider(0.1)
 }
