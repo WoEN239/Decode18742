@@ -2,14 +2,13 @@ package org.woen.modules.driveTrain
 
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.motor.EncoderOnly
 import java.util.concurrent.atomic.AtomicReference
 
-class ThreeOdometry(val odometryName: String) : IHardwareDevice {
+class HardwareThreeOdometry(val odometryName: String) : IHardwareDevice {
     override fun update() {
         val currentOdometerPosition = _odometer.currentPosition.toDouble()
 
