@@ -115,6 +115,11 @@ class Odometry : IModule {
                     sideVelocity - ThreadedConfigs.ODOMETER_SIDE_RADIUS.get() * _currentRotationVelocity
                 )
 
+                _oldLeftPosition = leftPos
+                _oldRightPosition = rightPos
+                _oldSidePosition = sidePos
+                _oldRotation = _currentRotation
+
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     OdometryUpdateEvent(
                         _currentRotation,
@@ -124,11 +129,6 @@ class Odometry : IModule {
                     )
                 )
             }
-
-            _oldLeftPosition = leftPos
-            _oldRightPosition = rightPos
-            _oldSidePosition = sidePos
-            _oldRotation = _currentRotation
         }
     }
 

@@ -68,9 +68,11 @@ class ThreadedEventBus private constructor() {
         if (callbacks == null)
             return event
 
-        for (i in callbacks) {
-            i.second.launch {
-                i.first.invoke(event)
+        runBlocking {
+            for (i in callbacks) {
+                i.second.launch {
+                    i.first.invoke(event)
+                }
             }
         }
 

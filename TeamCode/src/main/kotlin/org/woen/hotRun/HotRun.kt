@@ -70,13 +70,13 @@ class HotRun private constructor() {
     val opModeStopEvent = SimpleEvent<GamepadOpMode>()
 
     fun run(opMode: GamepadOpMode, runMode: RunMode) {
+        currentRunMode.set(runMode)
+        currentRunState.set(RunState.INIT)
+
         ThreadManager.LAZY_INSTANCE.attachExceptionHandler()
         ThreadedGamepad.LAZY_INSTANCE.initCallbacks(opMode)
         ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
         HardwareThreads.LAZY_INSTANCE
-
-        currentRunMode.set(runMode)
-        currentRunState.set(RunState.INIT)
 
         opModeInitEvent.invoke(opMode)
 

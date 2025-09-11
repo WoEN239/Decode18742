@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.woen.hotRun.HotRun
 
 class ThreadedGamepad private constructor() {
     companion object {
@@ -133,11 +134,13 @@ class ThreadedGamepad private constructor() {
         }
 
     fun initCallbacks(opMode: GamepadOpMode) {
-        opMode.gamepad1Callback += {
-            runBlocking {
-                _listenersMutex.withLock {
-                    for (i in _allListeners)
-                        i.update(it)
+        if(HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.MANUAL) {
+            opMode.gamepad1Callback += {
+                runBlocking {
+                    _listenersMutex.withLock {
+                        for (i in _allListeners)
+                            i.update(it)
+                    }
                 }
             }
         }

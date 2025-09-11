@@ -4,9 +4,15 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.woen.telemetry.ThreadedConfigs
+import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.motor.MotorOnly
+import org.woen.utils.regulator.Regulator
 import org.woen.utils.units.Vec2
 import kotlin.math.abs
 import kotlin.math.max
@@ -22,8 +28,37 @@ class HardwareDriveTrain(
     private lateinit var _rightBackMotor: DcMotorEx
     private lateinit var _rightForwardMotor: DcMotorEx
 
-    override fun update() {
+    private val _forwardRegulator = Regulator(ThreadedConfigs.FORWARD_REGULATOR_PARAMS)
+    private val _sideRegulator = Regulator(ThreadedConfigs.SIDE_REGULATOR_PARAMS)
+    private val _rotateRegulator = Regulator(ThreadedConfigs.ROTATE_REGULATOR_PARAMS)
 
+    private var _targetVelocity = Vec2.ZERO
+    private var _targetRotateVelocity = 0.0
+
+    private val _driveTrainMutex = Mutex()
+
+    override fun update() {
+        val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+        val currentVelocity = odometry.odometryVelocity
+        val currentRotationVelocity = odometry.odometryRotateVelocity
+
+        val targetVelocity: Vec2
+        val targetRotateVelocity: Double
+
+        runBlocking {
+            _driveTrainMutex.withLock {
+                targetVelocity = _targetVelocity
+                 targetRotateVelocity = _targetRotateVelocity
+            }
+        }
+
+        val velocityErr = targetVelocity - currentVelocity
+        val velocityRotateErr = targetRotateVelocity - currentRotationVelocity
+
+        setVoltage(Vec2(
+            _forwardRegulator.update(velocityErr.x, targetVelocity.x),
+            _sideRegulator.update(velocityErr.y, targetVelocity.y)),
+            _rotateRegulator.update(velocityRotateErr, targetRotateVelocity))
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -39,6 +74,19 @@ class HardwareDriveTrain(
 
         _rightBackMotor.direction = DcMotorSimple.Direction.REVERSE
         _rightForwardMotor.direction = DcMotorSimple.Direction.REVERSE
+
+        _forwardRegulator.start()
+        _sideRegulator.start()
+        _rotateRegulator.start()
+    }
+
+    fun drive(targetVelocity: Vec2, targetRotationVelocity: Double){
+        runBlocking {
+            _driveTrainMutex.withLock {
+                _targetVelocity = targetVelocity
+                _targetRotateVelocity = targetRotationVelocity
+            }
+        }
     }
 
     private fun setVoltage(direction: Vec2, rotate: Double) {

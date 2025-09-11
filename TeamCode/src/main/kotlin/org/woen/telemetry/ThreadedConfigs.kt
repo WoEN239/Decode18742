@@ -1,5 +1,6 @@
 package org.woen.telemetry
 
+import org.woen.utils.regulator.RegulatorParameters
 import kotlin.math.PI
 
 object ThreadedConfigs {
@@ -44,4 +45,13 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "ODOMETRY")
     var ODOMETER_ROTATE_SENS = ThreadedTelemetry.AtomicValueProvider(1e-8)
+
+    @ThreadedConfig(category = "DRIVE_TRAIN")
+    var FORWARD_REGULATOR_PARAMS = RegulatorParameters()
+
+    @ThreadedConfig(category = "DRIVE_TRAIN")
+    var SIDE_REGULATOR_PARAMS = RegulatorParameters()
+
+    @ThreadedConfig(category = "DRIVE_TRAIN")
+    var ROTATE_REGULATOR_PARAMS = RegulatorParameters()
 }
