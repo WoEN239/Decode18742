@@ -18,6 +18,7 @@ class ThreadManager : DisposableHandle {
 
         private val _instanceMutex = Mutex()
 
+        @JvmStatic
         val LAZY_INSTANCE: ThreadManager
             get() =
                 runBlocking {

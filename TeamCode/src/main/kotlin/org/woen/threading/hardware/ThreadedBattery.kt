@@ -13,6 +13,7 @@ class ThreadedBattery private constructor() : IHardwareDevice {
 
         private val _instanceMutex = Mutex()
 
+        @JvmStatic
         val LAZY_INSTANCE: ThreadedBattery
             get() =
                 runBlocking {

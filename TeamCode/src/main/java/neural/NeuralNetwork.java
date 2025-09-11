@@ -37,7 +37,7 @@ public class NeuralNetwork {
         File baseDir = GetCurrentPackagePath();
         if (baseDir == null)
         {
-            ThreadedTelemetry.Companion.getLAZY_INSTANCE().log
+            ThreadedTelemetry.getLAZY_INSTANCE().log
             (
                 "\n[!]  - Error saving nn parameters!"
                 + "\n       Failed getting base program directory"
@@ -57,7 +57,7 @@ public class NeuralNetwork {
             {
                 if (!path.mkdirs())
                 {
-                    ThreadedTelemetry.Companion.getLAZY_INSTANCE().log
+                    ThreadedTelemetry.getLAZY_INSTANCE().log
                     (
                         "\n[!]  - Error saving nn parameters!"
                             + "\n       Failed creating save directory"
@@ -72,7 +72,7 @@ public class NeuralNetwork {
             fos.write(data.getBytes());
             fos.close();
 
-            ThreadedTelemetry.Companion.getLAZY_INSTANCE().log
+            ThreadedTelemetry.getLAZY_INSTANCE().log
             (
                 "\n[i]  - Successfully saved nn parameters!"
                     + "\n       Path: " + path
@@ -83,7 +83,7 @@ public class NeuralNetwork {
         }
         catch (Exception e)
         {
-            ThreadedTelemetry.Companion.getLAZY_INSTANCE().log
+            ThreadedTelemetry.getLAZY_INSTANCE().log
                     (
                             "\n[!]  - Error saving nn parameters!\n"
                                     + e.toString() + "\n"

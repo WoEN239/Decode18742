@@ -11,6 +11,7 @@ class HardwareThreads private constructor() : DisposableHandle {
 
         private val _instanceMutex = Mutex()
 
+        @JvmStatic
         val LAZY_INSTANCE: HardwareThreads
             get() =
                 runBlocking {

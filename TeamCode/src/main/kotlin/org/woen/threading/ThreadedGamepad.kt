@@ -15,6 +15,7 @@ class ThreadedGamepad private constructor() {
 
         private val _instanceMutex = Mutex()
 
+        @JvmStatic
         val LAZY_INSTANCE: ThreadedGamepad
             get() =
                 runBlocking {

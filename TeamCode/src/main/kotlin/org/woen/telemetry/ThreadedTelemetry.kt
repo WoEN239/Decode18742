@@ -34,6 +34,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
         private val _instanceMutex = Mutex()
 
+        @JvmStatic
         val LAZY_INSTANCE: ThreadedTelemetry
             get() = runBlocking {
                 _instanceMutex.withLock {

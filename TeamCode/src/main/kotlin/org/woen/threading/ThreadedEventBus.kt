@@ -16,6 +16,7 @@ class ThreadedEventBus private constructor() {
 
         private val _instanceMutex = Mutex()
 
+        @JvmStatic
         val LAZY_INSTANCE: ThreadedEventBus
             get() = runBlocking {
                 _instanceMutex.withLock {
