@@ -9,7 +9,7 @@ import org.woen.utils.motor.EncoderOnly
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 
-class HardwareOdometry(private val leftOdometerName: String, val rightOdometerName: String): IHardwareDevice {
+class HardwareOdometry(private val _leftOdometerName: String, private val _rightOdometerName: String): IHardwareDevice {
     private lateinit var _leftOdometer: DcMotorEx
     private lateinit var _rightOdometer: DcMotorEx
 
@@ -48,8 +48,8 @@ class HardwareOdometry(private val leftOdometerName: String, val rightOdometerNa
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _leftOdometer = EncoderOnly(hardwareMap.get(leftOdometerName) as DcMotorEx)
-        _rightOdometer = EncoderOnly(hardwareMap.get(rightOdometerName) as DcMotorEx)
+        _leftOdometer = EncoderOnly(hardwareMap.get(_leftOdometerName) as DcMotorEx)
+        _rightOdometer = EncoderOnly(hardwareMap.get(_rightOdometerName) as DcMotorEx)
 
         ThreadedConfigs.VELOCITY_FILTER_K.onSet += {
             _rightFilter.coef = it

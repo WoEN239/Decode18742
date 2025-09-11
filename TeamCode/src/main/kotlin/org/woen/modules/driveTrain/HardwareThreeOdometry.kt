@@ -9,7 +9,7 @@ import org.woen.utils.motor.EncoderOnly
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 
-class HardwareThreeOdometry(val odometryName: String) : IHardwareDevice {
+class HardwareThreeOdometry(private val _odometryName: String) : IHardwareDevice {
     override fun update() {
         val currentOdometerPosition = _odometer.currentPosition.toDouble() /
                 ThreadedConfigs.ODOMETRY_TICKS.get() * PI * ThreadedConfigs.ODOMETRY_DIAMETER.get()
@@ -33,7 +33,7 @@ class HardwareThreeOdometry(val odometryName: String) : IHardwareDevice {
     private val _filter = ExponentialFilter(ThreadedConfigs.VELOCITY_FILTER_K.get())
 
     override fun init(hardwareMap: HardwareMap) {
-        _odometer = EncoderOnly(hardwareMap.get(odometryName) as DcMotorEx)
+        _odometer = EncoderOnly(hardwareMap.get(_odometryName) as DcMotorEx)
         _filter.start()
 
         ThreadedConfigs.VELOCITY_FILTER_K.onSet += {

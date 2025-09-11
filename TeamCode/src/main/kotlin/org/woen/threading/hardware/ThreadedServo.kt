@@ -13,15 +13,15 @@ import kotlin.math.pow
 import kotlin.math.sign
 import kotlin.math.sqrt
 
-class ThreadedServo(val name: String,
+class ThreadedServo(private val _name: String,
                     var Vmax: Double = ThreadedConfigs.DEFAULT_SERVO_V_MAX.get(),
                     var a: Double = ThreadedConfigs.DEFAULT_SERVO_A.get(),
                     val maxAngle: Double = ThreadedConfigs.DEFAULT_SERVO_ANGLE.get(),
-                    val angleOffset: Double = ThreadedConfigs.DEFAULT_SERVO_OFFSET.get(),
-                    val startAngle: Double = 0.0): IHardwareDevice {
+                    private val _angleOffset: Double = ThreadedConfigs.DEFAULT_SERVO_OFFSET.get(),
+                    private val _startAngle: Double = 0.0): IHardwareDevice {
     private lateinit var _device: ServoAngle
 
-    var currentAngle = startAngle
+    var currentAngle = _startAngle
         private set
 
     private val _servoTime = ElapsedTime()
@@ -37,12 +37,13 @@ class ThreadedServo(val name: String,
 
     private val _calcMutex = Mutex()
 
-    var targetAngle = startAngle
+    var targetAngle = _startAngle
+        get() = field
         set(value) {
             if(value < 0)
                 return
 
-            if (abs(value - field) < angleOffset) {
+            if (abs(value - field) < _angleOffset) {
                 return
             }
 
@@ -117,9 +118,9 @@ class ThreadedServo(val name: String,
             }
 
     override fun init(hardwareMap: HardwareMap) {
-        _device = ServoAngle(hardwareMap.get(name) as Servo, maxAngle)
+        _device = ServoAngle(hardwareMap.get(_name) as Servo, maxAngle)
 
-        _device.angle = startAngle
+        _device.angle = _startAngle
     }
 
     override fun dispose() {
