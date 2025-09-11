@@ -26,4 +26,22 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "ODOMETRY")
     var VELOCITY_FILTER_K = ThreadedTelemetry.AtomicEventProvider(0.1)
+
+    @ThreadedConfig(category = "ODOMETRY")
+    var ODOMETRY_TICKS = ThreadedTelemetry.AtomicValueProvider(8192)
+
+    @ThreadedConfig(category = "ODOMETRY")
+    var ODOMETRY_DIAMETER = ThreadedTelemetry.AtomicValueProvider(4.8)
+
+    @ThreadedConfig(category = "ODOMETRY")
+    var ODOMETER_LEFT_RADIUS = ThreadedTelemetry.AtomicValueProvider(1.0)
+
+    @ThreadedConfig(category = "ODOMETRY")
+    var ODOMETER_RIGHT_RADIUS = ThreadedTelemetry.AtomicValueProvider(1.0)
+
+    @ThreadedConfig(category = "ODOMETRY")
+    var ODOMETER_SIDE_RADIUS = ThreadedTelemetry.AtomicValueProvider(1.0)
+
+    @ThreadedConfig(category = "ODOMETRY")
+    var ODOMETER_ROTATE_SENS = ThreadedTelemetry.AtomicValueProvider(1e-8)
 }

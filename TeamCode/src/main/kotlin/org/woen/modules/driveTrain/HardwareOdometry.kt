@@ -7,8 +7,9 @@ import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.motor.EncoderOnly
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.PI
 
-class HardwareOdometry(val leftOdometerName: String, val rightOdometerName: String): IHardwareDevice {
+class HardwareOdometry(private val leftOdometerName: String, val rightOdometerName: String): IHardwareDevice {
     private lateinit var _leftOdometer: DcMotorEx
     private lateinit var _rightOdometer: DcMotorEx
 
@@ -25,8 +26,10 @@ class HardwareOdometry(val leftOdometerName: String, val rightOdometerName: Stri
     private var _oldRightPosition = 0.0
 
     override fun update() {
-        val currentLeftPosition = _leftOdometer.currentPosition.toDouble()
-        val currentRightPosition = _rightOdometer.currentPosition.toDouble()
+        val currentLeftPosition = _leftOdometer.currentPosition.toDouble() /
+                ThreadedConfigs.ODOMETRY_TICKS.get() * PI * ThreadedConfigs.ODOMETRY_DIAMETER.get()
+        val currentRightPosition = _rightOdometer.currentPosition.toDouble() /
+                ThreadedConfigs.ODOMETRY_TICKS.get() * PI * ThreadedConfigs.ODOMETRY_DIAMETER.get()
 
         leftPosition.set(currentLeftPosition)
         rightPosition.set(currentRightPosition)

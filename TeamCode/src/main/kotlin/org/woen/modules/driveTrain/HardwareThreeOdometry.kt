@@ -7,10 +7,12 @@ import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.motor.EncoderOnly
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.PI
 
 class HardwareThreeOdometry(val odometryName: String) : IHardwareDevice {
     override fun update() {
-        val currentOdometerPosition = _odometer.currentPosition.toDouble()
+        val currentOdometerPosition = _odometer.currentPosition.toDouble() /
+                ThreadedConfigs.ODOMETRY_TICKS.get() * PI * ThreadedConfigs.ODOMETRY_DIAMETER.get()
 
         odometerPosition.set(currentOdometerPosition)
 
