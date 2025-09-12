@@ -32,7 +32,7 @@ class HardwareDriveTrain(
     private val _sideRegulator = Regulator(ThreadedConfigs.SIDE_REGULATOR_PARAMS)
     private val _rotateRegulator = Regulator(ThreadedConfigs.ROTATE_REGULATOR_PARAMS)
 
-    private var _targetVelocity = Vec2.ZERO
+    private var _targetTranslateVelocity = Vec2.ZERO
     private var _targetRotateVelocity = 0.0
 
     private val _driveTrainMutex = Mutex()
@@ -42,22 +42,22 @@ class HardwareDriveTrain(
         val currentVelocity = odometry.odometryVelocity
         val currentRotationVelocity = odometry.odometryRotateVelocity
 
-        val targetVelocity: Vec2
+        val targetTranslateVelocity: Vec2
         val targetRotateVelocity: Double
 
         runBlocking {
             _driveTrainMutex.withLock {
-                targetVelocity = _targetVelocity
+                targetTranslateVelocity = _targetTranslateVelocity
                  targetRotateVelocity = _targetRotateVelocity
             }
         }
 
-        val velocityErr = targetVelocity - currentVelocity
+        val velocityErr = targetTranslateVelocity - currentVelocity
         val velocityRotateErr = targetRotateVelocity - currentRotationVelocity
 
         setVoltage(Vec2(
-            _forwardRegulator.update(velocityErr.x, targetVelocity.x),
-            _sideRegulator.update(velocityErr.y, targetVelocity.y)),
+            _forwardRegulator.update(velocityErr.x, targetTranslateVelocity.x),
+            _sideRegulator.update(velocityErr.y, targetTranslateVelocity.y)),
             _rotateRegulator.update(velocityRotateErr, targetRotateVelocity))
     }
 
@@ -80,10 +80,10 @@ class HardwareDriveTrain(
         _rotateRegulator.start()
     }
 
-    fun drive(targetVelocity: Vec2, targetRotationVelocity: Double){
+    fun drive(targetTranslateVelocity: Vec2, targetRotationVelocity: Double){
         runBlocking {
             _driveTrainMutex.withLock {
-                _targetVelocity = targetVelocity
+                _targetTranslateVelocity = targetTranslateVelocity
                 _targetRotateVelocity = targetRotationVelocity
             }
         }

@@ -18,7 +18,7 @@ data class SetDriveTargetVelocityEvent(val velocity: Vec2, val rotationVelocity:
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain("", "", "", "")
 
-    private var _targetVelocity = Vec2.ZERO
+    private var _targetTranslateVelocity = Vec2.ZERO
     private var _targetRotateVelocity = 0.0
 
     private val _driveMutex = Mutex()
@@ -29,33 +29,29 @@ class DriveTrain : IModule {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {
-            runBlocking {
-                _driveMutex.withLock {
-                    _targetVelocity = it.velocity
-                    _targetRotateVelocity = it.rotationVelocity
-                }
+            _driveMutex.withLock {
+                _targetTranslateVelocity = it.velocity
+                _targetRotateVelocity = it.rotationVelocity
             }
         })
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(object : ThreadedGamepad.IListener {
-            override fun update(gamepadData: Gamepad) {
-                runBlocking {
-                    _driveMutex.withLock {
-                        _targetVelocity = Vec2(
-                            gamepadData.left_stick_x.toDouble(),
-                            gamepadData.left_stick_y.toDouble()
-                        )
-                        _targetRotateVelocity = -gamepadData.right_stick_x.toDouble()
-                    }
+            override suspend fun update(gamepadData: Gamepad) {
+                _driveMutex.withLock {
+                    _targetTranslateVelocity = Vec2(
+                        gamepadData.left_stick_x.toDouble(),
+                        gamepadData.left_stick_y.toDouble()
+                    )
+                    _targetRotateVelocity = -gamepadData.right_stick_x.toDouble()
                 }
             }
         })
     }
 
-    override fun process() {
+    override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             _driveMutex.withLock {
-                _hardwareDriveTrain.drive(_targetVelocity, _targetRotateVelocity)
+                _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
             }
         }
     }

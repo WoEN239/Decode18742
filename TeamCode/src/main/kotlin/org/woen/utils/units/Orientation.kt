@@ -5,17 +5,11 @@ data class Orientation(var pos: Vec2, var angl: Angle) {
         val ZERO = Orientation(0.0)
     }
 
-    var x
+    val x
         get() = pos.x
-        set(value){
-            pos.x = value
-        }
 
-    var y
+    val y
         get() = pos.y
-        set(value) {
-            pos.y = value
-        }
 
     constructor(x: Double): this(Vec2(x), Angle(x))
     constructor(x: Vec2): this(x, Angle.ZERO)

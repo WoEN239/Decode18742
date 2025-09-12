@@ -43,7 +43,7 @@ class ThreadedEventBus private constructor() {
     @OptIn(DelicateCoroutinesApi::class)
     fun <T : Any> subscribe(
         event: KClass<T>,
-        callback: (T) -> Unit,
+        callback: suspend (T) -> Unit,
         scope: CoroutineScope = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
     ) {
         runBlocking {

@@ -74,14 +74,14 @@ class ThreadedGamepad private constructor() {
     }
 
     interface IListener {
-        fun update(gamepadData: Gamepad)
+        suspend fun update(gamepadData: Gamepad)
     }
 
     private class HoldListener(
         val activateState: Boolean, val buttonSuppler: (Gamepad) -> Boolean,
-        val onTriggered: () -> Unit, val listenerCoroutineScope: CoroutineScope
+        val onTriggered: suspend () -> Unit, val listenerCoroutineScope: CoroutineScope
     ) : IListener {
-        override fun update(gamepadData: Gamepad) {
+        override suspend fun update(gamepadData: Gamepad) {
             if (buttonSuppler(gamepadData) == activateState)
                 listenerCoroutineScope.launch {
                     onTriggered()
@@ -91,11 +91,11 @@ class ThreadedGamepad private constructor() {
 
     private class ClickListener(
         val activationState: Boolean, val buttonSuppler: (Gamepad) -> Boolean,
-        val onTriggered: () -> Unit, val listenerCoroutineScope: CoroutineScope
+        val onTriggered: suspend () -> Unit, val listenerCoroutineScope: CoroutineScope
     ) : IListener {
         private var oldState = false
 
-        override fun update(gamepadData: Gamepad) {
+        override suspend fun update(gamepadData: Gamepad) {
             val currentState = buttonSuppler(gamepadData)
 
             if (currentState != oldState && currentState == activationState) {
@@ -110,9 +110,9 @@ class ThreadedGamepad private constructor() {
 
     private class AnalogListener(
         val inputSuppler: (Gamepad) -> Double,
-        val onTriggered: (Double) -> Unit, val listenerCoroutineScope: CoroutineScope
+        val onTriggered: suspend (Double) -> Unit, val listenerCoroutineScope: CoroutineScope
     ) : IListener {
-        override fun update(gamepadData: Gamepad) {
+        override suspend fun update(gamepadData: Gamepad) {
             val data = inputSuppler(gamepadData)
 
             listenerCoroutineScope.launch {

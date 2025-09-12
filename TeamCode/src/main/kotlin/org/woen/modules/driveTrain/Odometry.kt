@@ -11,6 +11,7 @@ import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Angle
+import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
@@ -18,12 +19,12 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 data class OdometryUpdateEvent(
-    val odometryRotate: Angle, val odometryPos: Vec2,
+    val odometryOrientation: Orientation,
     val odometryRotateVelocity: Double, val odometryVelocity: Vec2
 )
 
 data class RequireOdometryEvent(
-    var odometryRotate: Angle = Angle(0.0), var odometryPos: Vec2 = Vec2.ZERO,
+    var odometryOrientation: Orientation = Orientation.ZERO,
     var odometryRotateVelocity: Double = 0.0, var odometryVelocity: Vec2 = Vec2.ZERO
 )
 
@@ -39,13 +40,10 @@ class Odometry : IModule {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             RequireOdometryEvent::class,
             {
-                runBlocking {
-                    _odometryMutex.withLock {
-                        it.odometryPos = _position
-                        it.odometryVelocity = _currentVelocity
-                        it.odometryRotate = _currentRotation
-                        it.odometryRotateVelocity = _currentRotationVelocity
-                    }
+                _odometryMutex.withLock {
+                    it.odometryOrientation = Orientation(_currentPosition, _currentRotation)
+                    it.odometryVelocity = _currentVelocity
+                    it.odometryRotateVelocity = _currentRotationVelocity
                 }
             })
     }
@@ -59,12 +57,12 @@ class Odometry : IModule {
 
     private val _odometryMutex = Mutex()
 
-    private var _position = Vec2.ZERO
+    private var _currentPosition = Vec2.ZERO
     private var _currentVelocity = Vec2.ZERO
     private var _currentRotation = Angle(0.0)
     private var _currentRotationVelocity = 0.0
 
-    override fun process() {
+    override suspend fun process() {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val leftPos = _hardwareOdometry.leftPosition.get()
             val rightPos = _hardwareOdometry.rightPosition.get()
@@ -108,7 +106,7 @@ class Odometry : IModule {
                         ) / deltaRotation
                 }
 
-                _position += Vec2(deltaXCorrected, deltaYCorrected)
+                _currentPosition += Vec2(deltaXCorrected, deltaYCorrected)
 
                 _currentVelocity = Vec2(
                     (leftVelocity + rightVelocity) / 2.0,
@@ -122,8 +120,7 @@ class Odometry : IModule {
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     OdometryUpdateEvent(
-                        _currentRotation,
-                        _position,
+                        Orientation(_currentPosition, _currentRotation),
                         _currentRotationVelocity,
                         _currentVelocity
                     )
