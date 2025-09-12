@@ -112,7 +112,7 @@ class Camera private constructor() : DisposableHandle {
             }
 
             if(suitableDetections != 0)
-                _cameraPositionUpdateEvent.invoke(sum / suitableDetections.toDouble())
+                cameraPositionUpdateEvent.invoke(sum / suitableDetections.toDouble())
         }
     })
 
