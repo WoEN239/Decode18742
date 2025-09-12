@@ -2,13 +2,16 @@ package org.woen.modules.driveTrain
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
+import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
@@ -30,34 +33,72 @@ data class RequireOdometryEvent(
 class Odometry : IModule {
     private val _hardwareOdometry = HardwareOdometry("", "")
     private val _threeOdometry = HardwareThreeOdometry("")
+    private val _gyro = HardwareGyro()
 
     init {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry)
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_threeOdometry)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             RequireOdometryEvent::class,
             {
                 _odometryMutex.withLock {
-                    it.odometryOrientation = Orientation(_currentPosition, _currentRotation)
+                    it.odometryOrientation = Orientation(_currentPosition, _mergeRotation)
                     it.odometryVelocity = _currentVelocity
                     it.odometryRotateVelocity = _currentRotationVelocity
                 }
             })
+
+        ThreadedConfigs.GYRO_MERGE_COEF.onSet += {
+            runBlocking {
+                _gyroMutex.withLock {
+                    _gyroFilter.coef = it
+                }
+            }
+        }
+
+        _gyro.gyroUpdateEvent += {
+            runBlocking {
+                _gyroMutex.withLock {
+                    _mergeRotation = Angle(
+                        _gyroFilter.updateRaw(
+                            _mergeRotation.angle,
+                            (it - _mergeRotation).angle
+                        )
+                    )
+                }
+            }
+        }
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            runBlocking {
+                _gyroMutex.withLock {
+                    _gyroFilter.start()
+                }
+            }
+        }
     }
+
+    private val _gyroMutex = Mutex()
+
+    private val _gyroFilter = ExponentialFilter(ThreadedConfigs.GYRO_MERGE_COEF.get())
 
     private var _odometryJob: Job? = null
 
     private var _oldLeftPosition = 0.0
     private var _oldRightPosition = 0.0
     private var _oldSidePosition = 0.0
-    private var _oldRotation = Angle(0.0)
+
+    private var _oldRotation = Angle.ZERO
+    private var _oldOdometerRotation = Angle.ZERO
+
+    private var _mergeRotation = Angle.ZERO
 
     private val _odometryMutex = Mutex()
 
     private var _currentPosition = Vec2.ZERO
     private var _currentVelocity = Vec2.ZERO
-    private var _currentRotation = Angle(0.0)
     private var _currentRotationVelocity = 0.0
 
     override suspend fun process() {
@@ -71,10 +112,14 @@ class Odometry : IModule {
             val sideVelocity = _threeOdometry.odometerVelocity.get()
 
             _odometryMutex.withLock {
-                _currentRotation = Angle(
+                val odometryRotation = Angle(
                     rightPos / ThreadedConfigs.ODOMETER_RIGHT_RADIUS.get()
                             - leftPos / ThreadedConfigs.ODOMETER_LEFT_RADIUS.get()
                 )
+
+                _mergeRotation += odometryRotation - _oldOdometerRotation
+
+                _oldOdometerRotation = odometryRotation
 
                 _currentRotationVelocity =
                     rightVelocity / ThreadedConfigs.ODOMETER_RIGHT_RADIUS.get()
@@ -83,7 +128,7 @@ class Odometry : IModule {
                 val deltaLeft = leftPos - _oldLeftPosition
                 val deltaRight = rightPos - _oldRightPosition
                 val deltaSide = sidePos - _oldSidePosition
-                val deltaRotation = (_currentRotation - _oldRotation).angle
+                val deltaRotation = (_mergeRotation - _oldRotation).angle
 
                 val deltaX = (deltaLeft + deltaRight) / 2.0
                 val deltaY =
@@ -114,11 +159,11 @@ class Odometry : IModule {
                 _oldLeftPosition = leftPos
                 _oldRightPosition = rightPos
                 _oldSidePosition = sidePos
-                _oldRotation = _currentRotation
+                _oldRotation = _mergeRotation
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     OdometryUpdateEvent(
-                        Orientation(_currentPosition, _currentRotation),
+                        Orientation(_currentPosition, _mergeRotation),
                         _currentRotationVelocity,
                         _currentVelocity
                     )

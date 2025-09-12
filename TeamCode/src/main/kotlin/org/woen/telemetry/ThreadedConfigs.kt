@@ -87,4 +87,10 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "ROAR_RUNNER")
     var ROAD_RUNNER_MAX_TRANSLATION_ACCEL = ThreadedTelemetry.AtomicValueProvider(1.0)
+
+    @ThreadedConfig(category = "GYRO")
+    var GYRO_UPDATE_HZ = ThreadedTelemetry.AtomicValueProvider(5)
+
+    @ThreadedConfig(category = "GYRO")
+    var GYRO_MERGE_COEF = ThreadedTelemetry.AtomicEventProvider(0.1)
 }
