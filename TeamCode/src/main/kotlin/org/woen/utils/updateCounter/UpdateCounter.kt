@@ -9,7 +9,7 @@ class UpdateCounter {
         private set
 
     @Synchronized
-    fun update(){
+    fun update() {
         currentUPS = 1.0 / _updateTimer.seconds()
 
         _updateTimer.reset()

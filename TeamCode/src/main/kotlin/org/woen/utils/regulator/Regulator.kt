@@ -62,7 +62,7 @@ class Regulator(val parameters: RegulatorParameters) {
         _deltaTime.reset()
         _errOld = err
 
-        if(parameters.limitU >= 0.0)
+        if (parameters.limitU >= 0.0)
             u = clamp(u, -parameters.limitU, parameters.limitU)
 
         return u

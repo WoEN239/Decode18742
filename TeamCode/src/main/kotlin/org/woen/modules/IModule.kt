@@ -4,7 +4,7 @@ package org.woen.modules
 
 import kotlinx.coroutines.DisposableHandle
 
-interface IModule: DisposableHandle {
+interface IModule : DisposableHandle {
     suspend fun process()
     val isBusy: Boolean
 }

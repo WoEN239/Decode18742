@@ -3,7 +3,6 @@ package org.woen.modules.driveTrain
 import com.qualcomm.robotcore.hardware.Gamepad
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.modules.IModule
@@ -13,7 +12,7 @@ import org.woen.threading.ThreadedGamepad
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Vec2
 
-data class SetDriveTargetVelocityEvent(val velocity: Vec2, val rotationVelocity: Double)
+data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotationVelocity: Double)
 
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain("", "", "", "")
@@ -30,7 +29,7 @@ class DriveTrain : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {
             _driveMutex.withLock {
-                _targetTranslateVelocity = it.velocity
+                _targetTranslateVelocity = it.translateVelocity
                 _targetRotateVelocity = it.rotationVelocity
             }
         })

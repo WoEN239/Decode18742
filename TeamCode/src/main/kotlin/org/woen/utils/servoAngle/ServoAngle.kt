@@ -33,7 +33,7 @@ class ServoAngle(private val _servo: Servo, val maxAngle: Double) : Servo {
     override fun getPosition() = _servo.position
 
     var angle
-        set(value){
+        set(value) {
             _servo.position = value / maxAngle
         }
         get() = _servo.position * maxAngle

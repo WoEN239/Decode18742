@@ -34,13 +34,13 @@ data class Color(var r: Int, var g: Int, var b: Int) {
     }
 
     override fun equals(other: Any?): Boolean {
-        if(other == null)
+        if (other == null)
             return false
 
-        if(other !is Color)
+        if (other !is Color)
             return false
 
-        if(other.r == r && other.g == g && other.b == b)
+        if (other.r == r && other.g == g && other.b == b)
             return true
 
         return false

@@ -5,9 +5,9 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sign
 
-data class Angle(var angle: Double){
+data class Angle(var angle: Double) {
     companion object {
-        fun chop(ang: Double): Double{
+        fun chop(ang: Double): Double {
             var chopedAng = ang
 
             while (abs(chopedAng) > PI)
@@ -28,10 +28,10 @@ data class Angle(var angle: Double){
     fun ofDegree() = angle / PI * 180
 
     override fun equals(other: Any?): Boolean {
-        if(other == null)
+        if (other == null)
             return false
 
-        if(other is Angle && abs(other.angle - angle) < 0.05)
+        if (other is Angle && abs(other.angle - angle) < 0.05)
             return true
 
         return false

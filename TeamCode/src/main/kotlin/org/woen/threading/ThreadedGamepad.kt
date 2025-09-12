@@ -134,7 +134,7 @@ class ThreadedGamepad private constructor() {
         }
 
     fun initCallbacks(opMode: GamepadOpMode) {
-        if(HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.MANUAL) {
+        if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.MANUAL) {
             opMode.gamepad1Callback += {
                 runBlocking {
                     _listenersMutex.withLock {

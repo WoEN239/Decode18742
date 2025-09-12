@@ -3,7 +3,7 @@ package com.qualcomm.robotcore.eventloop.opmode
 import com.qualcomm.robotcore.hardware.Gamepad
 import org.woen.utils.events.SimpleEvent
 
-abstract class GamepadOpMode: LinearOpMode() {
+abstract class GamepadOpMode : LinearOpMode() {
     val gamepad1Callback = SimpleEvent<Gamepad>()
     val gamepad2Callback = SimpleEvent<Gamepad>()
 

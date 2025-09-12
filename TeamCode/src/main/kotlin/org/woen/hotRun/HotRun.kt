@@ -5,11 +5,11 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedTimers
+import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.events.SimpleEvent
 import java.util.concurrent.atomic.AtomicReference

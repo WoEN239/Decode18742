@@ -2,7 +2,6 @@ package org.woen.modules.driveTrain
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.modules.IModule
@@ -13,7 +12,6 @@ import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin

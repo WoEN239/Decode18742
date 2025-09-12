@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
-class MotorOnly(private val _motor: DcMotorEx): DcMotorEx {
+class MotorOnly(private val _motor: DcMotorEx) : DcMotorEx {
     init {
         _motor.direction = Direction.FORWARD
         _motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
@@ -34,14 +34,14 @@ class MotorOnly(private val _motor: DcMotorEx): DcMotorEx {
         _motor.close()
     }
 
-    override fun setDirection(direction: Direction?){
+    override fun setDirection(direction: Direction?) {
         _direction = direction!!
     }
 
     override fun getDirection() = _direction
 
     override fun setPower(power: Double) {
-        if(_direction == Direction.FORWARD) {
+        if (_direction == Direction.FORWARD) {
             _motor.power = power
 
             return
@@ -51,7 +51,7 @@ class MotorOnly(private val _motor: DcMotorEx): DcMotorEx {
     }
 
     override fun getPower(): Double {
-        if(_direction == Direction.FORWARD)
+        if (_direction == Direction.FORWARD)
             return _motor.power
 
         return -_motor.power
@@ -98,7 +98,7 @@ class MotorOnly(private val _motor: DcMotorEx): DcMotorEx {
         throw Exception("motorOnly not support mode")
     }
 
-    override fun getMode(): DcMotor.RunMode{
+    override fun getMode(): DcMotor.RunMode {
         throw Exception("motorOnly not support mode")
     }
 

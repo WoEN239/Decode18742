@@ -9,7 +9,10 @@ import org.woen.utils.motor.EncoderOnly
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 
-class HardwareOdometry(private val _leftOdometerName: String, private val _rightOdometerName: String): IHardwareDevice {
+class HardwareOdometry(
+    private val _leftOdometerName: String,
+    private val _rightOdometerName: String
+) : IHardwareDevice {
     private lateinit var _leftOdometer: DcMotorEx
     private lateinit var _rightOdometer: DcMotorEx
 
@@ -41,7 +44,12 @@ class HardwareOdometry(private val _leftOdometerName: String, private val _right
         val oldRightVelocity = rightVelocity.get()
 
         leftVelocity.set(_leftFilter.updateRaw(oldLeftVelocity, rawLeftVelocity - oldLeftVelocity))
-        rightVelocity.set(_rightFilter.updateRaw(oldRightVelocity, rawRightVelocity - oldRightVelocity))
+        rightVelocity.set(
+            _rightFilter.updateRaw(
+                oldRightVelocity,
+                rawRightVelocity - oldRightVelocity
+            )
+        )
 
         _oldRightPosition = currentRightPosition
         _oldLeftPosition = currentLeftPosition

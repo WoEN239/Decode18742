@@ -5,16 +5,15 @@ import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.ThreadManager
 
 
 @TeleOp
-class FullRestart: LinearOpMode() {
+class FullRestart : LinearOpMode() {
     override fun runOpMode() {
         HotRun.restart()
 
-        OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).startActiveOpMode()
+        OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity)
+            .startActiveOpMode()
 
         waitForStart()
 

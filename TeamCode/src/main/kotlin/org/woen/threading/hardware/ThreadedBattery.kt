@@ -18,7 +18,7 @@ class ThreadedBattery private constructor() : IHardwareDevice {
             get() =
                 runBlocking {
                     _instanceMutex.withLock {
-                        if(_nullableInstance == null)
+                        if (_nullableInstance == null)
                             _nullableInstance = ThreadedBattery()
 
                         return@withLock _nullableInstance!!

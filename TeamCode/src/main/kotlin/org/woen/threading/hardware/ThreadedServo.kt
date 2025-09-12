@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.woen.hotRun.HotRun
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.utils.servoAngle.ServoAngle
 import kotlin.math.abs
@@ -13,12 +14,14 @@ import kotlin.math.pow
 import kotlin.math.sign
 import kotlin.math.sqrt
 
-class ThreadedServo(private val _name: String,
-                    var Vmax: Double = ThreadedConfigs.DEFAULT_SERVO_V_MAX.get(),
-                    var a: Double = ThreadedConfigs.DEFAULT_SERVO_A.get(),
-                    val maxAngle: Double = ThreadedConfigs.DEFAULT_SERVO_ANGLE.get(),
-                    private val _angleOffset: Double = ThreadedConfigs.DEFAULT_SERVO_OFFSET.get(),
-                    private val _startAngle: Double = 0.0): IHardwareDevice {
+class ThreadedServo(
+    private val _name: String,
+    var Vmax: Double = ThreadedConfigs.DEFAULT_SERVO_V_MAX.get(),
+    var a: Double = ThreadedConfigs.DEFAULT_SERVO_A.get(),
+    val maxAngle: Double = ThreadedConfigs.DEFAULT_SERVO_ANGLE.get(),
+    private val _angleOffset: Double = ThreadedConfigs.DEFAULT_SERVO_OFFSET.get(),
+    private val _startAngle: Double = 0.0
+) : IHardwareDevice {
     private lateinit var _device: ServoAngle
 
     var currentAngle = _startAngle
@@ -38,9 +41,8 @@ class ThreadedServo(private val _name: String,
     private val _calcMutex = Mutex()
 
     var targetAngle = _startAngle
-        get() = field
         set(value) {
-            if(value < 0)
+            if (value < 0)
                 return
 
             if (abs(value - field) < _angleOffset) {
@@ -73,6 +75,9 @@ class ThreadedServo(private val _name: String,
         }
 
     override fun update() {
+        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+            return
+
         runBlocking {
             _calcMutex.withLock {
                 if (t3 > t2) {

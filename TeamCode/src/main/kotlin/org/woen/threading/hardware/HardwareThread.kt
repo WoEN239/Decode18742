@@ -41,11 +41,11 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
         }
     }
 
-    fun removeDevices(vararg devices: IHardwareDevice){
+    fun removeDevices(vararg devices: IHardwareDevice) {
         runBlocking {
             _devicesMutex.withLock {
-                for(i in devices){
-                    if(_devices.contains(i))
+                for (i in devices) {
+                    if (_devices.contains(i))
                         _devices.remove(i)
                 }
             }
@@ -56,7 +56,7 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
         var lastJob: Job? = null
 
         while (!Thread.currentThread().isInterrupted) {
-            if(HotRun.LAZY_INSTANCE.currentRunState.get() == STOP){
+            if (HotRun.LAZY_INSTANCE.currentRunState.get() == STOP) {
                 Thread.sleep(10)
                 continue
             }

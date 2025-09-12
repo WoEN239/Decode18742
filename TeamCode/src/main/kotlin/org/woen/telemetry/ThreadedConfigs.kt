@@ -47,11 +47,29 @@ object ThreadedConfigs {
     var ODOMETER_ROTATE_SENS = ThreadedTelemetry.AtomicValueProvider(1e-8)
 
     @ThreadedConfig(category = "DRIVE_TRAIN")
-    var FORWARD_REGULATOR_PARAMS = RegulatorParameters()
+    var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters()
 
     @ThreadedConfig(category = "DRIVE_TRAIN")
-    var SIDE_REGULATOR_PARAMS = RegulatorParameters()
+    var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters()
 
     @ThreadedConfig(category = "DRIVE_TRAIN")
-    var ROTATE_REGULATOR_PARAMS = RegulatorParameters()
+    var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters()
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_POS_X_P = ThreadedTelemetry.AtomicValueProvider(0.0)
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_POS_Y_P = ThreadedTelemetry.AtomicValueProvider(0.0)
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_POS_H_P = ThreadedTelemetry.AtomicValueProvider(0.0)
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_VEL_X_P = ThreadedTelemetry.AtomicValueProvider(0.0)
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_VEL_Y_P = ThreadedTelemetry.AtomicValueProvider(0.0)
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_VEL_H_P = ThreadedTelemetry.AtomicValueProvider(0.0)
 }

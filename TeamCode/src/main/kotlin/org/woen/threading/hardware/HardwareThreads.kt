@@ -16,7 +16,7 @@ class HardwareThreads private constructor() : DisposableHandle {
             get() =
                 runBlocking {
                     _instanceMutex.withLock {
-                        if (_nullableInstance == null){
+                        if (_nullableInstance == null) {
                             _nullableInstance = HardwareThreads()
 
                             _nullableInstance?.initModules()

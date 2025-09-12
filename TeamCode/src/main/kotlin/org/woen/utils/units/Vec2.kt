@@ -11,7 +11,7 @@ data class Vec2(@JvmField val x: Double, @JvmField val y: Double) {
         val ZERO = Vec2(0.0, 0.0)
     }
 
-    constructor(rrVec: Vector2d) : this(rrVec.x, rrVec.y);
+    constructor(rrVec: Vector2d) : this(rrVec.x, rrVec.y)
     constructor(x: Double) : this(x, x)
 
     fun length() = sqrt(x * x + y * y)
@@ -35,13 +35,13 @@ data class Vec2(@JvmField val x: Double, @JvmField val y: Double) {
     fun rrVec() = Vector2d(x, y)
 
     override fun equals(other: Any?): Boolean {
-        if(other == null)
+        if (other == null)
             return false
 
-        if(other !is Vec2)
+        if (other !is Vec2)
             return false
 
-        if(other.x == x && other.y == y)
+        if (other.x == x && other.y == y)
             return true
 
         return false
