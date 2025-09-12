@@ -8,6 +8,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
+import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.IHardwareDevice

@@ -46,6 +46,10 @@ object ThreadedConfigs {
     @ThreadedConfig(category = "ODOMETRY")
     var ODOMETER_ROTATE_SENS = ThreadedTelemetry.AtomicValueProvider(1e-8)
 
+
+    @ThreadedConfig(category = "ODOMETRY")
+    var ODOMETRY_MERGE_COEF = ThreadedTelemetry.AtomicEventProvider(0.1)
+
     @ThreadedConfig(category = "DRIVE_TRAIN")
     var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters()
 
@@ -93,4 +97,7 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "GYRO")
     var GYRO_MERGE_COEF = ThreadedTelemetry.AtomicEventProvider(0.1)
+
+    @ThreadedConfig(category = "CAMERA")
+    var CAMERA_ACCURACY = ThreadedTelemetry.AtomicValueProvider(150)
 }

@@ -1,4 +1,4 @@
-package org.woen.modules.driveTrain
+package org.woen.modules.driveTrain.odometry
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -7,6 +7,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.driveTrain.HardwareGyro
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -50,23 +51,18 @@ class Odometry : IModule {
                 }
             })
 
-        ThreadedConfigs.GYRO_MERGE_COEF.onSet += {
-            runBlocking {
-                _gyroMutex.withLock {
-                    _gyroFilter.coef = it
-                }
-            }
-        }
 
         _gyro.gyroUpdateEvent += {
             runBlocking {
                 _gyroMutex.withLock {
-                    _mergeRotation = Angle(
-                        _gyroFilter.updateRaw(
-                            _mergeRotation.angle,
-                            (it - _mergeRotation).angle
+                    _odometryMutex.withLock {
+                        _mergeRotation = Angle(
+                            _gyroFilter.updateRaw(
+                                _mergeRotation.angle,
+                                (it - _mergeRotation).angle
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -76,13 +72,50 @@ class Odometry : IModule {
                 _gyroMutex.withLock {
                     _gyroFilter.start()
                 }
+
+                _mergePositionMutex.withLock {
+                    _positionXFilter.start()
+                    _positionYFilter.start()
+                }
+            }
+        }
+
+        ThreadedConfigs.ODOMETRY_MERGE_COEF.onSet += {
+            runBlocking {
+                _mergePositionMutex.withLock {
+                    _positionXFilter.coef = it
+                    _positionYFilter.coef = it
+                }
+            }
+        }
+
+        Camera.LAZY_INSTANCE.cameraPositionUpdateEvent += {
+            runBlocking {
+                _mergePositionMutex.withLock {
+                    _odometryMutex.withLock {
+                        _currentPosition = Vec2(
+                            _positionXFilter.updateRaw(
+                                _currentPosition.x,
+                                it.x - _currentPosition.x
+                            ),
+                            _positionYFilter.updateRaw(
+                                _currentPosition.y,
+                                it.y - _currentPosition.y
+                            )
+                        )
+                    }
+                }
             }
         }
     }
 
     private val _gyroMutex = Mutex()
 
+    private val _mergePositionMutex = Mutex()
+
     private val _gyroFilter = ExponentialFilter(ThreadedConfigs.GYRO_MERGE_COEF.get())
+    private val _positionXFilter = ExponentialFilter(ThreadedConfigs.ODOMETRY_MERGE_COEF.get())
+    private val _positionYFilter = ExponentialFilter(ThreadedConfigs.ODOMETRY_MERGE_COEF.get())
 
     private var _odometryJob: Job? = null
 

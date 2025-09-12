@@ -4,6 +4,7 @@ import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.woen.modules.driveTrain.odometry.Camera
 
 class HardwareThreads private constructor() : DisposableHandle {
     companion object {

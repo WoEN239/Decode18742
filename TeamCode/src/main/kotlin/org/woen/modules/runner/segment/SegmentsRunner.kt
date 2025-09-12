@@ -16,7 +16,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
-import org.woen.modules.driveTrain.RequireOdometryEvent
+import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadManager

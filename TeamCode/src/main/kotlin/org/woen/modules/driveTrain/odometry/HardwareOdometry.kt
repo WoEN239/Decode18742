@@ -1,4 +1,4 @@
-package org.woen.modules.driveTrain
+package org.woen.modules.driveTrain.odometry
 
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap

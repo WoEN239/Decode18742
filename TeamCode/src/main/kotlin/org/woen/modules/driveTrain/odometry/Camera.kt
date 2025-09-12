@@ -1,0 +1,122 @@
+package org.woen.modules.driveTrain.odometry
+
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
+import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil
+import org.firstinspires.ftc.vision.VisionPortal
+import org.firstinspires.ftc.vision.apriltag.AprilTagMetadata
+import org.firstinspires.ftc.vision.apriltag.AprilTagPoseRaw
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
+import org.woen.hotRun.HotRun
+import org.woen.telemetry.ThreadedConfigs
+import org.woen.threading.ThreadManager
+import org.woen.utils.events.SimpleEvent
+import org.woen.utils.units.Vec2
+import kotlin.concurrent.thread
+
+
+class Camera private constructor() : DisposableHandle {
+    companion object {
+        private var _nullableInstance: Camera? = null
+
+        private val _instanceMutex = Mutex()
+
+        @JvmStatic
+        val LAZY_INSTANCE: Camera
+            get() = runBlocking {
+                _instanceMutex.withLock {
+                    if (_nullableInstance == null)
+                        _nullableInstance = Camera()
+
+                    return@withLock _nullableInstance!!
+                }
+            }
+
+        fun restart() {
+            runBlocking {
+                _instanceMutex.withLock {
+                    _nullableInstance?.dispose()
+                    _nullableInstance = null
+                }
+            }
+        }
+    }
+
+    private val _visionPortal: VisionPortal
+
+    private val _aprilProcessor: AprilTagProcessor =
+        AprilTagProcessor.Builder().setOutputUnits(DistanceUnit.CM, AngleUnit.DEGREES)
+            .setDrawAxes(true).build()
+
+    init {
+        val hardwareMap =
+            OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
+
+        _visionPortal = VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
+            .addProcessor(_aprilProcessor).build()
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            _thread.start()
+        }
+
+        HotRun.LAZY_INSTANCE.opModeStopEvent += {
+            _thread.interrupt()
+        }
+    }
+
+    val cameraPositionUpdateEvent = SimpleEvent<Vec2>()
+
+    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread {
+        while (!Thread.currentThread().isInterrupted) {
+            val detections = _aprilProcessor.detections
+
+            var suitableDetections = 0
+
+            var sum = Vec2.ZERO
+
+            for (detection in detections) {
+                if (detection.rawPose != null &&
+                    detection.decisionMargin < ThreadedConfigs.CAMERA_ACCURACY.get() &&
+                    detection.id !in 21..23
+                ) {
+                    val rawTagPose: AprilTagPoseRaw = detection.rawPose
+                    var rawTagPoseVector: VectorF? = VectorF(
+                        rawTagPose.x.toFloat(), rawTagPose.y.toFloat(), rawTagPose.z.toFloat()
+                    )
+                    val rawTagRotation = rawTagPose.R
+                    val metadata: AprilTagMetadata = detection.metadata
+                    val fieldTagPos =
+                        metadata.fieldPosition.multiplied(DistanceUnit.mmPerInch.toFloat() / 10f)
+                    val fieldTagQ = metadata.fieldOrientation
+                    rawTagPoseVector = rawTagRotation.inverted().multiplied(rawTagPoseVector)
+                    val rotatedPosVector = fieldTagQ.applyToVector(rawTagPoseVector)
+
+                    val dist = Vec2(
+                        rotatedPosVector.get(0).toDouble(),
+                        rotatedPosVector.get(1).toDouble()
+                    ).length()
+
+                    val fieldCameraPos = fieldTagPos.subtracted(rotatedPosVector)
+
+                    sum += Vec2(fieldCameraPos.get(0).toDouble(), fieldCameraPos.get(1).toDouble())
+
+                    suitableDetections++
+                }
+            }
+
+            if(suitableDetections != 0)
+                _cameraPositionUpdateEvent.invoke(sum / suitableDetections.toDouble())
+        }
+    })
+
+    override fun dispose() {
+        _visionPortal.close()
+    }
+}
