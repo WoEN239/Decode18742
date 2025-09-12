@@ -72,4 +72,19 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "ROAR_RUNNER")
     var ROAD_RUNNER_VEL_H_P = ThreadedTelemetry.AtomicValueProvider(0.0)
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_TRANSLATE_VELOCITY = ThreadedTelemetry.AtomicValueProvider(1.0)
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_ROTATE_VELOCITY = ThreadedTelemetry.AtomicValueProvider(1.0)
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_ROTATE_ACCEL = ThreadedTelemetry.AtomicValueProvider(1.0)
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_MIN_TRANSLATION_ACCEL = ThreadedTelemetry.AtomicValueProvider(-1.0)
+
+    @ThreadedConfig(category = "ROAR_RUNNER")
+    var ROAD_RUNNER_MAX_TRANSLATION_ACCEL = ThreadedTelemetry.AtomicValueProvider(1.0)
 }
