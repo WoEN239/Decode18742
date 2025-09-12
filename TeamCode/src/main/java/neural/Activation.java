@@ -2,10 +2,10 @@ package neural;
 
 enum activateFunction
 {
-    sigmoid,
-    reLU,
-    leakyReLU,
-    softMax
+    SIGMOID,
+    RELU,
+    LEAKYRELU,
+    SOFTMAX
 }
 public abstract class Activation
 {
