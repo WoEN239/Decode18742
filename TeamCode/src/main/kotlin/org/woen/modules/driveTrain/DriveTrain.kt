@@ -15,7 +15,12 @@ import org.woen.utils.units.Vec2
 data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotationVelocity: Double)
 
 class DriveTrain : IModule {
-    private val _hardwareDriveTrain = HardwareDriveTrain("", "", "", "")
+    private val _hardwareDriveTrain = HardwareDriveTrain(
+        "leftForwardDrive",
+        "leftBackDrive",
+        "rightForwardDrive",
+        "rightBackDrive"
+    )
 
     private var _targetTranslateVelocity = Vec2.ZERO
     private var _targetRotateVelocity = 0.0

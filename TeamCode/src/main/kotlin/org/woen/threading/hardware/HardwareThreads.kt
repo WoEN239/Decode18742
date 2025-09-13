@@ -4,7 +4,11 @@ import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.woen.modules.driveTrain.odometry.Camera
+import org.woen.modules.driveTrain.DriveTrain
+import org.woen.modules.camera.Camera
+import org.woen.modules.driveTrain.odometry.Odometry
+import org.woen.modules.runner.actions.ActionRunner
+import org.woen.modules.runner.segment.SegmentsRunner
 
 class HardwareThreads private constructor() : DisposableHandle {
     companion object {
@@ -42,7 +46,8 @@ class HardwareThreads private constructor() : DisposableHandle {
     val EXPANSION = HardwareThread(HardwareLink())
 
     fun initModules() {
-
+        CONTROL.link.addModules(DriveTrain(), Odometry(), SegmentsRunner())
+        val actionRunner = ActionRunner()
     }
 
     override fun dispose() {

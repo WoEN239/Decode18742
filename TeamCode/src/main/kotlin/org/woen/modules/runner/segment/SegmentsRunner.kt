@@ -104,7 +104,9 @@ class SegmentsRunner : IModule {
 
     override suspend fun process() {
         _runnerJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN ||
+                HotRun.LAZY_INSTANCE.currentRunMode.get() != HotRun.RunMode.AUTO
+            )
                 return@launch
 
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())

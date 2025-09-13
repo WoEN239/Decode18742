@@ -1,4 +1,4 @@
-package org.woen.modules.driveTrain.odometry
+package org.woen.modules.camera
 
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import kotlinx.coroutines.DisposableHandle
@@ -15,12 +15,12 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagMetadata
 import org.firstinspires.ftc.vision.apriltag.AprilTagPoseRaw
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 import org.woen.hotRun.HotRun
+import org.woen.modules.turret.Pattern
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadManager
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.units.Vec2
 import kotlin.concurrent.thread
-
 
 class Camera private constructor() : DisposableHandle {
     companion object {
@@ -62,29 +62,40 @@ class Camera private constructor() : DisposableHandle {
         _visionPortal = VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
             .addProcessor(_aprilProcessor).build()
 
-        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+        HotRun.Companion.LAZY_INSTANCE.opModeInitEvent += {
             _thread.start()
         }
 
-        HotRun.LAZY_INSTANCE.opModeStopEvent += {
+        HotRun.Companion.LAZY_INSTANCE.opModeStopEvent += {
             _thread.interrupt()
         }
     }
 
+    var currentPattern: Pattern? = null
+        private set
+
     val cameraPositionUpdateEvent = SimpleEvent<Vec2>()
 
-    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread {
+    private val _thread = ThreadManager.Companion.LAZY_INSTANCE.register(thread {
         while (!Thread.currentThread().isInterrupted) {
-            val detections = _aprilProcessor.detections
+            val detections = _aprilProcessor.freshDetections
+
+            if (detections == null) {
+                Thread.sleep(5)
+                continue
+            }
 
             var suitableDetections = 0
 
-            var sum = Vec2.ZERO
+            var sum = Vec2.Companion.ZERO
 
             for (detection in detections) {
-                if (detection.rawPose != null &&
-                    detection.decisionMargin < ThreadedConfigs.CAMERA_ACCURACY.get() &&
-                    detection.id !in 21..23
+                val pattern = Pattern.Companion.patterns.find { it.cameraTagId == detection.id }
+
+                if (pattern != null)
+                    currentPattern = pattern
+                else if (detection.rawPose != null &&
+                    detection.decisionMargin < ThreadedConfigs.CAMERA_ACCURACY.get()
                 ) {
                     val rawTagPose: AprilTagPoseRaw = detection.rawPose
                     var rawTagPoseVector: VectorF? = VectorF(
@@ -111,7 +122,7 @@ class Camera private constructor() : DisposableHandle {
                 }
             }
 
-            if(suitableDetections != 0)
+            if (suitableDetections != 0)
                 cameraPositionUpdateEvent.invoke(sum / suitableDetections.toDouble())
         }
     })

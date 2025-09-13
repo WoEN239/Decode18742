@@ -51,13 +51,13 @@ object ThreadedConfigs {
     var ODOMETRY_MERGE_COEF = ThreadedTelemetry.AtomicEventProvider(0.1)
 
     @ThreadedConfig(category = "DRIVE_TRAIN")
-    var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters()
+    var DRIVE_SIDE_REGULATOR_PARAMS = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
 
     @ThreadedConfig(category = "DRIVE_TRAIN")
-    var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters()
+    var DRIVE_FORWARD_REGULATOR_PARAMS = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
 
     @ThreadedConfig(category = "DRIVE_TRAIN")
-    var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters()
+    var DRIVE_ROTATE_REGULATOR_PARAMS = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
 
     @ThreadedConfig(category = "ROAR_RUNNER")
     var ROAD_RUNNER_POS_X_P = ThreadedTelemetry.AtomicValueProvider(0.0)
@@ -100,4 +100,16 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "CAMERA")
     var CAMERA_ACCURACY = ThreadedTelemetry.AtomicValueProvider(150)
+
+    @ThreadedConfig(category = "TURRET")
+    var PULLEY_RADIUS = ThreadedTelemetry.AtomicValueProvider(10.0 / 2.0)
+
+    @ThreadedConfig(category = "TURRET")
+    var PULLEY_TICKS_IN_REVOLUTION = ThreadedTelemetry.AtomicValueProvider(24.0)
+
+    @ThreadedConfig(category = "TURRET")
+    var PULLEY_REGULATOR = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
+
+    @ThreadedConfig(category = "TURRET")
+    var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.AtomicEventProvider(0.1)
 }

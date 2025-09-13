@@ -2,6 +2,10 @@ package org.woen.modules.driveTrain.odometry
 
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.woen.hotRun.HotRun
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.exponentialFilter.ExponentialFilter
@@ -21,7 +25,11 @@ class HardwareThreeOdometry(private val _odometryName: String) : IHardwareDevice
 
         _oldOdometerPosition = currentOdometerPosition
 
-        odometerVelocity.set(_filter.updateRaw(oldVelocity, rawVelocity - oldVelocity))
+        runBlocking {
+            _filterMutex.withLock {
+                odometerVelocity.set(_filter.updateRaw(oldVelocity, rawVelocity - oldVelocity))
+            }
+        }
     }
 
     private lateinit var _odometer: DcMotorEx
@@ -32,12 +40,25 @@ class HardwareThreeOdometry(private val _odometryName: String) : IHardwareDevice
     private var _oldOdometerPosition = 0.0
     private val _filter = ExponentialFilter(ThreadedConfigs.VELOCITY_FILTER_K.get())
 
+    private val _filterMutex = Mutex()
+
     override fun init(hardwareMap: HardwareMap) {
         _odometer = EncoderOnly(hardwareMap.get(_odometryName) as DcMotorEx)
-        _filter.start()
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent +={
+            runBlocking {
+                _filterMutex.withLock {
+                    _filter.start()
+                }
+            }
+        }
 
         ThreadedConfigs.VELOCITY_FILTER_K.onSet += {
-            _filter.coef = it
+            runBlocking {
+                _filterMutex.withLock {
+                    _filter.coef = it
+                }
+            }
         }
     }
 

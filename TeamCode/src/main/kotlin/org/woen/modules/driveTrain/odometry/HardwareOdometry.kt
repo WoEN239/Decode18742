@@ -2,6 +2,10 @@ package org.woen.modules.driveTrain.odometry
 
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.woen.hotRun.HotRun
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.exponentialFilter.ExponentialFilter
@@ -15,6 +19,8 @@ class HardwareOdometry(
 ) : IHardwareDevice {
     private lateinit var _leftOdometer: DcMotorEx
     private lateinit var _rightOdometer: DcMotorEx
+
+    private val _filterMutex = Mutex()
 
     private val _leftFilter = ExponentialFilter(ThreadedConfigs.VELOCITY_FILTER_K.get())
     private val _rightFilter = ExponentialFilter(ThreadedConfigs.VELOCITY_FILTER_K.get())
@@ -43,13 +49,22 @@ class HardwareOdometry(
         val oldLeftVelocity = leftVelocity.get()
         val oldRightVelocity = rightVelocity.get()
 
-        leftVelocity.set(_leftFilter.updateRaw(oldLeftVelocity, rawLeftVelocity - oldLeftVelocity))
-        rightVelocity.set(
-            _rightFilter.updateRaw(
-                oldRightVelocity,
-                rawRightVelocity - oldRightVelocity
-            )
-        )
+        runBlocking {
+            _filterMutex.withLock {
+                leftVelocity.set(
+                    _leftFilter.updateRaw(
+                        oldLeftVelocity,
+                        rawLeftVelocity - oldLeftVelocity
+                    )
+                )
+                rightVelocity.set(
+                    _rightFilter.updateRaw(
+                        oldRightVelocity,
+                        rawRightVelocity - oldRightVelocity
+                    )
+                )
+            }
+        }
 
         _oldRightPosition = currentRightPosition
         _oldLeftPosition = currentLeftPosition
@@ -60,12 +75,22 @@ class HardwareOdometry(
         _rightOdometer = EncoderOnly(hardwareMap.get(_rightOdometerName) as DcMotorEx)
 
         ThreadedConfigs.VELOCITY_FILTER_K.onSet += {
-            _rightFilter.coef = it
-            _leftFilter.coef = it
+            runBlocking {
+                _filterMutex.withLock {
+                    _rightFilter.coef = it
+                    _leftFilter.coef = it
+                }
+            }
         }
 
-        _rightFilter.start()
-        _leftFilter.start()
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            runBlocking {
+                _filterMutex.withLock {
+                    _rightFilter.start()
+                    _leftFilter.start()
+                }
+            }
+        }
     }
 
     override fun dispose() {

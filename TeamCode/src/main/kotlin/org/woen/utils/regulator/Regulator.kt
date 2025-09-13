@@ -2,7 +2,9 @@ package org.woen.utils.regulator
 
 import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.util.ElapsedTime
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.ThreadedBattery
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.pow
 import kotlin.math.sign
 
@@ -18,7 +20,7 @@ data class RegulatorParameters(
     @JvmField val resetI: Boolean = false
 )
 
-class Regulator(val parameters: RegulatorParameters) {
+class Regulator(val parameters: ThreadedTelemetry.AtomicValueProvider<RegulatorParameters>) {
     private val _deltaTime = ElapsedTime()
 
     private var _integral = 0.0
@@ -31,30 +33,32 @@ class Regulator(val parameters: RegulatorParameters) {
 
     @Synchronized
     fun update(err: Double, target: Double): Double {
-        val uP = err * parameters.kP
+        val uP = err * parameters.get().kP
 
-        val uD = (err - _errOld) / _deltaTime.seconds() * parameters.kD
+        val uD = (err - _errOld) / _deltaTime.seconds() * parameters.get().kD
 
-        val uF = target * parameters.kF
+        val uF = target * parameters.get().kF
 
-        val uG = parameters.kG
+        val uG = parameters.get().kG
 
-        val uSG = parameters.kSG * sign(target)
+        val uSG = parameters.get().kSG * sign(target)
 
-        val uPow = err.pow(2.0) * parameters.kPow * sign(err)
+        val uPow = err.pow(2.0) * parameters.get().kPow * sign(err)
 
-        val uI = _integral * parameters.kI
+        val uI = _integral * parameters.get().kI
 
         var u = uP + uI + uD + uF + uG + uSG + uPow
 
-        if (err * _errOld < 0.0f && parameters.resetI)
+        if (err * _errOld < 0.0f && parameters.get().resetI)
             resetIntegral()
 
         val volts = ThreadedBattery.LAZY_INSTANCE.currentVoltage
 
+        val limitU = parameters.get().limitU
+
         if (
-            (parameters.limitU > 0.0 && u < parameters.limitU && u > -parameters.limitU) ||
-            (parameters.limitU < 0.0 && u < volts && u > -volts) ||
+            (limitU > 0.0 && u < limitU && u > -limitU) ||
+            (limitU < 0.0 && u < volts && u > -volts) ||
             (err * u < 0.0f)
         )
             _integral += err * _deltaTime.seconds()
@@ -62,8 +66,8 @@ class Regulator(val parameters: RegulatorParameters) {
         _deltaTime.reset()
         _errOld = err
 
-        if (parameters.limitU >= 0.0)
-            u = clamp(u, -parameters.limitU, parameters.limitU)
+        if (limitU >= 0.0)
+            u = clamp(u, -limitU, limitU)
 
         return u
     }

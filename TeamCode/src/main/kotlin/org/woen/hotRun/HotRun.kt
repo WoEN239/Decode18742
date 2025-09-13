@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.woen.modules.driveTrain.odometry.Camera
+import org.woen.modules.camera.Camera
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
