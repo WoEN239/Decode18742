@@ -28,10 +28,45 @@ public class BarrelStorage
     }
 
 
+
     public Ball[] Storage()
     {
         return _storage;
     }
+    public int AnyBallCount()
+    {
+        int count = 0;
+
+        for (int slotId = 0; slotId < 3; slotId++)
+            if (_storage[slotId].GetName() != Ball.Name.NONE)
+                count++;
+
+        return count;
+    }
+    public int BallCount()
+    {
+        return AnyBallCount();
+    }
+    public int PurpleBallCount()
+    {
+        return SelectedBallCount(Ball.Name.PURPLE);
+    }
+    public int GreenBallCount()
+    {
+        return SelectedBallCount(Ball.Name.GREEN);
+    }
+    private int SelectedBallCount(Ball.Name ball)
+    {
+        int count = 0;
+
+        for (int slotId = 0; slotId < 3; slotId++)
+            if (_storage[slotId].GetName() == Ball.Name.PURPLE)
+                count++;
+
+        return count;
+    }
+
+
     public StorageOffset CurrentOffset()
     {
         return _storageOffset;
@@ -44,6 +79,7 @@ public class BarrelStorage
     {
         _storageOffset.Set(newOffset);
     }
+
 
 
     public IntakeResult HandleInput()
@@ -106,7 +142,6 @@ public class BarrelStorage
         }
         else return false;
     }
-
 
 
 
