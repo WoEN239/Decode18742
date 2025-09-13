@@ -1,13 +1,13 @@
 package barrel.enumerators;
 
 
-public class Ball
+public class RunStatus
 {
     public enum Name
     {
-        NONE,
-        PURPLE,
-        GREEN
+        INACTIVE,
+        ACTIVE,
+        PAUSE
     }
 
 
@@ -48,15 +48,15 @@ public class Ball
 
 
 
-    static public int NONE()
+    static public int INACTIVE()
     {
         return 0;
     }
-    static public int PURPLE()
+    static public int ACTIVE()
     {
         return 1;
     }
-    static public int GREEN()
+    static public int PAUSE()
     {
         return 2;
     }
@@ -64,17 +64,17 @@ public class Ball
 
     static public Name ToName (int value)
     {
-        return value == 0 ? Name.NONE
-                : value == 1 ? Name.PURPLE
-                : Name.GREEN;
+        return value == 0 ? Name.INACTIVE
+                : value == 1 ? Name.ACTIVE
+                : Name.PAUSE;
     }
     static public int ToInt (Name name)
     {
         switch (name)
         {
-            case NONE:   return 0;
-            case PURPLE: return 1;
-            default:     return 2;
+            case INACTIVE: return 0;
+            case ACTIVE:   return 1;
+            default:       return 2;
         }
     }
 }

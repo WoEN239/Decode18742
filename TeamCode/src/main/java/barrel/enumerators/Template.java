@@ -1,8 +1,10 @@
 package barrel.enumerators;
 
+/*
 public abstract class Template
 {
     public enum Name { NOT_IMPLEMENTED }
+
 
     Name memName;
     int memId;
@@ -41,12 +43,13 @@ public abstract class Template
 
 
 
-    public Name ToName (int value)
+    static public Name ToName (int value)
     {
         return Name.NOT_IMPLEMENTED;
     }
-    public int ToInt (Name name)
+    static public int ToInt (Name name)
     {
         return -1;
     }
 }
+*/

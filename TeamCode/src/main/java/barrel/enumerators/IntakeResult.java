@@ -1,13 +1,14 @@
 package barrel.enumerators;
 
 
-public class Ball
+public class IntakeResult
 {
     public enum Name
     {
-        NONE,
-        PURPLE,
-        GREEN
+        SUCCESS_LEFT,
+        SUCCESS_CENTER,
+        SUCCESS_RIGHT,
+        FAIL_STORAGE_IS_FULL,
     }
 
 
@@ -48,33 +49,40 @@ public class Ball
 
 
 
-    static public int NONE()
+    static public int SUCCESS_LEFT()
     {
         return 0;
     }
-    static public int PURPLE()
+    static public int SUCCESS_CENTER()
     {
         return 1;
     }
-    static public int GREEN()
+    static public int SUCCESS_RIGHT()
     {
         return 2;
+    }
+    static public int FAIL_STORAGE_IS_FULL()
+    {
+        return 3;
     }
 
 
     static public Name ToName (int value)
     {
-        return value == 0 ? Name.NONE
-                : value == 1 ? Name.PURPLE
-                : Name.GREEN;
+        return value > 1 ?
+                value < 0 ?
+                        Name.SUCCESS_LEFT : Name.SUCCESS_CENTER
+                : value < 2 ?
+                Name.SUCCESS_RIGHT : Name.FAIL_STORAGE_IS_FULL;
     }
     static public int ToInt (Name name)
     {
         switch (name)
         {
-            case NONE:   return 0;
-            case PURPLE: return 1;
-            default:     return 2;
+            case SUCCESS_LEFT:   return 0;
+            case SUCCESS_CENTER: return 1;
+            case SUCCESS_RIGHT:  return 2;
+            default: return 3;
         }
     }
 }

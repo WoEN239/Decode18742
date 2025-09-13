@@ -57,11 +57,11 @@ public class RequestResult
     {
         return 1;
     }
-    public int SUCCESS_RIGHT()
+    static public int SUCCESS_RIGHT()
     {
         return 2;
     }
-    public int FAIL_COLOR_NOT_PRESENT()
+    static public int FAIL_COLOR_NOT_PRESENT()
     {
         return 3;
     }

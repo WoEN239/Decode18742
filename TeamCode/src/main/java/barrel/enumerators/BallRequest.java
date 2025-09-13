@@ -1,5 +1,6 @@
 package barrel.enumerators;
 
+
 public class BallRequest
 {
     public enum Name
@@ -9,6 +10,7 @@ public class BallRequest
         GREEN,
         ANY
     }
+
 
     Name memName;
     int memId;
