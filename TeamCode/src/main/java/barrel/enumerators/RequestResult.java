@@ -8,7 +8,9 @@ public class RequestResult
         SUCCESS_LEFT,
         SUCCESS_CENTER,
         SUCCESS_RIGHT,
-        FAIL_COLOR_NOT_PRESENT
+        FAIL_UNKNOWN,
+        FAIL_COLOR_NOT_PRESENT,
+        FAIL_IS_CURRENTLY_BUSY
     }
 
 
@@ -61,19 +63,28 @@ public class RequestResult
     {
         return 2;
     }
-    static public int FAIL_COLOR_NOT_PRESENT()
+    static public int FAIL_UNKNOWN()
     {
         return 3;
+    }
+    static public int FAIL_COLOR_NOT_PRESENT()
+    {
+        return 4;
+    }
+    static public int FAIL_IS_CURRENTLY_BUSY()
+    {
+        return 5;
     }
 
 
     static public Name ToName(int value)
     {
-        return value > 1 ?
-                value < 0 ?
-                    Name.SUCCESS_LEFT : Name.SUCCESS_CENTER
-                : value < 2 ?
-                Name.SUCCESS_RIGHT : Name.FAIL_COLOR_NOT_PRESENT;
+        return value < 3 ?
+                value < 2 ?
+                    value < 1 ? Name.SUCCESS_LEFT : Name.SUCCESS_CENTER
+                    : value < 3 ? Name.SUCCESS_RIGHT : Name.FAIL_UNKNOWN
+                : value < 4 ?
+                    Name.FAIL_COLOR_NOT_PRESENT : Name.FAIL_IS_CURRENTLY_BUSY;
     }
     static public int ToInt (Name name)
     {
@@ -82,7 +93,9 @@ public class RequestResult
             case SUCCESS_LEFT:   return 0;
             case SUCCESS_CENTER: return 1;
             case SUCCESS_RIGHT:  return 2;
-            default: return 3;
+            case FAIL_UNKNOWN:   return 3;
+            case FAIL_COLOR_NOT_PRESENT: return 4;
+            default: return 5;
         }
     }
 }

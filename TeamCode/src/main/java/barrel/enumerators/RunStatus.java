@@ -3,6 +3,13 @@ package barrel.enumerators;
 
 public class RunStatus
 {
+    public RunStatus()
+    {
+        memName = Name.INACTIVE;
+        memId = 0;
+    }
+
+
     public enum Name
     {
         INACTIVE,

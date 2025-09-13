@@ -1,14 +1,13 @@
 package barrel.enumerators;
 
 
-public class BallRequest
+public class StorageOffset
 {
     public enum Name
     {
-        NONE,
-        PURPLE,
-        GREEN,
-        ANY
+        ALIGNED_TO_INTAKE,
+        OFFSET_60_CCW,  //  To the left
+        OFFSET_60_CW    //  To the right
     }
 
 
@@ -49,40 +48,33 @@ public class BallRequest
 
 
 
-    static public int NONE()
+    static public int ALIGNED_TO_INTAKE()
     {
         return 0;
     }
-    static public int PURPLE()
+    static public int OFFSET_60_CCW()
     {
         return 1;
     }
-    static public int GREEN()
+    static public int OFFSET_60_CW()
     {
         return 2;
-    }
-    static public int ANY()
-    {
-        return 3;
     }
 
 
     static public Name ToName (int value)
     {
-        return value < 2 ?
-                value < 1 ?
-                    Name.NONE : Name.PURPLE
-                : value < 3 ?
-                    Name.GREEN : Name.ANY;
+        return value == 0 ? Name.ALIGNED_TO_INTAKE
+                : value == 1 ? Name.OFFSET_60_CCW
+                : Name.OFFSET_60_CW;
     }
     static public int ToInt (Name name)
     {
         switch (name)
         {
-            case NONE:   return 0;
-            case PURPLE: return 1;
-            case GREEN:  return 2;
-            default:     return 3;
+            case ALIGNED_TO_INTAKE: return 0;
+            case OFFSET_60_CCW:     return 1;
+            default:                return 2;
         }
     }
 }

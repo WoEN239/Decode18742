@@ -1,16 +1,19 @@
 package barrel;
 
-
 import barrel.enumerators.Ball;
 import barrel.enumerators.BallRequest;
-//import barrel.enumerators.IntakeResult;
-import barrel.enumerators.RequestResult;
+
 import barrel.enumerators.StorageSlot;
+import barrel.enumerators.StorageOffset;
+
+import barrel.enumerators.IntakeResult;
+import barrel.enumerators.RequestResult;
+
 
 public class BarrelStorage
 {
     private Ball[] _storage;
-    private StorageSlot storageSlot;
+    private StorageOffset _storageOffset;
 
 
     public BarrelStorage(Ball[] balls)
@@ -29,18 +32,40 @@ public class BarrelStorage
     {
         return _storage;
     }
-
-
-
-    public void UpdateAfterInput(Ball input)
+    public StorageOffset CurrentOffset()
     {
-        //IntakeResult intakeResult;
-
-        //return intakeResult;
+        return _storageOffset;
     }
-    public RequestResult UpdateAfterOutput(BallRequest request)
+    public StorageOffset.Name CurrentOffsetName()
     {
-        int requestBuffer = request.GetId();
+        return _storageOffset.GetName();
+    }
+    public void ChangeOffset(StorageOffset.Name newOffset)
+    {
+        _storageOffset.Set(newOffset);
+    }
+
+
+    public IntakeResult HandleInput()
+    {
+        IntakeResult result = new IntakeResult();
+        result.Set(IntakeResult.Name.FAIL_STORAGE_IS_FULL);
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (_storage[i].GetName() == Ball.Name.NONE)
+            {
+                result.Set(i);
+                if (i == 1) i += 2;  //  Fast break
+                //  Preferring the center slot = closest to input chamber
+            }
+        }
+
+        return result;
+    }
+    public RequestResult HandleRequest(BallRequest.Name request)
+    {
+        int requestBuffer = BallRequest.ToInt(request);
         if (requestBuffer == 3)  //  RequestResult.Name. ANY (int 3)
         {   //  Optimised comparing by id without extra unnecessary conversions
 
@@ -52,7 +77,6 @@ public class BarrelStorage
         }
         else return RequestSearch(Ball.ToName(requestBuffer));
     }
-
     private RequestResult RequestSearch(Ball.Name requested)
     {
         RequestResult result = new RequestResult();
@@ -63,13 +87,27 @@ public class BarrelStorage
             if (_storage[i].GetName() == requested)
             {
                 result.Set(i);
-                if (i != 1) i += 2;  //  Fast break
-                // Preferring slots that are closer to the shooting chamber
+                if (i != 1) i += 3;  //  Fast break
+                //  Preferring slots that are closer to the shooting chamber
             }
         }
 
         return result;
     }
+
+
+
+    public boolean IntakeToCenter(Ball.Name inputBall)
+    {
+        if (_storage[StorageSlot.CENTER()].GetName() == Ball.Name.NONE)
+        {
+            _storage[StorageSlot.CENTER()].Set(inputBall);
+            return true;
+        }
+        else return false;
+    }
+
+
 
 
     public void RotateCW()
@@ -80,19 +118,18 @@ public class BarrelStorage
     {
         RotateRight();
     }
-
     public void RotateLeft()
     {
-        Ball buffer = _storage[storageSlot.LEFT()];
-        _storage[storageSlot.LEFT  ()] = _storage[storageSlot.CENTER()];
-        _storage[storageSlot.CENTER()] = _storage[storageSlot.RIGHT ()];
-        _storage[storageSlot.RIGHT ()] = buffer;
+        Ball buffer = _storage[StorageSlot.LEFT()];
+        _storage[StorageSlot.LEFT  ()] = _storage[StorageSlot.CENTER()];
+        _storage[StorageSlot.CENTER()] = _storage[StorageSlot.RIGHT ()];
+        _storage[StorageSlot.RIGHT ()] = buffer;
     }
     public void RotateRight()
     {
-        Ball buffer = _storage[storageSlot.RIGHT()];
-        _storage[storageSlot.RIGHT ()] = _storage[storageSlot.CENTER()];
-        _storage[storageSlot.CENTER()] = _storage[storageSlot.LEFT  ()];
-        _storage[storageSlot.LEFT  ()] = buffer;
+        Ball buffer = _storage[StorageSlot.RIGHT()];
+        _storage[StorageSlot.RIGHT ()] = _storage[StorageSlot.CENTER()];
+        _storage[StorageSlot.CENTER()] = _storage[StorageSlot.LEFT  ()];
+        _storage[StorageSlot.LEFT  ()] = buffer;
     }
 }
