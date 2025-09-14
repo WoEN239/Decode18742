@@ -1,6 +1,7 @@
 package org.woen.telemetry
 
 import org.woen.utils.regulator.RegulatorParameters
+import org.woen.utils.units.Vec2
 import kotlin.math.PI
 
 object ThreadedConfigs {
@@ -59,6 +60,9 @@ object ThreadedConfigs {
     @ThreadedConfig(category = "DRIVE_TRAIN")
     var DRIVE_ROTATE_REGULATOR_PARAMS = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
 
+    @ThreadedConfig(category = "DRIVE_TRAIN")
+    var DRIVE_TRAIN_LOOK_P = ThreadedTelemetry.AtomicValueProvider(1.0)
+
     @ThreadedConfig(category = "ROAR_RUNNER")
     var ROAD_RUNNER_POS_X_P = ThreadedTelemetry.AtomicValueProvider(0.0)
 
@@ -115,4 +119,10 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "TURRET")
     var PULLEY_TARGET_SENS = ThreadedTelemetry.AtomicValueProvider(50.0)
+
+    @ThreadedConfig(category = "TURRET")
+    var BLUE_BASKET_POSITION = ThreadedTelemetry.AtomicValueProvider(Vec2(0.0, 0.0))
+
+    @ThreadedConfig(category = "TURRET")
+    var RED_BASKET_POSITION = ThreadedTelemetry.AtomicValueProvider(Vec2(0.0, 0.0))
 }

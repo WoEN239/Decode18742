@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.modules.camera.Camera
+import org.woen.telemetry.ThreadedConfigs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -13,6 +14,7 @@ import org.woen.threading.ThreadedTimers
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.events.SimpleEvent
+import org.woen.utils.units.Vec2
 import java.util.concurrent.atomic.AtomicReference
 
 class HotRun private constructor() {
@@ -65,6 +67,15 @@ class HotRun private constructor() {
         MANUAL,
         AUTO
     }
+
+    enum class RunColor(private val basketPosition: ThreadedTelemetry.AtomicValueProvider<Vec2>){
+        RED(ThreadedConfigs.RED_BASKET_POSITION),
+        BLUE(ThreadedConfigs.BLUE_BASKET_POSITION);
+
+        fun getBasketPosition() = basketPosition.get()
+    }
+
+    var currentRunColor = AtomicReference(RunColor.RED)
 
     val opModeInitEvent = SimpleEvent<GamepadOpMode>()
     val opModeStartEvent = SimpleEvent<GamepadOpMode>()

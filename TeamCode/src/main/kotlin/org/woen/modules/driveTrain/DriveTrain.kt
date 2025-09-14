@@ -5,15 +5,21 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
+import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
 import org.woen.threading.hardware.HardwareThreads
+import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
+import java.util.concurrent.atomic.AtomicBoolean
 
 data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotationVelocity: Double)
+
+class EnableLookMode()
 
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain(
@@ -30,7 +36,7 @@ class DriveTrain : IModule {
 
     private var _driveJob: Job? = null
 
-    private var _lookMode = false
+    private var _lookMode = AtomicBoolean(false)
 
     init {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
@@ -38,19 +44,24 @@ class DriveTrain : IModule {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {
             _driveMutex.withLock {
                 _targetTranslateVelocity = it.translateVelocity
-                _targetRotateVelocity = it.rotationVelocity
+                _targetRotateVelocity = if (_lookMode.get()) 0.0 else it.rotationVelocity
             }
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(EnableLookMode::class, {
+            _lookMode.set(true)
         })
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(object : ThreadedGamepad.IListener {
             override suspend fun update(gamepadData: Gamepad) {
-                _driveMutex.withLock {
-                    _targetTranslateVelocity = Vec2(
-                        gamepadData.left_stick_x.toDouble(),
-                        gamepadData.left_stick_y.toDouble()
+                ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    SetDriveTargetVelocityEvent(
+                        Vec2(
+                            gamepadData.left_stick_x.toDouble(),
+                            gamepadData.left_stick_y.toDouble()
+                        ), -gamepadData.right_stick_x.toDouble()
                     )
-                    _targetRotateVelocity = -gamepadData.right_stick_x.toDouble()
-                }
+                )
             }
         })
     }
@@ -62,7 +73,12 @@ class DriveTrain : IModule {
             _driveMutex.withLock {
                 _hardwareDriveTrain.drive(
                     _targetTranslateVelocity.turn(-odometry.odometryOrientation.angl.angle),
-                    _targetRotateVelocity
+                    if (_lookMode.get()) {
+                        (Angle(
+                            (HotRun.LAZY_INSTANCE.currentRunColor.get()
+                                .getBasketPosition() - odometry.odometryOrientation.pos).rot()
+                        ) - odometry.odometryOrientation.angl).angle * ThreadedConfigs.DRIVE_TRAIN_LOOK_P.get()
+                    } else _targetRotateVelocity
                 )
             }
         }
