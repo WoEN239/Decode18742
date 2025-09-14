@@ -12,8 +12,10 @@ import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.regulator.Regulator
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
+import kotlin.math.abs
 
 class HardwareTurret(private val _motorName: String) : IHardwareDevice {
     private lateinit var _motor: DcMotorEx
@@ -43,6 +45,8 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
 
     private var _motorVelocity = 0.0
 
+    var velocityAtTarget = AtomicBoolean(false)
+
     override fun update() {
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
@@ -62,6 +66,11 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
 
         val target = _realTargetVelocity.get()
         val velErr = target - _motorVelocity
+
+        if(abs(velErr) > ThreadedConfigs.PULLEY_TARGET_SENS.get())
+            velocityAtTarget.set(false)
+        else
+            velocityAtTarget.set(true)
 
         runBlocking {
             _pulleyRegulatorMutex.withLock {

@@ -38,14 +38,16 @@ class Turret : IModule {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TurretShootPatternEvent::class, {
             
         })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(TurretShootAllBarrelEvent::class, {
+
+        })
     }
 
     private var _turretJob: Job? = null
 
     override suspend fun process() {
-        _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
 
-        }
     }
 
     override val isBusy: Boolean

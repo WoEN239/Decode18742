@@ -112,4 +112,7 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "TURRET")
     var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.AtomicEventProvider(0.1)
+
+    @ThreadedConfig(category = "TURRET")
+    var PULLEY_TARGET_SENS = ThreadedTelemetry.AtomicValueProvider(50.0)
 }

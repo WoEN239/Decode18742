@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.modules.IModule
+import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -28,6 +29,8 @@ class DriveTrain : IModule {
     private val _driveMutex = Mutex()
 
     private var _driveJob: Job? = null
+
+    private var _lookMode = false
 
     init {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
@@ -54,8 +57,13 @@ class DriveTrain : IModule {
 
     override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+
             _driveMutex.withLock {
-                _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
+                _hardwareDriveTrain.drive(
+                    _targetTranslateVelocity.turn(-odometry.odometryOrientation.angl.angle),
+                    _targetRotateVelocity
+                )
             }
         }
     }
