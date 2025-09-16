@@ -7,7 +7,6 @@ import barrel.enumerators.IntakeResult;
 import barrel.enumerators.RequestResult;
 
 import barrel.enumerators.RunStatus;
-import barrel.enumerators.StorageOffset;
 
 public class Barrel
 {
@@ -31,8 +30,6 @@ public class Barrel
     {
         if (runStatus.GetName() == RunStatus.Name.ACTIVE)
         {
-            while (RealignToIntakePosition()) ;
-
             //  Storage search for empty slots
             IntakeResult intakeResult = _storage.HandleInput();
 
@@ -51,19 +48,23 @@ public class Barrel
     }
     private boolean UpdateAfterInput(IntakeResult intakeResult, Ball.Name inputBall)
     {
-        if (intakeResult.GetName() == IntakeResult.Name.FAIL_STORAGE_IS_FULL)
+        IntakeResult.Name name = intakeResult.GetName();
+
+        if (name == IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY ||
+            name == IntakeResult.Name.FAIL_STORAGE_IS_FULL ||
+            name == IntakeResult.Name.FAIL_UNKNOWN)
             return false;  //  Intake failed
 
         //  Align center slot to be empty
-        if (intakeResult.GetName() == IntakeResult.Name.SUCCESS_LEFT)
+        if (name == IntakeResult.Name.SUCCESS_LEFT)
         {
             _storage.RotateRight();
-            //  Rotate the motor to the right by 120
+            //!  Rotate the motor to the right by 120
         }
-        else if (intakeResult.GetName() == IntakeResult.Name.SUCCESS_RIGHT)
+        else if (name == IntakeResult.Name.SUCCESS_RIGHT)
         {
             _storage.RotateLeft();
-            //  Rotate the motor to the left  by 120
+            //!  Rotate the motor to the left  by 120
         }
 
         return _storage.IntakeToCenter(inputBall);  //  Safe intake
@@ -81,7 +82,9 @@ public class Barrel
 
             UpdateAfterRequest(requestResult);
 
-            //  wait for shot fired event
+            //!  Wait for shot fired event
+
+            _storage.EmptyLeftWasFired();
 
             ResumeLogic();
         }
@@ -94,62 +97,28 @@ public class Barrel
     }
     private boolean UpdateAfterRequest(RequestResult requestResult)
     {
-        if (requestResult.GetName() == RequestResult.Name.FAIL_COLOR_NOT_PRESENT)
+        RequestResult.Name name = requestResult.GetName();
+
+        if (name == RequestResult.Name.FAIL_IS_CURRENTLY_BUSY ||
+            name == RequestResult.Name.FAIL_COLOR_NOT_PRESENT ||
+            name == RequestResult.Name.FAIL_UNKNOWN)
             return false;
 
 
-        StorageOffset.Name currentOffset = _storage.CurrentOffset().GetName();
-        if (requestResult.GetName() == RequestResult.Name.SUCCESS_LEFT)
+        if (requestResult.GetName() == RequestResult.Name.SUCCESS_RIGHT)
         {
-            if (currentOffset == StorageOffset.Name.ALIGNED_TO_INTAKE)
-            {
-                //  Rotate the motor by 60  CW
-            }
-            else if (currentOffset == StorageOffset.Name.OFFSET_60_CCW)
-            {
-                //  Rotate the motor by 120 CW
-            }
+           //!  Rotate motor to the left (CCW 120)
 
-            _storage.ChangeOffset(StorageOffset.Name.OFFSET_60_CW);
-        }
-        else if (requestResult.GetName() == RequestResult.Name.SUCCESS_RIGHT)
-        {
-            if (currentOffset == StorageOffset.Name.ALIGNED_TO_INTAKE)
-            {
-                //  Rotate the motor by 60  CCW
-            }
-            else if (currentOffset == StorageOffset.Name.OFFSET_60_CW)
-            {
-                //  Rotate the motor by 120 CCW
-            }
-
-            _storage.ChangeOffset(StorageOffset.Name.OFFSET_60_CCW);
-        }
-        else
-        {
             _storage.RotateCCW();
-            _storage.ChangeOffset(StorageOffset.Name.OFFSET_60_CCW);
-            //  Rotate the motor by 180 CW
+        }
+        else if (requestResult.GetName() == RequestResult.Name.SUCCESS_CENTER)
+        {
+            //!  Rotate the motor to the right (CW 120)
+
+            _storage.RotateCW();
         }
         return true;
     }
-    private boolean RealignToIntakePosition()
-    {
-        if (runStatus.GetName() == RunStatus.Name.PAUSE) return false;
-
-        StorageOffset.Name storageOffset = _storage.CurrentOffsetName();
-        if (storageOffset == StorageOffset.Name.OFFSET_60_CW)
-        {
-            //  Rotate the motor by 60 CCW
-        }
-        else if (storageOffset == StorageOffset.Name.OFFSET_60_CCW)
-        {
-            //  Rotate the motor by 60 CW
-        }
-
-        return true;
-    }
-
 
 
     public void StopAnyLogic()
