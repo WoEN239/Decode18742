@@ -41,19 +41,7 @@ public class BarrelStorage
 
         return count;
     }
-    public int BallCount()
-    {
-        return AnyBallCount();
-    }
-    public int PurpleBallCount()
-    {
-        return SelectedBallCount(Ball.Name.PURPLE);
-    }
-    public int GreenBallCount()
-    {
-        return SelectedBallCount(Ball.Name.GREEN);
-    }
-    private int SelectedBallCount(Ball.Name ball)
+    public int SelectedBallCount(Ball.Name ball)
     {
         int count = 0;
 

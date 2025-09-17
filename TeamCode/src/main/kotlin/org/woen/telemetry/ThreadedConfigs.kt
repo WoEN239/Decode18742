@@ -125,4 +125,7 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "TURRET")
     var RED_BASKET_POSITION = ThreadedTelemetry.AtomicValueProvider(Vec2(0.0, 0.0))
+
+    @ThreadedConfig(category = "BARREL")
+    var BARREL_REGULATOR_PARAMETERS = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
 }

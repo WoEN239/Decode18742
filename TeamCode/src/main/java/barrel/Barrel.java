@@ -1,5 +1,10 @@
 package barrel;
 
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.internal.ftdi.eeprom.FT_EEPROM_232H;
+import org.woen.modules.barrel.HardwareBarrel;
+
 import barrel.enumerators.Ball;
 import barrel.enumerators.BallRequest;
 
@@ -8,27 +13,34 @@ import barrel.enumerators.RequestResult;
 
 import barrel.enumerators.RunStatus;
 
+
 public class Barrel
 {
+    private RunStatus _runStatus;
     private BarrelStorage _storage;
-    private RunStatus runStatus;
+    private HardwareBarrel _barrelMotor;
 
+    final double CW_120 = 120.0, CCW_120 = -120.0;  //  120 degrees motor rotation constants constants
 
-    public Barrel()
+    public Barrel(HardwareMap hwMap, String deviceName, int direction)
     {
         _storage = new BarrelStorage();
-        runStatus = new RunStatus();
+        _runStatus = new RunStatus();
+
+        _barrelMotor = new HardwareBarrel(deviceName, direction);
+        _barrelMotor.init(hwMap);
     }
     public void Start()
     {
-        runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE());
+        if (_runStatus.GetName() != RunStatus.Name.PAUSE)
+            _runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE());
     }
 
 
 
     public IntakeResult.Name HandleInput(Ball.Name inputBall)
     {
-        if (runStatus.GetName() == RunStatus.Name.ACTIVE)
+        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
         {
             //  Storage search for empty slots
             IntakeResult intakeResult = _storage.HandleInput();
@@ -58,13 +70,13 @@ public class Barrel
         //  Align center slot to be empty
         if (name == IntakeResult.Name.SUCCESS_LEFT)
         {
-            _storage.RotateRight();
-            //!  Rotate the motor to the right by 120
+            _storage.RotateCCW();
+            _barrelMotor.Rotate(CCW_120);
         }
         else if (name == IntakeResult.Name.SUCCESS_RIGHT)
         {
-            _storage.RotateLeft();
-            //!  Rotate the motor to the left  by 120
+            _storage.RotateCW();
+            _barrelMotor.Rotate(CW_120);
         }
 
         return _storage.IntakeToCenter(inputBall);  //  Safe intake
@@ -74,7 +86,7 @@ public class Barrel
 
     public RequestResult.Name HandleRequest(BallRequest.Name request)
     {
-        if (runStatus.GetName() == RunStatus.Name.ACTIVE)
+        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
         {
             StopAnyLogic();
 
@@ -107,26 +119,48 @@ public class Barrel
 
         if (requestResult.GetName() == RequestResult.Name.SUCCESS_RIGHT)
         {
-           //!  Rotate motor to the left (CCW 120)
-
+            _barrelMotor.Rotate(CCW_120);
             _storage.RotateCCW();
         }
         else if (requestResult.GetName() == RequestResult.Name.SUCCESS_CENTER)
         {
-            //!  Rotate the motor to the right (CW 120)
-
+            _barrelMotor.Rotate(CW_120);
             _storage.RotateCW();
         }
         return true;
     }
 
 
+
+    public Ball[] Storage()
+    {
+        return _storage.Storage();
+    }
+    public int AnyBallCount()
+    {
+        return _storage.AnyBallCount();
+    }
+    public int BallCount()
+    {
+        return _storage.AnyBallCount();
+    }
+    public int PurpleBallCount()
+    {
+        return _storage.SelectedBallCount(Ball.Name.PURPLE);
+    }
+    public int GreenBallCount()
+    {
+        return _storage.SelectedBallCount(Ball.Name.GREEN);
+    }
+
+
+
     public void StopAnyLogic()
     {
-        runStatus.Set(RunStatus.Name.PAUSE);
+        _runStatus.Set(RunStatus.Name.PAUSE);
     }
     public void ResumeLogic()
     {
-        runStatus.Set(RunStatus.Name.ACTIVE);
+        _runStatus.Set(RunStatus.Name.ACTIVE);
     }
 }
