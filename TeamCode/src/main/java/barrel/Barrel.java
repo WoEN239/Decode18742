@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.internal.ftdi.eeprom.FT_EEPROM_232H;
 import org.woen.modules.barrel.HardwareBarrel;
+import org.woen.threading.hardware.HardwareThreads;
 
 import barrel.enumerators.Ball;
 import barrel.enumerators.BallRequest;
@@ -22,6 +23,8 @@ public class Barrel
 
     final double CW_120 = 120.0, CCW_120 = -120.0;  //  120 degrees motor rotation constants constants
 
+
+
     public Barrel(HardwareMap hwMap, String deviceName, int direction)
     {
         _storage = new BarrelStorage();
@@ -29,6 +32,7 @@ public class Barrel
 
         _barrelMotor = new HardwareBarrel(deviceName, direction);
         _barrelMotor.init(hwMap);
+        HardwareThreads.getLAZY_INSTANCE().getEXPANSION().addDevices(_barrelMotor);
     }
     public void Start()
     {
@@ -91,14 +95,15 @@ public class Barrel
             StopAnyLogic();
 
             RequestResult requestResult = _storage.HandleRequest(request);
-
-            UpdateAfterRequest(requestResult);
-
-            //!  Wait for shot fired event
-
-            _storage.EmptyLeftWasFired();
+            if (UpdateAfterRequest(requestResult))
+            {
+                //!  Wait for shot fired event
+                _storage.EmptyLeftWasFired();
+            }
+            //  Unknown error
 
             ResumeLogic();
+            return requestResult.GetName();
         }
 
         return RequestResult.Name.FAIL_IS_CURRENTLY_BUSY;
@@ -132,9 +137,67 @@ public class Barrel
 
 
 
+    public RequestResult.Name ShootEntireDrumRequest(BallRequest.Name[] requestOrder)
+    {
+        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
+        {
+            StopAnyLogic();
+
+            int[] countPG  = _storage.BallColorCountPG();
+            int[] requestCountPGA = CountPGA(requestOrder);
+            int[] storageDeltaAfterRequests = new int[]
+                    {
+                        countPG[0] - requestCountPGA[0],
+                        countPG[1] - requestCountPGA[1]
+                    };
+
+            if (storageDeltaAfterRequests[0] < 0 ||
+                storageDeltaAfterRequests[1] < 0 ||
+                storageDeltaAfterRequests[0] + storageDeltaAfterRequests[1] < requestCountPGA[2])
+                    return RequestResult.Name.FAIL_NOT_ENOUGH_COLORS;
+
+            RequestResult requestResult = new RequestResult();
+
+            for (int i = 0; i < 3; i ++)
+            {
+                requestResult = _storage.HandleRequest(requestOrder[i]);
+
+                if (UpdateAfterRequest(requestResult));
+                {
+                    //!  Wait for successfully gunshot event
+                    _storage.EmptyLeftWasFired();
+                }
+                //  Unknown error
+            }
+
+            ResumeLogic();
+            return requestResult.GetName();
+        }
+
+        return RequestResult.Name.FAIL_IS_CURRENTLY_BUSY;
+    }
+    public int[] CountPGA (BallRequest.Name[] requestOrder)
+    {
+        int[] countPGA = new int[] { 0, 0, 0 };
+
+        for (int i = 0; i < 3; i++)
+        {
+            if      (requestOrder[i] == BallRequest.Name.PURPLE) countPGA[0]++;
+            else if (requestOrder[i] == BallRequest.Name.GREEN)  countPGA[1]++;
+            else if (requestOrder[i] == BallRequest.Name.ANY)    countPGA[2]++;
+        }
+        return countPGA;
+    }
+
+
+
     public Ball[] Storage()
     {
         return _storage.Storage();
+    }
+    public int[] BallColorCountPG()
+    {
+        return _storage.BallColorCountPG();
     }
     public int AnyBallCount()
     {

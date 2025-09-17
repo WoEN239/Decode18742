@@ -22,7 +22,7 @@ class HardwareBarrel(private val _deviceName: String, private val _direction : I
 
     override fun update()
     {
-        _regulator.update(_direction * (targetPos - _currentPos));
+        _motor.setPower(_regulator.update(_direction * (targetPos - _currentPos)));
     }
 
     override fun init(hardwareMap : HardwareMap)

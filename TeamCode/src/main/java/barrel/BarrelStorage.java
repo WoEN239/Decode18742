@@ -51,8 +51,17 @@ public class BarrelStorage
 
         return count;
     }
+    public int[] BallColorCountPG()
+    {
+        int[] countPG = new int[] { 0, 0 };
 
-
+        for (int i = 0; i < 3; i++)
+        {
+            if      (_storage[i].GetName() == Ball.Name.PURPLE) countPG[0]++;
+            else if (_storage[i].GetName() == Ball.Name.GREEN)  countPG[1]++;
+        }
+        return countPG;
+    }
 
 
 
