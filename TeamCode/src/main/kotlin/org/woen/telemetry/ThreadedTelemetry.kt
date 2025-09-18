@@ -64,19 +64,21 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     }
 
     fun initConfigs() {
-        val configs = ThreadedConfigs::class.declaredMemberProperties.filter {
-            (it.returnType.classifier == AtomicValueProvider::class || it.returnType.classifier == AtomicEventProvider::class) &&
-                    it.findAnnotation<ThreadedConfig>() != null
-        }
+        FtcDashboard.getInstance().withConfigRoot {
+            val configs = ThreadedConfigs::class.declaredMemberProperties.filter {
+                (it.returnType.classifier == AtomicValueProvider::class || it.returnType.classifier == AtomicEventProvider::class) &&
+                        it.findAnnotation<ThreadedConfig>() != null
+            }
 
-        for (i in configs) {
-            val value = i.get(ThreadedConfigs) as AtomicValueProvider<*>
-            val annotation = i.annotations[0] as ThreadedConfig
+            for (i in configs) {
+                val value = i.get(ThreadedConfigs) as AtomicValueProvider<*>
+                val annotation = i.annotations[0] as ThreadedConfig
 
-            FtcDashboard.getInstance().addConfigVariable(
-                annotation.category,
-                annotation.name.ifEmpty { i.name }, value
-            )
+                FtcDashboard.getInstance().addConfigVariable(
+                    annotation.category,
+                    annotation.name.ifEmpty { i.name }, value
+                )
+            }
         }
     }
 

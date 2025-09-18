@@ -105,6 +105,9 @@ object ThreadedConfigs {
     @ThreadedConfig(category = "CAMERA")
     var CAMERA_ACCURACY = ThreadedTelemetry.AtomicValueProvider(150)
 
+    @ThreadedConfig(category = "CAMERA")
+    var CAMERA_ENABLE = ThreadedTelemetry.AtomicValueProvider(false)
+
     @ThreadedConfig(category = "TURRET")
     var PULLEY_RADIUS = ThreadedTelemetry.AtomicValueProvider(10.0 / 2.0)
 

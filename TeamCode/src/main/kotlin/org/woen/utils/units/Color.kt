@@ -3,16 +3,24 @@ package org.woen.utils.units
 import org.opencv.core.Scalar
 import java.util.Locale
 
-data class Color(var r: Int, var g: Int, var b: Int) {
+data class Color(@JvmField var r: Int, @JvmField var g: Int, @JvmField var b: Int) {
     companion object {
-        val RED: Color = Color(255, 0, 0)
-        val BLUE: Color = Color(0, 0, 255)
-        val GREEN: Color = Color(0, 255, 0)
-        val GRAY: Color = Color(128, 128, 128)
-        val BLACK: Color = Color(0, 0, 0)
-        val WHITE: Color = Color(255, 255, 255)
-        val YELLOW: Color = Color(255, 255, 0)
-        val ORANGE: Color = Color(255, 128, 0)
+        val RED
+            get() = Color(255, 0, 0)
+        val BLUE
+            get() = Color(0, 0, 255)
+        val GREEN
+            get() = Color(0, 255, 0)
+        val GRAY
+            get() = Color(128, 128, 128)
+        val BLACK
+            get() = Color(0, 0, 0)
+        val WHITE
+            get() = Color(255, 255, 255)
+        val YELLOW
+            get() = Color(255, 255, 0)
+        val ORANGE
+            get() = Color(255, 128, 0)
     }
 
     override fun toString(): String {

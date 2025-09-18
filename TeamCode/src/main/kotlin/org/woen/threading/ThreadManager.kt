@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.ThreadedTelemetry
 import java.util.concurrent.Executors
 
 class ThreadManager : DisposableHandle {
@@ -56,6 +57,8 @@ class ThreadManager : DisposableHandle {
 
     fun register(thread: Thread): Thread {
         thread.setUncaughtExceptionHandler { _, exception ->
+            ThreadedTelemetry.LAZY_INSTANCE.log(exception.message!!)
+
             _mainHandler?.post {
                 throw exception
             }

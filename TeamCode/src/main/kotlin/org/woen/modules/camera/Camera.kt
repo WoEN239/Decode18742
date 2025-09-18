@@ -49,25 +49,28 @@ class Camera private constructor() : DisposableHandle {
         }
     }
 
-    private val _visionPortal: VisionPortal
+    private var _visionPortal: VisionPortal? = null
 
     private val _aprilProcessor: AprilTagProcessor =
         AprilTagProcessor.Builder().setOutputUnits(DistanceUnit.CM, AngleUnit.DEGREES)
             .setDrawAxes(true).build()
 
     init {
-        val hardwareMap =
-            OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
+        if(ThreadedConfigs.CAMERA_ENABLE.get()) {
+            val hardwareMap =
+                OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
 
-        _visionPortal = VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
-            .addProcessor(_aprilProcessor).build()
+            _visionPortal =
+                VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
+                    .addProcessor(_aprilProcessor).build()
 
-        HotRun.Companion.LAZY_INSTANCE.opModeInitEvent += {
-            _thread.start()
-        }
+            HotRun.Companion.LAZY_INSTANCE.opModeInitEvent += {
+                _thread.start()
+            }
 
-        HotRun.Companion.LAZY_INSTANCE.opModeStopEvent += {
-            _thread.interrupt()
+            HotRun.Companion.LAZY_INSTANCE.opModeStopEvent += {
+                _thread.interrupt()
+            }
         }
     }
 
@@ -77,7 +80,7 @@ class Camera private constructor() : DisposableHandle {
     val cameraPositionUpdateEvent = SimpleEvent<Vec2>()
 
     private val _thread = ThreadManager.Companion.LAZY_INSTANCE.register(thread {
-        while (!Thread.currentThread().isInterrupted) {
+        while (!Thread.currentThread().isInterrupted && ThreadedConfigs.CAMERA_ENABLE.get()) {
             val detections = _aprilProcessor.freshDetections
 
             if (detections == null) {
@@ -128,6 +131,6 @@ class Camera private constructor() : DisposableHandle {
     })
 
     override fun dispose() {
-        _visionPortal.close()
+        _visionPortal?.close()
     }
 }

@@ -83,31 +83,34 @@ class HotRun private constructor() {
     val opModeStopEvent = SimpleEvent<GamepadOpMode>()
 
     fun run(opMode: GamepadOpMode, runMode: RunMode) {
-        currentRunMode.set(runMode)
-        currentRunState.set(RunState.INIT)
+        try {
+            currentRunMode.set(runMode)
+            currentRunState.set(RunState.INIT)
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("w")
+            ThreadManager.LAZY_INSTANCE.attachExceptionHandler()
+            ThreadedGamepad.LAZY_INSTANCE.initCallbacks(opMode)
+            ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
+            HardwareThreads.LAZY_INSTANCE
 
-        ThreadManager.LAZY_INSTANCE.attachExceptionHandler()
-        ThreadedGamepad.LAZY_INSTANCE.initCallbacks(opMode)
-        ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
-        HardwareThreads.LAZY_INSTANCE
+            opModeInitEvent.invoke(opMode)
 
-        opModeInitEvent.invoke(opMode)
+            opMode.waitForStart()
+            opMode.resetRuntime()
 
-        opMode.waitForStart()
-        opMode.resetRuntime()
+            currentRunState.set(RunState.RUN)
 
-        currentRunState.set(RunState.RUN)
+            opModeStartEvent.invoke(opMode)
 
-        opModeStartEvent.invoke(opMode)
+            while (opMode.opModeIsActive()) {
+                opModeUpdateEvent.invoke(opMode)
+            }
 
-        while (opMode.opModeIsActive()) {
-            opModeUpdateEvent.invoke(opMode)
+            currentRunState.set(RunState.STOP)
+
+            opModeStopEvent.invoke(opMode)
         }
-
-        currentRunState.set(RunState.STOP)
-
-        opModeStopEvent.invoke(opMode)
+        catch (e: Exception){
+            ThreadedTelemetry.LAZY_INSTANCE.log(e.toString())
+        }
     }
 }

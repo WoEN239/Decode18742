@@ -9,15 +9,15 @@ import kotlin.math.pow
 import kotlin.math.sign
 
 data class RegulatorParameters(
-    @JvmField val kP: Double = 0.0,
-    @JvmField val kD: Double = 0.0,
-    @JvmField val kI: Double = 0.0,
-    @JvmField val kPow: Double = 0.0,
-    @JvmField val kF: Double = 0.0,
-    @JvmField val kG: Double = 0.0,
-    @JvmField val kSG: Double = 0.0,
-    @JvmField val limitU: Double = -1.0,
-    @JvmField val resetI: Boolean = false
+    @JvmField var kP: Double = 0.0,
+    @JvmField var kD: Double = 0.0,
+    @JvmField var kI: Double = 0.0,
+    @JvmField var kPow: Double = 0.0,
+    @JvmField var kF: Double = 0.0,
+    @JvmField var kG: Double = 0.0,
+    @JvmField var kSG: Double = 0.0,
+    @JvmField var limitU: Double = -1.0,
+    @JvmField var resetI: Boolean = false
 )
 
 class Regulator(val parameters: ThreadedTelemetry.AtomicValueProvider<RegulatorParameters>) {

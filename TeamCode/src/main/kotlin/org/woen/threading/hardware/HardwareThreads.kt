@@ -25,15 +25,22 @@ class HardwareThreads private constructor() : DisposableHandle {
         val LAZY_INSTANCE: HardwareThreads
             get() =
                 runBlocking {
+                    val isCreated: Boolean
+
                     _instanceMutex.withLock {
                         if (_nullableInstance == null) {
                             _nullableInstance = HardwareThreads()
 
-                            _nullableInstance?.initModules()
+                            isCreated = true
                         }
-
-                        return@withLock _nullableInstance!!
+                        else
+                            isCreated = false
                     }
+
+                    if(isCreated)
+                        _nullableInstance?.initModules()
+
+                    return@runBlocking _nullableInstance!!
                 }
 
 
@@ -48,6 +55,7 @@ class HardwareThreads private constructor() : DisposableHandle {
     }
 
     val CONTROL = HardwareThread(HardwareLink())
+
     val EXPANSION = HardwareThread(HardwareLink())
 
     fun initModules() {

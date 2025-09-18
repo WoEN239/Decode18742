@@ -10,21 +10,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.woen.modules.IModule
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadManager
 import java.util.concurrent.Executors
 
 class HardwareLink : DisposableHandle {
-    companion object {
-        private val _coroutineExecutor = Executors.newSingleThreadExecutor()
-        private val _coroutineDispatcher = _coroutineExecutor.asCoroutineDispatcher()
-        private val _coroutineScope = CoroutineScope(_coroutineDispatcher + Job())
-    }
-
     private val _modules = mutableSetOf<IModule>()
 
     fun addModules(vararg modules: IModule) {
         runBlocking {
             _modulesMutex.withLock {
-                ThreadedTelemetry.LAZY_INSTANCE.log(_modules.size.toString())
                 _modules.addAll(modules)
             }
         }
@@ -32,10 +26,9 @@ class HardwareLink : DisposableHandle {
 
     private val _modulesMutex = Mutex()
 
-    fun update(): Job = _coroutineScope.launch {
+    fun update(): Job = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
         _modulesMutex.withLock {
             for (i in _modules) {
-                ThreadedTelemetry.LAZY_INSTANCE.log(i.isBusy.toString())
                 if (!i.isBusy)
                     i.process()
             }
@@ -47,8 +40,6 @@ class HardwareLink : DisposableHandle {
             _modulesMutex.withLock {
                 for (i in _modules)
                     i.dispose()
-
-                _coroutineExecutor.shutdown()
             }
         }
     }

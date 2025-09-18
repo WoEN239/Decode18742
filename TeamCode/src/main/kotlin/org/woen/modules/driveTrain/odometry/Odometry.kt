@@ -40,8 +40,8 @@ class Odometry : IModule {
 
     init {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry)
-//        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_threeOdometry)
-//        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_threeOdometry)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             RequireOdometryEvent::class,
@@ -137,8 +137,6 @@ class Odometry : IModule {
     private var _currentRotationVelocity = 0.0
 
     override suspend fun process() {
-        ThreadedTelemetry.LAZY_INSTANCE.log("work")
-
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val leftPos = _hardwareOdometry.leftPosition.get()
             val rightPos = _hardwareOdometry.rightPosition.get()
@@ -205,14 +203,12 @@ class Odometry : IModule {
                         _currentVelocity
                     )
                 )
-
-                ThreadedTelemetry.LAZY_INSTANCE.log(_currentPosition.toString())
             }
         }
     }
 
     override val isBusy: Boolean
-        get() = false // _odometryJob != null && !_odometryJob!!.isCompleted
+        get() = _odometryJob != null && !_odometryJob!!.isCompleted
 
     override fun dispose() {
         _odometryJob?.cancel()

@@ -1,15 +1,28 @@
 package org.woen.utils.units
 
-data class Orientation(var pos: Vec2, var angl: Angle) {
+data class Orientation(@JvmField var pos: Vec2, @JvmField var angl: Angle) {
     companion object {
-        val ZERO = Orientation(0.0)
+        val ZERO
+            get() = Orientation(Vec2.ZERO, Angle.ZERO)
     }
 
-    val x
+    var x
         get() = pos.x
+        set(value) {
+            pos.x = value
+        }
 
-    val y
+    var y
         get() = pos.y
+        set(value) {
+            pos.y = value
+        }
+
+    var angle
+        get() = angl.angle
+        set(value) {
+            angl.angle = value
+        }
 
     constructor(x: Double) : this(Vec2(x), Angle(x))
     constructor(x: Vec2) : this(x, Angle.ZERO)

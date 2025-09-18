@@ -35,7 +35,7 @@ class ThreadedEventBus private constructor() {
         }
     }
 
-    private val _events = hashMapOf<KClass<*>, MutableSet<Pair<(Any) -> Unit, CoroutineScope>>>()
+    private val _events = hashMapOf<KClass<*>, MutableSet<Pair<suspend (Any) -> Unit, CoroutineScope>>>()
 
     private val _eventsMutex = Mutex()
 
@@ -50,13 +50,13 @@ class ThreadedEventBus private constructor() {
                 if (_events[event] == null)
                     _events[event] = mutableSetOf()
 
-                _events[event]?.add(Pair(callback as (Any) -> Unit, scope))
+                _events[event]?.add(Pair(callback as suspend (Any) -> Unit, scope))
             }
         }
     }
 
     fun <T : Any> invoke(event: T): T {
-        val callbacks: MutableSet<Pair<(Any) -> Unit, CoroutineScope>>?
+        val callbacks: MutableSet<Pair<suspend (Any) -> Unit, CoroutineScope>>?
 
         runBlocking {
             _eventsMutex.withLock {
