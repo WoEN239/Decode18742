@@ -85,7 +85,7 @@ public class BarrelStorage
     public RequestResult HandleRequest(BallRequest.Name request)
     {
         int requestBuffer = BallRequest.ToInt(request);
-        if (requestBuffer == 3)  //  RequestResult.Name. ANY (int 3)
+        if (requestBuffer == BallRequest.ANY())
         {   //  Optimised comparing by id without extra unnecessary conversions
 
             RequestResult requestResult =  RequestSearch(Ball.Name.PURPLE);
