@@ -89,6 +89,9 @@ class HardwareDriveTrain(
         _rightBackMotor.direction = DcMotorSimple.Direction.REVERSE
         _rightForwardMotor.direction = DcMotorSimple.Direction.REVERSE
 
+        _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
+        _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
+
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             runBlocking {
                 _regulatorMutex.withLock {

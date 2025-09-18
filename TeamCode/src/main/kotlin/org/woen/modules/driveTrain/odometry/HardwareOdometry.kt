@@ -1,6 +1,7 @@
 package org.woen.modules.driveTrain.odometry
 
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -73,6 +74,9 @@ class HardwareOdometry(
     override fun init(hardwareMap: HardwareMap) {
         _leftOdometer = EncoderOnly(hardwareMap.get(_leftOdometerName) as DcMotorEx)
         _rightOdometer = EncoderOnly(hardwareMap.get(_rightOdometerName) as DcMotorEx)
+
+        _leftOdometer.direction = DcMotorSimple.Direction.REVERSE
+        _rightOdometer.direction = DcMotorSimple.Direction.REVERSE
 
         ThreadedConfigs.VELOCITY_FILTER_K.onSet += {
             runBlocking {

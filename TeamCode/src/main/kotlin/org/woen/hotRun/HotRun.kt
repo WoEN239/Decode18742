@@ -86,6 +86,8 @@ class HotRun private constructor() {
         currentRunMode.set(runMode)
         currentRunState.set(RunState.INIT)
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("w")
+
         ThreadManager.LAZY_INSTANCE.attachExceptionHandler()
         ThreadedGamepad.LAZY_INSTANCE.initCallbacks(opMode)
         ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)

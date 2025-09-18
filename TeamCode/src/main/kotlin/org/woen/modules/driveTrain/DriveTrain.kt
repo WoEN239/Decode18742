@@ -19,11 +19,13 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotationVelocity: Double)
 
-class EnableLookMode()
+class EnableLookModeEvent()
+
+data class RequestLookModeEvent(var enable: Boolean = false)
 
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain(
-        "leftForwardDrive",
+        "leftFrowardDrive",
         "leftBackDrive",
         "rightForwardDrive",
         "rightBackDrive"
@@ -48,7 +50,11 @@ class DriveTrain : IModule {
             }
         })
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(EnableLookMode::class, {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestLookModeEvent::class, {
+            it.enable = _lookMode.get()
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(EnableLookModeEvent::class, {
             _lookMode.set(true)
         })
 
@@ -85,7 +91,7 @@ class DriveTrain : IModule {
     }
 
     override val isBusy: Boolean
-        get() = _driveJob == null || _driveJob!!.isCompleted
+        get() = _driveJob != null && !_driveJob!!.isCompleted
 
     override fun dispose() {
         _driveJob?.cancel()

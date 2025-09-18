@@ -70,8 +70,9 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
 
             _updateCounter.update()
 
-            if (lastJob == null || lastJob.isCompleted)
+            if (lastJob == null || lastJob.isCompleted) {
                 lastJob = link.update()
+            }
         }
     })
 

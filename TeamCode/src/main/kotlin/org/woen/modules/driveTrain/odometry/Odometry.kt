@@ -10,6 +10,7 @@ import org.woen.modules.IModule
 import org.woen.modules.camera.Camera
 import org.woen.modules.driveTrain.HardwareGyro
 import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
@@ -33,14 +34,14 @@ data class RequireOdometryEvent(
 
 
 class Odometry : IModule {
-    private val _hardwareOdometry = HardwareOdometry("", "")
-    private val _threeOdometry = HardwareThreeOdometry("")
+    private val _hardwareOdometry = HardwareOdometry("leftFrowardDrive", "rightBackDrive")
+    private val _threeOdometry = HardwareThreeOdometry("sideOdometer")
     private val _gyro = HardwareGyro()
 
     init {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry)
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_threeOdometry)
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
+//        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_threeOdometry)
+//        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             RequireOdometryEvent::class,
@@ -136,6 +137,8 @@ class Odometry : IModule {
     private var _currentRotationVelocity = 0.0
 
     override suspend fun process() {
+        ThreadedTelemetry.LAZY_INSTANCE.log("work")
+
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val leftPos = _hardwareOdometry.leftPosition.get()
             val rightPos = _hardwareOdometry.rightPosition.get()
@@ -202,12 +205,14 @@ class Odometry : IModule {
                         _currentVelocity
                     )
                 )
+
+                ThreadedTelemetry.LAZY_INSTANCE.log(_currentPosition.toString())
             }
         }
     }
 
     override val isBusy: Boolean
-        get() = _odometryJob == null || _odometryJob!!.isCompleted
+        get() = false // _odometryJob != null && !_odometryJob!!.isCompleted
 
     override fun dispose() {
         _odometryJob?.cancel()

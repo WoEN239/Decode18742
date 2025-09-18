@@ -3,7 +3,11 @@ package org.woen.modules.turret
 import barrel.enumerators.BallRequest
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.driveTrain.RequestLookModeEvent
+import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
+import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
@@ -21,7 +25,10 @@ data class TurretShootPatternEvent(
     val process: Process = Process()
 )
 
-data class TurretShootAllBarrelEvent(val process: Process = Process())
+data class TurretShootAllBarrelEvent(
+    val process: Process = Process(),
+    var isSuccessful: Boolean = false
+)
 
 data class RequireBallEvent(val ball: BallRequest.Name, val process: Process = Process())
 
@@ -32,22 +39,41 @@ class Turret : IModule {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareTurret)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TurretShootEvent::class, {
+            if (!ThreadedEventBus.LAZY_INSTANCE.invoke(RequestLookModeEvent()).enable) {
+                it.isSuccessful = false
 
-        })
+                return@subscribe
+            }
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TurretShootPatternEvent::class, {
-            
-        })
+            val requiredBalls = 0//TODO
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TurretShootAllBarrelEvent::class, {
+            if (requiredBalls == 0) {
+                it.isSuccessful = false
 
+                return@subscribe
+            }
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(RequireBallEvent(it.ball)).process.wait()
         })
     }
 
     private var _turretJob: Job? = null
 
     override suspend fun process() {
+        _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            if (!ThreadedEventBus.LAZY_INSTANCE.invoke(RequestLookModeEvent()).enable) {
+                _hardwareTurret.targetVelocity = ThreadedConfigs.QUIET_PULLEY_SPEED.get()
 
+                return@launch
+            }
+
+            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+
+            val l = (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get()
+                .getBasketPosition()).length()
+
+            val deltaH = ThreadedConfigs.BASKET_TARGET_HEIGHT.get() - ThreadedConfigs.TURRET_HEIGHT.get()
+        }
     }
 
     override val isBusy: Boolean

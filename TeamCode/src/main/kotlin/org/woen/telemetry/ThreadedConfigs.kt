@@ -126,6 +126,21 @@ object ThreadedConfigs {
     @ThreadedConfig(category = "TURRET")
     var RED_BASKET_POSITION = ThreadedTelemetry.AtomicValueProvider(Vec2(0.0, 0.0))
 
+    @ThreadedConfig(category = "TURRET")
+    var TURRET_ANGLE = ThreadedTelemetry.AtomicValueProvider(45)
+
+    @ThreadedConfig(category = "TURRET")
+    var TURRET_HEIGHT = ThreadedTelemetry.AtomicValueProvider(1.0)
+
+    @ThreadedConfig(category = "TURRET")
+    var BALL_MASS = ThreadedTelemetry.AtomicValueProvider(0.075)
+
+    @ThreadedConfig(category = "TURRET")
+    var BASKET_TARGET_HEIGHT = ThreadedTelemetry.AtomicValueProvider(10.0)
+
+    @ThreadedConfig(category = "TURRET")
+    var QUIET_PULLEY_SPEED = ThreadedTelemetry.AtomicValueProvider(5.0)
+
     @ThreadedConfig(category = "BARREL")
     var BARREL_REGULATOR_PARAMETERS = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
 }
