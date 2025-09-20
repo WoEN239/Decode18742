@@ -16,6 +16,7 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.units.Angle
+import org.woen.utils.units.Color
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 import kotlin.math.abs
@@ -36,12 +37,14 @@ data class RequireOdometryEvent(
 class Odometry : IModule {
     private val _hardwareOdometry = HardwareOdometry("leftFrowardDrive", "rightBackDrive")
     private val _threeOdometry = HardwareThreeOdometry("sideOdometer")
-    private val _gyro = HardwareGyro()
+//    private val _gyro = HardwareGyro()
+
+    private val _odometryMutex = Mutex()
 
     init {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry)
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_threeOdometry)
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
+//        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             RequireOdometryEvent::class,
@@ -52,22 +55,21 @@ class Odometry : IModule {
                     it.odometryRotateVelocity = _currentRotationVelocity
                 }
             })
-
-
-        _gyro.gyroUpdateEvent += {
-            runBlocking {
-                _gyroMutex.withLock {
-                    _odometryMutex.withLock {
-                        _mergeRotation = Angle(
-                            _gyroFilter.updateRaw(
-                                _mergeRotation.angle,
-                                (it - _mergeRotation).angle
-                            )
-                        )
-                    }
-                }
-            }
-        }
+//
+//        _gyro.gyroUpdateEvent += {
+//            runBlocking {
+//                _gyroMutex.withLock {
+//                    _odometryMutex.withLock {
+//                        _mergeRotation = Angle(
+//                            _gyroFilter.updateRaw(
+//                                _mergeRotation.angle,
+//                                (it - _mergeRotation).angle
+//                            )
+//                        )
+//                    }
+//                }
+//            }
+//        }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             runBlocking {
@@ -128,9 +130,7 @@ class Odometry : IModule {
     private var _oldRotation = Angle.ZERO
     private var _oldOdometerRotation = Angle.ZERO
 
-    private var _mergeRotation = Angle.ZERO
-
-    private val _odometryMutex = Mutex()
+    private var _mergeRotation = Angle(0.0)
 
     private var _currentPosition = Vec2.ZERO
     private var _currentVelocity = Vec2.ZERO

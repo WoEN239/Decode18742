@@ -8,6 +8,7 @@ import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
+import org.woen.telemetry.ThreadedConfig
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -65,7 +66,7 @@ class DriveTrain : IModule {
                         Vec2(
                             gamepadData.left_stick_x.toDouble(),
                             gamepadData.left_stick_y.toDouble()
-                        ), -gamepadData.right_stick_x.toDouble()
+                        ) * Vec2(ThreadedConfigs.DRIVE_VEC_MULTIPLIER.get(), ThreadedConfigs.DRIVE_VEC_MULTIPLIER.get()), -gamepadData.right_stick_x.toDouble() * ThreadedConfigs.DRIVE_ANGLE_MULTIPLIER.get()
                     )
                 )
             }

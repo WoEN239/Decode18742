@@ -15,15 +15,25 @@ class ThreadedBattery private constructor() : IHardwareDevice {
 
         @JvmStatic
         val LAZY_INSTANCE: ThreadedBattery
-            get() =
+            get() {
+                val isInited: Boolean
+
                 runBlocking {
                     _instanceMutex.withLock {
-                        if (_nullableInstance == null)
+                        if (_nullableInstance == null) {
                             _nullableInstance = ThreadedBattery()
-
-                        return@withLock _nullableInstance!!
+                            isInited = true
+                        }
+                        else
+                            isInited = false
                     }
                 }
+
+                if(isInited)
+                    _nullableInstance?.initDevice()
+
+                return _nullableInstance!!
+            }
 
         fun restart() {
             runBlocking {
@@ -35,7 +45,7 @@ class ThreadedBattery private constructor() : IHardwareDevice {
         }
     }
 
-    init {
+    private fun initDevice() {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(this)
     }
 
@@ -47,7 +57,7 @@ class ThreadedBattery private constructor() : IHardwareDevice {
 
     private var _atomicVoltage = AtomicReference(1.0)
 
-    fun voltageToPower(voltage: Double) = currentVoltage / voltage
+    fun voltageToPower(voltage: Double) = voltage / currentVoltage
 
     private lateinit var _battery: VoltageSensor
 

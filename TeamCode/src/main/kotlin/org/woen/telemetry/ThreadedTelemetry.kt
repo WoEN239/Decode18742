@@ -181,9 +181,6 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
     @OptIn(InternalCoroutinesApi::class)
     fun addLines(vararg lines: String) {
-        if (Thread.currentThread() != _thread)
-            return
-
         for (i in lines) {
             runBlocking {
                 _driveTelemetryMutex.withLock {
@@ -201,9 +198,6 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
     @OptIn(InternalCoroutinesApi::class)
     fun addData(name: String, data: Any) {
-        if (Thread.currentThread() != _thread)
-            return
-
         runBlocking {
             _driveTelemetryMutex.withLock {
                 _driverTelemetry?.addData(name, data)
@@ -218,9 +212,6 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
         get() = _dashboardPacket.fieldOverlay()
 
     fun drawCircle(pos: Vec2, radius: Double, color: String) {
-        if (Thread.currentThread() != _thread)
-            return
-
         _canvas.setFill(color)
         _canvas.fillCircle(
             DistanceUnit.INCH.fromCm(pos.x),
@@ -233,9 +224,6 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
         drawCircle(pos, radius, color.toString())
 
     fun drawPolygon(points: Array<Vec2>, color: String) {
-        if (Thread.currentThread() != _thread)
-            return
-
         val inchX = DoubleArray(points.size)
         val inchY = DoubleArray(points.size)
 

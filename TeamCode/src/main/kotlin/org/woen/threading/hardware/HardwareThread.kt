@@ -12,12 +12,11 @@ import org.woen.hotRun.HotRun.RunState.STOP
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.utils.updateCounter.UpdateCounter
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.thread
 
 class HardwareThread(val link: HardwareLink) : DisposableHandle {
-    private val _devices = mutableSetOf<IHardwareDevice>()
-
-    private val _devicesMutex = Mutex()
+    private val _devices = CopyOnWriteArrayList<IHardwareDevice>()
 
     private val _updateCounter = UpdateCounter()
 
@@ -28,27 +27,19 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
     }
 
     fun addDevices(vararg devices: IHardwareDevice) {
-        runBlocking {
-            _devicesMutex.withLock {
-                val hardwareMap =
-                    OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
+        val hardwareMap =
+            OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
 
-                for (i in devices) {
-                    i.init(hardwareMap)
-                    _devices.add(i)
-                }
-            }
+        for (i in devices) {
+            i.init(hardwareMap)
+            _devices.add(i)
         }
     }
 
     fun removeDevices(vararg devices: IHardwareDevice) {
-        runBlocking {
-            _devicesMutex.withLock {
-                for (i in devices) {
-                    if (_devices.contains(i))
-                        _devices.remove(i)
-                }
-            }
+        for (i in devices) {
+            if (_devices.contains(i))
+                _devices.remove(i)
         }
     }
 
@@ -61,12 +52,8 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
                 continue
             }
 
-            runBlocking {
-                _devicesMutex.withLock {
-                    for (i in _devices)
-                        i.update()
-                }
-            }
+            for (i in _devices)
+                i.update()
 
             _updateCounter.update()
 

@@ -59,6 +59,9 @@ class ThreadManager : DisposableHandle {
         thread.setUncaughtExceptionHandler { _, exception ->
             ThreadedTelemetry.LAZY_INSTANCE.log(exception.message!!)
 
+            for(i in exception.stackTrace)
+                ThreadedTelemetry.LAZY_INSTANCE.log(i.className + ": " + i.methodName)
+
             _mainHandler?.post {
                 throw exception
             }

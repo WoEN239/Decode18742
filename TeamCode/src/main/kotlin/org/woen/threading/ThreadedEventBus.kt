@@ -1,7 +1,9 @@
 package org.woen.threading
 
+import com.qualcomm.robotcore.hardware.configuration.ServoHubConfiguration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -35,7 +37,8 @@ class ThreadedEventBus private constructor() {
         }
     }
 
-    private val _events = hashMapOf<KClass<*>, MutableSet<Pair<suspend (Any) -> Unit, CoroutineScope>>>()
+    private val _events =
+        hashMapOf<KClass<*>, MutableSet<Pair<suspend (Any) -> Unit, CoroutineScope>>>()
 
     private val _eventsMutex = Mutex()
 
@@ -67,11 +70,17 @@ class ThreadedEventBus private constructor() {
         if (callbacks == null)
             return event
 
-        runBlocking {
-            for (i in callbacks) {
-                i.second.launch {
-                    i.first.invoke(event)
-                }
+        val coroutine = arrayListOf<Job>()
+
+        for (i in callbacks) {
+            coroutine.add(i.second.launch {
+                i.first.invoke(event)
+            })
+        }
+
+        for (i in coroutine) {
+            runBlocking {
+                i.join()
             }
         }
 

@@ -59,7 +59,7 @@ class HardwareThreads private constructor() : DisposableHandle {
     val EXPANSION = HardwareThread(HardwareLink())
 
     fun initModules() {
-        CONTROL.link.addModules(Odometry())
+        CONTROL.link.addModules(Odometry(), DriveTrain())
     }
 
     override fun dispose() {

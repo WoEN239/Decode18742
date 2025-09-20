@@ -164,4 +164,10 @@ object ThreadedConfigs {
 
     @ThreadedConfig(category = "BARREL")
     var BARREL_REGULATOR_PARAMETERS = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
+
+    @ThreadedConfig(category = "DRIVE_TRAIN")
+    var DRIVE_VEC_MULTIPLIER = ThreadedTelemetry.AtomicValueProvider(1000.0)
+
+    @ThreadedConfig(category = "DRIVE_TRAIN")
+    var DRIVE_ANGLE_MULTIPLIER = ThreadedTelemetry.AtomicValueProvider(10.0)
 }

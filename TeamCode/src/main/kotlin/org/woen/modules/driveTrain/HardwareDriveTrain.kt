@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
@@ -60,6 +61,9 @@ class HardwareDriveTrain(
         }
 
         val velocityErr = targetTranslateVelocity - currentVelocity
+
+        ThreadedTelemetry.LAZY_INSTANCE.log(velocityErr.toString())
+
         val velocityRotateErr = targetRotateVelocity - currentRotationVelocity
 
         runBlocking {
@@ -92,15 +96,15 @@ class HardwareDriveTrain(
         _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
         _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
 
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            runBlocking {
-                _regulatorMutex.withLock {
-                    _forwardRegulator.start()
-                    _sideRegulator.start()
-                    _rotateRegulator.start()
-                }
-            }
-        }
+//        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+//            runBlocking {
+//                _regulatorMutex.withLock {
+//                    _forwardRegulator.start()
+//                    _sideRegulator.start()
+//                    _rotateRegulator.start()
+//                }
+//            }
+//        }
     }
 
     fun drive(targetTranslateVelocity: Vec2, targetRotationVelocity: Double) {
@@ -139,11 +143,11 @@ class HardwareDriveTrain(
             leftBackPower /= absMax
             rightForwardPower /= absMax
         }
-
-        _leftForwardMotor.power = leftFrontPower
-        _rightBackMotor.power = rightBackPower
-        _leftBackMotor.power = leftBackPower
-        _rightForwardMotor.power = rightForwardPower
+//
+//        _leftForwardMotor.power = leftFrontPower
+//        _rightBackMotor.power = rightBackPower
+//        _leftBackMotor.power = leftBackPower
+//        _rightForwardMotor.power = rightForwardPower
     }
 
     override fun dispose() {
