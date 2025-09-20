@@ -5,6 +5,24 @@ import org.woen.utils.units.Vec2
 import kotlin.math.PI
 
 object ThreadedConfigs {
+    @ThreadedConfig(category = "BRUSH")
+    var BRUSH_DEF_TIME = ThreadedTelemetry.AtomicEventProvider(1.0)
+
+    @ThreadedConfig(category = "BRUSH")
+    var BRUSH_MOTOR_NAME = ThreadedTelemetry.AtomicEventProvider("BrushMotor")
+
+    @ThreadedConfig(category = "BRUSH")
+    var BRUSH_TARGET_CURRENT = ThreadedTelemetry.AtomicEventProvider(0.3)
+
+    @ThreadedConfig(category = "BRUSH")
+    var BRUSH_MOTORS_FORWARD = ThreadedTelemetry.AtomicEventProvider(1)
+
+    @ThreadedConfig(category = "BRUSH")
+    var BRUSH_MOTORS_STOP = ThreadedTelemetry.AtomicEventProvider(0)
+
+    @ThreadedConfig(category = "BRUSH")
+    var BRUSH_MOTORS_BACK = ThreadedTelemetry.AtomicEventProvider(2)
+
     @ThreadedConfig(category = "TELEMETRY")
     var TELEMETRY_UPDATE_HZ = ThreadedTelemetry.AtomicEventProvider(5)
 
