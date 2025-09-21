@@ -3,14 +3,12 @@ package org.woen.modules.driveTrain.odometry
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.motor.EncoderOnly
+import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 
@@ -21,7 +19,7 @@ class HardwareOdometry(
     private lateinit var _leftOdometer: DcMotorEx
     private lateinit var _rightOdometer: DcMotorEx
 
-    private val _filterMutex = Mutex()
+    private val _filterMutex = SmartMutex()
 
     private val _leftFilter = ExponentialFilter(ThreadedConfigs.VELOCITY_FILTER_K.get())
     private val _rightFilter = ExponentialFilter(ThreadedConfigs.VELOCITY_FILTER_K.get())
@@ -50,21 +48,19 @@ class HardwareOdometry(
         val oldLeftVelocity = leftVelocity.get()
         val oldRightVelocity = rightVelocity.get()
 
-        runBlocking {
-            _filterMutex.withLock {
-                leftVelocity.set(
-                    _leftFilter.updateRaw(
-                        oldLeftVelocity,
-                        rawLeftVelocity - oldLeftVelocity
-                    )
+        _filterMutex.smartLock {
+            leftVelocity.set(
+                _leftFilter.updateRaw(
+                    oldLeftVelocity,
+                    rawLeftVelocity - oldLeftVelocity
                 )
-                rightVelocity.set(
-                    _rightFilter.updateRaw(
-                        oldRightVelocity,
-                        rawRightVelocity - oldRightVelocity
-                    )
+            )
+            rightVelocity.set(
+                _rightFilter.updateRaw(
+                    oldRightVelocity,
+                    rawRightVelocity - oldRightVelocity
                 )
-            }
+            )
         }
 
         _oldRightPosition = currentRightPosition
@@ -79,20 +75,16 @@ class HardwareOdometry(
         _rightOdometer.direction = DcMotorSimple.Direction.REVERSE
 
         ThreadedConfigs.VELOCITY_FILTER_K.onSet += {
-            runBlocking {
-                _filterMutex.withLock {
-                    _rightFilter.coef = it
-                    _leftFilter.coef = it
-                }
+            _filterMutex.smartLock {
+                _rightFilter.coef = it
+                _leftFilter.coef = it
             }
         }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            runBlocking {
-                _filterMutex.withLock {
-                    _rightFilter.start()
-                    _leftFilter.start()
-                }
+            _filterMutex.smartLock {
+                _rightFilter.start()
+                _leftFilter.start()
             }
         }
     }

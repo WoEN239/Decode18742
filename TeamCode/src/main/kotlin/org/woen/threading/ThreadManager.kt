@@ -6,37 +6,30 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.Executors
 
 class ThreadManager : DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadManager? = null
 
-        private val _instanceMutex = Mutex()
+        private val _instanceMutex = SmartMutex()
 
         @JvmStatic
         val LAZY_INSTANCE: ThreadManager
-            get() =
-                runBlocking {
-                    _instanceMutex.withLock {
-                        if (_nullableInstance == null)
-                            _nullableInstance = ThreadManager()
+            get() = _instanceMutex.smartLock {
+                if (_nullableInstance == null)
+                    _nullableInstance = ThreadManager()
 
-                        return@withLock _nullableInstance!!
-                    }
-                }
+                return@smartLock _nullableInstance!!
+            }
 
         fun restart() {
-            runBlocking {
-                _instanceMutex.withLock {
-                    _nullableInstance?.dispose()
-                    _nullableInstance = null
-                }
+            _instanceMutex.smartLock {
+                _nullableInstance?.dispose()
+                _nullableInstance = null
             }
         }
     }
@@ -47,7 +40,7 @@ class ThreadManager : DisposableHandle {
 
     private val _allThreads = mutableSetOf<Thread>()
 
-    private val _allThreadsMutex = Mutex()
+    private val _allThreadsMutex = SmartMutex()
 
     private var _mainHandler: Handler? = null
 
@@ -59,7 +52,7 @@ class ThreadManager : DisposableHandle {
         thread.setUncaughtExceptionHandler { _, exception ->
             ThreadedTelemetry.LAZY_INSTANCE.log(exception.message!!)
 
-            for(i in exception.stackTrace)
+            for (i in exception.stackTrace)
                 ThreadedTelemetry.LAZY_INSTANCE.log(i.className + ": " + i.methodName)
 
             _mainHandler?.post {
@@ -67,21 +60,17 @@ class ThreadManager : DisposableHandle {
             }
         }
 
-        runBlocking {
-            _allThreadsMutex.withLock {
-                _allThreads.add(thread)
-            }
+        _allThreadsMutex.smartLock {
+            _allThreads.add(thread)
         }
 
         return thread
     }
 
     override fun dispose() {
-        runBlocking {
-            _allThreadsMutex.withLock {
-                for (i in _allThreads)
-                    i.interrupt()
-            }
+        _allThreadsMutex.smartLock {
+            for (i in _allThreads)
+                i.interrupt()
         }
 
         _threadPool.shutdown()

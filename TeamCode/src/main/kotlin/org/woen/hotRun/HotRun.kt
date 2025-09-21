@@ -1,9 +1,6 @@
 package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.modules.camera.Camera
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.telemetry.ThreadedTelemetry
@@ -14,6 +11,7 @@ import org.woen.threading.ThreadedTimers
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.events.SimpleEvent
+import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Vec2
 import java.util.concurrent.atomic.AtomicReference
 
@@ -21,23 +19,19 @@ class HotRun private constructor() {
     companion object {
         private var _nullableInstance: HotRun? = null
 
-        private val _instanceMutex = Mutex()
+        private val _instanceMutex = SmartMutex()
 
         val LAZY_INSTANCE: HotRun
-            get() = runBlocking {
-                _instanceMutex.withLock {
-                    if (_nullableInstance == null)
-                        _nullableInstance = HotRun()
+            get() = _instanceMutex.smartLock {
+                if (_nullableInstance == null)
+                    _nullableInstance = HotRun()
 
-                    return@withLock _nullableInstance!!
-                }
+                return@smartLock _nullableInstance!!
             }
 
         fun restart() {
-            runBlocking {
-                _instanceMutex.withLock {
-                    _nullableInstance = null
-                }
+            _instanceMutex.smartLock {
+                _nullableInstance = null
             }
 
             ThreadManager.restart()
@@ -68,7 +62,7 @@ class HotRun private constructor() {
         AUTO
     }
 
-    enum class RunColor(private val basketPosition: ThreadedTelemetry.AtomicValueProvider<Vec2>){
+    enum class RunColor(private val basketPosition: ThreadedTelemetry.AtomicValueProvider<Vec2>) {
         RED(ThreadedConfigs.RED_BASKET_POSITION),
         BLUE(ThreadedConfigs.BLUE_BASKET_POSITION);
 
@@ -108,8 +102,7 @@ class HotRun private constructor() {
             currentRunState.set(RunState.STOP)
 
             opModeStopEvent.invoke(opMode)
-        }
-        catch (e: Exception){
+        } catch (e: Exception) {
             ThreadedTelemetry.LAZY_INSTANCE.log(e.toString())
         }
     }

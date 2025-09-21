@@ -3,20 +3,17 @@ package org.woen.threading.hardware
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
 import org.woen.hotRun.HotRun.RunState.STOP
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
+import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.updateCounter.UpdateCounter
-import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.thread
 
 class HardwareThread(val link: HardwareLink) : DisposableHandle {
-    private val _devices = CopyOnWriteArrayList<IHardwareDevice>()
+    private val _devices = mutableSetOf<IHardwareDevice>()
 
     private val _updateCounter = UpdateCounter()
 
@@ -26,20 +23,27 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
         }
     }
 
+    private val _devicesMutex = SmartMutex()
+
     fun addDevices(vararg devices: IHardwareDevice) {
         val hardwareMap =
             OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
 
         for (i in devices) {
             i.init(hardwareMap)
-            _devices.add(i)
+
+            _devicesMutex.smartLock {
+                _devices.add(i)
+            }
         }
     }
 
     fun removeDevices(vararg devices: IHardwareDevice) {
         for (i in devices) {
-            if (_devices.contains(i))
-                _devices.remove(i)
+            _devicesMutex.smartLock {
+                if (_devices.contains(i))
+                    _devices.remove(i)
+            }
         }
     }
 
@@ -52,8 +56,10 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
                 continue
             }
 
-            for (i in _devices)
-                i.update()
+            _devicesMutex.smartLock {
+                for (i in _devices)
+                    i.update()
+            }
 
             _updateCounter.update()
 
@@ -64,8 +70,10 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
     })
 
     override fun dispose() {
-        for (i in _devices)
-            i.dispose()
+        _devicesMutex.smartLock {
+            for (i in _devices)
+                i.dispose()
+        }
 
         link.dispose()
     }

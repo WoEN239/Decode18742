@@ -1,13 +1,11 @@
 package org.woen.threading
 
-import com.qualcomm.robotcore.hardware.configuration.ServoHubConfiguration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import org.woen.utils.smartMutex.SmartMutex
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
@@ -15,24 +13,20 @@ class ThreadedEventBus private constructor() {
     companion object {
         private var _nullableInstance: ThreadedEventBus? = null
 
-        private val _instanceMutex = Mutex()
+        private val _instanceMutex = SmartMutex()
 
         @JvmStatic
         val LAZY_INSTANCE: ThreadedEventBus
-            get() = runBlocking {
-                _instanceMutex.withLock {
-                    if (_nullableInstance == null)
-                        _nullableInstance = ThreadedEventBus()
+            get() = _instanceMutex.smartLock {
+                if (_nullableInstance == null)
+                    _nullableInstance = ThreadedEventBus()
 
-                    return@withLock _nullableInstance!!
-                }
+                return@smartLock _nullableInstance!!
             }
 
         fun restart() {
-            runBlocking {
-                _instanceMutex.withLock {
-                    _nullableInstance = null
-                }
+            _instanceMutex.smartLock {
+                _nullableInstance = null
             }
         }
     }
@@ -40,7 +34,7 @@ class ThreadedEventBus private constructor() {
     private val _events =
         hashMapOf<KClass<*>, MutableSet<Pair<suspend (Any) -> Unit, CoroutineScope>>>()
 
-    private val _eventsMutex = Mutex()
+    private val _eventsMutex = SmartMutex()
 
     @OptIn(DelicateCoroutinesApi::class)
     fun <T : Any> subscribe(
@@ -48,24 +42,19 @@ class ThreadedEventBus private constructor() {
         callback: suspend (T) -> Unit,
         scope: CoroutineScope = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
     ) {
-        runBlocking {
-            _eventsMutex.withLock {
-                if (_events[event] == null)
-                    _events[event] = mutableSetOf()
+        _eventsMutex.smartLock {
+            if (_events[event] == null)
+                _events[event] = mutableSetOf()
 
-                _events[event]?.add(Pair(callback as suspend (Any) -> Unit, scope))
-            }
+            _events[event]?.add(Pair(callback as suspend (Any) -> Unit, scope))
         }
     }
 
     fun <T : Any> invoke(event: T): T {
-        val callbacks: MutableSet<Pair<suspend (Any) -> Unit, CoroutineScope>>?
-
-        runBlocking {
-            _eventsMutex.withLock {
-                callbacks = _events[event::class]
+        val callbacks =
+            _eventsMutex.smartLock {
+                _events[event::class]
             }
-        }
 
         if (callbacks == null)
             return event

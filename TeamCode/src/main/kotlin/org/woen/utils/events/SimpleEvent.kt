@@ -3,15 +3,16 @@ package org.woen.utils.events
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.woen.utils.smartMutex.SmartMutex
 
 class SimpleEvent<T> {
     private val listeners = mutableSetOf<(T) -> Unit>()
 
-    private val _listenersMutex = Mutex()
+    private val _listenersMutex = SmartMutex()
 
     operator fun plusAssign(listener: (T) -> Unit) {
         runBlocking {
-            _listenersMutex.withLock {
+            _listenersMutex.smartLock {
                 listeners.add(listener)
             }
         }
@@ -19,7 +20,7 @@ class SimpleEvent<T> {
 
     operator fun minusAssign(listener: (T) -> Unit) {
         runBlocking {
-            _listenersMutex.withLock {
+            _listenersMutex.smartLock {
                 if (listeners.contains(listener))
                     listeners.remove(listener)
             }
@@ -28,7 +29,7 @@ class SimpleEvent<T> {
 
     operator fun invoke(data: T) {
         runBlocking {
-            _listenersMutex.withLock {
+            _listenersMutex.smartLock {
                 for (i in listeners)
                     i.invoke(data)
             }

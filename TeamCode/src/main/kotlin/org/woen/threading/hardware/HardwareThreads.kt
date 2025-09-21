@@ -1,55 +1,33 @@
 package org.woen.threading.hardware
 
 import kotlinx.coroutines.DisposableHandle
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.modules.driveTrain.DriveTrain
-import org.woen.modules.camera.Camera
 import org.woen.modules.driveTrain.odometry.Odometry
-import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
-import org.woen.modules.runner.actions.ActionRunner
-import org.woen.modules.runner.segment.SegmentsRunner
-import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.ThreadedEventBus
-import org.woen.utils.units.Color
-import org.woen.utils.units.Vec2
+import org.woen.utils.smartMutex.SmartMutex
 
 class HardwareThreads private constructor() : DisposableHandle {
     companion object {
         private var _nullableInstance: HardwareThreads? = null
 
-        private val _instanceMutex = Mutex()
+        private val _instanceMutex = SmartMutex()
 
         @JvmStatic
         val LAZY_INSTANCE: HardwareThreads
-            get() =
-                runBlocking {
-                    val isCreated: Boolean
+            get() = _instanceMutex.smartLock {
+                if (_nullableInstance == null) {
+                    _nullableInstance = HardwareThreads()
 
-                    _instanceMutex.withLock {
-                        if (_nullableInstance == null) {
-                            _nullableInstance = HardwareThreads()
-
-                            isCreated = true
-                        }
-                        else
-                            isCreated = false
-                    }
-
-                    if(isCreated)
-                        _nullableInstance?.initModules()
-
-                    return@runBlocking _nullableInstance!!
+                    _nullableInstance?.initModules()
                 }
+
+                return@smartLock _nullableInstance!!
+            }
 
 
         fun restart() {
-            runBlocking {
-                _instanceMutex.withLock {
-                    _nullableInstance?.dispose()
-                    _nullableInstance = null
-                }
+            _instanceMutex.smartLock {
+                _nullableInstance?.dispose()
+                _nullableInstance = null
             }
         }
     }

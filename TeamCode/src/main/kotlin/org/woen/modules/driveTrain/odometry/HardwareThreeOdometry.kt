@@ -2,14 +2,12 @@ package org.woen.modules.driveTrain.odometry
 
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.motor.EncoderOnly
+import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 
@@ -25,10 +23,8 @@ class HardwareThreeOdometry(private val _odometryName: String) : IHardwareDevice
 
         _oldOdometerPosition = currentOdometerPosition
 
-        runBlocking {
-            _filterMutex.withLock {
-                odometerVelocity.set(_filter.updateRaw(oldVelocity, rawVelocity - oldVelocity))
-            }
+        _filterMutex.smartLock {
+            odometerVelocity.set(_filter.updateRaw(oldVelocity, rawVelocity - oldVelocity))
         }
     }
 
@@ -40,24 +36,20 @@ class HardwareThreeOdometry(private val _odometryName: String) : IHardwareDevice
     private var _oldOdometerPosition = 0.0
     private val _filter = ExponentialFilter(ThreadedConfigs.VELOCITY_FILTER_K.get())
 
-    private val _filterMutex = Mutex()
+    private val _filterMutex = SmartMutex()
 
     override fun init(hardwareMap: HardwareMap) {
         _odometer = EncoderOnly(hardwareMap.get(_odometryName) as DcMotorEx)
 
-        HotRun.LAZY_INSTANCE.opModeInitEvent +={
-            runBlocking {
-                _filterMutex.withLock {
-                    _filter.start()
-                }
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            _filterMutex.smartLock {
+                _filter.start()
             }
         }
 
         ThreadedConfigs.VELOCITY_FILTER_K.onSet += {
-            runBlocking {
-                _filterMutex.withLock {
-                    _filter.coef = it
-                }
+            _filterMutex.smartLock {
+                _filter.coef = it
             }
         }
     }

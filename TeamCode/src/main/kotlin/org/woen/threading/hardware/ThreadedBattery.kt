@@ -2,45 +2,30 @@ package org.woen.threading.hardware
 
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.VoltageSensor
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicReference
 
 class ThreadedBattery private constructor() : IHardwareDevice {
     companion object {
         private var _nullableInstance: ThreadedBattery? = null
 
-        private val _instanceMutex = Mutex()
+        private val _instanceMutex = SmartMutex()
 
         @JvmStatic
         val LAZY_INSTANCE: ThreadedBattery
-            get() {
-                val isInited: Boolean
-
-                runBlocking {
-                    _instanceMutex.withLock {
-                        if (_nullableInstance == null) {
-                            _nullableInstance = ThreadedBattery()
-                            isInited = true
-                        }
-                        else
-                            isInited = false
-                    }
+            get() = _instanceMutex.smartLock {
+                if (_nullableInstance == null) {
+                    _nullableInstance = ThreadedBattery()
+                    _nullableInstance?.initDevice()
                 }
 
-                if(isInited)
-                    _nullableInstance?.initDevice()
-
-                return _nullableInstance!!
+                return@smartLock _nullableInstance!!
             }
 
         fun restart() {
-            runBlocking {
-                _instanceMutex.withLock {
-                    _nullableInstance?.let { HardwareThreads.LAZY_INSTANCE.CONTROL.removeDevices(it) }
-                    _nullableInstance = null
-                }
+            _instanceMutex.smartLock {
+                _nullableInstance?.let { HardwareThreads.LAZY_INSTANCE.CONTROL.removeDevices(it) }
+                _nullableInstance = null
             }
         }
     }

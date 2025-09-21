@@ -11,25 +11,34 @@ import kotlinx.coroutines.sync.withLock
 import org.woen.modules.IModule
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
+import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 
 class HardwareLink : DisposableHandle {
-    private val _modules = CopyOnWriteArrayList<IModule>()
+    private val _modules = mutableSetOf<IModule>()
+
+    private val _modulesMutex = SmartMutex()
 
     fun addModules(vararg modules: IModule) {
-        _modules.addAll(modules)
+        _modulesMutex.smartLock {
+            _modules.addAll(modules)
+        }
     }
 
     fun update(): Job = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-        for (i in _modules) {
-            if (!i.isBusy)
-                i.process()
+        _modulesMutex.smartLock {
+            for (i in _modules) {
+                if (!i.isBusy)
+                    i.process()
+            }
         }
     }
 
     override fun dispose() {
-        for (i in _modules)
-            i.dispose()
+        _modulesMutex.smartLock {
+            for (i in _modules)
+                i.dispose()
+        }
     }
 }

@@ -11,17 +11,15 @@ import com.acmerobotics.roadrunner.TranslationalVelConstraint
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
-import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
+import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.process.Process
+import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 
@@ -33,19 +31,16 @@ data class RequireRRBuilderEvent(
 )
 
 class SegmentsRunner : IModule {
-
     init {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RunSegmentEvent::class, {
-            _segmentsMutex.withLock {
+            _segmentsMutex.smartLock {
                 _segmentsQueue.addLast(Pair(it.segment, it.process))
             }
         })
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            runBlocking {
-                _segmentTimerMutex.withLock {
-                    _segmentTimer.reset()
-                }
+            _segmentTimerMutex.smartLock {
+                _segmentTimer.reset()
             }
         }
 
@@ -53,20 +48,17 @@ class SegmentsRunner : IModule {
             val startOrientation: Orientation
 
             if (it.startOrientation == null) {
-                val isSegmentsEmpty: Boolean
-
-                _segmentsMutex.withLock {
-                    isSegmentsEmpty = _segmentsQueue.isEmpty()
+                val isSegmentsEmpty = _segmentsMutex.smartLock {
+                    _segmentsQueue.isEmpty()
                 }
 
-                if (isSegmentsEmpty) {
-                    startOrientation =
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent()).odometryOrientation
+                startOrientation = if (isSegmentsEmpty) {
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent()).odometryOrientation
                 } else {
-                    _segmentsMutex.withLock {
+                    _segmentsMutex.smartLock {
                         val lastSegment = _segmentsQueue.last().first
 
-                        startOrientation = lastSegment.targetOrientation(lastSegment.duration())
+                        lastSegment.targetOrientation(lastSegment.duration())
                     }
                 }
             } else
@@ -94,9 +86,9 @@ class SegmentsRunner : IModule {
     private var _segmentsQueue = ArrayDeque<Pair<ISegment, Process>>()
 
     private val _segmentTimer = ElapsedTime()
-    private val _segmentTimerMutex = Mutex()
+    private val _segmentTimerMutex = SmartMutex()
 
-    private val _segmentsMutex = Mutex()
+    private val _segmentsMutex = SmartMutex()
 
     private var _targetOrientation = Orientation.ZERO
     private var _targetTranslateVelocity = Vec2.ZERO
@@ -130,15 +122,13 @@ class SegmentsRunner : IModule {
                 )
             )
 
-            val currentTime: Double
-
-            _segmentTimerMutex.withLock {
-                currentTime = _segmentTimer.seconds()
+            val currentTime = _segmentTimerMutex.smartLock {
+                _segmentTimer.seconds()
             }
 
-            _segmentsMutex.withLock {
+            _segmentsMutex.smartLock {
                 if (_segmentsQueue.isEmpty())
-                    return@launch
+                    return@smartLock
 
                 val currentSegment = _segmentsQueue.first().first
 
@@ -150,7 +140,7 @@ class SegmentsRunner : IModule {
                         _targetRotateVelocity = 0.0
                     }
 
-                    return@launch
+                    return@smartLock
                 }
 
                 _targetOrientation = currentSegment.targetOrientation(currentTime)

@@ -4,9 +4,6 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.telemetry.ThreadedConfigs
@@ -16,6 +13,7 @@ import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.motor.MotorOnly
 import org.woen.utils.regulator.Regulator
+import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Vec2
 import kotlin.math.abs
 import kotlin.math.max
@@ -35,12 +33,12 @@ class HardwareDriveTrain(
     private val _sideRegulator = Regulator(ThreadedConfigs.DRIVE_SIDE_REGULATOR_PARAMS)
     private val _rotateRegulator = Regulator(ThreadedConfigs.DRIVE_ROTATE_REGULATOR_PARAMS)
 
-    private val _regulatorMutex = Mutex()
+    private val _regulatorMutex = SmartMutex()
 
     private var _targetTranslateVelocity = Vec2.ZERO
     private var _targetRotateVelocity = 0.0
 
-    private val _driveTrainMutex = Mutex()
+    private val _driveTrainMutex = SmartMutex()
 
     override fun update() {
         if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
@@ -50,14 +48,12 @@ class HardwareDriveTrain(
         val currentVelocity = odometry.odometryVelocity
         val currentRotationVelocity = odometry.odometryRotateVelocity
 
-        val targetTranslateVelocity: Vec2
-        val targetRotateVelocity: Double
+        var targetTranslateVelocity = Vec2.ZERO
+        var targetRotateVelocity = 0.0
 
-        runBlocking {
-            _driveTrainMutex.withLock {
-                targetTranslateVelocity = _targetTranslateVelocity
-                targetRotateVelocity = _targetRotateVelocity
-            }
+        _driveTrainMutex.smartLock {
+            targetTranslateVelocity = _targetTranslateVelocity
+            targetRotateVelocity = _targetRotateVelocity
         }
 
         val velocityErr = targetTranslateVelocity - currentVelocity
@@ -66,16 +62,14 @@ class HardwareDriveTrain(
 
         val velocityRotateErr = targetRotateVelocity - currentRotationVelocity
 
-        runBlocking {
-            _regulatorMutex.withLock {
-                setVoltage(
-                    Vec2(
-                        _forwardRegulator.update(velocityErr.x, targetTranslateVelocity.x),
-                        _sideRegulator.update(velocityErr.y, targetTranslateVelocity.y)
-                    ),
-                    _rotateRegulator.update(velocityRotateErr, targetRotateVelocity)
-                )
-            }
+        _regulatorMutex.smartLock {
+            setVoltage(
+                Vec2(
+                    _forwardRegulator.update(velocityErr.x, targetTranslateVelocity.x),
+                    _sideRegulator.update(velocityErr.y, targetTranslateVelocity.y)
+                ),
+                _rotateRegulator.update(velocityRotateErr, targetRotateVelocity)
+            )
         }
     }
 
@@ -96,23 +90,19 @@ class HardwareDriveTrain(
         _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
         _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
 
-//        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-//            runBlocking {
-//                _regulatorMutex.withLock {
-//                    _forwardRegulator.start()
-//                    _sideRegulator.start()
-//                    _rotateRegulator.start()
-//                }
-//            }
-//        }
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+            _regulatorMutex.smartLock {
+                _forwardRegulator.start()
+                _sideRegulator.start()
+                _rotateRegulator.start()
+            }
+        }
     }
 
     fun drive(targetTranslateVelocity: Vec2, targetRotationVelocity: Double) {
-        runBlocking {
-            _driveTrainMutex.withLock {
-                _targetTranslateVelocity = targetTranslateVelocity
-                _targetRotateVelocity = targetRotationVelocity
-            }
+        _driveTrainMutex.smartLock {
+            _targetTranslateVelocity = targetTranslateVelocity
+            _targetRotateVelocity = targetRotationVelocity
         }
     }
 
@@ -143,11 +133,11 @@ class HardwareDriveTrain(
             leftBackPower /= absMax
             rightForwardPower /= absMax
         }
-//
-//        _leftForwardMotor.power = leftFrontPower
-//        _rightBackMotor.power = rightBackPower
-//        _leftBackMotor.power = leftBackPower
-//        _rightForwardMotor.power = rightForwardPower
+
+        _leftForwardMotor.power = leftFrontPower
+        _rightBackMotor.power = rightBackPower
+        _leftBackMotor.power = leftBackPower
+        _rightForwardMotor.power = rightForwardPower
     }
 
     override fun dispose() {

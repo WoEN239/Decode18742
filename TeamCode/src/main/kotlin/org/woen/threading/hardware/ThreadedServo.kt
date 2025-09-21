@@ -3,12 +3,10 @@ package org.woen.threading.hardware
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.utils.servoAngle.ServoAngle
+import org.woen.utils.smartMutex.SmartMutex
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sign
@@ -38,7 +36,7 @@ class ThreadedServo(
     private var t2Pow = 0.0
     private var y0 = 0.0
 
-    private val _calcMutex = Mutex()
+    private val _calcMutex = SmartMutex()
 
     var targetAngle = _startAngle
         set(value) {
@@ -49,25 +47,23 @@ class ThreadedServo(
                 return
             }
 
-            runBlocking {
-                _calcMutex.withLock {
-                    y0 = currentAngle
+            _calcMutex.smartLock {
+                y0 = currentAngle
 
-                    _servoTime.reset()
+                _servoTime.reset()
 
-                    yAbs = abs(currentAngle - value)
-                    sign = sign(value - currentAngle)
+                yAbs = abs(currentAngle - value)
+                sign = sign(value - currentAngle)
 
-                    t2 = Vmax / a
-                    t3 = yAbs / Vmax - Vmax / a + t2
+                t2 = Vmax / a
+                t3 = yAbs / Vmax - Vmax / a + t2
 
-                    if (t3 > t2)
-                        t2Pow = a * t2.pow(2) / 2
-                    else {
-                        t4 = sqrt(yAbs / a)
+                if (t3 > t2)
+                    t2Pow = a * t2.pow(2) / 2
+                else {
+                    t4 = sqrt(yAbs / a)
 
-                        t5 = t4 * 2
-                    }
+                    t5 = t4 * 2
                 }
             }
 
@@ -78,48 +74,44 @@ class ThreadedServo(
         if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
             return
 
-        runBlocking {
-            _calcMutex.withLock {
-                if (t3 > t2) {
-                    if (_servoTime.seconds() <= t2 + t3) {
-                        if (_servoTime.seconds() <= t2)
-                            currentAngle = y0 + sign * (a * _servoTime.seconds().pow(2) / 2)
-                        else if (_servoTime.seconds() <= t3)
-                            currentAngle =
-                                y0 + sign * (t2Pow + Vmax * (_servoTime.seconds() - t2))
-                        else
-                            currentAngle =
-                                y0 + sign * (t2Pow + Vmax * (t3 - t2) + Vmax *
-                                        (_servoTime.seconds() - t3) - a *
-                                        (_servoTime.seconds() - t3).pow(2) / 2)
-
-                        _device.angle = currentAngle
-                    }
-
-                    return@withLock
-                }
-
-                if (_servoTime.seconds() <= t5) {
-                    currentAngle = if (_servoTime.seconds() <= t4)
-                        y0 + sign * (a * _servoTime.seconds().pow(2) / 2)
+        _calcMutex.smartLock {
+            if (t3 > t2) {
+                if (_servoTime.seconds() <= t2 + t3) {
+                    if (_servoTime.seconds() <= t2)
+                        currentAngle = y0 + sign * (a * _servoTime.seconds().pow(2) / 2)
+                    else if (_servoTime.seconds() <= t3)
+                        currentAngle =
+                            y0 + sign * (t2Pow + Vmax * (_servoTime.seconds() - t2))
                     else
-                        y0 + sign * (a * t4.pow(2) / 2 + sqrt(yAbs / a) * a *
-                                (_servoTime.seconds() - t4) - a *
-                                (_servoTime.seconds() - t4).pow(2) / 2)
+                        currentAngle =
+                            y0 + sign * (t2Pow + Vmax * (t3 - t2) + Vmax *
+                                    (_servoTime.seconds() - t3) - a *
+                                    (_servoTime.seconds() - t3).pow(2) / 2)
 
                     _device.angle = currentAngle
                 }
+
+                return@smartLock
+            }
+
+            if (_servoTime.seconds() <= t5) {
+                currentAngle = if (_servoTime.seconds() <= t4)
+                    y0 + sign * (a * _servoTime.seconds().pow(2) / 2)
+                else
+                    y0 + sign * (a * t4.pow(2) / 2 + sqrt(yAbs / a) * a *
+                            (_servoTime.seconds() - t4) - a *
+                            (_servoTime.seconds() - t4).pow(2) / 2)
+
+                _device.angle = currentAngle
             }
         }
     }
 
     val atTargetAngle: Boolean
         get() =
-            runBlocking {
-                _calcMutex.withLock {
-                    return@withLock _servoTime.seconds() > t5 || (t3 > t2 &&
-                            _servoTime.seconds() > t2 + t3)
-                }
+            _calcMutex.smartLock {
+                return@smartLock _servoTime.seconds() > t5 || (t3 > t2 &&
+                        _servoTime.seconds() > t2 + t3)
             }
 
     override fun init(hardwareMap: HardwareMap) {

@@ -8,15 +8,13 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.qualcomm.robotcore.util.RobotLog
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.firstinspires.ftc.ftccommon.external.OnCreate
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.woen.hotRun.HotRun
 import org.woen.threading.ThreadManager
 import org.woen.utils.events.SimpleEvent
+import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.timers.ReversedElapsedTime
 import org.woen.utils.units.Color
 import org.woen.utils.units.Vec2
@@ -32,25 +30,21 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadedTelemetry? = null
 
-        private val _instanceMutex = Mutex()
+        private val _instanceMutex = SmartMutex()
 
         @JvmStatic
         val LAZY_INSTANCE: ThreadedTelemetry
-            get() = runBlocking {
-                _instanceMutex.withLock {
-                    if (_nullableInstance == null)
-                        _nullableInstance = ThreadedTelemetry()
+            get() = _instanceMutex.smartLock {
+                if (_nullableInstance == null)
+                    _nullableInstance = ThreadedTelemetry()
 
-                    return@withLock _nullableInstance!!
-                }
+                return@smartLock _nullableInstance!!
             }
 
         fun restart() {
-            runBlocking {
-                _instanceMutex.withLock {
-                    _nullableInstance?.dispose()
-                    _nullableInstance = null
-                }
+            _instanceMutex.smartLock {
+                _nullableInstance?.dispose()
+                _nullableInstance = null
             }
         }
 
@@ -99,8 +93,8 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     fun startTemporarySender(
         timer: ReversedElapsedTime,
         sender: (ThreadedTelemetry) -> Unit
-    ) = runBlocking {
-        _temporarySendersMutex.withLock {
+    ) =
+        _temporarySendersMutex.smartLock {
             _temporarySenders.add(
                 Pair(
                     timer,
@@ -108,9 +102,8 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
                 )
             )
         }
-    }
 
-    private val _temporarySendersMutex = Mutex()
+    private val _temporarySendersMutex = SmartMutex()
 
     val onTelemetrySend = SimpleEvent<ThreadedTelemetry>()
 
@@ -118,14 +111,12 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     private var _dashboardPacket = TelemetryPacket()
 
     fun setDriveTelemetry(telemetry: Telemetry) {
-        runBlocking {
-            _driveTelemetryMutex.withLock {
-                _driverTelemetry = telemetry
-            }
+        _driveTelemetryMutex.smartLock {
+            _driverTelemetry = telemetry
         }
     }
 
-    private val _driveTelemetryMutex = Mutex()
+    private val _driveTelemetryMutex = SmartMutex()
 
     @OptIn(InternalCoroutinesApi::class)
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
@@ -135,35 +126,29 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
                 val telemetry = this
 
-                runBlocking {
-                    _temporarySendersMutex.withLock {
-                        for (i in _temporarySenders)
-                            i.second.invoke(telemetry)
+                _temporarySendersMutex.smartLock {
+                    for (i in _temporarySenders)
+                        i.second.invoke(telemetry)
 
-                        _temporarySenders =
-                            _temporarySenders.filter {
-                                it.first.seconds() > 0.0
-                            }.toMutableSet()
-                    }
+                    _temporarySenders =
+                        _temporarySenders.filter {
+                            it.first.seconds() > 0.0
+                        }.toMutableSet()
                 }
 
                 _dashboardPacket.addLine("\n")
                 drawRect(Vec2.ZERO, Vec2.ZERO, 0.0, Color.RED)
 
-                runBlocking {
-                    _driveTelemetryMutex.withLock {
-                        _driverTelemetry?.update()
-                    }
+                _driveTelemetryMutex.smartLock {
+                    _driverTelemetry?.update()
                 }
 
                 FtcDashboard.getInstance().sendTelemetryPacket(_dashboardPacket)
 
                 _dashboardPacket = TelemetryPacket()
             } else {
-                runBlocking {
-                    _driveTelemetryMutex.withLock {
-                        _driverTelemetry?.clearAll()
-                    }
+                _driveTelemetryMutex.smartLock {
+                    _driverTelemetry?.clearAll()
                 }
             }
 
@@ -182,10 +167,8 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     @OptIn(InternalCoroutinesApi::class)
     fun addLines(vararg lines: String) {
         for (i in lines) {
-            runBlocking {
-                _driveTelemetryMutex.withLock {
-                    _driverTelemetry?.addLine(i)
-                }
+            _driveTelemetryMutex.smartLock {
+                _driverTelemetry?.addLine(i)
             }
 
             _dashboardPacket.addLine(i)
@@ -198,10 +181,8 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
     @OptIn(InternalCoroutinesApi::class)
     fun addData(name: String, data: Any) {
-        runBlocking {
-            _driveTelemetryMutex.withLock {
-                _driverTelemetry?.addData(name, data)
-            }
+        _driveTelemetryMutex.smartLock {
+            _driverTelemetry?.addData(name, data)
         }
 
         logWithTag("$name: $data", "18742telemetry")

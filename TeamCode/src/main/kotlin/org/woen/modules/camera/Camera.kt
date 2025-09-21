@@ -2,9 +2,6 @@ package org.woen.modules.camera
 
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import kotlinx.coroutines.DisposableHandle
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
@@ -19,6 +16,7 @@ import org.woen.modules.turret.Pattern
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadManager
 import org.woen.utils.events.SimpleEvent
+import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Vec2
 import kotlin.concurrent.thread
 
@@ -26,25 +24,21 @@ class Camera private constructor() : DisposableHandle {
     companion object {
         private var _nullableInstance: Camera? = null
 
-        private val _instanceMutex = Mutex()
+        private val _instanceMutex = SmartMutex()
 
         @JvmStatic
         val LAZY_INSTANCE: Camera
-            get() = runBlocking {
-                _instanceMutex.withLock {
-                    if (_nullableInstance == null)
-                        _nullableInstance = Camera()
+            get() = _instanceMutex.smartLock {
+                if (_nullableInstance == null)
+                    _nullableInstance = Camera()
 
-                    return@withLock _nullableInstance!!
-                }
+                return@smartLock _nullableInstance!!
             }
 
         fun restart() {
-            runBlocking {
-                _instanceMutex.withLock {
-                    _nullableInstance?.dispose()
-                    _nullableInstance = null
-                }
+            _instanceMutex.smartLock {
+                _nullableInstance?.dispose()
+                _nullableInstance = null
             }
         }
     }
@@ -56,7 +50,7 @@ class Camera private constructor() : DisposableHandle {
             .setDrawAxes(true).build()
 
     init {
-        if(ThreadedConfigs.CAMERA_ENABLE.get()) {
+        if (ThreadedConfigs.CAMERA_ENABLE.get()) {
             val hardwareMap =
                 OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
 

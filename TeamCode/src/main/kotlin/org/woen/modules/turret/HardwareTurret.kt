@@ -3,15 +3,13 @@ package org.woen.modules.turret
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.regulator.Regulator
+import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
@@ -34,9 +32,9 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
 
     private val _pulleyRegulator = Regulator(ThreadedConfigs.PULLEY_REGULATOR)
 
-    private val _pulleyRegulatorMutex = Mutex()
+    private val _pulleyRegulatorMutex = SmartMutex()
 
-    private val _velocityFilterMutex = Mutex()
+    private val _velocityFilterMutex = SmartMutex()
 
     private val _velocityFilter =
         ExponentialFilter(ThreadedConfigs.PULLEY_VELOCITY_FILTER_COEF.get())
@@ -52,11 +50,9 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
 
         val rawVelocity = currentMotorPosition - _oldMotorPosition
 
-        runBlocking {
-            _velocityFilterMutex.withLock {
-                _motorVelocity =
-                    _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
-            }
+        _velocityFilterMutex.smartLock {
+            _motorVelocity =
+                _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
         }
 
         _oldMotorPosition = currentMotorPosition
@@ -67,20 +63,18 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
         val target = _realTargetVelocity.get()
         val velErr = target - _motorVelocity
 
-        if(abs(velErr) > ThreadedConfigs.PULLEY_TARGET_SENS.get())
+        if (abs(velErr) > ThreadedConfigs.PULLEY_TARGET_SENS.get())
             velocityAtTarget.set(false)
         else
             velocityAtTarget.set(true)
 
-        runBlocking {
-            _pulleyRegulatorMutex.withLock {
-                _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
-                    _pulleyRegulator.update(
-                        velErr,
-                        target
-                    )
+        _pulleyRegulatorMutex.smartLock {
+            _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
+                _pulleyRegulator.update(
+                    velErr,
+                    target
                 )
-            }
+            )
         }
     }
 
@@ -93,26 +87,20 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
         _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
         ThreadedConfigs.PULLEY_VELOCITY_FILTER_COEF.onSet += {
-            runBlocking {
-                _velocityFilterMutex.withLock {
-                    _velocityFilter.coef = it
-                }
+            _velocityFilterMutex.smartLock {
+                _velocityFilter.coef = it
             }
         }
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            runBlocking {
-                _pulleyRegulatorMutex.withLock {
-                    _pulleyRegulator.start()
-                }
+            _pulleyRegulatorMutex.smartLock {
+                _pulleyRegulator.start()
             }
         }
 
-        HotRun.LAZY_INSTANCE.opModeInitEvent +={
-            runBlocking {
-                _velocityFilterMutex.withLock {
-                    _velocityFilter.start()
-                }
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            _velocityFilterMutex.smartLock {
+                _velocityFilter.start()
             }
         }
     }

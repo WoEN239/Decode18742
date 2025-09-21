@@ -14,6 +14,7 @@ import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
 import org.woen.threading.hardware.HardwareThreads
+import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
 import java.util.concurrent.atomic.AtomicBoolean
@@ -35,7 +36,7 @@ class DriveTrain : IModule {
     private var _targetTranslateVelocity = Vec2.ZERO
     private var _targetRotateVelocity = 0.0
 
-    private val _driveMutex = Mutex()
+    private val _driveMutex = SmartMutex()
 
     private var _driveJob: Job? = null
 
@@ -45,7 +46,7 @@ class DriveTrain : IModule {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {
-            _driveMutex.withLock {
+            _driveMutex.smartLock {
                 _targetTranslateVelocity = it.translateVelocity
                 _targetRotateVelocity = if (_lookMode.get()) 0.0 else it.rotationVelocity
             }
@@ -77,7 +78,7 @@ class DriveTrain : IModule {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
-            _driveMutex.withLock {
+            _driveMutex.smartLock {
                 _hardwareDriveTrain.drive(
                     _targetTranslateVelocity.turn(-odometry.odometryOrientation.angl.angle),
                     if (_lookMode.get()) {

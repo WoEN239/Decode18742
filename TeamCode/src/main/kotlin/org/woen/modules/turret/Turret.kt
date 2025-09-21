@@ -37,24 +37,6 @@ class Turret : IModule {
 
     init {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareTurret)
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TurretShootEvent::class, {
-            if (!ThreadedEventBus.LAZY_INSTANCE.invoke(RequestLookModeEvent()).enable) {
-                it.isSuccessful = false
-
-                return@subscribe
-            }
-
-            val requiredBalls = 0//TODO
-
-            if (requiredBalls == 0) {
-                it.isSuccessful = false
-
-                return@subscribe
-            }
-
-            ThreadedEventBus.LAZY_INSTANCE.invoke(RequireBallEvent(it.ball)).process.wait()
-        })
     }
 
     private var _turretJob: Job? = null

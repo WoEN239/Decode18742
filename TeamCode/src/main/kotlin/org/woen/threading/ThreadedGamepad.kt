@@ -5,34 +5,27 @@ import com.qualcomm.robotcore.hardware.Gamepad
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
+import org.woen.utils.smartMutex.SmartMutex
 
 class ThreadedGamepad private constructor() {
     companion object {
         private var _nullableInstance: ThreadedGamepad? = null
 
-        private val _instanceMutex = Mutex()
+        private val _instanceMutex = SmartMutex()
 
         @JvmStatic
         val LAZY_INSTANCE: ThreadedGamepad
-            get() =
-                runBlocking {
-                    _instanceMutex.withLock {
-                        if (_nullableInstance == null)
-                            _nullableInstance = ThreadedGamepad()
+            get() = _instanceMutex.smartLock {
+                if (_nullableInstance == null)
+                    _nullableInstance = ThreadedGamepad()
 
-                        return@withLock _nullableInstance!!
-                    }
-                }
+                return@smartLock _nullableInstance!!
+            }
 
         fun restart() {
-            runBlocking {
-                _instanceMutex.withLock {
-                    _nullableInstance = null
-                }
+            _instanceMutex.smartLock {
+                _nullableInstance = null
             }
         }
 
@@ -121,26 +114,22 @@ class ThreadedGamepad private constructor() {
         }
     }
 
-    private val _listenersMutex = Mutex()
+    private val _listenersMutex = SmartMutex()
 
     private val _allListeners = mutableSetOf<IListener>()
 
     @Synchronized
     fun addListener(listener: IListener) =
-        runBlocking {
-            _listenersMutex.withLock {
-                _allListeners.add(listener)
-            }
+        _listenersMutex.smartLock {
+            _allListeners.add(listener)
         }
 
     fun initCallbacks(opMode: GamepadOpMode) {
         if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.MANUAL) {
             opMode.gamepad1Callback += {
-                runBlocking {
-                    _listenersMutex.withLock {
-                        for (i in _allListeners)
-                            i.update(it)
-                    }
+                _listenersMutex.smartLock {
+                    for (i in _allListeners)
+                        i.update(it)
                 }
             }
         }

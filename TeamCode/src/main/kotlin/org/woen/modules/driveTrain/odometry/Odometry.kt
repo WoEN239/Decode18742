@@ -2,21 +2,17 @@ package org.woen.modules.driveTrain.odometry
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.camera.Camera
 import org.woen.modules.driveTrain.HardwareGyro
 import org.woen.telemetry.ThreadedConfigs
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.exponentialFilter.ExponentialFilter
+import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Angle
-import org.woen.utils.units.Color
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 import kotlin.math.abs
@@ -37,85 +33,77 @@ data class RequireOdometryEvent(
 class Odometry : IModule {
     private val _hardwareOdometry = HardwareOdometry("leftFrowardDrive", "rightBackDrive")
     private val _threeOdometry = HardwareThreeOdometry("sideOdometer")
-//    private val _gyro = HardwareGyro()
-
-    private val _odometryMutex = Mutex()
+    private val _gyro = HardwareGyro()
 
     init {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry)
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_threeOdometry)
-//        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             RequireOdometryEvent::class,
             {
-                _odometryMutex.withLock {
+                _odometryMutex.smartLock {
                     it.odometryOrientation = Orientation(_currentPosition, _mergeRotation)
                     it.odometryVelocity = _currentVelocity
                     it.odometryRotateVelocity = _currentRotationVelocity
                 }
             })
-//
-//        _gyro.gyroUpdateEvent += {
-//            runBlocking {
-//                _gyroMutex.withLock {
-//                    _odometryMutex.withLock {
-//                        _mergeRotation = Angle(
-//                            _gyroFilter.updateRaw(
-//                                _mergeRotation.angle,
-//                                (it - _mergeRotation).angle
-//                            )
-//                        )
-//                    }
-//                }
-//            }
-//        }
+
+        _gyro.gyroUpdateEvent += {
+            _gyroMutex.smartLock {
+                _odometryMutex.smartLock {
+                    _mergeRotation = Angle(
+                        _gyroFilter.updateRaw(
+                            _mergeRotation.angle,
+                            (it - _mergeRotation).angle
+                        )
+                    )
+                }
+            }
+        }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            runBlocking {
-                _gyroMutex.withLock {
-                    _gyroFilter.start()
-                }
+            _gyroMutex.smartLock {
+                _gyroFilter.start()
+            }
 
-                _mergePositionMutex.withLock {
-                    _positionXFilter.start()
-                    _positionYFilter.start()
-                }
+            _mergePositionMutex.smartLock {
+                _positionXFilter.start()
+                _positionYFilter.start()
             }
         }
 
         ThreadedConfigs.ODOMETRY_MERGE_COEF.onSet += {
-            runBlocking {
-                _mergePositionMutex.withLock {
-                    _positionXFilter.coef = it
-                    _positionYFilter.coef = it
-                }
+            _mergePositionMutex.smartLock {
+                _positionXFilter.coef = it
+                _positionYFilter.coef = it
             }
         }
 
         Camera.LAZY_INSTANCE.cameraPositionUpdateEvent += {
-            runBlocking {
-                _mergePositionMutex.withLock {
-                    _odometryMutex.withLock {
-                        _currentPosition = Vec2(
-                            _positionXFilter.updateRaw(
-                                _currentPosition.x,
-                                it.x - _currentPosition.x
-                            ),
-                            _positionYFilter.updateRaw(
-                                _currentPosition.y,
-                                it.y - _currentPosition.y
-                            )
+            _mergePositionMutex.smartLock {
+                _odometryMutex.smartLock {
+                    _currentPosition = Vec2(
+                        _positionXFilter.updateRaw(
+                            _currentPosition.x,
+                            it.x - _currentPosition.x
+                        ),
+                        _positionYFilter.updateRaw(
+                            _currentPosition.y,
+                            it.y - _currentPosition.y
                         )
-                    }
+                    )
                 }
             }
         }
     }
 
-    private val _gyroMutex = Mutex()
+    private val _gyroMutex = SmartMutex()
 
-    private val _mergePositionMutex = Mutex()
+    private val _odometryMutex = SmartMutex()
+
+    private val _mergePositionMutex = SmartMutex()
 
     private val _gyroFilter = ExponentialFilter(ThreadedConfigs.GYRO_MERGE_COEF.get())
     private val _positionXFilter = ExponentialFilter(ThreadedConfigs.ODOMETRY_MERGE_COEF.get())
@@ -146,7 +134,7 @@ class Odometry : IModule {
             val rightVelocity = _hardwareOdometry.rightVelocity.get()
             val sideVelocity = _threeOdometry.odometerVelocity.get()
 
-            _odometryMutex.withLock {
+            _odometryMutex.smartLock {
                 val odometryRotation = Angle(
                     rightPos / ThreadedConfigs.ODOMETER_RIGHT_RADIUS.get()
                             - leftPos / ThreadedConfigs.ODOMETER_LEFT_RADIUS.get()
