@@ -11,12 +11,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
 class EncoderOnly(private val _motor: DcMotorEx) : DcMotorEx {
-    init {
-        _motor.direction = Direction.FORWARD
-        _motor.mode = RunMode.STOP_AND_RESET_ENCODER
-        _motor.mode = RunMode.RUN_WITHOUT_ENCODER
-    }
-
     private var _direction = Direction.FORWARD
 
     override fun getManufacturer() = _motor.manufacturer
@@ -180,5 +174,11 @@ class EncoderOnly(private val _motor: DcMotorEx) : DcMotorEx {
 
     override fun isOverCurrent(): Boolean {
         throw Exception("encoderOnly not support current")
+    }
+
+    init {
+        _motor.direction = Direction.FORWARD
+        _motor.mode = RunMode.STOP_AND_RESET_ENCODER
+        _motor.mode = RunMode.RUN_WITHOUT_ENCODER
     }
 }

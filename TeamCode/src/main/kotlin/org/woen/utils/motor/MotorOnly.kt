@@ -10,12 +10,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
 class MotorOnly(private val _motor: DcMotorEx) : DcMotorEx {
-    init {
-        _motor.direction = Direction.FORWARD
-        _motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-    }
-
     private var _direction = Direction.FORWARD
 
     override fun getManufacturer() = _motor.manufacturer
@@ -171,4 +165,10 @@ class MotorOnly(private val _motor: DcMotorEx) : DcMotorEx {
     }
 
     override fun isOverCurrent() = _motor.isOverCurrent
+
+    init {
+        _motor.direction = Direction.FORWARD
+        _motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+    }
 }

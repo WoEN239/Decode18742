@@ -6,11 +6,11 @@ class Process {
     var closed = false
         private set
 
-    fun close(){
+    fun close() {
         closed = true
     }
 
-    suspend fun wait(){
+    suspend fun wait() {
         while (!closed)
             delay(5)
     }

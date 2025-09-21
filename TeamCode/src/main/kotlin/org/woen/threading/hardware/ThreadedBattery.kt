@@ -14,10 +14,8 @@ class ThreadedBattery private constructor() : IHardwareDevice {
         @JvmStatic
         val LAZY_INSTANCE: ThreadedBattery
             get() = _instanceMutex.smartLock {
-                if (_nullableInstance == null) {
+                if (_nullableInstance == null)
                     _nullableInstance = ThreadedBattery()
-                    _nullableInstance?.initDevice()
-                }
 
                 return@smartLock _nullableInstance!!
             }
@@ -28,10 +26,6 @@ class ThreadedBattery private constructor() : IHardwareDevice {
                 _nullableInstance = null
             }
         }
-    }
-
-    private fun initDevice() {
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(this)
     }
 
     var currentVoltage: Double
@@ -56,5 +50,9 @@ class ThreadedBattery private constructor() : IHardwareDevice {
 
     override fun dispose() {
 
+    }
+
+    init {
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(this)
     }
 }

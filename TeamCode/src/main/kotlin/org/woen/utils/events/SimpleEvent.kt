@@ -1,8 +1,6 @@
 package org.woen.utils.events
 
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.utils.smartMutex.SmartMutex
 
 class SimpleEvent<T> {

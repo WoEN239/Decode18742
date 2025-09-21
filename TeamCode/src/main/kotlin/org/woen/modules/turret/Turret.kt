@@ -51,10 +51,10 @@ class Turret : IModule {
 
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
-            val l = (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get()
+            (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get()
                 .getBasketPosition()).length()
 
-            val deltaH = ThreadedConfigs.BASKET_TARGET_HEIGHT.get() - ThreadedConfigs.TURRET_HEIGHT.get()
+            ThreadedConfigs.BASKET_TARGET_HEIGHT.get() - ThreadedConfigs.TURRET_HEIGHT.get()
         }
     }
 

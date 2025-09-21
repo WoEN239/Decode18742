@@ -17,12 +17,6 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
 
     private val _updateCounter = UpdateCounter()
 
-    init {
-        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-            it.addData("hardware ups + " + _thread.name, _updateCounter.currentUPS)
-        }
-    }
-
     private val _devicesMutex = SmartMutex()
 
     fun addDevices(vararg devices: IHardwareDevice) {
@@ -76,5 +70,11 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
         }
 
         link.dispose()
+    }
+
+    init {
+        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            it.addData("hardware ups + " + _thread.name, _updateCounter.currentUPS)
+        }
     }
 }

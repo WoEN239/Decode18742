@@ -22,10 +22,6 @@ data class Angle(@JvmField var angle: Double) {
         fun ofDeg(angle: Double) = Angle(angle / 180.0 * PI)
     }
 
-    init {
-        angle = chop(angle)
-    }
-
     fun ofDegree() = angle / PI * 180
 
     override fun equals(other: Any?): Boolean {
@@ -56,6 +52,10 @@ data class Angle(@JvmField var angle: Double) {
 
     override fun toString(): String {
         return ofDegree().toString() + "°"
+    }
+
+    init {
+        angle = chop(angle)
     }
 }
 

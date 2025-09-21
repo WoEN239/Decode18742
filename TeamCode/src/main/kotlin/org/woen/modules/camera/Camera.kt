@@ -49,25 +49,6 @@ class Camera private constructor() : DisposableHandle {
         AprilTagProcessor.Builder().setOutputUnits(DistanceUnit.CM, AngleUnit.DEGREES)
             .setDrawAxes(true).build()
 
-    init {
-        if (ThreadedConfigs.CAMERA_ENABLE.get()) {
-            val hardwareMap =
-                OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
-
-            _visionPortal =
-                VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
-                    .addProcessor(_aprilProcessor).build()
-
-            HotRun.Companion.LAZY_INSTANCE.opModeInitEvent += {
-                _thread.start()
-            }
-
-            HotRun.Companion.LAZY_INSTANCE.opModeStopEvent += {
-                _thread.interrupt()
-            }
-        }
-    }
-
     var currentPattern: Pattern? = null
         private set
 
@@ -126,5 +107,24 @@ class Camera private constructor() : DisposableHandle {
 
     override fun dispose() {
         _visionPortal?.close()
+    }
+
+    init {
+        if (ThreadedConfigs.CAMERA_ENABLE.get()) {
+            val hardwareMap =
+                OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
+
+            _visionPortal =
+                VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
+                    .addProcessor(_aprilProcessor).build()
+
+            HotRun.Companion.LAZY_INSTANCE.opModeInitEvent += {
+                _thread.start()
+            }
+
+            HotRun.Companion.LAZY_INSTANCE.opModeStopEvent += {
+                _thread.interrupt()
+            }
+        }
     }
 }

@@ -3,12 +3,9 @@ package org.woen.modules.driveTrain
 import com.qualcomm.robotcore.hardware.Gamepad
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
-import org.woen.telemetry.ThreadedConfig
 import org.woen.telemetry.ThreadedConfigs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -42,6 +39,31 @@ class DriveTrain : IModule {
 
     private var _lookMode = AtomicBoolean(false)
 
+    override suspend fun process() {
+        _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+
+            _driveMutex.smartLock {
+                _hardwareDriveTrain.drive(
+                    _targetTranslateVelocity.turn(-odometry.odometryOrientation.angl.angle),
+                    if (_lookMode.get()) {
+                        (Angle(
+                            (HotRun.LAZY_INSTANCE.currentRunColor.get()
+                                .getBasketPosition() - odometry.odometryOrientation.pos).rot()
+                        ) - odometry.odometryOrientation.angl).angle * ThreadedConfigs.DRIVE_TRAIN_LOOK_P.get()
+                    } else _targetRotateVelocity
+                )
+            }
+        }
+    }
+
+    override val isBusy: Boolean
+        get() = _driveJob != null && !_driveJob!!.isCompleted
+
+    override fun dispose() {
+        _driveJob?.cancel()
+    }
+
     init {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
 
@@ -67,35 +89,14 @@ class DriveTrain : IModule {
                         Vec2(
                             gamepadData.left_stick_x.toDouble(),
                             gamepadData.left_stick_y.toDouble()
-                        ) * Vec2(ThreadedConfigs.DRIVE_VEC_MULTIPLIER.get(), ThreadedConfigs.DRIVE_VEC_MULTIPLIER.get()), -gamepadData.right_stick_x.toDouble() * ThreadedConfigs.DRIVE_ANGLE_MULTIPLIER.get()
+                        ) * Vec2(
+                            ThreadedConfigs.DRIVE_VEC_MULTIPLIER.get(),
+                            ThreadedConfigs.DRIVE_VEC_MULTIPLIER.get()
+                        ),
+                        -gamepadData.right_stick_x.toDouble() * ThreadedConfigs.DRIVE_ANGLE_MULTIPLIER.get()
                     )
                 )
             }
         })
-    }
-
-    override suspend fun process() {
-        _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
-
-            _driveMutex.smartLock {
-                _hardwareDriveTrain.drive(
-                    _targetTranslateVelocity.turn(-odometry.odometryOrientation.angl.angle),
-                    if (_lookMode.get()) {
-                        (Angle(
-                            (HotRun.LAZY_INSTANCE.currentRunColor.get()
-                                .getBasketPosition() - odometry.odometryOrientation.pos).rot()
-                        ) - odometry.odometryOrientation.angl).angle * ThreadedConfigs.DRIVE_TRAIN_LOOK_P.get()
-                    } else _targetRotateVelocity
-                )
-            }
-        }
-    }
-
-    override val isBusy: Boolean
-        get() = _driveJob != null && !_driveJob!!.isCompleted
-
-    override fun dispose() {
-        _driveJob?.cancel()
     }
 }

@@ -5,6 +5,10 @@ import org.woen.threading.ThreadManager
 import kotlin.concurrent.thread
 
 class ActionRunner {
+    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread {
+
+    })
+
     init {
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
@@ -15,8 +19,4 @@ class ActionRunner {
             _thread.interrupt()
         }
     }
-
-    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread {
-
-    })
 }

@@ -4,7 +4,6 @@ import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.ThreadedBattery
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.pow
 import kotlin.math.sign
 

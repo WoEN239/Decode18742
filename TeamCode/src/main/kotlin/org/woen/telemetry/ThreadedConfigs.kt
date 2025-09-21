@@ -73,7 +73,8 @@ object ThreadedConfigs {
     var DRIVE_SIDE_REGULATOR_PARAMS = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
 
     @ThreadedConfig(category = "DRIVE_TRAIN")
-    var DRIVE_FORWARD_REGULATOR_PARAMS = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
+    var DRIVE_FORWARD_REGULATOR_PARAMS =
+        ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())
 
     @ThreadedConfig(category = "DRIVE_TRAIN")
     var DRIVE_ROTATE_REGULATOR_PARAMS = ThreadedTelemetry.AtomicValueProvider(RegulatorParameters())

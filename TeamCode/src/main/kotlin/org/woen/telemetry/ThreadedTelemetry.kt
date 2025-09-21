@@ -158,12 +158,6 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
         }
     })
 
-    init {
-        ThreadedConfigs.TELEMETRY_UPDATE_HZ.onSet += ::onUpdateHZChanged
-
-        onUpdateHZChanged(ThreadedConfigs.TELEMETRY_UPDATE_HZ.get())
-    }
-
     @OptIn(InternalCoroutinesApi::class)
     fun addLines(vararg lines: String) {
         for (i in lines) {
@@ -261,5 +255,11 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
             if (value != null)
                 onSet(value)
         }
+    }
+
+    init {
+        ThreadedConfigs.TELEMETRY_UPDATE_HZ.onSet += ::onUpdateHZChanged
+
+        onUpdateHZChanged(ThreadedConfigs.TELEMETRY_UPDATE_HZ.get())
     }
 }

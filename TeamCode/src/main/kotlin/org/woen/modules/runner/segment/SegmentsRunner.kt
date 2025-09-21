@@ -31,56 +31,6 @@ data class RequireRRBuilderEvent(
 )
 
 class SegmentsRunner : IModule {
-    init {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(RunSegmentEvent::class, {
-            _segmentsMutex.smartLock {
-                _segmentsQueue.addLast(Pair(it.segment, it.process))
-            }
-        })
-
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            _segmentTimerMutex.smartLock {
-                _segmentTimer.reset()
-            }
-        }
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequireRRBuilderEvent::class, {
-            val startOrientation: Orientation
-
-            if (it.startOrientation == null) {
-                val isSegmentsEmpty = _segmentsMutex.smartLock {
-                    _segmentsQueue.isEmpty()
-                }
-
-                startOrientation = if (isSegmentsEmpty) {
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent()).odometryOrientation
-                } else {
-                    _segmentsMutex.smartLock {
-                        val lastSegment = _segmentsQueue.last().first
-
-                        lastSegment.targetOrientation(lastSegment.duration())
-                    }
-                }
-            } else
-                startOrientation = it.startOrientation
-
-            it.trajectoryBuilder = TrajectoryBuilder(
-                TrajectoryBuilderParams(1e-6, ProfileParams(0.1, 0.1, 0.01)),
-                Pose2d(startOrientation.x, startOrientation.y, startOrientation.angl.angle), 0.0,
-                MinVelConstraint(
-                    listOf(
-                        TranslationalVelConstraint(ThreadedConfigs.ROAD_RUNNER_TRANSLATE_VELOCITY.get()),
-                        AngularVelConstraint(ThreadedConfigs.ROAD_RUNNER_ROTATE_VELOCITY.get())
-                    )
-                ),
-                ProfileAccelConstraint(
-                    ThreadedConfigs.ROAD_RUNNER_MIN_TRANSLATION_ACCEL.get(),
-                    ThreadedConfigs.ROAD_RUNNER_MAX_TRANSLATION_ACCEL.get()
-                )
-            )
-        })
-    }
-
     private var _runnerJob: Job? = null
 
     private var _segmentsQueue = ArrayDeque<Pair<ISegment, Process>>()
@@ -155,5 +105,55 @@ class SegmentsRunner : IModule {
 
     override fun dispose() {
         _runnerJob?.cancel()
+    }
+
+    init {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RunSegmentEvent::class, {
+            _segmentsMutex.smartLock {
+                _segmentsQueue.addLast(Pair(it.segment, it.process))
+            }
+        })
+
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+            _segmentTimerMutex.smartLock {
+                _segmentTimer.reset()
+            }
+        }
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequireRRBuilderEvent::class, {
+            val startOrientation: Orientation
+
+            if (it.startOrientation == null) {
+                val isSegmentsEmpty = _segmentsMutex.smartLock {
+                    _segmentsQueue.isEmpty()
+                }
+
+                startOrientation = if (isSegmentsEmpty) {
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent()).odometryOrientation
+                } else {
+                    _segmentsMutex.smartLock {
+                        val lastSegment = _segmentsQueue.last().first
+
+                        lastSegment.targetOrientation(lastSegment.duration())
+                    }
+                }
+            } else
+                startOrientation = it.startOrientation
+
+            it.trajectoryBuilder = TrajectoryBuilder(
+                TrajectoryBuilderParams(1e-6, ProfileParams(0.1, 0.1, 0.01)),
+                Pose2d(startOrientation.x, startOrientation.y, startOrientation.angl.angle), 0.0,
+                MinVelConstraint(
+                    listOf(
+                        TranslationalVelConstraint(ThreadedConfigs.ROAD_RUNNER_TRANSLATE_VELOCITY.get()),
+                        AngularVelConstraint(ThreadedConfigs.ROAD_RUNNER_ROTATE_VELOCITY.get())
+                    )
+                ),
+                ProfileAccelConstraint(
+                    ThreadedConfigs.ROAD_RUNNER_MIN_TRANSLATION_ACCEL.get(),
+                    ThreadedConfigs.ROAD_RUNNER_MAX_TRANSLATION_ACCEL.get()
+                )
+            )
+        })
     }
 }
