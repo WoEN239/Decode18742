@@ -13,7 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.*;
 import java.util.Arrays;
 
 
-@Config
+@Config(value = "DEVICE_TEST")
 @TeleOp
 public class DeviceTest extends LinearOpMode {
 
