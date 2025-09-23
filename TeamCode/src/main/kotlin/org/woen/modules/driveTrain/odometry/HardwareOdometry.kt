@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.motor.EncoderOnly
@@ -21,8 +21,8 @@ class HardwareOdometry(
 
     private val _filterMutex = SmartMutex()
 
-    private val _leftFilter = ExponentialFilter(ThreadedConfigs.VELOCITY_FILTER_K.get())
-    private val _rightFilter = ExponentialFilter(ThreadedConfigs.VELOCITY_FILTER_K.get())
+    private val _leftFilter = ExponentialFilter(Configs.ODOMETRY.VELOCITY_FILTER_K.get())
+    private val _rightFilter = ExponentialFilter(Configs.ODOMETRY.VELOCITY_FILTER_K.get())
 
     val leftPosition = AtomicReference(0.0)
     val rightPosition = AtomicReference(0.0)
@@ -35,9 +35,9 @@ class HardwareOdometry(
 
     override fun update() {
         val currentLeftPosition = _leftOdometer.currentPosition.toDouble() /
-                ThreadedConfigs.ODOMETRY_TICKS.get() * PI * ThreadedConfigs.ODOMETRY_DIAMETER.get()
+                Configs.ODOMETRY.ODOMETRY_TICKS * PI * Configs.ODOMETRY.ODOMETRY_DIAMETER
         val currentRightPosition = _rightOdometer.currentPosition.toDouble() /
-                ThreadedConfigs.ODOMETRY_TICKS.get() * PI * ThreadedConfigs.ODOMETRY_DIAMETER.get()
+                Configs.ODOMETRY.ODOMETRY_TICKS * PI * Configs.ODOMETRY.ODOMETRY_DIAMETER
 
         leftPosition.set(currentLeftPosition)
         rightPosition.set(currentRightPosition)
@@ -74,7 +74,7 @@ class HardwareOdometry(
         _leftOdometer.direction = DcMotorSimple.Direction.REVERSE
         _rightOdometer.direction = DcMotorSimple.Direction.REVERSE
 
-        ThreadedConfigs.VELOCITY_FILTER_K.onSet += {
+        Configs.ODOMETRY.VELOCITY_FILTER_K.onSet += {
             _filterMutex.smartLock {
                 _rightFilter.coef = it
                 _leftFilter.coef = it

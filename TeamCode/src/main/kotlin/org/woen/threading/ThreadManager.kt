@@ -6,7 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.Executors
@@ -35,7 +35,7 @@ class ThreadManager : DisposableHandle {
     }
 
     private val _threadPool =
-        Executors.newFixedThreadPool(ThreadedConfigs.THREAD_POOL_THREADS_COUNT.get())
+        Executors.newFixedThreadPool(Configs.THREAD_POOL.THREAD_POOL_THREADS_COUNT)
     val globalCoroutineScope = CoroutineScope(_threadPool.asCoroutineDispatcher() + Job())
 
     private val _allThreads = mutableSetOf<Thread>()

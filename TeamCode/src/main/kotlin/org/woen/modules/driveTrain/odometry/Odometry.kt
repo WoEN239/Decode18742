@@ -6,7 +6,7 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.camera.Camera
 import org.woen.modules.driveTrain.HardwareGyro
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -44,9 +44,9 @@ class Odometry : IModule {
 
     private val _mergePositionMutex = SmartMutex()
 
-    private val _gyroFilter = ExponentialFilter(ThreadedConfigs.GYRO_MERGE_COEF.get())
-    private val _positionXFilter = ExponentialFilter(ThreadedConfigs.ODOMETRY_MERGE_COEF.get())
-    private val _positionYFilter = ExponentialFilter(ThreadedConfigs.ODOMETRY_MERGE_COEF.get())
+    private val _gyroFilter = ExponentialFilter(Configs.GYRO.GYRO_MERGE_COEF.get())
+    private val _positionXFilter = ExponentialFilter(Configs.ODOMETRY.ODOMETRY_MERGE_COEF.get())
+    private val _positionYFilter = ExponentialFilter(Configs.ODOMETRY.ODOMETRY_MERGE_COEF.get())
 
     private var _odometryJob: Job? = null
 
@@ -75,8 +75,8 @@ class Odometry : IModule {
 
             _odometryMutex.smartLock {
                 val odometryRotation = Angle(
-                    rightPos / ThreadedConfigs.ODOMETER_RIGHT_RADIUS.get()
-                            - leftPos / ThreadedConfigs.ODOMETER_LEFT_RADIUS.get()
+                    rightPos / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
+                            - leftPos / Configs.ODOMETRY.ODOMETER_LEFT_RADIUS
                 )
 
                 _mergeRotation += odometryRotation - _oldOdometerRotation
@@ -84,8 +84,8 @@ class Odometry : IModule {
                 _oldOdometerRotation = odometryRotation
 
                 _currentRotationVelocity =
-                    rightVelocity / ThreadedConfigs.ODOMETER_RIGHT_RADIUS.get()
-                -leftVelocity / ThreadedConfigs.ODOMETER_RIGHT_RADIUS.get()
+                    rightVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
+                -leftVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
 
                 val deltaLeft = leftPos - _oldLeftPosition
                 val deltaRight = rightPos - _oldRightPosition
@@ -94,12 +94,12 @@ class Odometry : IModule {
 
                 val deltaX = (deltaLeft + deltaRight) / 2.0
                 val deltaY =
-                    deltaSide - (ThreadedConfigs.ODOMETER_SIDE_RADIUS.get() * deltaRotation)
+                    deltaSide - (Configs.ODOMETRY.ODOMETER_SIDE_RADIUS * deltaRotation)
 
                 val deltaXCorrected: Double
                 val deltaYCorrected: Double
 
-                if (abs(deltaRotation) < ThreadedConfigs.ODOMETER_ROTATE_SENS.get()) {
+                if (abs(deltaRotation) < Configs.ODOMETRY.ODOMETER_ROTATE_SENS) {
                     deltaXCorrected = deltaX
                     deltaYCorrected = deltaY
                 } else {
@@ -115,7 +115,7 @@ class Odometry : IModule {
 
                 _currentVelocity = Vec2(
                     (leftVelocity + rightVelocity) / 2.0,
-                    sideVelocity - ThreadedConfigs.ODOMETER_SIDE_RADIUS.get() * _currentRotationVelocity
+                    sideVelocity - Configs.ODOMETRY.ODOMETER_SIDE_RADIUS * _currentRotationVelocity
                 )
 
                 _oldLeftPosition = leftPos
@@ -186,7 +186,7 @@ class Odometry : IModule {
             }
         }
 
-        ThreadedConfigs.ODOMETRY_MERGE_COEF.onSet += {
+        Configs.ODOMETRY.ODOMETRY_MERGE_COEF.onSet += {
             _mergePositionMutex.smartLock {
                 _positionXFilter.coef = it
                 _positionYFilter.coef = it

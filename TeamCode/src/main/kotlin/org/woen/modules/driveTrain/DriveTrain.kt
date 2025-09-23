@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -50,7 +50,7 @@ class DriveTrain : IModule {
                         (Angle(
                             (HotRun.LAZY_INSTANCE.currentRunColor.get()
                                 .getBasketPosition() - odometry.odometryOrientation.pos).rot()
-                        ) - odometry.odometryOrientation.angl).angle * ThreadedConfigs.DRIVE_TRAIN_LOOK_P.get()
+                        ) - odometry.odometryOrientation.angl).angle * Configs.DRIVE_TRAIN.DRIVE_TRAIN_LOOK_P
                     } else _targetRotateVelocity
                 )
             }
@@ -90,10 +90,10 @@ class DriveTrain : IModule {
                             gamepadData.left_stick_x.toDouble(),
                             gamepadData.left_stick_y.toDouble()
                         ) * Vec2(
-                            ThreadedConfigs.DRIVE_VEC_MULTIPLIER.get(),
-                            ThreadedConfigs.DRIVE_VEC_MULTIPLIER.get()
+                            Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
+                            Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER
                         ),
-                        -gamepadData.right_stick_x.toDouble() * ThreadedConfigs.DRIVE_ANGLE_MULTIPLIER.get()
+                        -gamepadData.right_stick_x.toDouble() * Configs.DRIVE_TRAIN.DRIVE_ANGLE_MULTIPLIER
                     )
                 )
             }

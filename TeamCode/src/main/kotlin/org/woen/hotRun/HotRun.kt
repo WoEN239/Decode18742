@@ -2,7 +2,7 @@ package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
 import org.woen.modules.camera.Camera
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -62,11 +62,11 @@ class HotRun private constructor() {
         AUTO
     }
 
-    enum class RunColor(private val basketPosition: ThreadedTelemetry.AtomicValueProvider<Vec2>) {
-        RED(ThreadedConfigs.RED_BASKET_POSITION),
-        BLUE(ThreadedConfigs.BLUE_BASKET_POSITION);
+    enum class RunColor(private val basketPosition: Vec2) {
+        RED(Configs.TURRET.RED_BASKET_POSITION),
+        BLUE(Configs.TURRET.BLUE_BASKET_POSITION);
 
-        fun getBasketPosition() = basketPosition.get()
+        fun getBasketPosition() = basketPosition
     }
 
     var currentRunColor = AtomicReference(RunColor.RED)

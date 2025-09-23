@@ -7,7 +7,7 @@ import com.acmerobotics.roadrunner.TimeTrajectory
 import com.acmerobotics.roadrunner.TimeTurn
 import com.acmerobotics.roadrunner.Trajectory
 import com.acmerobotics.roadrunner.TurnConstraints
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
@@ -16,9 +16,9 @@ class TurnSegment(angle: Double, private val _startOrientation: Orientation) : I
     private val _turn = TimeTurn(
         Pose2d(_startOrientation.x, _startOrientation.y, _startOrientation.angl.angle), angle,
         TurnConstraints(
-            ThreadedConfigs.ROAD_RUNNER_ROTATE_VELOCITY.get(),
-            -ThreadedConfigs.ROAD_RUNNER_ROTATE_VELOCITY.get(),
-            ThreadedConfigs.ROAD_RUNNER_ROTATE_ACCEL.get()
+            Configs.ROAR_RUNNER.ROAD_RUNNER_ROTATE_VELOCITY,
+            -Configs.ROAR_RUNNER.ROAD_RUNNER_ROTATE_VELOCITY,
+            Configs.ROAR_RUNNER.ROAD_RUNNER_ROTATE_ACCEL
         )
     )
 

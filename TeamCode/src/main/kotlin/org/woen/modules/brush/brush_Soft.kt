@@ -5,11 +5,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
-import org.woen.modules.brush.brush_hard
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
-import org.woen.threading.ThreadedTimers
 
 class BallDownEvent(var a: brush_Soft.AcktBrush)
 
@@ -28,27 +26,27 @@ class brush_Soft: IModule {
     }
 
     private var _currentJob: Job? = null //отслеживание текущей задачи
-    private var bruh = brush_hard(ThreadedConfigs.BRUSH_MOTOR_NAME.get());
+    private var bruh = brush_hard(Configs.BRUSH.BRUSH_MOTOR_NAME);
     private var sost =0;
     private var zapuskZov = AcktBrush.NotAckt;
     private var tmr = ElapsedTime();
     suspend fun AvtoZov(){
-        var difTmr=tmr.time()> ThreadedConfigs.BRUSH_DEF_TIME.get();
+        var difTmr=tmr.time()> Configs.BRUSH.BRUSH_DEF_TIME;
         if(zapuskZov == AcktBrush.revers) sost=3;
         when(sost){
             0->{
-                bruh.setDir(ThreadedConfigs.BRUSH_MOTORS_FORWARD.get());
+                bruh.setDir(Configs.BRUSH.BRUSH_MOTORS_FORWARD);
                 if(!bruh.IsSafe)sost=1;
                 if(zapuskZov== AcktBrush.NotAckt){ sost=2; tmr.reset();}
 
             }
             1->{
-                bruh.setDir(ThreadedConfigs.BRUSH_MOTORS_BACK.get());
+                bruh.setDir(Configs.BRUSH.BRUSH_MOTORS_BACK);
                 if(zapuskZov== AcktBrush.Ackt && bruh.IsSafe && difTmr)sost=0;
                 if(zapuskZov== AcktBrush.NotAckt) sost=2;
             }
             2->{
-                bruh.setDir(ThreadedConfigs.BRUSH_MOTORS_STOP.get());
+                bruh.setDir(Configs.BRUSH.BRUSH_MOTORS_STOP);
                 if(zapuskZov== AcktBrush.Ackt) sost=0;
             }
             3->{
@@ -59,7 +57,7 @@ class brush_Soft: IModule {
         }
     }
     suspend fun zovback(){
-        bruh.setDir(ThreadedConfigs.BRUSH_MOTORS_STOP.get());
+        bruh.setDir(Configs.BRUSH.BRUSH_MOTORS_STOP);
         delay(1000);
     }
     //тут будут щётки

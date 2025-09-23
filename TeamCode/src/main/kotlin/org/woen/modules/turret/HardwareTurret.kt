@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
@@ -20,24 +20,24 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
 
     var targetVelocity: Double
         get() = _realTargetVelocity.get() /
-                ThreadedConfigs.PULLEY_TICKS_IN_REVOLUTION.get() * (2.0 * PI * ThreadedConfigs.PULLEY_RADIUS.get())
+                Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION * (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
         set(value) {
             _realTargetVelocity.set(
                 value /
-                        (2.0 * PI * ThreadedConfigs.PULLEY_RADIUS.get()) * ThreadedConfigs.PULLEY_TICKS_IN_REVOLUTION.get()
+                        (2.0 * PI * Configs.TURRET.PULLEY_RADIUS) * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
             )
         }
 
     private var _realTargetVelocity = AtomicReference(0.0)
 
-    private val _pulleyRegulator = Regulator(ThreadedConfigs.PULLEY_REGULATOR)
+    private val _pulleyRegulator = Regulator(Configs.TURRET.PULLEY_REGULATOR)
 
     private val _pulleyRegulatorMutex = SmartMutex()
 
     private val _velocityFilterMutex = SmartMutex()
 
     private val _velocityFilter =
-        ExponentialFilter(ThreadedConfigs.PULLEY_VELOCITY_FILTER_COEF.get())
+        ExponentialFilter(Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.get())
 
     private var _oldMotorPosition = 0.0
 
@@ -63,7 +63,7 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
         val target = _realTargetVelocity.get()
         val velErr = target - _motorVelocity
 
-        if (abs(velErr) > ThreadedConfigs.PULLEY_TARGET_SENS.get())
+        if (abs(velErr) > Configs.TURRET.PULLEY_TARGET_SENS)
             velocityAtTarget.set(false)
         else
             velocityAtTarget.set(true)
@@ -86,7 +86,7 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
         _motor.mode = DcMotor.RunMode.RESET_ENCODERS
         _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
-        ThreadedConfigs.PULLEY_VELOCITY_FILTER_COEF.onSet += {
+        Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.onSet += {
             _velocityFilterMutex.smartLock {
                 _velocityFilter.coef = it
             }

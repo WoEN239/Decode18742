@@ -13,7 +13,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagPoseRaw
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 import org.woen.hotRun.HotRun
 import org.woen.modules.turret.Pattern
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.smartMutex.SmartMutex
@@ -55,7 +55,7 @@ class Camera private constructor() : DisposableHandle {
     val cameraPositionUpdateEvent = SimpleEvent<Vec2>()
 
     private val _thread = ThreadManager.Companion.LAZY_INSTANCE.register(thread {
-        while (!Thread.currentThread().isInterrupted && ThreadedConfigs.CAMERA_ENABLE.get()) {
+        while (!Thread.currentThread().isInterrupted && Configs.CAMERA.CAMERA_ENABLE) {
             val detections = _aprilProcessor.freshDetections
 
             if (detections == null) {
@@ -73,7 +73,7 @@ class Camera private constructor() : DisposableHandle {
                 if (pattern != null)
                     currentPattern = pattern
                 else if (detection.rawPose != null &&
-                    detection.decisionMargin < ThreadedConfigs.CAMERA_ACCURACY.get()
+                    detection.decisionMargin < Configs.CAMERA.CAMERA_ACCURACY
                 ) {
                     val rawTagPose: AprilTagPoseRaw = detection.rawPose
                     var rawTagPoseVector: VectorF? = VectorF(
@@ -110,7 +110,7 @@ class Camera private constructor() : DisposableHandle {
     }
 
     init {
-        if (ThreadedConfigs.CAMERA_ENABLE.get()) {
+        if (Configs.CAMERA.CAMERA_ENABLE) {
             val hardwareMap =
                 OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
 

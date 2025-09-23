@@ -15,7 +15,7 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.process.Process
@@ -60,15 +60,15 @@ class SegmentsRunner : IModule {
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SetDriveTargetVelocityEvent(
                     orientationErr.pos * Vec2(
-                        ThreadedConfigs.ROAD_RUNNER_POS_X_P.get(),
-                        ThreadedConfigs.ROAD_RUNNER_POS_Y_P.get()
+                        Configs.ROAR_RUNNER.ROAD_RUNNER_POS_X_P,
+                        Configs.ROAR_RUNNER.ROAD_RUNNER_POS_Y_P
                     ) +
                             velTransErr * Vec2(
-                        ThreadedConfigs.ROAD_RUNNER_VEL_X_P.get(),
-                        ThreadedConfigs.ROAD_RUNNER_VEL_Y_P.get()
+                        Configs.ROAR_RUNNER.ROAD_RUNNER_VEL_X_P,
+                        Configs.ROAR_RUNNER.ROAD_RUNNER_VEL_Y_P
                     ),
-                    orientationErr.angl.angle * ThreadedConfigs.ROAD_RUNNER_POS_H_P.get() +
-                            velRotateErr * ThreadedConfigs.ROAD_RUNNER_VEL_H_P.get()
+                    orientationErr.angl.angle * Configs.ROAR_RUNNER.ROAD_RUNNER_POS_H_P +
+                            velRotateErr * Configs.ROAR_RUNNER.ROAD_RUNNER_VEL_H_P
                 )
             )
 
@@ -145,13 +145,13 @@ class SegmentsRunner : IModule {
                 Pose2d(startOrientation.x, startOrientation.y, startOrientation.angl.angle), 0.0,
                 MinVelConstraint(
                     listOf(
-                        TranslationalVelConstraint(ThreadedConfigs.ROAD_RUNNER_TRANSLATE_VELOCITY.get()),
-                        AngularVelConstraint(ThreadedConfigs.ROAD_RUNNER_ROTATE_VELOCITY.get())
+                        TranslationalVelConstraint(Configs.ROAR_RUNNER.ROAD_RUNNER_TRANSLATE_VELOCITY),
+                        AngularVelConstraint(Configs.ROAR_RUNNER.ROAD_RUNNER_ROTATE_VELOCITY)
                     )
                 ),
                 ProfileAccelConstraint(
-                    ThreadedConfigs.ROAD_RUNNER_MIN_TRANSLATION_ACCEL.get(),
-                    ThreadedConfigs.ROAD_RUNNER_MAX_TRANSLATION_ACCEL.get()
+                    Configs.ROAR_RUNNER.ROAD_RUNNER_MIN_TRANSLATION_ACCEL,
+                    Configs.ROAR_RUNNER.ROAD_RUNNER_MAX_TRANSLATION_ACCEL
                 )
             )
         })

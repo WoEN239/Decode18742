@@ -7,7 +7,7 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.RequestLookModeEvent
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
@@ -44,7 +44,7 @@ class Turret : IModule {
     override suspend fun process() {
         _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             if (!ThreadedEventBus.LAZY_INSTANCE.invoke(RequestLookModeEvent()).enable) {
-                _hardwareTurret.targetVelocity = ThreadedConfigs.QUIET_PULLEY_SPEED.get()
+                _hardwareTurret.targetVelocity = Configs.TURRET.QUIET_PULLEY_SPEED
 
                 return@launch
             }
@@ -54,7 +54,7 @@ class Turret : IModule {
             (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get()
                 .getBasketPosition()).length()
 
-            ThreadedConfigs.BASKET_TARGET_HEIGHT.get() - ThreadedConfigs.TURRET_HEIGHT.get()
+            Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT
         }
     }
 

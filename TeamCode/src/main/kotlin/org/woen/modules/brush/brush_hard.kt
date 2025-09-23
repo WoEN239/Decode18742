@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 
 class brush_hard(private val _deviceName: String)  : IHardwareDevice {
@@ -16,20 +16,20 @@ class brush_hard(private val _deviceName: String)  : IHardwareDevice {
 
     fun voltageSafe(){
         var volt=_motor.getCurrent(CurrentUnit.AMPS);
-        if(volt >= ThreadedConfigs.BRUSH_TARGET_CURRENT.get()) IsSafe=false; else IsSafe=true;
+        if(volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe=false; else IsSafe=true;
 
 
     }
 
     fun setDir(zovMotor: Int){
         when(zovMotor){
-            ThreadedConfigs.BRUSH_MOTORS_FORWARD.get() -> {
+            Configs.BRUSH.BRUSH_MOTORS_FORWARD -> {
                 _motor.setPower(1.0);
             }
-            ThreadedConfigs.BRUSH_MOTORS_STOP.get() -> {
+            Configs.BRUSH.BRUSH_MOTORS_STOP -> {
                 _motor.setPower(0.0);
             }
-            ThreadedConfigs.BRUSH_MOTORS_BACK.get() -> {
+            Configs.BRUSH.BRUSH_MOTORS_BACK -> {
                 _motor.setPower(2.0);
             }
         }

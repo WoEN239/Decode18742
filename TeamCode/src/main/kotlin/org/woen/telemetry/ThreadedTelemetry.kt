@@ -18,13 +18,7 @@ import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.timers.ReversedElapsedTime
 import org.woen.utils.units.Color
 import org.woen.utils.units.Vec2
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.findAnnotation
-
-
-annotation class ThreadedConfig(val category: String, val name: String = "")
 
 class ThreadedTelemetry private constructor() : DisposableHandle {
     companion object {
@@ -47,33 +41,6 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
                 _nullableInstance = null
             }
         }
-
-        @OnCreate
-        @JvmStatic
-        fun start(context: Context?) {
-            FtcDashboard.start(context)
-
-            LAZY_INSTANCE.initConfigs()
-        }
-    }
-
-    fun initConfigs() {
-        FtcDashboard.getInstance().withConfigRoot {
-            val configs = ThreadedConfigs::class.declaredMemberProperties.filter {
-                (it.returnType.classifier == AtomicValueProvider::class || it.returnType.classifier == AtomicEventProvider::class) &&
-                        it.findAnnotation<ThreadedConfig>() != null
-            }
-
-            for (i in configs) {
-                val value = i.get(ThreadedConfigs) as AtomicValueProvider<*>
-                val annotation = i.annotations[0] as ThreadedConfig
-
-                FtcDashboard.getInstance().addConfigVariable(
-                    annotation.category,
-                    annotation.name.ifEmpty { i.name }, value
-                )
-            }
-        }
     }
 
     @OptIn(InternalCoroutinesApi::class)
@@ -84,7 +51,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     }
 
     override fun dispose() {
-        ThreadedConfigs.TELEMETRY_UPDATE_HZ.onSet -= ::onUpdateHZChanged
+        Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.onSet -= ::onUpdateHZChanged
     }
 
     private var _temporarySenders =
@@ -121,7 +88,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     @OptIn(InternalCoroutinesApi::class)
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted) {
-            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.STOP && ThreadedConfigs.TELEMETRY_ENABLE.get()) {
+            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.STOP && Configs.TELEMETRY.TELEMETRY_ENABLE) {
                 onTelemetrySend.invoke(this)
 
                 val telemetry = this
@@ -154,7 +121,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
             _dashboardPacket = TelemetryPacket()
 
-            Thread.sleep((1000.0 / ThreadedConfigs.TELEMETRY_UPDATE_HZ.get()).toLong())
+            Thread.sleep((1000.0 / Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.get()).toLong())
         }
     })
 
@@ -235,31 +202,22 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     private fun logWithTag(str: String, tag: String) =
         RobotLog.dd(tag, "robot[" + Thread.currentThread().name + "]: " + str)
 
-    open class AtomicValueProvider<T>(default: T) : ValueProvider<T> {
-        private var data = AtomicReference(default)
-
-        override fun get(): T = data.get()
-
-        override fun set(value: T?) {
-            if (value != null)
-                data.set(value)
-        }
-    }
-
-    class AtomicEventProvider<T>(default: T) : AtomicValueProvider<T>(default) {
+    class EventValueProvider<T>(private var _value: T): ValueProvider<T>{
         val onSet = SimpleEvent<T>()
 
-        override fun set(value: T?) {
-            super.set(value)
+        override fun get() = _value
 
-            if (value != null)
+        override fun set(value: T?) {
+            if(value != null){
+                _value = value
                 onSet(value)
+            }
         }
     }
 
     init {
-        ThreadedConfigs.TELEMETRY_UPDATE_HZ.onSet += ::onUpdateHZChanged
+        Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.onSet += ::onUpdateHZChanged
 
-        onUpdateHZChanged(ThreadedConfigs.TELEMETRY_UPDATE_HZ.get())
+        onUpdateHZChanged(Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.get())
     }
 }

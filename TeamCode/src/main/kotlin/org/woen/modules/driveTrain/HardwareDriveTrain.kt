@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.hotRun.HotRun
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.IHardwareDevice
@@ -29,9 +29,9 @@ class HardwareDriveTrain(
     private lateinit var _rightBackMotor: DcMotorEx
     private lateinit var _rightForwardMotor: DcMotorEx
 
-    private val _forwardRegulator = Regulator(ThreadedConfigs.DRIVE_FORWARD_REGULATOR_PARAMS)
-    private val _sideRegulator = Regulator(ThreadedConfigs.DRIVE_SIDE_REGULATOR_PARAMS)
-    private val _rotateRegulator = Regulator(ThreadedConfigs.DRIVE_ROTATE_REGULATOR_PARAMS)
+    private val _forwardRegulator = Regulator(Configs.DRIVE_TRAIN.DRIVE_FORWARD_REGULATOR_PARAMS)
+    private val _sideRegulator = Regulator(Configs.DRIVE_TRAIN.DRIVE_SIDE_REGULATOR_PARAMS)
+    private val _rotateRegulator = Regulator(Configs.DRIVE_TRAIN.DRIVE_ROTATE_REGULATOR_PARAMS)
 
     private val _regulatorMutex = SmartMutex()
 

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.units.Angle
@@ -18,7 +18,7 @@ class HardwareGyro : IHardwareDevice {
     val gyroUpdateEvent = SimpleEvent<Angle>()
 
     override fun update() {
-        if (_gyroUpdateTimer.seconds() > 1.0 / ThreadedConfigs.GYRO_UPDATE_HZ.get()) {
+        if (_gyroUpdateTimer.seconds() > 1.0 / Configs.GYRO.GYRO_UPDATE_HZ) {
             _gyroUpdateTimer.reset()
 
             val angles = _imu.robotYawPitchRollAngles

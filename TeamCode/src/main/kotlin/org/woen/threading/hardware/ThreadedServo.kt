@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 import org.woen.utils.servoAngle.ServoAngle
 import org.woen.utils.smartMutex.SmartMutex
 import kotlin.math.abs
@@ -14,10 +14,10 @@ import kotlin.math.sqrt
 
 class ThreadedServo(
     private val _name: String,
-    var Vmax: Double = ThreadedConfigs.DEFAULT_SERVO_V_MAX.get(),
-    var a: Double = ThreadedConfigs.DEFAULT_SERVO_A.get(),
-    val maxAngle: Double = ThreadedConfigs.DEFAULT_SERVO_ANGLE.get(),
-    private val _angleOffset: Double = ThreadedConfigs.DEFAULT_SERVO_OFFSET.get(),
+    var Vmax: Double = Configs.SERVO_ANGLE.DEFAULT_SERVO_V_MAX,
+    var a: Double = Configs.SERVO_ANGLE.DEFAULT_SERVO_A,
+    val maxAngle: Double = Configs.SERVO_ANGLE.DEFAULT_SERVO_ANGLE,
+    private val _angleOffset: Double = Configs.SERVO_ANGLE.DEFAULT_SERVO_OFFSET,
     private val _startAngle: Double = 0.0
 ) : IHardwareDevice {
     private lateinit var _device: ServoAngle

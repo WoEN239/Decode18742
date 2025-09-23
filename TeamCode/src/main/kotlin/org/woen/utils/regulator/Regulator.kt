@@ -19,7 +19,7 @@ data class RegulatorParameters(
     @JvmField var resetI: Boolean = false
 )
 
-class Regulator(val parameters: ThreadedTelemetry.AtomicValueProvider<RegulatorParameters>) {
+class Regulator(val parameters: RegulatorParameters) {
     private val _deltaTime = ElapsedTime()
 
     private var _integral = 0.0
@@ -32,28 +32,28 @@ class Regulator(val parameters: ThreadedTelemetry.AtomicValueProvider<RegulatorP
 
     @Synchronized
     fun update(err: Double, target: Double): Double {
-        val uP = err * parameters.get().kP
+        val uP = err * parameters.kP
 
-        val uD = (err - _errOld) / _deltaTime.seconds() * parameters.get().kD
+        val uD = (err - _errOld) / _deltaTime.seconds() * parameters.kD
 
-        val uF = target * parameters.get().kF
+        val uF = target * parameters.kF
 
-        val uG = parameters.get().kG
+        val uG = parameters.kG
 
-        val uSG = parameters.get().kSG * sign(target)
+        val uSG = parameters.kSG * sign(target)
 
-        val uPow = err.pow(2.0) * parameters.get().kPow * sign(err)
+        val uPow = err.pow(2.0) * parameters.kPow * sign(err)
 
-        val uI = _integral * parameters.get().kI
+        val uI = _integral * parameters.kI
 
         var u = uP + uI + uD + uF + uG + uSG + uPow
 
-        if (err * _errOld < 0.0f && parameters.get().resetI)
+        if (err * _errOld < 0.0f && parameters.resetI)
             resetIntegral()
 
         val volts = ThreadedBattery.LAZY_INSTANCE.currentVoltage
 
-        val limitU = parameters.get().limitU
+        val limitU = parameters.limitU
 
         if (
             (limitU > 0.0 && u < limitU && u > -limitU) ||

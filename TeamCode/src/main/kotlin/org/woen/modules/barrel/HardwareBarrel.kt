@@ -1,7 +1,7 @@
 package org.woen.modules.barrel
 
 import org.woen.utils.regulator.Regulator;
-import org.woen.telemetry.ThreadedConfigs
+import org.woen.telemetry.Configs
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
@@ -13,7 +13,7 @@ import org.woen.threading.hardware.IHardwareDevice
 
 class HardwareBarrel(private val _deviceName: String, private val _direction : Int) : IHardwareDevice
 {
-    private var _regulator = Regulator(ThreadedConfigs.BARREL_REGULATOR_PARAMETERS);
+    private var _regulator = Regulator(Configs.BARREL.BARREL_REGULATOR_PARAMETERS);
     var targetPos : Double = 0.0;
     private var _currentPos : Double = 0.0;
     private lateinit var _motor : DcMotorEx;
