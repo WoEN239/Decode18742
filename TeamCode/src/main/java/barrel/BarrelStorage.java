@@ -3,6 +3,7 @@ package barrel;
 import barrel.enumerators.Ball;
 import barrel.enumerators.BallRequest;
 
+import barrel.enumerators.StorageOffset;
 import barrel.enumerators.StorageSlot;
 
 import barrel.enumerators.IntakeResult;
@@ -36,7 +37,7 @@ public class BarrelStorage
         int count = 0;
 
         for (int slotId = 0; slotId < 3; slotId++)
-            if (_storage[slotId].GetName() != Ball.Name.NONE)
+            if (_storage[slotId].GetId() != Ball.NONE())
                 count++;
 
         return count;
@@ -46,7 +47,7 @@ public class BarrelStorage
         int count = 0;
 
         for (int slotId = 0; slotId < 3; slotId++)
-            if (_storage[slotId].GetName() == Ball.Name.PURPLE)
+            if (_storage[slotId].GetId() == Ball.PURPLE())
                 count++;
 
         return count;
@@ -57,8 +58,8 @@ public class BarrelStorage
 
         for (int i = 0; i < 3; i++)
         {
-            if      (_storage[i].GetName() == Ball.Name.PURPLE) countPG[0]++;
-            else if (_storage[i].GetName() == Ball.Name.GREEN)  countPG[1]++;
+            if      (_storage[i].GetId() == Ball.PURPLE()) countPG[0]++;
+            else if (_storage[i].GetId() == Ball.GREEN())  countPG[1]++;
         }
         return countPG;
     }
@@ -72,7 +73,7 @@ public class BarrelStorage
 
         for (int i = 0; i < 3; i++)
         {
-            if (_storage[i].GetName() == Ball.Name.NONE)
+            if (_storage[i].GetId() == Ball.NONE())
             {
                 result.Set(i);
                 if (i == 1) i += 2;  //  Fast break
@@ -89,7 +90,7 @@ public class BarrelStorage
         {   //  Optimised comparing by id without extra unnecessary conversions
 
             RequestResult requestResult =  RequestSearch(Ball.Name.PURPLE);
-            if (requestResult.GetName() == RequestResult.Name.FAIL_COLOR_NOT_PRESENT)
+            if (requestResult.GetId() == RequestResult.FAIL_COLOR_NOT_PRESENT())
                 return RequestSearch(Ball.Name.GREEN);
 
             return requestResult;
@@ -118,16 +119,20 @@ public class BarrelStorage
 
     public boolean IntakeToCenter(Ball.Name inputBall)
     {
-        if (_storage[StorageSlot.CENTER()].GetName() == Ball.Name.NONE)
+        if (_storage[StorageSlot.CENTER()].GetId() == Ball.NONE())
         {
             _storage[StorageSlot.CENTER()].Set(inputBall);
             return true;
         }
         else return false;
     }
-    public void EmptyLeftWasFired()
+    public void EmptyWasFired(StorageOffset storageOffset)
     {
-        _storage[StorageSlot.LEFT()].Set(Ball.Name.NONE, Ball.NONE());
+        int slot;
+        if (storageOffset.GetId() == StorageOffset.CCW_60()) slot = StorageSlot.LEFT();
+        else slot = StorageSlot.RIGHT();
+
+        _storage[slot].Set(Ball.Name.NONE, Ball.NONE());
     }
 
 

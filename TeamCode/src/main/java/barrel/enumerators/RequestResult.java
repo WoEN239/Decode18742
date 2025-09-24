@@ -14,7 +14,8 @@ public class RequestResult
         FAIL_IS_EMPTY,
         FAIL_COLOR_NOT_PRESENT,
         FAIL_IS_CURRENTLY_BUSY,
-        FAIL_NOT_ENOUGH_COLORS
+        FAIL_NOT_ENOUGH_COLORS,
+        PROCESS_WAS_TERMINATED
     }
 
 
@@ -48,7 +49,7 @@ public class RequestResult
     {
         return memName;
     }
-    public int GetId()
+    public int  GetId()
     {
         return memId;
     }
@@ -114,39 +115,46 @@ public class RequestResult
     {
         return 9;
     }
+    static public int PROCESS_WAS_TERMINATED()
+    {
+        return 10;
+    }
 
 
     static public Name ToName(int value)
     {
         switch (value)
         {
-            case 0: return Name.SUCCESS;
-            case 1: return Name.SUCCESS_LEFT;
-            case 2: return Name.SUCCESS_CENTER;
-            case 3: return Name.SUCCESS_RIGHT;
-            case 4: return Name.SUCCESS_IS_NOW_EMPTY;
+            case 0: return  Name.SUCCESS;
+            case 1: return  Name.SUCCESS_LEFT;
+            case 2: return  Name.SUCCESS_CENTER;
+            case 3: return  Name.SUCCESS_RIGHT;
+            case 4: return  Name.SUCCESS_IS_NOW_EMPTY;
 
-            case 5: return Name.FAIL_UNKNOWN;
-            case 6: return Name.FAIL_IS_EMPTY;
-            case 7: return Name.FAIL_COLOR_NOT_PRESENT;
-            case 8: return Name.FAIL_IS_CURRENTLY_BUSY;
-            default: return Name.FAIL_NOT_ENOUGH_COLORS;
+            case 5: return  Name.FAIL_UNKNOWN;
+            case 6: return  Name.FAIL_IS_EMPTY;
+            case 7: return  Name.FAIL_COLOR_NOT_PRESENT;
+            case 8: return  Name.FAIL_IS_CURRENTLY_BUSY;
+            case 9: return  Name.FAIL_NOT_ENOUGH_COLORS;
+            default: return Name.PROCESS_WAS_TERMINATED;
         }
     }
     static public int ToInt (Name name)
     {
         switch (name)
         {
-            case SUCCESS_LEFT:   return 0;
-            case SUCCESS_CENTER: return 1;
-            case SUCCESS_RIGHT:  return 2;
-            case SUCCESS_IS_NOW_EMPTY:   return 3;
+            case SUCCESS:        return 0;
+            case SUCCESS_LEFT:   return 1;
+            case SUCCESS_CENTER: return 2;
+            case SUCCESS_RIGHT:  return 3;
+            case SUCCESS_IS_NOW_EMPTY:   return 4;
 
-            case FAIL_UNKNOWN:   return 4;
-            case FAIL_IS_EMPTY:  return 5;
-            case FAIL_COLOR_NOT_PRESENT: return 6;
-            case FAIL_IS_CURRENTLY_BUSY: return 7;
-            default: return 8;  //  FAIL_NOT_ENOUGH_COLORS
+            case FAIL_UNKNOWN:   return 5;
+            case FAIL_IS_EMPTY:  return 6;
+            case FAIL_COLOR_NOT_PRESENT: return 7;
+            case FAIL_IS_CURRENTLY_BUSY: return 8;
+            case FAIL_NOT_ENOUGH_COLORS: return 9;
+            default: return 10;  //  PROCESS_WAS_TERMINATED
         }
     }
 }

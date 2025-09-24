@@ -9,25 +9,37 @@ import barrel.enumerators.RequestResult
 
 import barrel.enumerators.ShotType
 import barrel.enumerators.RunStatus
+import barrel.enumerators.StorageOffset
 
 import com.qualcomm.robotcore.hardware.HardwareMap
+import kotlinx.coroutines.delay
 import org.woen.threading.hardware.HardwareThreads.Companion.LAZY_INSTANCE
+
 
 
 class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
 {
-    private val _runStatus: RunStatus
-    private val _storage: BarrelStorage
+    private var _runStatus: RunStatus
+    private var _intakeRunStatus: RunStatus
+    private var _requestRunStatus: RunStatus
+
+    private var _storage: BarrelStorage
+    private var _storageOffset: StorageOffset
     private val _barrelMotor: HardwareBarrel
 
-    val CW_120: Double = 120.0; val CCW_120: Double = -120.0 //  120 degrees motor rotation constants constants
+    val CW_60: Double = 60.0; val CW_120: Double = CW_60 * 2;
+    val CCW_60 = -60.0; val CCW_120: Double = CCW_60 * 2    //  60 & 120 degrees motor rotation constants constants
 
 
 
     init
     {
-        _storage   = BarrelStorage()
         _runStatus = RunStatus()
+        _intakeRunStatus = RunStatus()
+        _requestRunStatus = RunStatus()
+
+        _storage   = BarrelStorage()
+        _storageOffset = StorageOffset()
 
         _barrelMotor = HardwareBarrel(deviceName, direction)
         _barrelMotor.init(hwMap)
@@ -35,116 +47,183 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
     }
     fun Start()
     {
-        if (_runStatus.GetName() != RunStatus.Name.PAUSE)
+        if (_runStatus.GetId() != RunStatus.PAUSE())
             _runStatus.Set(RunStatus.Name.ACTIVE,RunStatus.ACTIVE())
     }
 
 
 
-    fun HandleInput(inputBall: Ball.Name?): IntakeResult.Name?
+    suspend fun HandleInput(inputBall: Ball.Name?): IntakeResult.Name?
     {
-        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
+        if (!IntakeRaceConditionIsPresent())
         {
-            //  Storage search for empty slots
-            val intakeResult = _storage.HandleInput()
+                if (DoTerminateIntake()) return IntakeResult.Name.PROCESS_WAS_TERMINATED;
+            val intakeResult = _storage.HandleInput()  //  Storage search for empty slots
 
-            //  Safe updating after intake
-            if (!UpdateAfterInput(intakeResult, inputBall))
+                if (DoTerminateIntake()) return IntakeResult.Name.PROCESS_WAS_TERMINATED;
+            if (!UpdateAfterInput(intakeResult, inputBall))  //  Safe updating after intake
                 intakeResult.Set(IntakeResult.Name.FAIL_UNKNOWN, IntakeResult.FAIL_UNKNOWN())
 
             return if (intakeResult.DidSucceed()) IntakeResult.Name.SUCCESS else intakeResult.GetName()
         }
 
+        ResumeLogic()
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
-    }
-    fun HandleInput(inputBall: Ball): IntakeResult.Name?
-    {
-        return HandleInput(inputBall.GetName())
     }
     private fun UpdateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name?): Boolean
     {
         val name = intakeResult.GetName()
-
         if (IntakeResult.DidFail(name)) return false //  Intake failed
 
-
         //  Align center slot to be empty
-        if (name == IntakeResult.Name.SUCCESS_LEFT)
+        when (name)
         {
-            _storage.RotateCCW()
-            _barrelMotor.Rotate(CCW_120)
+            IntakeResult.Name.SUCCESS_LEFT ->
+            {
+                _storage.RotateCCW()
+                _barrelMotor.Rotate(CCW_120 + RealignToIntake())
+            }
+            IntakeResult.Name.SUCCESS_RIGHT ->
+            {
+                _storage.RotateCW()
+                _barrelMotor.Rotate(CW_120 + RealignToIntake())
+            }
+            else -> _barrelMotor.Rotate(RealignToIntake())
         }
-        else if (name == IntakeResult.Name.SUCCESS_RIGHT)
-        {
-            _storage.RotateCW()
-            _barrelMotor.Rotate(CW_120)
-        }
+
 
         return _storage.IntakeToCenter(inputBall) //  Safe intake
     }
-
-
-
-    fun HandleRequest(request: BallRequest.Name?): RequestResult.Name?
+    private fun RealignToIntake(): Double
     {
-        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
+        if (_storageOffset.GetId() == StorageOffset.CCW_60()) return CW_60
+        else if (_storageOffset.GetId() == StorageOffset.CW_60()) return CCW_60
+        return 0.0
+    }
+    suspend private fun IntakeRaceConditionIsPresent(): Boolean
+    {
+        if (_runStatus.GetId() == RunStatus.ACTIVE())
         {
             StopAnyLogic()
+            _requestRunStatus.Set(RunStatus.PAUSE(), RunStatus.Name.PAUSE)
 
-            val requestResult = _storage.HandleRequest(request)
-            if (UpdateAfterRequest(requestResult))
-            {
-                //!  Wait for shot fired event
-                _storage.EmptyLeftWasFired()
-            }
-            
-            ResumeLogic()
-            return if (requestResult.DidSucceed())
-                if (_storage.AnyBallCount() > 0) RequestResult.Name.SUCCESS
-                else RequestResult.Name.SUCCESS_IS_NOW_EMPTY
-            else requestResult.GetName()
+            delay(2);  //!  need to calibrate this delay for maximum efficiency
+            return _intakeRunStatus.GetId() == RunStatus.PAUSE()
+        }
+        return true;
+    }
+    private fun DoTerminateIntake(): Boolean
+    {
+        return _intakeRunStatus.GetId() == RunStatus.TERMINATED()
+    }
+
+
+
+    suspend fun HandleRequest(request: BallRequest.Name?): RequestResult.Name?
+    {
+        while (RequestRaceConditionIsPresent()) ;
+
+            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+        val requestResult = _storage.HandleRequest(request)
+
+            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+        if (UpdateAfterRequest(requestResult))
+        {
+            //!  Wait for shot fired event
+            _storage.EmptyWasFired(_storageOffset)
         }
 
-        return RequestResult.Name.FAIL_IS_CURRENTLY_BUSY
-    }
-    fun HandleRequest(request: BallRequest): RequestResult.Name?
-    {
-        return HandleRequest(request.GetName())
+
+        ResumeLogic()
+
+        return if (requestResult.DidSucceed())
+            if (_storage.AnyBallCount() > 0) RequestResult.Name.SUCCESS
+            else RequestResult.Name.SUCCESS_IS_NOW_EMPTY
+        else requestResult.GetName()
     }
     private fun UpdateAfterRequest(requestResult: RequestResult): Boolean
     {
         if (requestResult.DidFail()) return false
 
-        if (requestResult.GetName() == RequestResult.Name.SUCCESS_RIGHT)
+        if (requestResult.GetId() == RequestResult.SUCCESS_RIGHT())      //  Goal: CCW_60
         {
-            _barrelMotor.Rotate(CCW_120)
-            _storage.RotateCCW()
+            if (_storageOffset.GetId() == StorageOffset.CW_60())
+            {
+                _barrelMotor.Rotate(CCW_120)
+                _storageOffset.Set(StorageOffset.Name.CCW_60, StorageOffset.CCW_60())
+            }
+            else if (_storageOffset.GetId() == StorageOffset.NONE())
+            {
+                _barrelMotor.Rotate(CCW_60)
+                _storageOffset.Set(StorageOffset.Name.CCW_60, StorageOffset.CCW_60())
+            }
         }
-        else if (requestResult.GetName() == RequestResult.Name.SUCCESS_CENTER)
+        else if (requestResult.GetId() == RequestResult.SUCCESS_LEFT())  //  Goal: CW_60
         {
-            _barrelMotor.Rotate(CW_120)
-            _storage.RotateCW()
+            if (_storageOffset.GetId() == StorageOffset.CCW_60())
+            {
+                _barrelMotor.Rotate(CW_120)
+                _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60())
+            }
+            else if (_storageOffset.GetId() == StorageOffset.NONE())
+            {
+                _barrelMotor.Rotate(CW_60)
+                _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60())
+            }
+        }
+        else  //  SUCCESS_CENTER
+        {
+            if (_storageOffset.GetId() == StorageOffset.CCW_60())
+            {
+                _barrelMotor.Rotate(CCW_120)
+                _storage.RotateCCW()
+            }
+            else
+            {
+                var delta: Double = CW_120;
+                if (_storageOffset.GetId() == StorageOffset.NONE())
+                    delta += CW_60;
+
+                _barrelMotor.Rotate(delta)
+                _storage.RotateCW()
+                _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60())
+            }
         }
 
-        //!  Send ball is ready request
+        //!  Send [ball is ready] request
         return true
     }
-
-
-
-    fun ShootEntireDrumRequest(): RequestResult.Name
+    suspend private fun RequestRaceConditionIsPresent(): Boolean
     {
-        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
+        if (_runStatus.GetId() == RunStatus.ACTIVE())
         {
             StopAnyLogic()
+            _intakeRunStatus.Set(RunStatus.PAUSE(), RunStatus.Name.PAUSE)
 
-            ShootEverything()
-
-            return RequestResult.Name.SUCCESS_IS_NOW_EMPTY
+            delay(2);  //!  need to calibrate this delay for maximum efficiency
+            return _requestRunStatus.GetId() == RunStatus.PAUSE()
         }
-        return RequestResult.Name.FAIL_IS_CURRENTLY_BUSY
+        return true;
     }
-    fun ShootEntireDrumRequest(
+    private fun DoTerminateRequest(): Boolean
+    {
+        return _requestRunStatus.GetId() == RunStatus.TERMINATED()
+    }
+
+
+
+    suspend fun ShootEntireDrumRequest(): RequestResult.Name
+    {
+        while (RequestRaceConditionIsPresent()) ;
+
+        if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+
+        ShootEverything()
+
+        ResumeLogic()
+        return RequestResult.Name.SUCCESS_IS_NOW_EMPTY
+    }
+    suspend fun ShootEntireDrumRequest(
         requestOrder: Array<BallRequest.Name?>,
         shotType: ShotType?
     ): RequestResult.Name?
@@ -152,31 +231,28 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
         return ShootEntireDrumRequest(requestOrder, requestOrder, shotType)
     }
     @JvmOverloads
-    fun ShootEntireDrumRequest(
+    suspend fun ShootEntireDrumRequest(
         requestOrder: Array<BallRequest.Name?>,
         failsafeOrder: Array<BallRequest.Name?> = requestOrder,
         shotType: ShotType? = ShotType.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
     ): RequestResult.Name?
     {
-        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
-        {
-            StopAnyLogic()
+        while (RequestRaceConditionIsPresent()) ;
 
-            val requestResult: RequestResult.Name? =
-                when (shotType)
-                {
-                    ShotType.FIRE_EVERYTHING_YOU_HAVE -> ShootEverything()
-                    ShotType.FIRE_PATTERN_CAN_SKIP -> ShootEntireRequestCanSkip(requestOrder, failsafeOrder)
-                    ShotType.FIRE_UNTIL_PATTERN_IS_BROKEN -> ShootEntireUntilPatternBreaks(requestOrder, failsafeOrder)
-                    else  //if (shotType == ShotType.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID)
-                        -> ShootEntireRequestIsValid(requestOrder, failsafeOrder)
-                }
+        if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
 
-            ResumeLogic()
-            return requestResult
-        }
+        val requestResult: RequestResult.Name? =
+            when (shotType)
+            {
+                ShotType.FIRE_EVERYTHING_YOU_HAVE -> ShootEverything()
+                ShotType.FIRE_PATTERN_CAN_SKIP -> ShootEntireRequestCanSkip(requestOrder, failsafeOrder)
+                ShotType.FIRE_UNTIL_PATTERN_IS_BROKEN -> ShootEntireUntilPatternBreaks(requestOrder, failsafeOrder)
+                else  //if (shotType == ShotType.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID)
+                    -> ShootEntireRequestIsValid(requestOrder, failsafeOrder)
+            }
 
-        return RequestResult.Name.FAIL_IS_CURRENTLY_BUSY
+        ResumeLogic()
+        return requestResult
     }
 
 
@@ -188,12 +264,14 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
         var i = 0
         while (i < 3)
         {
+            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+
             val requestResult = _storage.HandleRequest(BallRequest.Name.ANY)
 
             if (UpdateAfterRequest(requestResult))
             {
                 //!  Wait for shot fired event
-                _storage.EmptyLeftWasFired()
+                _storage.EmptyWasFired(_storageOffset)
                 shootingResult = RequestResult.Name.SUCCESS_IS_NOW_EMPTY
             }
             else i += 3 //  Fast break if barrel is empty
@@ -212,8 +290,11 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
     {
         var shootingResult = ShootEntireCanSkipLogic(requestOrder)
 
-        if (RequestResult.DidFail(shootingResult)) 
+        if (RequestResult.DidFail(shootingResult))
+        {
+            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
             shootingResult = ShootEntireCanSkipLogic(failsafeOrder)
+        }
 
         return if (RequestResult.DidSucceed(shootingResult))
             if (_storage.AnyBallCount() > 0) 
@@ -226,12 +307,14 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
 
         for (i in 0..2) 
         {
+            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+
             val requestResult = _storage.HandleRequest(requestOrder[i])
 
             if (UpdateAfterRequest(requestResult)) 
             {
                 //!  Wait for shot fired event
-                _storage.EmptyLeftWasFired()
+                _storage.EmptyWasFired(_storageOffset)
                 shootingResult = RequestResult.Name.SUCCESS
             }
         }
@@ -247,8 +330,11 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
     {
         var shootingResult = ShootEntireUntilBreaksLogic(requestOrder)
 
-        if (RequestResult.DidFail(shootingResult)) 
+        if (RequestResult.DidFail(shootingResult))
+        {
+            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
             shootingResult = ShootEntireUntilBreaksLogic(failsafeOrder)
+        }
 
         return if (RequestResult.DidSucceed(shootingResult))
             if (_storage.AnyBallCount() > 0) 
@@ -262,12 +348,14 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
         var i = 0
         while (i < 3)
         {
+            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+
             val requestResult = _storage.HandleRequest(requestOrder[i])
 
             if (UpdateAfterRequest(requestResult))
             {
                 //!  Wait for shot fired event
-                _storage.EmptyLeftWasFired()
+                _storage.EmptyWasFired(_storageOffset)
                 shootingResult = RequestResult.Name.SUCCESS
             }
             else i += 3 //  Fast break if barrel is empty
@@ -291,10 +379,14 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
         {
             requestCountPGA = CountPGA(failsafeOrder)
 
+
             if (ValidateEntireRequest(countPG, requestCountPGA))  //  Failsafe order also failed
                 return RequestResult.Name.FAIL_NOT_ENOUGH_COLORS
+            if (DoTerminateRequest())
+                return RequestResult.Name.PROCESS_WAS_TERMINATED;  //  Process termination
 
-            return ShootEntireValidRequestLogic(failsafeOrder)
+
+            return ShootEntireValidRequestLogic(failsafeOrder)  //  Try failsafe order
         }
 
         return ShootEntireValidRequestLogic(requestOrder)
@@ -327,12 +419,14 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
         var requestResult: RequestResult
         for (i in 0..2)
         {
+            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+
             requestResult = _storage.HandleRequest(requestOrder[i])
 
             if (UpdateAfterRequest(requestResult))
             {
                 //!  Wait for successfully gunshot event
-                _storage.EmptyLeftWasFired()
+                _storage.EmptyWasFired(_storageOffset)
             }
             else return RequestResult.Name.FAIL_UNKNOWN
         }
@@ -382,6 +476,9 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
     }
     fun ResumeLogic()
     {
-        _runStatus.Set(RunStatus.Name.ACTIVE)
+        _runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE())
+
+        _intakeRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE())
+        _requestRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE())
     }
 }

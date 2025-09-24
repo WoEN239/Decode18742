@@ -1,21 +1,20 @@
 package barrel.enumerators;
 
 
-public class RunStatus
+public class StorageOffset
 {
-    public RunStatus()
+    public StorageOffset()
     {
-        memName = Name.INACTIVE;
-        memId = 0;
+        memId = NONE();
+        memName = Name.NONE;
     }
 
 
     public enum Name
     {
-        INACTIVE,
-        ACTIVE,
-        PAUSE,
-        TERMINATED
+        NONE,
+        CW_60,
+        CCW_60
     }
 
 
@@ -56,42 +55,34 @@ public class RunStatus
 
 
 
-    static public int INACTIVE()
+    static public int NONE()
     {
         return 0;
     }
-    static public int ACTIVE()
+    static public int CW_60()
     {
         return 1;
     }
-    static public int PAUSE()
+    static public int CCW_60()
     {
         return 2;
     }
-    static public int TERMINATED()
-    {
-        return 3;
-    }
+
 
 
     static public Name ToName (int value)
     {
-        switch (value)
-        {
-            case 0:  return Name.INACTIVE;
-            case 1:  return Name.ACTIVE;
-            case 2:  return Name.PAUSE;
-            default: return Name.TERMINATED;
-        }
+        return value == 0 ? Name.NONE
+                : value == 1 ? Name.CW_60
+                : Name.CCW_60;
     }
     static public int ToInt (Name name)
     {
         switch (name)
         {
-            case INACTIVE: return 0;
-            case ACTIVE:   return 1;
-            case PAUSE:    return 2;
-            default:       return 3;
+            case NONE: return 0;
+            case CW_60:   return 1;
+            default:       return 2;
         }
     }
 }
