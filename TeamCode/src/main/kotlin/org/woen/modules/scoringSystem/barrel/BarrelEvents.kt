@@ -1,16 +1,15 @@
-package org.woen.modules.barrel
+package org.woen.modules.scoringSystem.barrel
 
-import org.woen.modules.turret.Pattern
 import org.woen.utils.process.Process
 
 
 data class RequestResultEvent(
     var isSuccessful: Boolean = false,
-    val process: org.woen.utils.process.Process = Process()
+    val process: Process = Process()
 )
 data class ShotWasFiredEvent(
     var isSuccessful: Boolean = false,
-    val process: org.woen.utils.process.Process = Process()
+    val process: Process = Process()
 )
 
 class BarrelEvents

@@ -1,4 +1,4 @@
-package org.woen.modules.turret
+package org.woen.modules.scoringSystem.turret
 
 import barrel.enumerators.BallRequest
 

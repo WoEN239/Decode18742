@@ -1,17 +1,18 @@
-package org.woen.modules.barrel
+package org.woen.modules.scoringSystem.barrel
 
 import org.woen.utils.regulator.Regulator;
 import org.woen.telemetry.Configs
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.threading.hardware.IHardwareDevice
 
 
 
-class HardwareBarrel(private val _deviceName: String, private val _direction : Int) : IHardwareDevice
+class HardwareBarrel(private val _deviceName: String) : IHardwareDevice
 {
     private var _regulator = Regulator(Configs.BARREL.BARREL_REGULATOR_PARAMETERS);
     var targetPos : Double = 0.0;
@@ -22,7 +23,7 @@ class HardwareBarrel(private val _deviceName: String, private val _direction : I
 
     override fun update()
     {
-        _motor.setPower(_regulator.update(_direction * (targetPos - _currentPos)));
+        _motor.power = _regulator.update(targetPos - _currentPos)
     }
 
     override fun init(hardwareMap : HardwareMap)
@@ -33,6 +34,8 @@ class HardwareBarrel(private val _deviceName: String, private val _direction : I
         _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
         _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+
+//        _motor.direction = DcMotorSimple.Direction.REVERSE
     }
 
     override fun dispose() { }

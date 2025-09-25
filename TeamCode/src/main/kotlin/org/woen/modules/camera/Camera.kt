@@ -12,7 +12,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagMetadata
 import org.firstinspires.ftc.vision.apriltag.AprilTagPoseRaw
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 import org.woen.hotRun.HotRun
-import org.woen.modules.turret.Pattern
+import org.woen.modules.scoringSystem.turret.Pattern
 import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
 import org.woen.utils.events.SimpleEvent

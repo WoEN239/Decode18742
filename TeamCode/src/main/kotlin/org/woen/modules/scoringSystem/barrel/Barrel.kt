@@ -1,4 +1,4 @@
-package org.woen.modules.barrel
+package org.woen.modules.scoringSystem.barrel
 
 import barrel.BarrelStorage
 import barrel.enumerators.Ball
@@ -11,13 +11,24 @@ import barrel.enumerators.ShotType
 import barrel.enumerators.RunStatus
 import barrel.enumerators.StorageOffset
 
-import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlinx.coroutines.delay
+import org.woen.modules.scoringSystem.turret.Pattern
+import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads.Companion.LAZY_INSTANCE
+import org.woen.utils.process.Process
 
 
 
-class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
+data class TerminateIntakeEvent(
+    val process: org.woen.utils.process.Process = Process()
+)
+data class TerminateRequestEvent(
+    val process: org.woen.utils.process.Process = Process()
+)
+
+
+
+class Barrel
 {
     private var _runStatus: RunStatus
     private var _intakeRunStatus: RunStatus
@@ -34,6 +45,15 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
 
     init
     {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
+            _intakeRunStatus.Set(RunStatus.TERMINATED(), RunStatus.Name.TERMINATED)
+        })
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
+            _requestRunStatus.Set(RunStatus.TERMINATED(), RunStatus.Name.TERMINATED)
+        })
+
+
+
         _runStatus = RunStatus()
         _intakeRunStatus = RunStatus()
         _requestRunStatus = RunStatus()
@@ -41,9 +61,11 @@ class Barrel (hwMap: HardwareMap, deviceName: String, direction: Int)
         _storage   = BarrelStorage()
         _storageOffset = StorageOffset()
 
-        _barrelMotor = HardwareBarrel(deviceName, direction)
-        _barrelMotor.init(hwMap)
+        _barrelMotor = HardwareBarrel("aboba")
         LAZY_INSTANCE.EXPANSION.addDevices(_barrelMotor)
+
+
+
     }
     fun Start()
     {

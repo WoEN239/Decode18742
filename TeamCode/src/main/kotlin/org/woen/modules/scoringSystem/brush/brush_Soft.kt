@@ -1,4 +1,4 @@
-package org.woen.modules.brush
+package org.woen.modules.scoringSystem.brush
 
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
