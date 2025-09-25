@@ -66,6 +66,9 @@ class Odometry : IModule {
 
     override suspend fun process() {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            if(HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+                return@launch
+
             val leftPos = _hardwareOdometry.leftPosition.get()
             val rightPos = _hardwareOdometry.rightPosition.get()
             val sidePos = _threeOdometry.odometerPosition.get()
