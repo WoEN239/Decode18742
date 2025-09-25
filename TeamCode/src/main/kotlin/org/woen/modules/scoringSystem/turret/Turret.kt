@@ -50,51 +50,55 @@ class Turret : IModule {
             if (_currentTurretState.get() != TurretState.SHOOT)
                 return@launch
 
-            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
-
-            val shootDistance =
-                (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get()
-                    .getBasketPosition()).length()
-
-            fun getHitHeight(startVel: Double): Double {
-                var vecVel = Vec2(startVel, 0.0).setRot(Configs.TURRET.TURRET_ANGLE)
-                var pos = Vec2.ZERO
-
-                while (pos.x < shootDistance) {
-                    vecVel -= (Vec2(
-                        vecVel.x * vecVel.x,
-                        vecVel.y * vecVel.y
-                    ) * Vec2(
-                        Configs.TURRET.AIR_FORCE_K / Configs.TURRET.BALL_MASS
-                    ) + Vec2(0.0, Configs.TURRET.CALCULATING_G)) * Configs.TURRET.TIME_STEP
-
-                    pos += vecVel * Vec2(Configs.TURRET.TIME_STEP)
-                }
-
-                return pos.y
-            }
-
-            var left = Configs.TURRET.MIN_APPROXIMATION
-            var right = Configs.TURRET.MAX_MOTOR_RPS * (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
-
-            var iterations = 0
-
-            while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS) {
-                iterations++
-
-                val middle = (left + right) / 2.0
-
-                val dif =
-                    getHitHeight(middle) - (Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT)
-
-                if (dif > 0.0)
-                    right = middle
-                else
-                    left = middle
-            }
-
-            _hardwareTurret.targetVelocity = (left + right) / 2.0
+            _hardwareTurret.targetVelocity = calculatePulleySpeed()
         }
+    }
+
+    private fun calculatePulleySpeed(): Double {
+        val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+
+        val shootDistance =
+            (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get()
+                .getBasketPosition()).length()
+
+        fun getHitHeight(startVel: Double): Double {
+            var vecVel = Vec2(startVel, 0.0).setRot(Configs.TURRET.TURRET_ANGLE)
+            var pos = Vec2.ZERO
+
+            while (pos.x < shootDistance) {
+                vecVel -= (Vec2(
+                    vecVel.x * vecVel.x,
+                    vecVel.y * vecVel.y
+                ) * Vec2(
+                    Configs.TURRET.AIR_FORCE_K / Configs.TURRET.BALL_MASS
+                ) + Vec2(0.0, Configs.TURRET.CALCULATING_G)) * Configs.TURRET.TIME_STEP
+
+                pos += vecVel * Vec2(Configs.TURRET.TIME_STEP)
+            }
+
+            return pos.y
+        }
+
+        var left = Configs.TURRET.MIN_APPROXIMATION
+        var right = Configs.TURRET.MAX_MOTOR_RPS * (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
+
+        var iterations = 0
+
+        while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS) {
+            iterations++
+
+            val middle = (left + right) / 2.0
+
+            val dif =
+                getHitHeight(middle) - (Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT)
+
+            if (dif > 0.0)
+                right = middle
+            else
+                left = middle
+        }
+
+        return (left + right) / 2.0
     }
 
     override val isBusy: Boolean
@@ -122,7 +126,7 @@ class Turret : IModule {
 
             when (_currentTurretState.get()) {
                 TurretState.STOP -> _hardwareTurret.targetVelocity = 0.0
-                TurretState.SHOOT -> return@subscribe
+                TurretState.SHOOT -> _hardwareTurret.targetVelocity = calculatePulleySpeed()
                 TurretState.WAITING -> _hardwareTurret.targetVelocity =
                     Configs.TURRET.WAIT_PULLEY_SPEED
             }
