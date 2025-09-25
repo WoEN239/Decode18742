@@ -1,18 +1,22 @@
 package org.woen.modules.scoringSystem.barrel
 
-import org.woen.utils.process.Process
+import barrel.enumerators.IntakeResult
+import barrel.enumerators.RequestResult
 
 
-data class RequestResultEvent(
-    var isSuccessful: Boolean = false,
-    val process: Process = Process()
+
+class TerminateIntakeEvent()
+class TerminateRequestEvent()
+
+
+class BarrelRequestIsReadyEvent()
+data class BarrelFinishedRequestEvent(
+    var requestResult: RequestResult.Name
 )
-data class ShotWasFiredEvent(
-    var isSuccessful: Boolean = false,
-    val process: Process = Process()
+data class BarrelFinishedIntakeEvent(
+    var intakeResult: IntakeResult.Name
 )
 
-class BarrelEvents
-{
 
-}
+class GiveNextRequest()
+class GiveNextIntake()

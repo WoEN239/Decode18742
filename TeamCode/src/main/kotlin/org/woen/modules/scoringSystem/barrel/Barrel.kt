@@ -1,5 +1,6 @@
 package org.woen.modules.scoringSystem.barrel
 
+import android.annotation.SuppressLint
 import barrel.BarrelStorage
 import barrel.enumerators.Ball
 import barrel.enumerators.BallRequest
@@ -12,19 +13,8 @@ import barrel.enumerators.RunStatus
 import barrel.enumerators.StorageOffset
 
 import kotlinx.coroutines.delay
-import org.woen.modules.scoringSystem.turret.Pattern
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads.Companion.LAZY_INSTANCE
-import org.woen.utils.process.Process
-
-
-
-data class TerminateIntakeEvent(
-    val process: org.woen.utils.process.Process = Process()
-)
-data class TerminateRequestEvent(
-    val process: org.woen.utils.process.Process = Process()
-)
 
 
 
@@ -38,6 +28,9 @@ class Barrel
     private var _storageOffset: StorageOffset
     private val _barrelMotor: HardwareBarrel
 
+    private var _shotWasFired: Boolean
+
+
     val CW_60: Double = 60.0; val CW_120: Double = CW_60 * 2;
     val CCW_60 = -60.0; val CCW_120: Double = CCW_60 * 2    //  60 & 120 degrees motor rotation constants constants
 
@@ -46,43 +39,61 @@ class Barrel
     init
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
-            _intakeRunStatus.Set(RunStatus.TERMINATED(), RunStatus.Name.TERMINATED)
-        })
+                _intakeRunStatus.SetTermination(
+                    RunStatus.DO_TERMINATE(),
+                    RunStatus.TerminationStatus.DO_TERMINATE
+                )
+            }
+        )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
-            _requestRunStatus.Set(RunStatus.TERMINATED(), RunStatus.Name.TERMINATED)
-        })
-
+                _requestRunStatus.SetTermination(
+                    RunStatus.DO_TERMINATE(),
+                    RunStatus.TerminationStatus.DO_TERMINATE
+                )
+            }
+        )
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(GiveNextRequest::class, {
+            _shotWasFired = true; }
+        )
 
 
         _runStatus = RunStatus()
         _intakeRunStatus = RunStatus()
         _requestRunStatus = RunStatus()
 
+        _shotWasFired = false;
+
         _storage   = BarrelStorage()
         _storageOffset = StorageOffset()
 
         _barrelMotor = HardwareBarrel("aboba")
         LAZY_INSTANCE.EXPANSION.addDevices(_barrelMotor)
-
-
-
     }
     fun Start()
     {
         if (_runStatus.GetId() != RunStatus.PAUSE())
             _runStatus.Set(RunStatus.Name.ACTIVE,RunStatus.ACTIVE())
+
+        if (_intakeRunStatus.GetTermination() == RunStatus.TerminationStatus.IS_INACTIVE)
+            _intakeRunStatus.SetTermination(RunStatus.IS_ACTIVE(), RunStatus.TerminationStatus.IS_ACTIVE)
+
+        if (_requestRunStatus.GetTermination() == RunStatus.TerminationStatus.IS_INACTIVE)
+            _requestRunStatus.SetTermination(RunStatus.IS_ACTIVE(), RunStatus.TerminationStatus.IS_ACTIVE)
     }
 
 
 
+    @SuppressLint("SuspiciousIndentation")
     suspend fun HandleInput(inputBall: Ball.Name?): IntakeResult.Name?
     {
+        if (DoTerminateIntake()) TerminateIntake()    //  Does not terminate, only resets _intakeRunStatus
+
         if (!IntakeRaceConditionIsPresent())
         {
-                if (DoTerminateIntake()) return IntakeResult.Name.PROCESS_WAS_TERMINATED;
+                if (DoTerminateIntake()) return TerminateIntake()
             val intakeResult = _storage.HandleInput()  //  Storage search for empty slots
 
-                if (DoTerminateIntake()) return IntakeResult.Name.PROCESS_WAS_TERMINATED;
+                if (DoTerminateIntake()) return TerminateIntake()
             if (!UpdateAfterInput(intakeResult, inputBall))  //  Safe updating after intake
                 intakeResult.Set(IntakeResult.Name.FAIL_UNKNOWN, IntakeResult.FAIL_UNKNOWN())
 
@@ -127,31 +138,43 @@ class Barrel
         if (_runStatus.GetId() == RunStatus.ACTIVE())
         {
             StopAnyLogic()
-            _requestRunStatus.Set(RunStatus.PAUSE(), RunStatus.Name.PAUSE)
+            _intakeRunStatus.Set(RunStatus.PAUSE(), RunStatus.Name.PAUSE)
 
-            delay(2);  //!  need to calibrate this delay for maximum efficiency
+            delay(2)  //!  need to calibrate this delay for maximum efficiency
             return _intakeRunStatus.GetId() == RunStatus.PAUSE()
         }
         return true;
     }
     private fun DoTerminateIntake(): Boolean
     {
-        return _intakeRunStatus.GetId() == RunStatus.TERMINATED()
+        return _intakeRunStatus.GetTerminationId() == RunStatus.DO_TERMINATE()
+    }
+    private fun TerminateIntake(): IntakeResult.Name
+    {
+        _intakeRunStatus.SetTermination(
+            RunStatus.IS_ACTIVE(),
+            RunStatus.TerminationStatus.IS_ACTIVE
+        )
+
+        return IntakeResult.Name.PROCESS_WAS_TERMINATED;
     }
 
 
 
     suspend fun HandleRequest(request: BallRequest.Name?): RequestResult.Name?
     {
+        if (DoTerminateRequest()) TerminateRequest()    //  Does not terminate, only resets _requestRunStatus
+
         while (RequestRaceConditionIsPresent()) ;
 
-            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+            if (DoTerminateRequest()) return TerminateRequest()
         val requestResult = _storage.HandleRequest(request)
 
-            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+            if (DoTerminateRequest()) return TerminateRequest()
         if (UpdateAfterRequest(requestResult))
         {
-            //!  Wait for shot fired event
+            while (!_shotWasFired) ; _shotWasFired = false  //!  Maybe improve this later
+
             _storage.EmptyWasFired(_storageOffset)
         }
 
@@ -212,7 +235,7 @@ class Barrel
             }
         }
 
-        //!  Send [ball is ready] request
+        ThreadedEventBus.LAZY_INSTANCE.invoke(BarrelRequestIsReadyEvent())
         return true
     }
     suspend private fun RequestRaceConditionIsPresent(): Boolean
@@ -222,23 +245,32 @@ class Barrel
             StopAnyLogic()
             _intakeRunStatus.Set(RunStatus.PAUSE(), RunStatus.Name.PAUSE)
 
-            delay(2);  //!  need to calibrate this delay for maximum efficiency
+            delay(2)  //!  need to calibrate this delay for maximum efficiency
             return _requestRunStatus.GetId() == RunStatus.PAUSE()
         }
         return true;
     }
     private fun DoTerminateRequest(): Boolean
     {
-        return _requestRunStatus.GetId() == RunStatus.TERMINATED()
+        return _requestRunStatus.GetTerminationId() == RunStatus.DO_TERMINATE()
+    }
+    private fun TerminateRequest(): RequestResult.Name
+    {
+        _requestRunStatus.SetTermination(
+            RunStatus.IS_ACTIVE(),
+            RunStatus.TerminationStatus.IS_ACTIVE
+        )
+
+        return RequestResult.Name.PROCESS_WAS_TERMINATED;
     }
 
 
 
     suspend fun ShootEntireDrumRequest(): RequestResult.Name
     {
+            if (DoTerminateRequest()) TerminateRequest()    //  Does not terminate, only resets _requestRunStatus
         while (RequestRaceConditionIsPresent()) ;
-
-        if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+            if (DoTerminateRequest()) return TerminateRequest()
 
         ShootEverything()
 
@@ -259,9 +291,9 @@ class Barrel
         shotType: ShotType? = ShotType.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
     ): RequestResult.Name?
     {
+            if (DoTerminateRequest()) TerminateRequest()    //  Does not terminate, only resets _requestRunStatus
         while (RequestRaceConditionIsPresent()) ;
-
-        if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+            if (DoTerminateRequest()) return TerminateRequest()
 
         val requestResult: RequestResult.Name? =
             when (shotType)
@@ -286,13 +318,13 @@ class Barrel
         var i = 0
         while (i < 3)
         {
-            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+                if (DoTerminateRequest()) return TerminateRequest()
 
             val requestResult = _storage.HandleRequest(BallRequest.Name.ANY)
 
             if (UpdateAfterRequest(requestResult))
             {
-                //!  Wait for shot fired event
+                while (!_shotWasFired) ; _shotWasFired = false  //!  Maybe improve this later
                 _storage.EmptyWasFired(_storageOffset)
                 shootingResult = RequestResult.Name.SUCCESS_IS_NOW_EMPTY
             }
@@ -314,7 +346,7 @@ class Barrel
 
         if (RequestResult.DidFail(shootingResult))
         {
-            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+                if (DoTerminateRequest()) return TerminateRequest()
             shootingResult = ShootEntireCanSkipLogic(failsafeOrder)
         }
 
@@ -329,13 +361,13 @@ class Barrel
 
         for (i in 0..2) 
         {
-            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+                if (DoTerminateRequest()) return TerminateRequest()
 
             val requestResult = _storage.HandleRequest(requestOrder[i])
 
             if (UpdateAfterRequest(requestResult)) 
             {
-                //!  Wait for shot fired event
+                while (!_shotWasFired) ; _shotWasFired = false  //!  Maybe improve this later
                 _storage.EmptyWasFired(_storageOffset)
                 shootingResult = RequestResult.Name.SUCCESS
             }
@@ -354,7 +386,7 @@ class Barrel
 
         if (RequestResult.DidFail(shootingResult))
         {
-            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+                if (DoTerminateRequest()) return TerminateRequest()
             shootingResult = ShootEntireUntilBreaksLogic(failsafeOrder)
         }
 
@@ -370,13 +402,13 @@ class Barrel
         var i = 0
         while (i < 3)
         {
-            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+                if (DoTerminateRequest()) return TerminateRequest()
 
             val requestResult = _storage.HandleRequest(requestOrder[i])
 
             if (UpdateAfterRequest(requestResult))
             {
-                //!  Wait for shot fired event
+                while (!_shotWasFired) ; _shotWasFired = false  //!  Maybe improve this later
                 _storage.EmptyWasFired(_storageOffset)
                 shootingResult = RequestResult.Name.SUCCESS
             }
@@ -404,8 +436,7 @@ class Barrel
 
             if (ValidateEntireRequest(countPG, requestCountPGA))  //  Failsafe order also failed
                 return RequestResult.Name.FAIL_NOT_ENOUGH_COLORS
-            if (DoTerminateRequest())
-                return RequestResult.Name.PROCESS_WAS_TERMINATED;  //  Process termination
+            if (DoTerminateRequest()) return TerminateRequest()   //  Process termination
 
 
             return ShootEntireValidRequestLogic(failsafeOrder)  //  Try failsafe order
@@ -441,13 +472,13 @@ class Barrel
         var requestResult: RequestResult
         for (i in 0..2)
         {
-            if (DoTerminateRequest()) return RequestResult.Name.PROCESS_WAS_TERMINATED;
+                if (DoTerminateRequest()) return TerminateRequest()
 
             requestResult = _storage.HandleRequest(requestOrder[i])
 
             if (UpdateAfterRequest(requestResult))
             {
-                //!  Wait for successfully gunshot event
+                while (!_shotWasFired) ; _shotWasFired = false  //!  Maybe improve this later
                 _storage.EmptyWasFired(_storageOffset)
             }
             else return RequestResult.Name.FAIL_UNKNOWN
@@ -500,7 +531,7 @@ class Barrel
     {
         _runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE())
 
-        _intakeRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE())
-        _requestRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE())
+        _intakeRunStatus.Set(RunStatus.ACTIVE(), RunStatus.Name.ACTIVE)
+        _requestRunStatus.Set(RunStatus.ACTIVE(), RunStatus.Name.ACTIVE)
     }
 }
