@@ -46,6 +46,9 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
     var velocityAtTarget = AtomicBoolean(false)
 
     override fun update() {
+        if(HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+            return
+
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
         val rawVelocity = currentMotorPosition - _oldMotorPosition

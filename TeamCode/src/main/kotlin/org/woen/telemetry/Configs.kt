@@ -183,7 +183,7 @@ object Configs {
         var RED_BASKET_POSITION = Vec2(0.0, 0.0)
 
         @JvmField
-        var TURRET_ANGLE = 45
+        var TURRET_ANGLE = PI / 2.0
 
         @JvmField
         var TURRET_HEIGHT = 1.0
@@ -192,10 +192,28 @@ object Configs {
         var BALL_MASS = 0.075
 
         @JvmField
-        var BASKET_TARGET_HEIGHT = 10.0
+        var BASKET_TARGET_HEIGHT = 1.0
 
         @JvmField
-        var QUIET_PULLEY_SPEED = 5.0
+        var WAIT_PULLEY_SPEED = 5.0
+
+        @JvmField
+        var TIME_STEP = 0.1
+
+        @JvmField
+        var AIR_FORCE_K = 0.0
+
+        @JvmField
+        var CALCULATING_G = 9.78
+
+        @JvmField
+        var MAX_MOTOR_RPS = 100.0
+
+        @JvmField
+        var MIN_APPROXIMATION = 1.0
+
+        @JvmField
+        var APPROXIMATION_MAX_ITERATIONS = 100
     }
 
     @Config
