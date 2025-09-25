@@ -47,7 +47,7 @@ class Turret : IModule {
             if (_hardwareTurret.velocityAtTarget.get())
                 _targetProcess.get().close()
 
-            if(_currentTurretState.get() != TurretState.SHOOT)
+            if (_currentTurretState.get() != TurretState.SHOOT)
                 return@launch
 
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
@@ -79,14 +79,15 @@ class Turret : IModule {
 
             var iterations = 0
 
-            while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS){
+            while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS) {
                 iterations++
 
                 val middle = (left + right) / 2.0
 
-                val dif = getHitHeight(middle) - (Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT)
+                val dif =
+                    getHitHeight(middle) - (Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT)
 
-                if(dif > 0.0)
+                if (dif > 0.0)
                     right = middle
                 else
                     left = middle
