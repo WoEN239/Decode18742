@@ -8,6 +8,7 @@ import org.woen.modules.camera.Camera
 import org.woen.modules.driveTrain.HardwareGyro
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
@@ -21,7 +22,7 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-data class OdometryUpdateEvent(
+data class OnOdometryUpdateEvent(
     val odometryOrientation: Orientation,
     val odometryRotateVelocity: Double, val odometryVelocity: Vec2
 )
@@ -29,7 +30,7 @@ data class OdometryUpdateEvent(
 data class RequireOdometryEvent(
     var odometryOrientation: Orientation = Orientation.ZERO,
     var odometryRotateVelocity: Double = 0.0, var odometryVelocity: Vec2 = Vec2.ZERO
-)
+): StoppingEvent
 
 
 class Odometry : IModule {
@@ -124,7 +125,7 @@ class Odometry : IModule {
                 _oldRotation = _mergeRotation
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
-                    OdometryUpdateEvent(
+                    OnOdometryUpdateEvent(
                         Orientation(_currentPosition, _mergeRotation),
                         _currentRotationVelocity,
                         _currentVelocity

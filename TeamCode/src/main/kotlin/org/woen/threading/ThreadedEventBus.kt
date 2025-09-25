@@ -8,6 +8,8 @@ import kotlinx.coroutines.runBlocking
 import org.woen.utils.smartMutex.SmartMutex
 import kotlin.reflect.KClass
 
+interface StoppingEvent
+
 @Suppress("UNCHECKED_CAST")
 class ThreadedEventBus private constructor() {
     companion object {
@@ -67,9 +69,11 @@ class ThreadedEventBus private constructor() {
             })
         }
 
-        for (i in coroutine) {
+        if (event is StoppingEvent) {
             runBlocking {
-                i.join()
+                for (i in coroutine) {
+                    i.join()
+                }
             }
         }
 

@@ -7,6 +7,7 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.telemetry.Configs
+import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -20,7 +21,7 @@ data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotation
 
 class EnableLookModeEvent()
 
-data class RequestLookModeEvent(var enable: Boolean = false)
+data class RequestLookModeEvent(var enable: Boolean = false): StoppingEvent
 
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain(
