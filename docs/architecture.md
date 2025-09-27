@@ -32,7 +32,7 @@ class MyModule: IModule {
     }
 
     override val isBusy: Boolean
-        get() = _currentJob != null && _currentJob!!.isCompleted //проверка на то что задача еще не закончена
+        get() = _currentJob != null && !_currentJob!!.isCompleted //проверка на то что задача еще не закончена
 
     override fun dispose() {
         _currentJob?.cancel() //освобождение ресурсов
