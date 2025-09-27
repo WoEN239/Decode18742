@@ -1,5 +1,6 @@
 package linearOpModes;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -8,6 +9,7 @@ import org.woen.utils.units.Vec2;
 
 import neural.NeuralNetwork;
 
+@Disabled
 @TeleOp
 public class TestOpMode extends LinearOpMode {
     @Override

@@ -19,6 +19,10 @@ import org.woen.utils.timers.ReversedElapsedTime
 import org.woen.utils.units.Color
 import org.woen.utils.units.Vec2
 import kotlin.concurrent.thread
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.findAnnotation
+
+annotation class EventConfig()
 
 class ThreadedTelemetry private constructor() : DisposableHandle {
     companion object {
@@ -39,6 +43,32 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
             _instanceMutex.smartLock {
                 _nullableInstance?.dispose()
                 _nullableInstance = null
+            }
+        }
+
+        @OnCreate
+        @JvmStatic
+        fun start(context: Context?) {
+            FtcDashboard.start(context)
+            LAZY_INSTANCE.initConfigs()
+        }
+    }
+
+    fun initConfigs() {
+        FtcDashboard.getInstance().withConfigRoot { it ->
+            Configs::class.nestedClasses.forEach { jt ->
+                val objClass = jt.objectInstance
+
+                if (objClass != null) {
+                    jt.declaredMemberProperties.forEach { zt ->
+                        if(zt.findAnnotation<EventConfig>() != null && zt.returnType.classifier == EventValueProvider::class) {
+                            val value = zt.call(objClass) as EventValueProvider<*>
+
+                            FtcDashboard.getInstance()
+                                .addConfigVariable(jt.simpleName, zt.name, value)
+                        }
+                    }
+                }
             }
         }
     }
@@ -202,13 +232,13 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     private fun logWithTag(str: String, tag: String) =
         RobotLog.dd(tag, "robot[" + Thread.currentThread().name + "]: " + str)
 
-    class EventValueProvider<T>(private var _value: T): ValueProvider<T>{
+    class EventValueProvider<T>(private var _value: T) : ValueProvider<T> {
         val onSet = SimpleEvent<T>()
 
         override fun get() = _value
 
         override fun set(value: T?) {
-            if(value != null){
+            if (value != null) {
                 _value = value
                 onSet(value)
             }

@@ -29,7 +29,7 @@ object Configs {
 
     @Config
     internal object TELEMETRY {
-        @JvmField
+        @EventConfig
         var TELEMETRY_UPDATE_HZ = ThreadedTelemetry.EventValueProvider(5)
 
         @JvmField
@@ -59,7 +59,7 @@ object Configs {
 
     @Config
     internal object ODOMETRY {
-        @JvmField
+        @EventConfig
         var VELOCITY_FILTER_K = ThreadedTelemetry.EventValueProvider(0.1)
 
         @JvmField
@@ -80,7 +80,7 @@ object Configs {
         @JvmField
         var ODOMETER_ROTATE_SENS = 1e-8
 
-        @JvmField
+        @EventConfig
         var ODOMETRY_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.1)
     }
 
@@ -146,7 +146,7 @@ object Configs {
         @JvmField
         var GYRO_UPDATE_HZ = 5
 
-        @JvmField
+        @EventConfig
         var GYRO_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.1)
     }
 
@@ -170,7 +170,7 @@ object Configs {
         @JvmField
         var PULLEY_REGULATOR = RegulatorParameters()
 
-        @JvmField
+        @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.1)
 
         @JvmField
