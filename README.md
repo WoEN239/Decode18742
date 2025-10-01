@@ -14,8 +14,8 @@ Workshop of Eternal Nonsense: Aperture in Reasons
 
 
 ## Документация
-- [Архитектура](https://github.com/WoEN239/Decode18742/blob/master/docs/architecture.md)
-- [FTC Robot controller](https://github.com/WoEN239/Decode18742/blob/master/docs/ftc_readme.md)
+- [Архитектура](https://github.com/WoEN239/Decode18742/blob/master/documentation/architecture.md)
+- [FTC Robot controller](https://github.com/WoEN239/Decode18742/blob/master/documentation/ftc_readme.md)
 
 ## Исходный код
 - [TeamCode](https://github.com/WoEN239/Decode18742/blob/master/TeamCode/src/main)
