@@ -45,6 +45,5 @@ class brush_hard(private val _deviceName: String)  : IHardwareDevice {
     }
 
     override fun dispose() {
-        TODO("Not yet implemented")
     }
 }
