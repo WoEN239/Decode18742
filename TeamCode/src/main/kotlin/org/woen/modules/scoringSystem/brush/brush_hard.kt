@@ -21,8 +21,8 @@ class brush_hard(private val _deviceName: String)  : IHardwareDevice {
 
     }
 
-    fun setDir(zovMotor: Int){
-        when(zovMotor){
+    fun setDir(Motor: Int){
+        when(Motor){
             Configs.BRUSH.BRUSH_MOTORS_FORWARD -> {
                 _motor.setPower(1.0);
             }
