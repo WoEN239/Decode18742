@@ -14,8 +14,10 @@ class HardwareThreads private constructor() : DisposableHandle {
         @JvmStatic
         val LAZY_INSTANCE: HardwareThreads
             get() = _instanceMutex.smartLock {
-                if (_nullableInstance == null)
+                if (_nullableInstance == null) {
                     _nullableInstance = HardwareThreads()
+                    _nullableInstance?.initModules()
+                }
 
                 return@smartLock _nullableInstance!!
             }
@@ -38,7 +40,7 @@ class HardwareThreads private constructor() : DisposableHandle {
         EXPANSION.dispose()
     }
 
-    init {
-        CONTROL.link.addModules(Odometry(), DriveTrain())
+    fun initModules() {
+        CONTROL.link.addModules(Odometry())
     }
 }

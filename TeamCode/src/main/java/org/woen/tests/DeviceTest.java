@@ -5,11 +5,14 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGR
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.*;
 import org.firstinspires.ftc.robotcore.external.navigation.*;
+import org.woen.FixColorSensor;
+
 import java.util.Arrays;
 
 
@@ -94,7 +97,7 @@ public class DeviceTest extends LinearOpMode {
                         telemetry.addData("Voltage", voltageSensor.getVoltage());
                         break;
                     case COLOR_SENSOR:
-                        ColorSensor colorSensor = (ColorSensor) hardwareDevice;
+                        ColorSensor colorSensor = FixColorSensor.fixSensor( (AdafruitI2cColorSensor) hardwareDevice);
                         telemetry.addData("red", colorSensor.red());
                         telemetry.addData("green", colorSensor.green());
                         telemetry.addData("blue", colorSensor.blue());

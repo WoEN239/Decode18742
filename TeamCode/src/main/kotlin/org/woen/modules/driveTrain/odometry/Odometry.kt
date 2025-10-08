@@ -38,7 +38,6 @@ class Odometry : IModule {
     private val _threeOdometry = HardwareThreeOdometry("sideOdometer")
     private val _gyro = HardwareGyro()
 
-
     private val _gyroMutex = SmartMutex()
 
     private val _odometryMutex = SmartMutex()
@@ -64,6 +63,12 @@ class Odometry : IModule {
     private var _currentVelocity = Vec2.ZERO
     private var _currentRotationVelocity = 0.0
 
+    enum class OdometryRunMode{
+        DUAL_MODE,
+        TRIPLE_MODE,
+        PINPOINT_MODE
+    }
+
     override suspend fun process() {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             if(HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
@@ -79,8 +84,8 @@ class Odometry : IModule {
 
             _odometryMutex.smartLock {
                 val odometryRotation = Angle(
-                    rightPos / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
-                            - leftPos / Configs.ODOMETRY.ODOMETER_LEFT_RADIUS
+                    (rightPos / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
+                            - leftPos / Configs.ODOMETRY.ODOMETER_LEFT_RADIUS) / 2.0
                 )
 
                 _mergeRotation += odometryRotation - _oldOdometerRotation
@@ -88,8 +93,8 @@ class Odometry : IModule {
                 _oldOdometerRotation = odometryRotation
 
                 _currentRotationVelocity =
-                    rightVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
-                -leftVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
+                    (rightVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
+                - leftVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS) / 2.0
 
                 val deltaLeft = leftPos - _oldLeftPosition
                 val deltaRight = rightPos - _oldRightPosition
@@ -152,7 +157,7 @@ class Odometry : IModule {
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             _odometryMutex.smartLock {
-                it.drawRect(_currentPosition, Vec2(25.0, 25.0), _mergeRotation.angle, Color.RED)
+                it.drawRect(_currentPosition, Vec2(0.25, 0.25), _mergeRotation.angle, Color.RED)
             }
         }
 
@@ -179,7 +184,7 @@ class Odometry : IModule {
             }
         }
 
-        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _gyroMutex.smartLock {
                 _gyroFilter.start()
             }
@@ -195,6 +200,12 @@ class Odometry : IModule {
                 _positionXFilter.coef = it
                 _positionYFilter.coef = it
             }
+        }
+
+        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+
+            it.addData("roation", odometry.odometryOrientation.angle)
         }
 
         Camera.LAZY_INSTANCE.cameraPositionUpdateEvent += {

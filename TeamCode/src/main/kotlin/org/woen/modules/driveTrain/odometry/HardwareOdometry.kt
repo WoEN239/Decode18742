@@ -37,10 +37,10 @@ class HardwareOdometry(
         if(HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
             return
 
-        val currentLeftPosition = _leftOdometer.currentPosition.toDouble() /
-                Configs.ODOMETRY.ODOMETRY_TICKS * PI * Configs.ODOMETRY.ODOMETRY_DIAMETER
-        val currentRightPosition = _rightOdometer.currentPosition.toDouble() /
-                Configs.ODOMETRY.ODOMETRY_TICKS * PI * Configs.ODOMETRY.ODOMETRY_DIAMETER
+        val currentLeftPosition = (_leftOdometer.currentPosition.toDouble() /
+                Configs.ODOMETRY.ODOMETRY_TICKS) * PI * Configs.ODOMETRY.ODOMETRY_DIAMETER
+        val currentRightPosition = (_rightOdometer.currentPosition.toDouble() /
+                Configs.ODOMETRY.ODOMETRY_TICKS) * PI * Configs.ODOMETRY.ODOMETRY_DIAMETER
 
         leftPosition.set(currentLeftPosition)
         rightPosition.set(currentRightPosition)

@@ -1,3 +1,5 @@
+package org.woen;
+
 import static com.qualcomm.hardware.ams.AMSColorSensor.AMS_TCS34725_ADDRESS;
 
 import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor;

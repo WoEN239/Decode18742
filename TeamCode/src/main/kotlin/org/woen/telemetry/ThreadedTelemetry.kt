@@ -186,9 +186,9 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
     fun drawCircle(pos: Vec2, radius: Double, color: String) {
         _canvas.setFill(color)
         _canvas.fillCircle(
-            DistanceUnit.INCH.fromCm(pos.x),
-            DistanceUnit.INCH.fromCm(pos.y),
-            DistanceUnit.INCH.fromCm(radius)
+            DistanceUnit.INCH.fromMeters(pos.x),
+            DistanceUnit.INCH.fromMeters(pos.y),
+            DistanceUnit.INCH.fromMeters(radius)
         )
     }
 
@@ -200,8 +200,8 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
         val inchY = DoubleArray(points.size)
 
         for (i in points.indices) {
-            inchX[i] = DistanceUnit.INCH.fromCm(points[i].x)
-            inchY[i] = DistanceUnit.INCH.fromCm(points[i].y)
+            inchX[i] = DistanceUnit.INCH.fromMeters(points[i].x)
+            inchY[i] = DistanceUnit.INCH.fromMeters(points[i].y)
         }
 
         _canvas.setFill(color)

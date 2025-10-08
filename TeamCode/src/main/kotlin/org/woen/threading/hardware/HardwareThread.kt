@@ -19,12 +19,12 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
 
     private val _devicesMutex = SmartMutex()
 
-    fun addDevices(vararg devices: IHardwareDevice) {
-        val hardwareMap =
-            OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
+    private val _hardwareMap =
+        OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
 
+    fun addDevices(vararg devices: IHardwareDevice) {
         for (i in devices) {
-            i.init(hardwareMap)
+            i.init(_hardwareMap)
 
             _devicesMutex.smartLock {
                 _devices.add(i)

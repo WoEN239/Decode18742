@@ -1,6 +1,7 @@
 package org.woen.telemetry
 
 import com.acmerobotics.dashboard.config.Config
+import org.woen.modules.driveTrain.odometry.Odometry
 import org.woen.utils.regulator.RegulatorParameters
 import org.woen.utils.units.Vec2
 import kotlin.math.PI
@@ -69,19 +70,22 @@ object Configs {
         var ODOMETRY_DIAMETER = 0.048
 
         @JvmField
-        var ODOMETER_LEFT_RADIUS = 1.0
+        var ODOMETER_LEFT_RADIUS = 0.04
 
         @JvmField
-        var ODOMETER_RIGHT_RADIUS = 1.0
+        var ODOMETER_RIGHT_RADIUS = 0.04
 
         @JvmField
-        var ODOMETER_SIDE_RADIUS = 1.0
+        var ODOMETER_SIDE_RADIUS = 0.0
 
         @JvmField
         var ODOMETER_ROTATE_SENS = 1e-8
 
         @EventConfig
         var ODOMETRY_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.1)
+
+        @JvmField
+        var RUN_MODE = Odometry.OdometryRunMode.TRIPLE_MODE
     }
 
     @Config
