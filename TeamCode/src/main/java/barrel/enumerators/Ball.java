@@ -3,6 +3,32 @@ package barrel.enumerators;
 
 public class Ball
 {
+    static public final int NONE = 0, PURPLE = 1, GREEN = 2;
+
+    private Name _memName;
+    private int _memId;
+
+
+    public Ball(int value)
+    {
+        Set(ToName(value), value);
+    }
+    public Ball(Ball.Name name)
+    {
+        Set(name, ToInt(name));
+    }
+    public Ball(int value, Ball.Name name)
+    {
+        Set(name, value);
+    }
+    public Ball(Ball.Name name, int value)
+    {
+        Set(name, value);
+    }
+    public Ball()
+    {
+        Set(Ball.Name.NONE, NONE);
+    }
     public enum Name
     {
         NONE,
@@ -11,70 +37,50 @@ public class Ball
     }
 
 
-    Name memName;
-    int memId;
 
 
     public void Set(int value)
     {
-        memId = value;
-        memName = ToName(value);
+        Set(ToName(value), value);
     }
-    public void Set(Name name)
+    public void Set(Ball.Name name)
     {
-        memId = ToInt(name);
-        memName = name;
+        Set(name, ToInt(name));
     }
-    public void Set(int value, Name name)
+    public void Set(int value, Ball.Name name)
     {
-        memId = value;
-        memName = name;
+        Set(name, value);
     }
-    public void Set(Name name, int value)
+    public void Set(Ball.Name name, int value)
     {
-        memId = value;
-        memName = name;
+        _memId = value;
+        _memName = name;
     }
 
 
     public Name GetName()
     {
-        return memName;
+        return _memName;
     }
-    public int GetId()
+    public int  GetId()
     {
-        return memId;
-    }
-
-
-
-    static public int NONE()
-    {
-        return 0;
-    }
-    static public int PURPLE()
-    {
-        return 1;
-    }
-    static public int GREEN()
-    {
-        return 2;
+        return _memId;
     }
 
 
     static public Name ToName (int value)
     {
-        return value == 0 ? Name.NONE
-                : value == 1 ? Name.PURPLE
+        return value == NONE ? Name.NONE
+                : value == PURPLE ? Name.PURPLE
                 : Name.GREEN;
     }
     static public int ToInt (Name name)
     {
         switch (name)
         {
-            case NONE:   return 0;
-            case PURPLE: return 1;
-            default:     return 2;
+            case NONE:   return NONE;
+            case PURPLE: return PURPLE;
+            default:     return GREEN;
         }
     }
 }

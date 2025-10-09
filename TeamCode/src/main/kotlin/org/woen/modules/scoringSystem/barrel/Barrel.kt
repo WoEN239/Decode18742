@@ -1,5 +1,7 @@
 package org.woen.modules.scoringSystem.barrel
 
+
+/*
 import android.annotation.SuppressLint
 import barrel.BarrelStorage
 import barrel.enumerators.Ball
@@ -161,6 +163,7 @@ class Barrel
 
 
 
+    @SuppressLint("SuspiciousIndentation")
     suspend fun HandleRequest(request: BallRequest.Name?): RequestResult.Name?
     {
         if (DoTerminateRequest()) TerminateRequest()    //  Does not terminate, only resets _requestRunStatus
@@ -238,7 +241,7 @@ class Barrel
         ThreadedEventBus.LAZY_INSTANCE.invoke(BarrelRequestIsReadyEvent())
         return true
     }
-    suspend private fun RequestRaceConditionIsPresent(): Boolean
+    private suspend fun RequestRaceConditionIsPresent(): Boolean
     {
         if (_runStatus.GetId() == RunStatus.ACTIVE())
         {
@@ -535,3 +538,4 @@ class Barrel
         _requestRunStatus.Set(RunStatus.ACTIVE(), RunStatus.Name.ACTIVE)
     }
 }
+*/

@@ -1,7 +1,7 @@
 package org.woen.modules.scoringSystem
 
 
-import org.woen.modules.scoringSystem.barrel.Barrel
+//import org.woen.modules.scoringSystem.barrel.Barrel
 
 import org.woen.modules.IModule
 import org.woen.threading.ThreadedEventBus
@@ -10,8 +10,6 @@ import org.woen.threading.ThreadedEventBus
 
 class ScoringModulesConnector: IModule
 {
-    private var _barrel: Barrel
-
     override suspend fun process()
     {
         TODO("Not yet implemented")
@@ -24,6 +22,8 @@ class ScoringModulesConnector: IModule
 
     init
     {
-        _barrel = Barrel()
+
     }
+
+
 }
