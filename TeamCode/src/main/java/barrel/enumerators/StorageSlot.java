@@ -6,7 +6,7 @@ public class StorageSlot
     static public final int BOTTOM = 0, CENTER = 1, MOBILE_OUT = 2, MOBILE_IN = 3, MOBILE = 4, UNDEFINED = 5;
 
     private Name _memName;
-    private int _memId;
+    private int  _memId;
 
 
     StorageSlot(int value)

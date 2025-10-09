@@ -3,158 +3,149 @@ package barrel.enumerators;
 
 public class RequestResult
 {
+    static public final int SUCCESS = 0, SUCCESS_BOTTOM = 1, SUCCESS_CENTER = 2,
+            SUCCESS_MOBILE_OUT = 3, SUCCESS_MOBILE_IN = 4, SUCCESS_IS_NOW_EMPTY = 5,
+                FAIL_UNKNOWN = 6, FAIL_IS_EMPTY = 7, FAIL_COLOR_NOT_PRESENT = 8,
+                    FAIL_IS_CURRENTLY_BUSY = 9, FAIL_NOT_ENOUGH_COLORS = 10,
+                        FAIL_PROCESS_WAS_TERMINATED = 11;
+
+    private Name _memName;
+    private int  _memId;
+
+
+    public RequestResult(int value)
+    {
+        Set(ToName(value), value);
+    }
+    public RequestResult(Name name)
+    {
+        Set(name, ToInt(name));
+    }
+    public RequestResult(int value, Name name)
+    {
+        Set(name, value);
+    }
+    public RequestResult(Name name, int value)
+    {
+        Set(name, value);
+    }
+    public RequestResult()
+    {
+        Set(Name.FAIL_UNKNOWN, FAIL_UNKNOWN);
+    }
+
+
     public enum Name
     {
         SUCCESS,
-        SUCCESS_LEFT,
+        SUCCESS_BOTTOM,
         SUCCESS_CENTER,
-        SUCCESS_RIGHT,
+        SUCCESS_MOBILE_OUT,
+        SUCCESS_MOBILE_IN,
         SUCCESS_IS_NOW_EMPTY,
         FAIL_UNKNOWN,
         FAIL_IS_EMPTY,
         FAIL_COLOR_NOT_PRESENT,
         FAIL_IS_CURRENTLY_BUSY,
         FAIL_NOT_ENOUGH_COLORS,
-        PROCESS_WAS_TERMINATED
+        FAIL_PROCESS_WAS_TERMINATED
     }
 
-
-    Name memName;
-    int memId;
 
 
     public void Set(int value)
     {
-        memId = value;
-        memName = ToName(value);
+        Set(ToName(value), value);
     }
     public void Set(Name name)
     {
-        memId = ToInt(name);
-        memName = name;
+        Set(name, ToInt(name));
     }
     public void Set(int value, Name name)
     {
-        memId = value;
-        memName = name;
+        Set(name, value);
     }
     public void Set(Name name, int value)
     {
-        memId = value;
-        memName = name;
+        _memId = value;
+        _memName = name;
     }
 
 
     public Name GetName()
     {
-        return memName;
+        return _memName;
     }
     public int  GetId()
     {
-        return memId;
+        return _memId;
     }
 
 
 
     public boolean DidFail()
     {
-        return memId > SUCCESS_IS_NOW_EMPTY();
+        return _memId > SUCCESS_IS_NOW_EMPTY;
     }
-    static public boolean DidFail(Name name)
+    static public  boolean DidFail(Name name)
     {
-        return ToInt(name) > SUCCESS_IS_NOW_EMPTY();
+        return DidFail(ToInt(name));
+    }
+    static public  boolean DidFail(int value)
+    {
+        return value > SUCCESS_IS_NOW_EMPTY;
     }
     public boolean DidSucceed()
     {
-        return memId < FAIL_UNKNOWN();
+        return _memId < FAIL_UNKNOWN;
     }
-    static public boolean DidSucceed(Name name)
+    static public  boolean DidSucceed(Name name)
     {
-        return ToInt(name) < FAIL_UNKNOWN();
+        return DidSucceed(ToInt(name));
+    }
+    static public  boolean DidSucceed(int value)
+    {
+        return value < FAIL_UNKNOWN;
     }
 
-
-
-    static public int SUCCESS()
-    {
-        return 0;
-    }
-    static public int SUCCESS_LEFT()
-    {
-        return 1;
-    }
-    static public int SUCCESS_CENTER()
-    {
-        return 2;
-    }
-    static public int SUCCESS_RIGHT()
-    {
-        return 3;
-    }
-    static public int SUCCESS_IS_NOW_EMPTY()
-    {
-        return 4;
-    }
-    static public int FAIL_UNKNOWN()
-    {
-        return 5;
-    }
-    static public int FAIL_IS_EMPTY()
-    {
-        return 6;
-    }
-    static public int FAIL_COLOR_NOT_PRESENT()
-    {
-        return 7;
-    }
-    static public int FAIL_IS_CURRENTLY_BUSY()
-    {
-        return 8;
-    }
-    static public int FAIL_NOT_ENOUGH_COLORS()
-    {
-        return 9;
-    }
-    static public int PROCESS_WAS_TERMINATED()
-    {
-        return 10;
-    }
 
 
     static public Name ToName(int value)
     {
         switch (value)
         {
-            case 0: return  Name.SUCCESS;
-            case 1: return  Name.SUCCESS_LEFT;
-            case 2: return  Name.SUCCESS_CENTER;
-            case 3: return  Name.SUCCESS_RIGHT;
-            case 4: return  Name.SUCCESS_IS_NOW_EMPTY;
+            case SUCCESS: return  Name.SUCCESS;
+            case SUCCESS_BOTTOM: return  Name.SUCCESS_BOTTOM;
+            case SUCCESS_CENTER: return  Name.SUCCESS_CENTER;
+            case SUCCESS_MOBILE_OUT:   return  Name.SUCCESS_MOBILE_OUT;
+            case SUCCESS_MOBILE_IN:    return  Name.SUCCESS_MOBILE_IN;
+            case SUCCESS_IS_NOW_EMPTY: return  Name.SUCCESS_IS_NOW_EMPTY;
 
-            case 5: return  Name.FAIL_UNKNOWN;
-            case 6: return  Name.FAIL_IS_EMPTY;
-            case 7: return  Name.FAIL_COLOR_NOT_PRESENT;
-            case 8: return  Name.FAIL_IS_CURRENTLY_BUSY;
-            case 9: return  Name.FAIL_NOT_ENOUGH_COLORS;
-            default: return Name.PROCESS_WAS_TERMINATED;
+            case FAIL_UNKNOWN:   return  Name.FAIL_UNKNOWN;
+            case FAIL_IS_EMPTY:  return  Name.FAIL_IS_EMPTY;
+            case FAIL_COLOR_NOT_PRESENT: return  Name.FAIL_COLOR_NOT_PRESENT;
+            case FAIL_IS_CURRENTLY_BUSY: return  Name.FAIL_IS_CURRENTLY_BUSY;
+            case FAIL_NOT_ENOUGH_COLORS: return  Name.FAIL_NOT_ENOUGH_COLORS;
+            default: return Name.FAIL_PROCESS_WAS_TERMINATED;
         }
     }
     static public int ToInt (Name name)
     {
         switch (name)
         {
-            case SUCCESS:        return 0;
-            case SUCCESS_LEFT:   return 1;
-            case SUCCESS_CENTER: return 2;
-            case SUCCESS_RIGHT:  return 3;
-            case SUCCESS_IS_NOW_EMPTY:   return 4;
+            case SUCCESS: return  SUCCESS;
+            case SUCCESS_BOTTOM: return  SUCCESS_BOTTOM;
+            case SUCCESS_CENTER: return  SUCCESS_CENTER;
+            case SUCCESS_MOBILE_OUT:   return  SUCCESS_MOBILE_OUT;
+            case SUCCESS_MOBILE_IN:    return  SUCCESS_MOBILE_IN;
+            case SUCCESS_IS_NOW_EMPTY: return  SUCCESS_IS_NOW_EMPTY;
 
-            case FAIL_UNKNOWN:   return 5;
-            case FAIL_IS_EMPTY:  return 6;
-            case FAIL_COLOR_NOT_PRESENT: return 7;
-            case FAIL_IS_CURRENTLY_BUSY: return 8;
-            case FAIL_NOT_ENOUGH_COLORS: return 9;
-            default: return 10;  //  PROCESS_WAS_TERMINATED
+            case FAIL_UNKNOWN:   return  FAIL_UNKNOWN;
+            case FAIL_IS_EMPTY:  return  FAIL_IS_EMPTY;
+            case FAIL_COLOR_NOT_PRESENT: return  FAIL_COLOR_NOT_PRESENT;
+            case FAIL_IS_CURRENTLY_BUSY: return  FAIL_IS_CURRENTLY_BUSY;
+            case FAIL_NOT_ENOUGH_COLORS: return  FAIL_NOT_ENOUGH_COLORS;
+            default: return FAIL_PROCESS_WAS_TERMINATED;
         }
     }
 }

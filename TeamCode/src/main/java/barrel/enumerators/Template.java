@@ -3,53 +3,59 @@ package barrel.enumerators;
 /*
 public abstract class Template
 {
+    static public final int NOT_IMPLEMENTED;
+
+    private Name _memName;
+    private int  _memId;
+
+
     public enum Name { NOT_IMPLEMENTED }
 
-
-    Name memName;
-    int memId;
 
 
     public void Set(int value)
     {
-        memId = value;
-        memName = ToName(value);
+        Set(ToName(value), value);
     }
     public void Set(Name name)
     {
-        memId = ToInt(name);
-        memName = name;
+        Set(name, ToInt(name));
     }
     public void Set(int value, Name name)
     {
-        memId = value;
-        memName = name;
+        Set(name, value);
     }
     public void Set(Name name, int value)
     {
-        memId = value;
-        memName = name;
+        _memId = value;
+        _memName = name;
     }
 
 
     public Name GetName()
     {
-        return memName;
+        return _memName;
     }
     public int GetId()
     {
-        return memId;
+        return _memId;
     }
 
 
 
     static public Name ToName (int value)
     {
-        return Name.NOT_IMPLEMENTED;
+        switch (value)
+        {
+            default: return Name.NOT_IMPLEMENTED;
+        }
     }
     static public int ToInt (Name name)
     {
-        return -1;
+        switch (name)
+        {
+            default: return -1;
+        }
     }
 }
 */

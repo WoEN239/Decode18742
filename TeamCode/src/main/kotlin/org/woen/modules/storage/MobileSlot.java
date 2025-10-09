@@ -29,7 +29,7 @@ public class MobileSlot
     {
         return _ball;
     }
-    public int BallId()
+    public int  BallId()
     {
         return _ball.GetId();
     }

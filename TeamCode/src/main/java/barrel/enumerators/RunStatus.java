@@ -3,11 +3,38 @@ package barrel.enumerators;
 
 public class RunStatus
 {
+    static public final int INACTIVE = 0, ACTIVE = 1, PAUSE = 2, TERMINATED = 3;
+    static public final int IS_INACTIVE = 0, IS_ACTIVE = 1, DO_TERMINATE = -1, IS_TERMINATED = 3;
+
+    private TerminationStatus _terminationStatus;
+    private Name _memName;
+    private int  _memId, _terminationId;
+
+
+    public RunStatus(int value)
+    {
+        SetTermination(TerminationStatus.IS_INACTIVE, IS_INACTIVE);
+        Set(ToName(value), value);
+    }
+    public RunStatus(Name name)
+    {
+        SetTermination(TerminationStatus.IS_INACTIVE, IS_INACTIVE);
+        Set(name, ToInt(name));
+    }
+    public RunStatus(int value, Name name)
+    {
+        SetTermination(TerminationStatus.IS_INACTIVE, IS_INACTIVE);
+        Set(name, value);
+    }
+    public RunStatus(Name name, int value)
+    {
+        SetTermination(TerminationStatus.IS_INACTIVE, IS_INACTIVE);
+        Set(name, value);
+    }
     public RunStatus()
     {
-        terminationStatus = TerminationStatus.IS_INACTIVE;
-        memName = Name.INACTIVE;
-        memId = INACTIVE();
+        SetTermination(TerminationStatus.IS_INACTIVE, IS_INACTIVE);
+        Set(Name.INACTIVE, INACTIVE);
     }
 
 
@@ -28,12 +55,6 @@ public class RunStatus
 
 
 
-    TerminationStatus terminationStatus;
-    int terminationId;
-    Name memName;
-    int memId;
-
-
     public void Set(int value)
     {
         Set(ToName(value), value);
@@ -48,8 +69,8 @@ public class RunStatus
     }
     public void Set(Name name, int value)
     {
-        memId = value;
-        memName = name;
+        _memId = value;
+        _memName = name;
     }
 
     public void SetTermination(int value)
@@ -66,64 +87,26 @@ public class RunStatus
     }
     public void SetTermination(TerminationStatus name, int value)
     {
-        terminationStatus = name;
-        terminationId = value;
-    }
-
-
-    public TerminationStatus GetTermination()
-    {
-        return terminationStatus;
-    }
-    public int GetTerminationId()
-    {
-        return terminationId;
+        _terminationStatus = name;
+        _terminationId = value;
     }
 
 
     public Name GetName()
     {
-        return memName;
+        return _memName;
     }
-    public int GetId()
+    public int  GetId()
     {
-        return memId;
+        return _memId;
     }
-
-
-
-    static public int INACTIVE()
+    public TerminationStatus GetTermination()
     {
-        return 0;
+        return _terminationStatus;
     }
-    static public int ACTIVE()
+    public int GetTerminationId()
     {
-        return 1;
-    }
-    static public int PAUSE()
-    {
-        return 2;
-    }
-    static public int TERMINATED()
-    {
-        return 3;
-    }
-
-    static public int IS_INACTIVE()
-    {
-        return INACTIVE();
-    }
-    static public int IS_ACTIVE()
-    {
-        return ACTIVE();
-    }
-    static public int DO_TERMINATE()
-    {
-        return -1;
-    }
-    static public int IS_TERMINATED()
-    {
-        return TERMINATED();
+        return _terminationId;
     }
 
 
@@ -132,20 +115,20 @@ public class RunStatus
     {
         switch (value)
         {
-            case 0:  return Name.INACTIVE;
-            case 1:  return Name.ACTIVE;
-            case 2:  return Name.PAUSE;
-            default: return Name.TERMINATED;
+            case INACTIVE:  return Name.INACTIVE;
+            case ACTIVE:    return Name.ACTIVE;
+            case PAUSE:     return Name.PAUSE;
+            default:        return Name.TERMINATED;
         }
     }
     static public int ToInt (Name name)
     {
         switch (name)
         {
-            case INACTIVE:     return 0;
-            case ACTIVE:       return 1;
-            case PAUSE:        return 2;
-            default:           return 4;  //  TERMINATED
+            case INACTIVE:  return INACTIVE;
+            case ACTIVE:    return ACTIVE;
+            case PAUSE:     return PAUSE;
+            default:        return TERMINATED;
         }
     }
 
@@ -155,20 +138,20 @@ public class RunStatus
     {
         switch (value)
         {
-            case 0:  return TerminationStatus.IS_INACTIVE;
-            case 1:  return TerminationStatus.IS_ACTIVE;
-            case -1: return TerminationStatus.DO_TERMINATE;
-            default: return TerminationStatus.IS_TERMINATED;
+            case IS_INACTIVE:   return TerminationStatus.IS_INACTIVE;
+            case IS_ACTIVE:     return TerminationStatus.IS_ACTIVE;
+            case DO_TERMINATE:  return TerminationStatus.DO_TERMINATE;
+            default:            return TerminationStatus.IS_TERMINATED;
         }
     }
     static public int ToInt (TerminationStatus name)
     {
         switch (name)
         {
-            case IS_INACTIVE:  return 0;
-            case IS_ACTIVE:    return 1;
-            case DO_TERMINATE: return -1;
-            default:           return 3;   //  IS_TERMINATED
+            case IS_INACTIVE:   return IS_INACTIVE;
+            case IS_ACTIVE:     return IS_ACTIVE;
+            case DO_TERMINATE:  return DO_TERMINATE;
+            default:            return IS_TERMINATED;
         }
     }
 }

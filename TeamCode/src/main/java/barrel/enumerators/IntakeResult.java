@@ -3,106 +3,106 @@ package barrel.enumerators;
 
 public class IntakeResult
 {
-    public enum Name
+    static public final int SUCCESS = 0, SUCCESS_BOTTOM = 1, SUCCESS_CENTER = 2,
+        SUCCESS_MOBILE_OUT = 3, SUCCESS_MOBILE_IN = 4, FAIL_UNKNOWN = 5,
+            FAIL_STORAGE_IS_FULL = 6, FAIL_IS_CURRENTLY_BUSY = 7,
+                FAIL_PROCESS_WAS_TERMINATED = 8;
+
+
+    private Name _memName;
+    private int  _memId;
+
+
+    public IntakeResult(int value)
     {
-        SUCCESS,
-        SUCCESS_LEFT,
-        SUCCESS_CENTER,
-        SUCCESS_RIGHT,
-        FAIL_UNKNOWN,
-        FAIL_STORAGE_IS_FULL,
-        FAIL_IS_CURRENTLY_BUSY,
-        PROCESS_WAS_TERMINATED
+        Set(ToName(value), value);
+    }
+    public IntakeResult(Name name)
+    {
+        Set(name, ToInt(name));
+    }
+    public IntakeResult(int value, Name name)
+    {
+        Set(name, value);
+    }
+    public IntakeResult(Name name, int value)
+    {
+        Set(name, value);
+    }
+    public IntakeResult()
+    {
+        Set(Name.FAIL_UNKNOWN, FAIL_UNKNOWN);
     }
 
 
-    Name memName;
-    int  memId;
+    public enum Name
+    {
+        SUCCESS,
+        SUCCESS_BOTTOM,
+        SUCCESS_CENTER,
+        SUCCESS_MOBILE_OUT,
+        SUCCESS_MOBILE_IN,
+        FAIL_UNKNOWN,
+        FAIL_STORAGE_IS_FULL,
+        FAIL_IS_CURRENTLY_BUSY,
+        FAIL_PROCESS_WAS_TERMINATED
+    }
+
 
 
     public void Set(int value)
     {
-        memId = value;
-        memName = ToName(value);
+        Set(ToName(value), value);
     }
     public void Set(Name name)
     {
-        memId = ToInt(name);
-        memName = name;
+        Set(name, ToInt(name));
     }
     public void Set(int value, Name name)
     {
-        memId = value;
-        memName = name;
+        Set(name, value);
     }
     public void Set(Name name, int value)
     {
-        memId = value;
-        memName = name;
+        _memId = value;
+        _memName = name;
     }
 
 
     public Name GetName()
     {
-        return memName;
+        return _memName;
     }
     public int  GetId()
     {
-        return memId;
+        return _memId;
     }
 
 
 
     public boolean DidFail()
     {
-        return memId > SUCCESS_RIGHT();
+        return _memId > SUCCESS_MOBILE_IN;
     }
-    static public boolean DidFail(Name name)
+    static public  boolean DidFail(Name name)
     {
-        return ToInt(name) > SUCCESS_RIGHT();
+        return DidFail(ToInt(name));
+    }
+    static public  boolean DidFail(int value)
+    {
+        return value > SUCCESS_MOBILE_IN;
     }
     public boolean DidSucceed()
     {
-        return memId < FAIL_UNKNOWN();
+        return _memId < FAIL_UNKNOWN;
     }
     static public boolean DidSucceed(Name name)
     {
-        return ToInt(name) < FAIL_UNKNOWN();
+        return DidSucceed(ToInt(name));
     }
-
-
-
-    static public int SUCCESS()
+    static public boolean DidSucceed(int value)
     {
-        return 0;
-    }
-    static public int SUCCESS_LEFT()
-    {
-        return 1;
-    }
-    static public int SUCCESS_CENTER()
-    {
-        return 2;
-    }
-    static public int SUCCESS_RIGHT()
-    {
-        return 3;
-    }
-    static public int FAIL_UNKNOWN()
-    {
-        return 4;
-    }
-    static public int FAIL_STORAGE_IS_FULL()
-    {
-        return 5;
-    }
-    static public int FAIL_IS_CURRENTLY_BUSY()
-    {
-        return 6;
-    }
-    static public int PROCESS_WAS_TERMINATED()
-    {
-        return 7;
+        return value < FAIL_UNKNOWN;
     }
 
 
@@ -111,30 +111,32 @@ public class IntakeResult
     {
         switch (value)
         {
-            case 0:  return Name.SUCCESS;
-            case 1:  return Name.SUCCESS_LEFT;
-            case 2:  return Name.SUCCESS_CENTER;
-            case 3:  return Name.SUCCESS_RIGHT;
+            case SUCCESS:             return Name.SUCCESS;
+            case SUCCESS_BOTTOM:      return Name.SUCCESS_BOTTOM;
+            case SUCCESS_CENTER:      return Name.SUCCESS_CENTER;
+            case SUCCESS_MOBILE_OUT:  return Name.SUCCESS_MOBILE_OUT;
+            case SUCCESS_MOBILE_IN:   return Name.SUCCESS_MOBILE_IN;
 
-            case 4:  return Name.FAIL_UNKNOWN;
-            case 5:  return Name.FAIL_STORAGE_IS_FULL;
-            case 6:  return Name.FAIL_IS_CURRENTLY_BUSY;
-            default: return Name.PROCESS_WAS_TERMINATED;
+            case FAIL_UNKNOWN:            return Name.FAIL_UNKNOWN;
+            case FAIL_STORAGE_IS_FULL:    return Name.FAIL_STORAGE_IS_FULL;
+            case FAIL_IS_CURRENTLY_BUSY:  return Name.FAIL_IS_CURRENTLY_BUSY;
+            default:                      return Name.FAIL_PROCESS_WAS_TERMINATED;
         }
     }
     static public int ToInt (Name name)
     {
         switch (name)
         {
-            case SUCCESS:        return 0;
-            case SUCCESS_LEFT:   return 1;
-            case SUCCESS_CENTER: return 2;
-            case SUCCESS_RIGHT:  return 3;
+            case SUCCESS:             return SUCCESS;
+            case SUCCESS_BOTTOM:      return SUCCESS_BOTTOM;
+            case SUCCESS_CENTER:      return SUCCESS_CENTER;
+            case SUCCESS_MOBILE_OUT:  return SUCCESS_MOBILE_OUT;
+            case SUCCESS_MOBILE_IN:   return SUCCESS_MOBILE_IN;
 
-            case FAIL_UNKNOWN:   return 4;
-            case FAIL_STORAGE_IS_FULL:   return 5;
-            case FAIL_IS_CURRENTLY_BUSY: return 6;
-            default: return 7;   //  PROCESS_WAS_TERMINATED
+            case FAIL_UNKNOWN:            return FAIL_UNKNOWN;
+            case FAIL_STORAGE_IS_FULL:    return FAIL_STORAGE_IS_FULL;
+            case FAIL_IS_CURRENTLY_BUSY:  return FAIL_IS_CURRENTLY_BUSY;
+            default:                      return FAIL_PROCESS_WAS_TERMINATED;
         }
     }
 }
