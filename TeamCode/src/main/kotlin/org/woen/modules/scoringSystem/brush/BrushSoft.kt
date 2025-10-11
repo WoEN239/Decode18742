@@ -11,7 +11,7 @@ import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import java.util.concurrent.atomic.AtomicReference
 
-class BallDownEvent(var a: brush_Soft.AcktBrush, var time1: Long = 1000)
+class SwitchBrush(var a: brush_Soft.AcktBrush, var time1: Long = 1000)
 
 class brush_Soft : IModule {
     enum class AcktBrush {
@@ -22,7 +22,7 @@ class brush_Soft : IModule {
     }
 
     init {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(BallDownEvent::class, {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(SwitchBrush::class, {
             turnOn.set(it.a);//1-ack; 2-notack; 3-brake; 4- revers with fixed time
             timerRevers.set(it.time1);
         })
@@ -43,12 +43,12 @@ class brush_Soft : IModule {
         when (turnOn.get()) {
             AcktBrush.ACKT -> {
                 bruh.setDir(Configs.BRUSH.BRUSH_MOTORS_FORWARD);
-                if (!bruh.IsSafe){ turnOn.set(AcktBrush.SAFE); tmr.reset();}
+                if (!bruh.IsSafe.get()){ turnOn.set(AcktBrush.SAFE); tmr.reset();}
             }
 
             AcktBrush.SAFE  -> {
                 bruh.setDir(Configs.BRUSH.BRUSH_MOTORS_BACK);
-                if (bruh.IsSafe && difTmr) turnOn.set(AcktBrush.ACKT);
+                if (bruh.IsSafe.get() && difTmr) turnOn.set(AcktBrush.ACKT);
             }
 
             AcktBrush.NOT_ACKT -> {
