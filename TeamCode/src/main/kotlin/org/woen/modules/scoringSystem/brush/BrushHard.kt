@@ -6,17 +6,18 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
+import java.util.concurrent.atomic.AtomicReference
 
 class brush_hard(private val _deviceName: String)  : IHardwareDevice {
     private lateinit var _motor: DcMotorEx
-    public var IsSafe=true;
+    public var IsSafe= AtomicReference(true);
     override fun update() {
         voltageSafe();
     }
 
     fun voltageSafe(){
         var volt=_motor.getCurrent(CurrentUnit.AMPS);
-        if(volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe=false; else IsSafe=true;
+        if(volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe.set(false); else IsSafe.set(true);
 
 
     }
@@ -30,7 +31,7 @@ class brush_hard(private val _deviceName: String)  : IHardwareDevice {
                 _motor.setPower(0.0);
             }
             Configs.BRUSH.BRUSH_MOTORS_BACK -> {
-                _motor.setPower(2.0);
+                _motor.setPower(-1.0);
             }
         }
 
