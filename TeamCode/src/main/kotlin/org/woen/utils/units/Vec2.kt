@@ -1,5 +1,6 @@
 package org.woen.utils.units
 
+import android.annotation.SuppressLint
 import com.acmerobotics.roadrunner.Vector2d
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -64,7 +65,8 @@ data class Vec2(@JvmField var x: Double, @JvmField var y: Double) {
         return result
     }
 
+    @SuppressLint("DefaultLocale")
     override fun toString(): String {
-        return "($x, $y)"
+        return "(${String.format("%.3f", x)}, ${String.format("%.3f", y)})"
     }
 }

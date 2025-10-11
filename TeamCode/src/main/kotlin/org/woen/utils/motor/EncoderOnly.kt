@@ -33,6 +33,11 @@ class EncoderOnly(private val _motor: DcMotorEx) : DcMotorEx {
         _direction = direction!!
     }
 
+    fun resetEncoder(){
+        _motor.mode = RunMode.STOP_AND_RESET_ENCODER
+        _motor.mode = RunMode.RUN_WITHOUT_ENCODER
+    }
+
     override fun getDirection() = _direction
 
     override fun setPower(power: Double) {

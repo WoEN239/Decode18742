@@ -1,5 +1,6 @@
 package org.woen.modules.driveTrain.odometry
 
+import android.annotation.SuppressLint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
@@ -30,9 +31,10 @@ data class OnOdometryUpdateEvent(
 data class RequireOdometryEvent(
     var odometryOrientation: Orientation = Orientation.ZERO,
     var odometryRotateVelocity: Double = 0.0, var odometryVelocity: Vec2 = Vec2.ZERO
-): StoppingEvent
+) : StoppingEvent
 
 
+@SuppressLint("DefaultLocale")
 class Odometry : IModule {
     private val _hardwareOdometry = HardwareOdometry("leftFrowardDrive", "rightBackDrive")
     private val _threeOdometry = HardwareThreeOdometry("sideOdometer")
@@ -63,7 +65,7 @@ class Odometry : IModule {
     private var _currentVelocity = Vec2.ZERO
     private var _currentRotationVelocity = 0.0
 
-    enum class OdometryRunMode{
+    enum class OdometryRunMode {
         DUAL_MODE,
         TRIPLE_MODE,
         PINPOINT_MODE
@@ -71,7 +73,7 @@ class Odometry : IModule {
 
     override suspend fun process() {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if(HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
                 return@launch
 
             val leftPos = _hardwareOdometry.leftPosition.get()
@@ -88,18 +90,17 @@ class Odometry : IModule {
                             - leftPos / Configs.ODOMETRY.ODOMETER_LEFT_RADIUS) / 2.0
                 )
 
-                _mergeRotation += odometryRotation - _oldOdometerRotation
-
-                _oldOdometerRotation = odometryRotation
-
                 _currentRotationVelocity =
                     (rightVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
-                - leftVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS) / 2.0
+                            - leftVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS) / 2.0
 
                 val deltaLeft = leftPos - _oldLeftPosition
                 val deltaRight = rightPos - _oldRightPosition
                 val deltaSide = sidePos - _oldSidePosition
-                val deltaRotation = (_mergeRotation - _oldRotation).angle
+                val deltaRotation = (odometryRotation - _oldOdometerRotation).angle
+
+                _mergeRotation += odometryRotation - _oldOdometerRotation
+                _oldOdometerRotation = odometryRotation
 
                 val deltaX = (deltaLeft + deltaRight) / 2.0
                 val deltaY =
@@ -121,6 +122,7 @@ class Odometry : IModule {
                 }
 
                 _currentPosition += Vec2(deltaXCorrected, deltaYCorrected)
+                    .turn(odometryRotation.angle)
 
                 _currentVelocity = Vec2(
                     (leftVelocity + rightVelocity) / 2.0,
@@ -151,13 +153,14 @@ class Odometry : IModule {
     }
 
     init {
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry)
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_threeOdometry)
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry, _threeOdometry, _gyro)
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             _odometryMutex.smartLock {
                 it.drawRect(_currentPosition, Vec2(0.25, 0.25), _mergeRotation.angle, Color.RED)
+                it.addData("orientation", Orientation(_currentPosition, _mergeRotation))
+                it.addData("vel", _currentVelocity)
+                it.addData("rotation vel", _currentRotationVelocity)
             }
         }
 
@@ -193,6 +196,9 @@ class Odometry : IModule {
                 _positionXFilter.start()
                 _positionYFilter.start()
             }
+
+            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
+                _currentPosition = Vec2.ZERO
         }
 
         Configs.ODOMETRY.ODOMETRY_MERGE_COEF.onSet += {
@@ -200,12 +206,6 @@ class Odometry : IModule {
                 _positionXFilter.coef = it
                 _positionYFilter.coef = it
             }
-        }
-
-        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
-
-            it.addData("roation", odometry.odometryOrientation.angle)
         }
 
         Camera.LAZY_INSTANCE.cameraPositionUpdateEvent += {

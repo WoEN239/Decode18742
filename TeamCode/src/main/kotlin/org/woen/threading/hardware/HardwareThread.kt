@@ -1,5 +1,6 @@
 package org.woen.threading.hardware
 
+import android.annotation.SuppressLint
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
@@ -12,6 +13,7 @@ import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.updateCounter.UpdateCounter
 import kotlin.concurrent.thread
 
+@SuppressLint("DefaultLocale")
 class HardwareThread(val link: HardwareLink) : DisposableHandle {
     private val _devices = mutableSetOf<IHardwareDevice>()
 
@@ -74,7 +76,10 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
 
     init {
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-            it.addData("hardware ups + " + _thread.name, _updateCounter.currentUPS)
+            it.addData(
+                "hardware ups + " + _thread.name,
+                String.format("%.1f", _updateCounter.currentUPS)
+            )
         }
     }
 }

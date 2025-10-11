@@ -7,6 +7,7 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -16,6 +17,7 @@ import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotationVelocity: Double)
 
@@ -38,7 +40,7 @@ class DriveTrain : IModule {
 
     private var _driveJob: Job? = null
 
-    private var _lookMode = AtomicBoolean(false)
+    private var _lookMode = AtomicReference(false)
 
     override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -91,8 +93,8 @@ class DriveTrain : IModule {
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     SetDriveTargetVelocityEvent(
                         Vec2(
-                            gamepadData.left_stick_x.toDouble(),
-                            gamepadData.left_stick_y.toDouble()
+                            -gamepadData.left_stick_y.toDouble(),
+                            -gamepadData.left_stick_x.toDouble()
                         ) * Vec2(
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER

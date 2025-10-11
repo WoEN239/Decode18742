@@ -2,6 +2,7 @@ package org.woen.threading.hardware
 
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.VoltageSensor
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicReference
 

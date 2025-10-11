@@ -54,8 +54,6 @@ class SegmentsRunner : IModule {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
             val orientationErr = _targetOrientation - odometry.odometryOrientation
-            val velTransErr = _targetTranslateVelocity - odometry.odometryVelocity
-            val velRotateErr = _targetRotateVelocity - odometry.odometryRotateVelocity
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SetDriveTargetVelocityEvent(
@@ -63,12 +61,9 @@ class SegmentsRunner : IModule {
                         Configs.ROAR_RUNNER.ROAD_RUNNER_POS_X_P,
                         Configs.ROAR_RUNNER.ROAD_RUNNER_POS_Y_P
                     ) +
-                            velTransErr * Vec2(
-                        Configs.ROAR_RUNNER.ROAD_RUNNER_VEL_X_P,
-                        Configs.ROAR_RUNNER.ROAD_RUNNER_VEL_Y_P
-                    ),
+                            _targetTranslateVelocity,
                     orientationErr.angl.angle * Configs.ROAR_RUNNER.ROAD_RUNNER_POS_H_P +
-                            velRotateErr * Configs.ROAR_RUNNER.ROAD_RUNNER_VEL_H_P
+                            _targetRotateVelocity
                 )
             )
 

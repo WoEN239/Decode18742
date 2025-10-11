@@ -1,6 +1,8 @@
 package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.modules.camera.Camera
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
@@ -71,18 +73,18 @@ class HotRun private constructor() {
 
     var currentRunColor = AtomicReference(RunColor.RED)
 
-    val opModeInitEvent = SimpleEvent<GamepadOpMode>()
-    val opModeStartEvent = SimpleEvent<GamepadOpMode>()
-    val opModeUpdateEvent = SimpleEvent<GamepadOpMode>()
-    val opModeStopEvent = SimpleEvent<GamepadOpMode>()
+    val opModeInitEvent = SimpleEvent<LinearOpMode>()
+    val opModeStartEvent = SimpleEvent<LinearOpMode>()
+    val opModeUpdateEvent = SimpleEvent<LinearOpMode>()
+    val opModeStopEvent = SimpleEvent<LinearOpMode>()
 
-    fun run(opMode: GamepadOpMode, runMode: RunMode) {
+    fun run(opMode: LinearOpMode, runMode: RunMode) {
         try {
             currentRunMode.set(runMode)
             currentRunState.set(RunState.INIT)
 
             ThreadManager.LAZY_INSTANCE.attachExceptionHandler()
-            ThreadedGamepad.LAZY_INSTANCE.initCallbacks(opMode)
+            ThreadedGamepad.LAZY_INSTANCE.init()
             ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
             HardwareThreads.LAZY_INSTANCE
 

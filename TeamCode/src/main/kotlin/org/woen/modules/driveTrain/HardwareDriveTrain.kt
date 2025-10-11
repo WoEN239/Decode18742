@@ -58,8 +58,6 @@ class HardwareDriveTrain(
 
         val velocityErr = targetTranslateVelocity - currentVelocity
 
-        ThreadedTelemetry.LAZY_INSTANCE.log(velocityErr.toString())
-
         val velocityRotateErr = targetRotateVelocity - currentRotationVelocity
 
         _regulatorMutex.smartLock {
@@ -84,10 +82,7 @@ class HardwareDriveTrain(
         _rightForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         _rightBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-        _rightBackMotor.direction = DcMotorSimple.Direction.REVERSE
-        _rightForwardMotor.direction = DcMotorSimple.Direction.REVERSE
-
-        _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
+        _leftForwardMotor.direction = DcMotorSimple.Direction.REVERSE
         _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
@@ -96,6 +91,19 @@ class HardwareDriveTrain(
                 _sideRegulator.start()
                 _rotateRegulator.start()
             }
+        }
+
+        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            _driveTrainMutex.smartLock {
+                it.addData("targetXVel", _targetTranslateVelocity.x)
+                it.addData("targetYVel", _targetTranslateVelocity.y)
+                it.addData("targetRotationVel", _targetRotateVelocity)
+            }
+
+            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+
+            it.addData("currentXVel", odometry.odometryVelocity.x)
+            it.addData("currentYVel", odometry.odometryVelocity.y)
         }
     }
 

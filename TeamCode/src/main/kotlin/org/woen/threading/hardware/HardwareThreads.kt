@@ -41,6 +41,6 @@ class HardwareThreads private constructor() : DisposableHandle {
     }
 
     fun initModules() {
-        CONTROL.link.addModules(Odometry())
+        CONTROL.link.addModules(Odometry(), DriveTrain())
     }
 }

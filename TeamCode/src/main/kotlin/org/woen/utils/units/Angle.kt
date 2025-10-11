@@ -1,8 +1,10 @@
 package org.woen.utils.units
 
+import android.annotation.SuppressLint
 import org.woen.utils.units.Angle.Companion.chop
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlin.math.sign
 
 data class Angle(@JvmField var angle: Double) {
@@ -50,8 +52,9 @@ data class Angle(@JvmField var angle: Double) {
     operator fun div(ang: Angle) = Angle(chop(angle / ang.angle))
     operator fun div(ang: Double) = Angle(chop(angle / ang))
 
+    @SuppressLint("DefaultLocale")
     override fun toString(): String {
-        return ofDegree().toString() + "°"
+        return String.format("%.3f", ofDegree()) + "°"
     }
 
     init {

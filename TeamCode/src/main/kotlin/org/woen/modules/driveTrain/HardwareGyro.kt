@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.events.SimpleEvent
@@ -40,6 +41,11 @@ class HardwareGyro : IHardwareDevice {
         )
 
         _imu.resetYaw()
+
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+            if(HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
+                _imu.resetYaw()
+        }
 
         _gyroUpdateTimer.reset()
     }

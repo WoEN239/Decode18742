@@ -103,10 +103,10 @@ object Configs {
         var DRIVE_TRAIN_LOOK_P = 1.0
 
         @JvmField
-        var DRIVE_VEC_MULTIPLIER = 1000.0
+        var DRIVE_VEC_MULTIPLIER = 0.02
 
         @JvmField
-        var DRIVE_ANGLE_MULTIPLIER = 10.0
+        var DRIVE_ANGLE_MULTIPLIER = 2.0
     }
 
     @Config
@@ -119,15 +119,6 @@ object Configs {
 
         @JvmField
         var ROAD_RUNNER_POS_H_P = 0.0
-
-        @JvmField
-        var ROAD_RUNNER_VEL_X_P = 0.0
-
-        @JvmField
-        var ROAD_RUNNER_VEL_Y_P = 0.0
-
-        @JvmField
-        var ROAD_RUNNER_VEL_H_P = 0.0
 
         @JvmField
         var ROAD_RUNNER_TRANSLATE_VELOCITY = 1.0

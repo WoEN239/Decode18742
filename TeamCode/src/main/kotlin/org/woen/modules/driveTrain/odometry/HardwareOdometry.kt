@@ -16,8 +16,8 @@ class HardwareOdometry(
     private val _leftOdometerName: String,
     private val _rightOdometerName: String
 ) : IHardwareDevice {
-    private lateinit var _leftOdometer: DcMotorEx
-    private lateinit var _rightOdometer: DcMotorEx
+    private lateinit var _leftOdometer: EncoderOnly
+    private lateinit var _rightOdometer: EncoderOnly
 
     private val _filterMutex = SmartMutex()
 
@@ -84,10 +84,15 @@ class HardwareOdometry(
             }
         }
 
-        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _filterMutex.smartLock {
                 _rightFilter.start()
                 _leftFilter.start()
+            }
+
+            if(HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO){
+                _leftOdometer.resetEncoder()
+                _rightOdometer.resetEncoder()
             }
         }
     }
