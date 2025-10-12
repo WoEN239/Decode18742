@@ -83,9 +83,6 @@ object Configs {
 
         @EventConfig
         var ODOMETRY_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.1)
-
-        @JvmField
-        var RUN_MODE = Odometry.OdometryRunMode.TRIPLE_MODE
     }
 
     @Config
@@ -100,13 +97,13 @@ object Configs {
         var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters()
 
         @JvmField
-        var DRIVE_TRAIN_LOOK_P = 1.0
-
-        @JvmField
         var DRIVE_VEC_MULTIPLIER = 0.02
 
         @JvmField
         var DRIVE_ANGLE_MULTIPLIER = 2.0
+
+        @JvmField
+        var POW_MOVE_ENABLED = true
     }
 
     @Config

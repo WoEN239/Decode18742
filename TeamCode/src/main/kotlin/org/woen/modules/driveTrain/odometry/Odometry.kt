@@ -65,12 +65,6 @@ class Odometry : IModule {
     private var _currentVelocity = Vec2.ZERO
     private var _currentRotationVelocity = 0.0
 
-    enum class OdometryRunMode {
-        DUAL_MODE,
-        TRIPLE_MODE,
-        PINPOINT_MODE
-    }
-
     override suspend fun process() {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
