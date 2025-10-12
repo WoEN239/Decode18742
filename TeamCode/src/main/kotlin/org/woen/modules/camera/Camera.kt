@@ -68,7 +68,7 @@ class Camera private constructor() : DisposableHandle {
             var sum = Vec2.Companion.ZERO
 
             for (detection in detections) {
-                val pattern = Pattern.Companion.patterns.find { it.cameraTagId == detection.id }
+                val pattern = Pattern.patterns.find { it.cameraTagId == detection.id }
 
                 if (pattern != null)
                     currentPattern = pattern

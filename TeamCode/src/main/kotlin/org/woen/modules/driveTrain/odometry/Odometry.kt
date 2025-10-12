@@ -16,8 +16,10 @@ import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Color
+import org.woen.utils.units.Line
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -32,6 +34,11 @@ data class RequireOdometryEvent(
     var odometryRotateVelocity: Double = 0.0, var odometryVelocity: Vec2 = Vec2.ZERO
 ) : StoppingEvent
 
+data class RequireRobotLocatedShootingArea(var isLocated: Boolean = false) : StoppingEvent
+
+class RobotEnterShootingAreaEvent()
+
+class RobotExitShootingAreaEvent()
 
 class Odometry : IModule {
     private val _hardwareOdometry = HardwareOdometry("leftFrowardDrive", "rightBackDrive")
@@ -60,6 +67,9 @@ class Odometry : IModule {
     private var _currentOrientation = Orientation.ZERO
     private var _currentVelocity = Vec2.ZERO
     private var _currentRotationVelocity = 0.0
+
+    private var _robotLocatedInShootingArea = AtomicBoolean(false)
+    private var _oldRobotLocate = false
 
     override suspend fun process() {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -131,6 +141,49 @@ class Odometry : IModule {
                         _currentVelocity
                     )
                 )
+
+                fun checkToLocate(): Boolean {
+                    val halfSize = Configs.DRIVE_TRAIN.ROBOT_SIZE / 2.0
+
+                    val cornerLeftForward = _currentOrientation.pos + Vec2(-halfSize.x, halfSize.y)
+                        .turn(_currentOrientation.angle)
+                    val cornerRightForward = _currentOrientation.pos + Vec2(halfSize.x, halfSize.y)
+                        .turn(_currentOrientation.angle)
+                    val cornerRightBack = _currentOrientation.pos + Vec2(halfSize.x, -halfSize.y)
+                        .turn(_currentOrientation.angle)
+                    val cornerLeftBack = _currentOrientation.pos + Vec2(-halfSize.x, -halfSize.y)
+                        .turn(_currentOrientation.angle)
+
+                    val robotLines = arrayOf(Line(cornerLeftForward, cornerRightForward),
+                        Line(cornerRightBack, cornerRightForward),
+                        Line(cornerRightBack, cornerLeftBack),
+                        Line(cornerLeftForward, cornerLeftBack))
+
+                    for (shootLine in Configs.DRIVE_TRAIN.SHOOTING_LINES) {
+                        for(l in robotLines){
+                            if(!l.isIntersects(shootLine))
+                                continue
+
+                            if(l.isPointOnLine(l.getIntersects(shootLine)))
+                                return true
+                        }
+                    }
+
+                    return false
+                }
+
+                val locate = checkToLocate()
+
+                _robotLocatedInShootingArea.set(locate)
+
+                if(_oldRobotLocate != locate){
+                    if(locate)
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(RobotEnterShootingAreaEvent())
+                    else
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(RobotExitShootingAreaEvent())
+                }
+
+                _oldRobotLocate = locate
             }
         }
     }
@@ -147,7 +200,12 @@ class Odometry : IModule {
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             _odometryMutex.smartLock {
-                it.drawRect(_currentOrientation.pos, Vec2(0.25, 0.25), _currentOrientation.angle, Color.RED)
+                it.drawRect(
+                    _currentOrientation.pos,
+                    Configs.DRIVE_TRAIN.ROBOT_SIZE,
+                    _currentOrientation.angle,
+                    Color.RED
+                )
                 it.addData("orientation", _currentOrientation)
                 it.addData("vel", _currentVelocity)
                 it.addData("rotation vel", _currentRotationVelocity)
@@ -214,5 +272,9 @@ class Odometry : IModule {
                 }
             }
         }
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequireRobotLocatedShootingArea::class, {
+            it.isLocated = _robotLocatedInShootingArea.get()
+        })
     }
 }
