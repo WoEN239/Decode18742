@@ -63,4 +63,6 @@ data class Color(@JvmField var r: Int, @JvmField var g: Int, @JvmField var b: In
         result = 31 * result + scalarColor.hashCode()
         return result
     }
+
+    fun clone() = Color(r, g, b)
 }

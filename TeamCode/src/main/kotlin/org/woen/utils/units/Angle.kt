@@ -60,6 +60,8 @@ data class Angle(@JvmField var angle: Double) {
     init {
         angle = chop(angle)
     }
+
+    fun clone() = Angle(angle)
 }
 
 operator fun Double.plus(ang: Angle) = Angle(chop(this + ang.angle))

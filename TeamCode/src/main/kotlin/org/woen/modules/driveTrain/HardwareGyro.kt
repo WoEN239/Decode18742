@@ -24,7 +24,10 @@ class HardwareGyro : IHardwareDevice {
 
             val angles = _imu.robotYawPitchRollAngles
 
-            gyroUpdateEvent.invoke(Angle(angles.getYaw(AngleUnit.RADIANS)))
+            gyroUpdateEvent.invoke(
+                Angle(angles.getYaw(AngleUnit.RADIANS))
+                        - HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation.angl
+            )
         }
     }
 
@@ -43,7 +46,7 @@ class HardwareGyro : IHardwareDevice {
         _imu.resetYaw()
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            if(HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
+            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
                 _imu.resetYaw()
         }
 

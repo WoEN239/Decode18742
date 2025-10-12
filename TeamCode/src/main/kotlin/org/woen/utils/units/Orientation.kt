@@ -74,4 +74,6 @@ data class Orientation(@JvmField var pos: Vec2, @JvmField var angl: Angle) {
         result = 31 * result + y.hashCode()
         return result
     }
+
+    fun clone() = Orientation(pos.clone(), angl.clone())
 }

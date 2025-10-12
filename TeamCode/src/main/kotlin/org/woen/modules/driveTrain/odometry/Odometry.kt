@@ -1,6 +1,5 @@
 package org.woen.modules.driveTrain.odometry
 
-import android.annotation.SuppressLint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
@@ -34,7 +33,6 @@ data class RequireOdometryEvent(
 ) : StoppingEvent
 
 
-@SuppressLint("DefaultLocale")
 class Odometry : IModule {
     private val _hardwareOdometry = HardwareOdometry("leftFrowardDrive", "rightBackDrive")
     private val _threeOdometry = HardwareThreeOdometry("sideOdometer")
@@ -59,9 +57,7 @@ class Odometry : IModule {
     private var _oldRotation = Angle.ZERO
     private var _oldOdometerRotation = Angle.ZERO
 
-    private var _mergeRotation = Angle(0.0)
-
-    private var _currentPosition = Vec2.ZERO
+    private var _currentOrientation = Orientation.ZERO
     private var _currentVelocity = Vec2.ZERO
     private var _currentRotationVelocity = 0.0
 
@@ -93,7 +89,7 @@ class Odometry : IModule {
                 val deltaSide = sidePos - _oldSidePosition
                 val deltaRotation = (odometryRotation - _oldOdometerRotation).angle
 
-                _mergeRotation += odometryRotation - _oldOdometerRotation
+                _currentOrientation.angl += odometryRotation - _oldOdometerRotation
                 _oldOdometerRotation = odometryRotation
 
                 val deltaX = (deltaLeft + deltaRight) / 2.0
@@ -115,7 +111,7 @@ class Odometry : IModule {
                         ) / deltaRotation
                 }
 
-                _currentPosition += Vec2(deltaXCorrected, deltaYCorrected)
+                _currentOrientation.pos += Vec2(deltaXCorrected, deltaYCorrected)
                     .turn(odometryRotation.angle)
 
                 _currentVelocity = Vec2(
@@ -126,11 +122,11 @@ class Odometry : IModule {
                 _oldLeftPosition = leftPos
                 _oldRightPosition = rightPos
                 _oldSidePosition = sidePos
-                _oldRotation = _mergeRotation
+                _oldRotation = _currentOrientation.angl
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     OnOdometryUpdateEvent(
-                        Orientation(_currentPosition, _mergeRotation),
+                        _currentOrientation,
                         _currentRotationVelocity,
                         _currentVelocity
                     )
@@ -151,8 +147,8 @@ class Odometry : IModule {
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             _odometryMutex.smartLock {
-                it.drawRect(_currentPosition, Vec2(0.25, 0.25), _mergeRotation.angle, Color.RED)
-                it.addData("orientation", Orientation(_currentPosition, _mergeRotation))
+                it.drawRect(_currentOrientation.pos, Vec2(0.25, 0.25), _currentOrientation.angle, Color.RED)
+                it.addData("orientation", _currentOrientation)
                 it.addData("vel", _currentVelocity)
                 it.addData("rotation vel", _currentRotationVelocity)
             }
@@ -162,7 +158,7 @@ class Odometry : IModule {
             RequireOdometryEvent::class,
             {
                 _odometryMutex.smartLock {
-                    it.odometryOrientation = Orientation(_currentPosition, _mergeRotation)
+                    it.odometryOrientation = _currentOrientation
                     it.odometryVelocity = _currentVelocity
                     it.odometryRotateVelocity = _currentRotationVelocity
                 }
@@ -171,10 +167,10 @@ class Odometry : IModule {
         _gyro.gyroUpdateEvent += {
             _gyroMutex.smartLock {
                 _odometryMutex.smartLock {
-                    _mergeRotation = Angle(
+                    _currentOrientation.angl = Angle(
                         _gyroFilter.updateRaw(
-                            _mergeRotation.angle,
-                            (it - _mergeRotation).angle
+                            _currentOrientation.angle,
+                            (it - _currentOrientation.angl).angle
                         )
                     )
                 }
@@ -192,7 +188,7 @@ class Odometry : IModule {
             }
 
             if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
-                _currentPosition = Vec2.ZERO
+                _currentOrientation = HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
         }
 
         Configs.ODOMETRY.ODOMETRY_MERGE_COEF.onSet += {
@@ -205,14 +201,14 @@ class Odometry : IModule {
         Camera.LAZY_INSTANCE.cameraPositionUpdateEvent += {
             _mergePositionMutex.smartLock {
                 _odometryMutex.smartLock {
-                    _currentPosition = Vec2(
+                    _currentOrientation.pos = Vec2(
                         _positionXFilter.updateRaw(
-                            _currentPosition.x,
-                            it.x - _currentPosition.x
+                            _currentOrientation.x,
+                            it.x - _currentOrientation.x
                         ),
                         _positionYFilter.updateRaw(
-                            _currentPosition.y,
-                            it.y - _currentPosition.y
+                            _currentOrientation.y,
+                            it.y - _currentOrientation.y
                         )
                     )
                 }

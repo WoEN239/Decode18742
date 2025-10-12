@@ -3,6 +3,7 @@ package org.woen.telemetry
 import com.acmerobotics.dashboard.config.Config
 import org.woen.modules.driveTrain.odometry.Odometry
 import org.woen.utils.regulator.RegulatorParameters
+import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 import kotlin.math.PI
 
@@ -83,6 +84,12 @@ object Configs {
 
         @EventConfig
         var ODOMETRY_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.1)
+
+        @JvmField
+        var START_RED_ORIENTATION = Orientation.ZERO
+
+        @JvmField
+        var START_BLUE_ORIENTATION = Orientation.ZERO
     }
 
     @Config

@@ -69,4 +69,6 @@ data class Vec2(@JvmField var x: Double, @JvmField var y: Double) {
     override fun toString(): String {
         return "(${String.format("%.3f", x)}, ${String.format("%.3f", y)})"
     }
+
+    fun clone() = Vec2(x, y)
 }

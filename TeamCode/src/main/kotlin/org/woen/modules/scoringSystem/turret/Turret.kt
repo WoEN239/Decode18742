@@ -59,7 +59,7 @@ class Turret : IModule {
 
         val shootDistance =
             (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get()
-                .getBasketPosition()).length()
+                .basketPosition).length()
 
         fun getHitHeight(startVel: Double): Double {
             var vecVel = Vec2(startVel, 0.0).setRot(Configs.TURRET.TURRET_ANGLE)
