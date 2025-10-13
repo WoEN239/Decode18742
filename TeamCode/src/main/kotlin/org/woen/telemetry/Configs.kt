@@ -5,6 +5,7 @@ import org.woen.modules.driveTrain.odometry.Odometry
 import org.woen.utils.regulator.RegulatorParameters
 import org.woen.utils.units.Line
 import org.woen.utils.units.Orientation
+import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
 import kotlin.math.PI
 
@@ -118,6 +119,9 @@ object Configs {
 
         @JvmField
         var SHOOTING_LINES = arrayOf<Line>()
+
+        @JvmField
+        var TRIANGLES = arrayOf<Triangle>()
     }
 
     @Config
