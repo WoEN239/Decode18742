@@ -77,7 +77,15 @@ public class Ball
     }
     public boolean HasBall()
     {
-        return _memId != NONE;
+        return  _memId != NONE;
+    }
+    public boolean HasBall(Ball ball)
+    {
+        return _memId == ball.Id();
+    }
+    public boolean HasBall(Ball.Name ball)
+    {
+        return _memName == ball;
     }
     public boolean HasPurpleBall()
     {

@@ -1,88 +1,91 @@
-package org.woen.modules.storage;
+package org.woen.modules.storage
 
-import barrel.enumerators.Ball;
-import barrel.enumerators.StorageSlot;
+import barrel.enumerators.Ball
+import barrel.enumerators.StorageSlot
 
 
-
-public class MobileSlot
+class MobileSlot
 {
-    private StorageSlot _slotState = new StorageSlot();
-    private Ball _ball = new Ball();
+    private val _slotState = StorageSlot()
+    private val _ball: Ball = Ball()
 
 
 
-    public void SetSlot(StorageSlot.Name newSlot)
+    fun SetSlot(newSlot: StorageSlot.Name)
     {
-        _slotState.Set(newSlot);
+        _slotState.Set(newSlot)
     }
-    public void MoveSlot()
+    fun MoveSlot()
     {
-        if  (_slotState.Is_MOBILE_OUT())
-             _slotState.Set(StorageSlot.Name.MOBILE_IN, StorageSlot.MOBILE_IN);
-        else _slotState.Set(StorageSlot.Name.MOBILE_OUT, StorageSlot.MOBILE_OUT);
-    }
-
-    public void FillSlot(Ball.Name ball)
-    {
-        _ball.Set(ball);
-    }
-    public void EmptySlot()
-    {
-        _ball.Empty();
+        if (_slotState.Is_MOBILE_OUT()) _slotState.Set(
+            StorageSlot.Name.MOBILE_IN,
+            StorageSlot.MOBILE_IN
+        )
+        else _slotState.Set(StorageSlot.Name.MOBILE_OUT, StorageSlot.MOBILE_OUT)
     }
 
-
-
-
-    public StorageSlot SlotState() {
-        return _slotState;
-    }
-    public int SlotStateId()
+    fun FillSlot(ball: Ball.Name)
     {
-        return _slotState.Id();
+        _ball.Set(ball)
     }
-    public StorageSlot.Name SlotStateName()
+    fun EmptySlot()
     {
-        return _slotState.Name();
-    }
-
-    public boolean IsSlotOut()
-    {
-        return _slotState.Is_MOBILE_OUT();
-    }
-    public boolean IsSlotIn()
-    {
-        return _slotState.Is_MOBILE_IN();
+        _ball.Empty()
     }
 
 
 
-    public Ball Ball()
+    fun SlotState(): StorageSlot
     {
-        return _ball;
+        return _slotState
     }
-    public int  BallId()
+    fun SlotStateId(): Int
     {
-        return _ball.Id();
+        return _slotState.Id()
     }
-    public Ball.Name BallName()
+    fun SlotStateName(): StorageSlot.Name
     {
-        return _ball.Name();
+        return _slotState.Name()
     }
-    public boolean IsEmpty()
+
+    fun IsSlotOut(): Boolean
     {
-        return _ball.IsEmpty();
+        return _slotState.Is_MOBILE_OUT()
     }
-    public boolean IsFilled()
+    fun IsSlotIn(): Boolean
     {
-        return _ball.IsFilled();
+        return _slotState.Is_MOBILE_IN()
     }
 
 
 
-    public int Count()
+    fun Ball(): Ball
     {
-        return _ball.Id() == 0 ? 0 : 1;
+        return _ball
+    }
+    fun BallId(): Int
+    {
+        return _ball.Id()
+    }
+    fun BallName(): Ball.Name
+    {
+        return _ball.Name()
+    }
+
+
+    fun IsEmpty(): Boolean
+    {
+        return _ball.IsEmpty()
+    }
+    fun IsFilled(): Boolean
+    {
+        return _ball.IsFilled()
+    }
+
+
+
+    fun Count(): Int
+    {
+        return if (_ball.Id() == 0) 0 else 1
     }
 }

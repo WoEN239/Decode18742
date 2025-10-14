@@ -1,15 +1,29 @@
 package org.woen.modules.storage
 
 import barrel.enumerators.Ball
+import barrel.enumerators.RunStatus
 
 class Storage
 {
-    private var storageCells: Array<Ball>;
+    private var _runStatus = RunStatus();
+    private var _storageCells: StorageCells = StorageCells();
+    //!  private HardwareStorage hwStorage
 
-    init {
-        storageCells = arrayOf(Ball(), Ball(), Ball(), Ball())
+
+
+
+
+    fun Start()
+    {
+        if (_runStatus.Name() != RunStatus.Name.PAUSE)
+            _runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE);
     }
+    init
+    {
+        TODO("Add hardware initialisation logic")
 
-
-
+        //_hwStorage = HardwareStorage(deviceName, direction);
+        //_hwStorage.init(hwMap);
+        //HardwareThreads.getLAZY_INSTANCE().getEXPANSION().addDevices(_hwStorage);
+    }
 }

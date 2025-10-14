@@ -42,14 +42,14 @@ class Barrel
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
                 _intakeRunStatus.SetTermination(
-                    RunStatus.DO_TERMINATE(),
+                    RunStatus.DO_TERMINATE,
                     RunStatus.TerminationStatus.DO_TERMINATE
                 )
             }
         )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
                 _requestRunStatus.SetTermination(
-                    RunStatus.DO_TERMINATE(),
+                    RunStatus.DO_TERMINATE,
                     RunStatus.TerminationStatus.DO_TERMINATE
                 )
             }
@@ -73,14 +73,14 @@ class Barrel
     }
     fun Start()
     {
-        if (_runStatus.Id()() != RunStatus.PAUSE())
-            _runStatus.Set(RunStatus.Name.ACTIVE,RunStatus.ACTIVE())
+        if (_runStatus.Id() != RunStatus.PAUSE)
+            _runStatus.Set(RunStatus.Name.ACTIVE,RunStatus.ACTIVE)
 
-        if (_intakeRunStatus.GetTermination() == RunStatus.TerminationStatus.IS_INACTIVE)
-            _intakeRunStatus.SetTermination(RunStatus.IS_ACTIVE(), RunStatus.TerminationStatus.IS_ACTIVE)
+        if (_intakeRunStatus.Termination() == RunStatus.TerminationStatus.IS_INACTIVE)
+            _intakeRunStatus.SetTermination(RunStatus.IS_ACTIVE, RunStatus.TerminationStatus.IS_ACTIVE)
 
-        if (_requestRunStatus.GetTermination() == RunStatus.TerminationStatus.IS_INACTIVE)
-            _requestRunStatus.SetTermination(RunStatus.IS_ACTIVE(), RunStatus.TerminationStatus.IS_ACTIVE)
+        if (_requestRunStatus.Termination() == RunStatus.TerminationStatus.IS_INACTIVE)
+            _requestRunStatus.SetTermination(RunStatus.IS_ACTIVE, RunStatus.TerminationStatus.IS_ACTIVE)
     }
 
 
@@ -97,7 +97,7 @@ class Barrel
 
                 if (DoTerminateIntake()) return TerminateIntake()
             if (!UpdateAfterInput(intakeResult, inputBall))  //  Safe updating after intake
-                intakeResult.Set(IntakeResult.Name.FAIL_UNKNOWN, IntakeResult.FAIL_UNKNOWN())
+                intakeResult.Set(IntakeResult.Name.FAIL_UNKNOWN, IntakeResult.FAIL_UNKNOWN)
 
             return if (intakeResult.DidSucceed()) IntakeResult.Name.SUCCESS else intakeResult.Name()
         }
@@ -131,34 +131,34 @@ class Barrel
     }
     private fun RealignToIntake(): Double
     {
-        if (_storageOffset.Id()() == StorageOffset.CCW_60()) return CW_60
-        else if (_storageOffset.Id()() == StorageOffset.CW_60()) return CCW_60
+        if (_storageOffset.Id() == StorageOffset.CCW_60) return CW_60
+        else if (_storageOffset.Id() == StorageOffset.CW_60) return CCW_60
         return 0.0
     }
     suspend private fun IntakeRaceConditionIsPresent(): Boolean
     {
-        if (_runStatus.Id()() == RunStatus.ACTIVE())
+        if (_runStatus.Id() == RunStatus.ACTIVE)
         {
             StopAnyLogic()
-            _intakeRunStatus.Set(RunStatus.PAUSE(), RunStatus.Name.PAUSE)
+            _intakeRunStatus.Set(RunStatus.PAUSE, RunStatus.Name.PAUSE)
 
             delay(2)  //!  need to calibrate this delay for maximum efficiency
-            return _intakeRunStatus.Id()() == RunStatus.PAUSE()
+            return _intakeRunStatus.Id() == RunStatus.PAUSE
         }
         return true;
     }
     private fun DoTerminateIntake(): Boolean
     {
-        return _intakeRunStatus.GetTerminationId() == RunStatus.DO_TERMINATE()
+        return _intakeRunStatus.TerminationId() == RunStatus.DO_TERMINATE
     }
     private fun TerminateIntake(): IntakeResult.Name
     {
         _intakeRunStatus.SetTermination(
-            RunStatus.IS_ACTIVE(),
+            RunStatus.IS_ACTIVE,
             RunStatus.TerminationStatus.IS_ACTIVE
         )
 
-        return IntakeResult.Name.PROCESS_WAS_TERMINATED;
+        return IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED;
     }
 
 
@@ -193,35 +193,35 @@ class Barrel
     {
         if (requestResult.DidFail()) return false
 
-        if (requestResult.Id()() == RequestResult.SUCCESS_RIGHT())      //  Goal: CCW_60
+        if (requestResult.Id() == RequestResult.SUCCESS_RIGHT)      //  Goal: CCW_60
         {
-            if (_storageOffset.Id()() == StorageOffset.CW_60())
+            if (_storageOffset.Id() == StorageOffset.CW_60)
             {
                 _barrelMotor.Rotate(CCW_120)
-                _storageOffset.Set(StorageOffset.Name.CCW_60, StorageOffset.CCW_60())
+                _storageOffset.Set(StorageOffset.Name.CCW_60, StorageOffset.CCW_60)
             }
-            else if (_storageOffset.Id()() == StorageOffset.NONE())
+            else if (_storageOffset.Id() == StorageOffset.NONE)
             {
                 _barrelMotor.Rotate(CCW_60)
-                _storageOffset.Set(StorageOffset.Name.CCW_60, StorageOffset.CCW_60())
+                _storageOffset.Set(StorageOffset.Name.CCW_60, StorageOffset.CCW_60)
             }
         }
-        else if (requestResult.Id()() == RequestResult.SUCCESS_LEFT())  //  Goal: CW_60
+        else if (requestResult.Id() == RequestResult.SUCCESS_LEFT)  //  Goal: CW_60
         {
-            if (_storageOffset.Id()() == StorageOffset.CCW_60())
+            if (_storageOffset.Id() == StorageOffset.CCW_60)
             {
                 _barrelMotor.Rotate(CW_120)
-                _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60())
+                _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60)
             }
-            else if (_storageOffset.Id()() == StorageOffset.NONE())
+            else if (_storageOffset.Id() == StorageOffset.NONE)
             {
                 _barrelMotor.Rotate(CW_60)
-                _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60())
+                _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60)
             }
         }
         else  //  SUCCESS_CENTER
         {
-            if (_storageOffset.Id()() == StorageOffset.CCW_60())
+            if (_storageOffset.Id() == StorageOffset.CCW_60)
             {
                 _barrelMotor.Rotate(CCW_120)
                 _storage.RotateCCW()
@@ -229,12 +229,12 @@ class Barrel
             else
             {
                 var delta: Double = CW_120;
-                if (_storageOffset.Id()() == StorageOffset.NONE())
+                if (_storageOffset.Id() == StorageOffset.NONE)
                     delta += CW_60;
 
                 _barrelMotor.Rotate(delta)
                 _storage.RotateCW()
-                _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60())
+                _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60)
             }
         }
 
@@ -243,28 +243,28 @@ class Barrel
     }
     private suspend fun RequestRaceConditionIsPresent(): Boolean
     {
-        if (_runStatus.Id()() == RunStatus.ACTIVE())
+        if (_runStatus.Id() == RunStatus.ACTIVE)
         {
             StopAnyLogic()
-            _intakeRunStatus.Set(RunStatus.PAUSE(), RunStatus.Name.PAUSE)
+            _intakeRunStatus.Set(RunStatus.PAUSE, RunStatus.Name.PAUSE)
 
             delay(2)  //!  need to calibrate this delay for maximum efficiency
-            return _requestRunStatus.Id()() == RunStatus.PAUSE()
+            return _requestRunStatus.Id() == RunStatus.PAUSE
         }
         return true;
     }
     private fun DoTerminateRequest(): Boolean
     {
-        return _requestRunStatus.GetTerminationId() == RunStatus.DO_TERMINATE()
+        return _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
     }
     private fun TerminateRequest(): RequestResult.Name
     {
         _requestRunStatus.SetTermination(
-            RunStatus.IS_ACTIVE(),
+            RunStatus.IS_ACTIVE,
             RunStatus.TerminationStatus.IS_ACTIVE
         )
 
-        return RequestResult.Name.PROCESS_WAS_TERMINATED;
+        return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED;
     }
 
 
@@ -532,10 +532,10 @@ class Barrel
     }
     fun ResumeLogic()
     {
-        _runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE())
+        _runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
 
-        _intakeRunStatus.Set(RunStatus.ACTIVE(), RunStatus.Name.ACTIVE)
-        _requestRunStatus.Set(RunStatus.ACTIVE(), RunStatus.Name.ACTIVE)
+        _intakeRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
+        _requestRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
     }
 }
 */

@@ -1,5 +1,6 @@
-/*package barrel;
+package barrel;
 
+/*
 import org.woen.threading.ThreadedEventBus;
 import org.woen.threading.hardware.HardwareThreads;
 
@@ -38,7 +39,7 @@ public class Barrel
     public void Start()
     {
         if (_runStatus.Name() != RunStatus.Name.PAUSE)
-            _runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE());
+            _runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE);
     }
 
 
@@ -52,7 +53,7 @@ public class Barrel
 
             //  Safe updating after intake
             if (!UpdateAfterInput(intakeResult, inputBall))
-                intakeResult.Set(IntakeResult.Name.FAIL_UNKNOWN, IntakeResult.FAIL_UNKNOWN());
+                intakeResult.Set(IntakeResult.Name.FAIL_UNKNOWN, IntakeResult.FAIL_UNKNOWN);
 
             return intakeResult.DidSucceed() ? IntakeResult.Name.SUCCESS : intakeResult.Name();
         }

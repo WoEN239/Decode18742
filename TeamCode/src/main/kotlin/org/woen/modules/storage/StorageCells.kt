@@ -6,9 +6,11 @@ import barrel.enumerators.IntakeResult
 import barrel.enumerators.RequestResult
 import barrel.enumerators.StorageSlot
 
-/*   IMPORTANT NOTE TO HOW THE STORAGE IS CONFIGURED:
+
+
+/*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
  *
- *   //  The mobile slot is a combined unit
+ *   //  The MobileSlot is a combined unit
  *   //  It behaves and is treated as one slot,
  *   //  => there CAN NOT be balls in both position
  *
@@ -31,10 +33,10 @@ import barrel.enumerators.StorageSlot
  */
 
 
+
 class StorageCells
 {
-    private val _storageCells: Array<Ball?> = //!  TODO (fix this dumb kotlin thing)
-        arrayOfNulls<Ball?>(4) //  0-Bottom, 1-center, 2-mobile_out, 3-mobile_in
+    private val _storageCells: Array<Ball> = Array(4) { Ball() }
     private val _mobileSlot: MobileSlot = MobileSlot()
 
 
@@ -46,7 +48,7 @@ class StorageCells
         var i = StorageSlot.BOTTOM
         while (i < StorageSlot.MOBILE_IN)
         {
-            if (_storageCells[i]!!.IsEmpty())
+            if (_storageCells[i].IsEmpty())
             {
                 result.Set(i)
                 i += 2 //  Fast break, preferring closest slot to intake
@@ -70,9 +72,7 @@ class StorageCells
 
             val requestResult = RequestSearch(Ball.Name.PURPLE)
             if (requestResult.Id() == RequestResult.FAIL_COLOR_NOT_PRESENT)
-                return RequestSearch(
-                    Ball.Name.GREEN
-                )
+                return RequestSearch(Ball.Name.GREEN)
 
             return requestResult
         }
@@ -88,7 +88,7 @@ class StorageCells
         var i = StorageSlot.BOTTOM
         while (i < StorageSlot.MOBILE)
         {
-            if (_storageCells[i]!!.Name() == requested)
+            if (_storageCells[i].Name() == requested)
             {
                 result.Set(i)
                 if (i != StorageSlot.BOTTOM) i += 3 //  Fast break
@@ -104,16 +104,16 @@ class StorageCells
 
     fun UpdateAfterIntake(inputBall: Ball.Name): Boolean
     {
-        val intakeCondition = _storageCells[StorageSlot.BOTTOM]!!.IsEmpty()
+        val intakeCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
 
-        if (intakeCondition) _storageCells[StorageSlot.BOTTOM]!!.Set(inputBall)
+        if (intakeCondition)  _storageCells[StorageSlot.BOTTOM].Set(inputBall)
         return intakeCondition
     }
     fun UpdateAfterRequest(): Boolean
     {
-        val requestCondition = _storageCells[StorageSlot.MOBILE_OUT]!!.IsFilled()
+        val requestCondition = _storageCells[StorageSlot.MOBILE_OUT].IsFilled()
 
-        if (requestCondition) _storageCells[StorageSlot.MOBILE_OUT]!!.Empty()
+        if (requestCondition)  _storageCells[StorageSlot.MOBILE_OUT].Empty()
         return requestCondition
     }
 
@@ -123,7 +123,7 @@ class StorageCells
     {
         val buffer = _storageCells[StorageSlot.MOBILE_IN]
 
-        _storageCells[StorageSlot.MOBILE_IN] = _storageCells[StorageSlot.MOBILE_OUT]
+        _storageCells[StorageSlot.MOBILE_IN]  = _storageCells[StorageSlot.MOBILE_OUT]
         _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
         _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
         _storageCells[StorageSlot.BOTTOM] = buffer
@@ -133,7 +133,7 @@ class StorageCells
     }
     fun Partial1RotateCW(): Boolean
     {
-        val rotationCondition = _storageCells[StorageSlot.CENTER]!!.IsEmpty()
+        val rotationCondition = _storageCells[StorageSlot.CENTER].IsEmpty()
 
         if (rotationCondition)
         {
@@ -145,7 +145,7 @@ class StorageCells
     }
     fun Partial2RotateCW(): Boolean
     {
-        val rotationCondition = _storageCells[StorageSlot.MOBILE_OUT]!!.IsEmpty()
+        val rotationCondition = _storageCells[StorageSlot.MOBILE_OUT].IsEmpty()
 
         if (rotationCondition)
         {
@@ -158,11 +158,11 @@ class StorageCells
     }
     fun Partial3RotateCW(): Boolean
     {
-        val rotationCondition = _storageCells[StorageSlot.MOBILE_IN]!!.IsEmpty()
+        val rotationCondition = _storageCells[StorageSlot.MOBILE_IN].IsEmpty()
 
         if (rotationCondition)
         {
-            _storageCells[StorageSlot.MOBILE_IN] = _storageCells[StorageSlot.MOBILE_OUT]
+            _storageCells[StorageSlot.MOBILE_IN]  = _storageCells[StorageSlot.MOBILE_OUT]
             _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
 
@@ -179,7 +179,7 @@ class StorageCells
 
     fun Partial1RotateCCW(): Boolean
     {
-        val rotationCondition = _storageCells[StorageSlot.BOTTOM]!!.IsEmpty()
+        val rotationCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
 
         if (rotationCondition)
         {
@@ -191,7 +191,7 @@ class StorageCells
     }
     fun Partial2RotateCCW(): Boolean
     {
-        val rotationCondition = _storageCells[StorageSlot.BOTTOM]!!.IsEmpty()
+        val rotationCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
 
         if (rotationCondition)
         {
@@ -204,7 +204,7 @@ class StorageCells
     }
     fun Partial3RotateCCW(): Boolean
     {
-        val rotationCondition = _storageCells[StorageSlot.BOTTOM]!!.IsEmpty()
+        val rotationCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
 
         if (rotationCondition)
         {
@@ -219,13 +219,13 @@ class StorageCells
 
 
 
-    fun StorageRaw(): Array<Ball?>
+    fun StorageRaw(): Array<Ball>
     {
         return _storageCells
     }
-    fun StorageFiltered(): Array<Ball?>
+    fun StorageFiltered(): Array<Ball>
     {
-        return arrayOf<Ball?>(
+        return arrayOf<Ball>(
             _storageCells[StorageSlot.BOTTOM],
             _storageCells[StorageSlot.CENTER],
             _mobileSlot.Ball()
@@ -238,7 +238,7 @@ class StorageCells
 
         if (_mobileSlot.IsFilled()) count++
         for (slotId in StorageSlot.BOTTOM..<StorageSlot.MOBILE_OUT)
-            if (_storageCells[slotId]!!.IsFilled()) count++
+            if (_storageCells[slotId].HasBall()) count++
 
         return count
     }
@@ -248,17 +248,17 @@ class StorageCells
 
         if (_mobileSlot.BallName() == ball) count++
         for (slotId in StorageSlot.BOTTOM..<StorageSlot.MOBILE_OUT)
-            if (_storageCells[slotId]!!.Name() == ball) count++
+            if (_storageCells[slotId].HasBall(ball)) count++
 
         return count
     }
-    fun BallColorCountPG(): IntArray?
+    fun BallColorCountPG(): IntArray
     {
         val countPG = intArrayOf(0, 0, 0)
 
         countPG[_mobileSlot.BallId()]++
         for (i in StorageSlot.BOTTOM..<StorageSlot.MOBILE_OUT)
-            countPG[_storageCells[i]!!.Id()]++
+            countPG[_storageCells[i].Id()]++
 
         return intArrayOf(countPG[Ball.PURPLE], countPG[Ball.GREEN])
     }
