@@ -92,19 +92,19 @@ public class RunStatus
     }
 
 
-    public Name GetName()
+    public Name Name()
     {
         return _memName;
     }
-    public int  GetId()
+    public int  Id()
     {
         return _memId;
     }
-    public TerminationStatus GetTermination()
+    public TerminationStatus Termination()
     {
         return _terminationStatus;
     }
-    public int GetTerminationId()
+    public int TerminationId()
     {
         return _terminationId;
     }

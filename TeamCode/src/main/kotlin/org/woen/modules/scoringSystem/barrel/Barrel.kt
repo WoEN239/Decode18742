@@ -73,7 +73,7 @@ class Barrel
     }
     fun Start()
     {
-        if (_runStatus.GetId() != RunStatus.PAUSE())
+        if (_runStatus.Id()() != RunStatus.PAUSE())
             _runStatus.Set(RunStatus.Name.ACTIVE,RunStatus.ACTIVE())
 
         if (_intakeRunStatus.GetTermination() == RunStatus.TerminationStatus.IS_INACTIVE)
@@ -99,7 +99,7 @@ class Barrel
             if (!UpdateAfterInput(intakeResult, inputBall))  //  Safe updating after intake
                 intakeResult.Set(IntakeResult.Name.FAIL_UNKNOWN, IntakeResult.FAIL_UNKNOWN())
 
-            return if (intakeResult.DidSucceed()) IntakeResult.Name.SUCCESS else intakeResult.GetName()
+            return if (intakeResult.DidSucceed()) IntakeResult.Name.SUCCESS else intakeResult.Name()
         }
 
         ResumeLogic()
@@ -107,7 +107,7 @@ class Barrel
     }
     private fun UpdateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name?): Boolean
     {
-        val name = intakeResult.GetName()
+        val name = intakeResult.Name()
         if (IntakeResult.DidFail(name)) return false //  Intake failed
 
         //  Align center slot to be empty
@@ -131,19 +131,19 @@ class Barrel
     }
     private fun RealignToIntake(): Double
     {
-        if (_storageOffset.GetId() == StorageOffset.CCW_60()) return CW_60
-        else if (_storageOffset.GetId() == StorageOffset.CW_60()) return CCW_60
+        if (_storageOffset.Id()() == StorageOffset.CCW_60()) return CW_60
+        else if (_storageOffset.Id()() == StorageOffset.CW_60()) return CCW_60
         return 0.0
     }
     suspend private fun IntakeRaceConditionIsPresent(): Boolean
     {
-        if (_runStatus.GetId() == RunStatus.ACTIVE())
+        if (_runStatus.Id()() == RunStatus.ACTIVE())
         {
             StopAnyLogic()
             _intakeRunStatus.Set(RunStatus.PAUSE(), RunStatus.Name.PAUSE)
 
             delay(2)  //!  need to calibrate this delay for maximum efficiency
-            return _intakeRunStatus.GetId() == RunStatus.PAUSE()
+            return _intakeRunStatus.Id()() == RunStatus.PAUSE()
         }
         return true;
     }
@@ -187,33 +187,33 @@ class Barrel
         return if (requestResult.DidSucceed())
             if (_storage.AnyBallCount() > 0) RequestResult.Name.SUCCESS
             else RequestResult.Name.SUCCESS_IS_NOW_EMPTY
-        else requestResult.GetName()
+        else requestResult.Name()
     }
     private fun UpdateAfterRequest(requestResult: RequestResult): Boolean
     {
         if (requestResult.DidFail()) return false
 
-        if (requestResult.GetId() == RequestResult.SUCCESS_RIGHT())      //  Goal: CCW_60
+        if (requestResult.Id()() == RequestResult.SUCCESS_RIGHT())      //  Goal: CCW_60
         {
-            if (_storageOffset.GetId() == StorageOffset.CW_60())
+            if (_storageOffset.Id()() == StorageOffset.CW_60())
             {
                 _barrelMotor.Rotate(CCW_120)
                 _storageOffset.Set(StorageOffset.Name.CCW_60, StorageOffset.CCW_60())
             }
-            else if (_storageOffset.GetId() == StorageOffset.NONE())
+            else if (_storageOffset.Id()() == StorageOffset.NONE())
             {
                 _barrelMotor.Rotate(CCW_60)
                 _storageOffset.Set(StorageOffset.Name.CCW_60, StorageOffset.CCW_60())
             }
         }
-        else if (requestResult.GetId() == RequestResult.SUCCESS_LEFT())  //  Goal: CW_60
+        else if (requestResult.Id()() == RequestResult.SUCCESS_LEFT())  //  Goal: CW_60
         {
-            if (_storageOffset.GetId() == StorageOffset.CCW_60())
+            if (_storageOffset.Id()() == StorageOffset.CCW_60())
             {
                 _barrelMotor.Rotate(CW_120)
                 _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60())
             }
-            else if (_storageOffset.GetId() == StorageOffset.NONE())
+            else if (_storageOffset.Id()() == StorageOffset.NONE())
             {
                 _barrelMotor.Rotate(CW_60)
                 _storageOffset.Set(StorageOffset.Name.CW_60, StorageOffset.CW_60())
@@ -221,7 +221,7 @@ class Barrel
         }
         else  //  SUCCESS_CENTER
         {
-            if (_storageOffset.GetId() == StorageOffset.CCW_60())
+            if (_storageOffset.Id()() == StorageOffset.CCW_60())
             {
                 _barrelMotor.Rotate(CCW_120)
                 _storage.RotateCCW()
@@ -229,7 +229,7 @@ class Barrel
             else
             {
                 var delta: Double = CW_120;
-                if (_storageOffset.GetId() == StorageOffset.NONE())
+                if (_storageOffset.Id()() == StorageOffset.NONE())
                     delta += CW_60;
 
                 _barrelMotor.Rotate(delta)
@@ -243,13 +243,13 @@ class Barrel
     }
     private suspend fun RequestRaceConditionIsPresent(): Boolean
     {
-        if (_runStatus.GetId() == RunStatus.ACTIVE())
+        if (_runStatus.Id()() == RunStatus.ACTIVE())
         {
             StopAnyLogic()
             _intakeRunStatus.Set(RunStatus.PAUSE(), RunStatus.Name.PAUSE)
 
             delay(2)  //!  need to calibrate this delay for maximum efficiency
-            return _requestRunStatus.GetId() == RunStatus.PAUSE()
+            return _requestRunStatus.Id()() == RunStatus.PAUSE()
         }
         return true;
     }

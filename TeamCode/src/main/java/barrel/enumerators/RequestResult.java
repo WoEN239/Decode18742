@@ -72,11 +72,11 @@ public class RequestResult
     }
 
 
-    public Name GetName()
+    public Name Name()
     {
         return _memName;
     }
-    public int  GetId()
+    public int  Id()
     {
         return _memId;
     }

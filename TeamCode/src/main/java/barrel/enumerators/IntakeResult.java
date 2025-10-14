@@ -69,16 +69,25 @@ public class IntakeResult
     }
 
 
-    public Name GetName()
+    public Name Name()
     {
         return _memName;
     }
-    public int  GetId()
+    public int  Id()
     {
         return _memId;
     }
 
 
+
+    public boolean SolutionIsMobileOut()
+    {
+        return _memId == SUCCESS_MOBILE_OUT;
+    }
+    public boolean SolutionIsMobileSlot()
+    {
+        return _memId == SUCCESS_MOBILE_OUT || _memId == SUCCESS_MOBILE_OUT;
+    }
 
     public boolean DidFail()
     {

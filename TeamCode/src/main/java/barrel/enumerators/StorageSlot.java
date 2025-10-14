@@ -61,14 +61,24 @@ public class StorageSlot
     }
 
 
-    public Name GetName()
+    public Name Name()
     {
         return _memName;
     }
-    public int GetId()
+    public int Id()
     {
         return _memId;
     }
+
+    public boolean Is_MOBILE_OUT()
+    {
+        return _memId == MOBILE_OUT;
+    }
+    public boolean Is_MOBILE_IN()
+    {
+        return _memId == MOBILE_IN;
+    }
+
 
 
     static public Name ToName (int value)

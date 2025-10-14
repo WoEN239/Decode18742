@@ -37,7 +37,7 @@ public class Barrel
     }
     public void Start()
     {
-        if (_runStatus.GetName() != RunStatus.Name.PAUSE)
+        if (_runStatus.Name() != RunStatus.Name.PAUSE)
             _runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE());
     }
 
@@ -45,7 +45,7 @@ public class Barrel
 
     public IntakeResult.Name HandleInput(Ball.Name inputBall)
     {
-        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
+        if (_runStatus.Name() == RunStatus.Name.ACTIVE)
         {
             //  Storage search for empty slots
             IntakeResult intakeResult = _storage.HandleInput();
@@ -54,18 +54,18 @@ public class Barrel
             if (!UpdateAfterInput(intakeResult, inputBall))
                 intakeResult.Set(IntakeResult.Name.FAIL_UNKNOWN, IntakeResult.FAIL_UNKNOWN());
 
-            return intakeResult.DidSucceed() ? IntakeResult.Name.SUCCESS : intakeResult.GetName();
+            return intakeResult.DidSucceed() ? IntakeResult.Name.SUCCESS : intakeResult.Name();
         }
 
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY;
     }
     public IntakeResult.Name HandleInput(Ball inputBall)
     {
-        return HandleInput(inputBall.GetName());
+        return HandleInput(inputBall.Name());
     }
     private boolean UpdateAfterInput(IntakeResult intakeResult, Ball.Name inputBall)
     {
-        IntakeResult.Name name = intakeResult.GetName();
+        IntakeResult.Name name = intakeResult.Name();
 
         if (name == IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY ||
             name == IntakeResult.Name.FAIL_STORAGE_IS_FULL ||
@@ -91,7 +91,7 @@ public class Barrel
 
     public RequestResult.Name HandleRequest(BallRequest.Name request)
     {
-        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
+        if (_runStatus.Name() == RunStatus.Name.ACTIVE)
         {
             StopAnyLogic();
 
@@ -106,25 +106,25 @@ public class Barrel
             ResumeLogic();
             return requestResult.DidSucceed() ? _storage.AnyBallCount() > 0 ?
                             RequestResult.Name.SUCCESS : RequestResult.Name.SUCCESS_IS_NOW_EMPTY
-                    : requestResult.GetName();
+                    : requestResult.Name();
         }
 
         return RequestResult.Name.FAIL_IS_CURRENTLY_BUSY;
     }
     public RequestResult.Name HandleRequest(BallRequest request)
     {
-        return HandleRequest(request.GetName());
+        return HandleRequest(request.Name());
     }
     private boolean UpdateAfterRequest(RequestResult requestResult)
     {
         if (requestResult.DidFail()) return false;
 
-        if (requestResult.GetName() == RequestResult.Name.SUCCESS_RIGHT)
+        if (requestResult.Name() == RequestResult.Name.SUCCESS_RIGHT)
         {
             _barrelMotor.Rotate(CCW_120);
             _storage.RotateCCW();
         }
-        else if (requestResult.GetName() == RequestResult.Name.SUCCESS_CENTER)
+        else if (requestResult.Name() == RequestResult.Name.SUCCESS_CENTER)
         {
             _barrelMotor.Rotate(CW_120);
             _storage.RotateCW();
@@ -139,7 +139,7 @@ public class Barrel
 
     public RequestResult.Name ShootEntireDrumRequest()
     {
-        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
+        if (_runStatus.Name() == RunStatus.Name.ACTIVE)
         {
             StopAnyLogic();
             ShootEverything();
@@ -157,7 +157,7 @@ public class Barrel
     }
     public RequestResult.Name ShootEntireDrumRequest(BallRequest.Name[] requestOrder, BallRequest.Name[] failsafeOrder, ShotType shotType)
     {
-        if (_runStatus.GetName() == RunStatus.Name.ACTIVE)
+        if (_runStatus.Name() == RunStatus.Name.ACTIVE)
         {
             StopAnyLogic();
 

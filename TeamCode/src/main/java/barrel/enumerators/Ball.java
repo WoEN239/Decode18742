@@ -27,7 +27,7 @@ public class Ball
     }
     public Ball()
     {
-        Set(Name.NONE, NONE);
+        Empty();
     }
     public enum Name
     {
@@ -37,6 +37,11 @@ public class Ball
     }
 
 
+
+    public void Empty()
+    {
+        Set(Name.NONE, NONE);
+    }
 
     public void Set(int value)
     {
@@ -57,13 +62,34 @@ public class Ball
     }
 
 
-    public Name GetName()
+    public Name Name()
     {
         return _memName;
     }
-    public int  GetId()
+    public int  Id()
     {
         return _memId;
+    }
+
+    public boolean IsFilled()
+    {
+        return _memId != NONE;
+    }
+    public boolean HasBall()
+    {
+        return _memId != NONE;
+    }
+    public boolean HasPurpleBall()
+    {
+        return _memId == PURPLE;
+    }
+    public boolean HasGreenBall()
+    {
+        return  _memId == GREEN;
+    }
+    public boolean IsEmpty()
+    {
+        return _memId == NONE;
     }
 
 
