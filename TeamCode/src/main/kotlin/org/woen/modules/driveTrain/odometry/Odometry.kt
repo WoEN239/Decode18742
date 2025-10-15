@@ -19,6 +19,7 @@ import org.woen.utils.units.Color
 import org.woen.utils.units.Line
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
 import kotlin.math.cos
@@ -154,8 +155,10 @@ class Odometry : IModule {
                     val cornerLeftBack = _currentOrientation.pos + Vec2(-halfSize.x, -halfSize.y)
                         .turn(_currentOrientation.angle)
 
-                    val robotPoints = arrayOf(cornerLeftBack, cornerRightBack,
-                        cornerRightForward, cornerLeftForward)
+                    val robotPoints = arrayOf(
+                        cornerLeftBack, cornerRightBack,
+                        cornerRightForward, cornerLeftForward
+                    )
 
                     val robotLines = arrayOf(
                         Line(cornerLeftForward, cornerRightForward),
@@ -170,13 +173,15 @@ class Odometry : IModule {
                                 if (!l.isIntersects(shootLine))
                                     continue
 
-                                if (l.isPointOnLine(l.getIntersects(shootLine)))
+                                val intersects = l.getIntersects(shootLine)
+
+                                if (l.isPointOnLine(intersects) && shootLine.isPointOnLine(intersects))
                                     return true
                             }
                         }
 
-                        for(robotPoint in robotPoints)
-                            if(shootTriangle.isPointLocated(robotPoint))
+                        for (robotPoint in robotPoints)
+                            if (shootTriangle.isPointLocated(robotPoint))
                                 return true
                     }
 
@@ -215,7 +220,7 @@ class Odometry : IModule {
                     _currentOrientation.pos,
                     Configs.DRIVE_TRAIN.ROBOT_SIZE,
                     _currentOrientation.angle,
-                    if(_robotLocatedInShootingArea.get()) Color.GREEN else Color.RED
+                    if (_robotLocatedInShootingArea.get()) Color.GREEN else Color.RED
                 )
 
                 it.addData("orientation", _currentOrientation)

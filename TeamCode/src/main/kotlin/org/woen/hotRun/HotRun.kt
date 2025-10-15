@@ -37,14 +37,14 @@ class HotRun private constructor() {
                 _nullableInstance = null
             }
 
+            ThreadedTelemetry.restart()
             ThreadManager.restart()
             Camera.restart()
-            HardwareThreads.restart()
             ThreadedGamepad.restart()
-            ThreadedTelemetry.restart()
             ThreadedBattery.restart()
             ThreadedTimers.restart()
             ThreadedEventBus.restart()
+            HardwareThreads.restart()
         }
     }
 

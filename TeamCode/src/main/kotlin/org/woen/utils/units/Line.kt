@@ -1,5 +1,7 @@
 package org.woen.utils.units
 
+import org.woen.telemetry.ThreadedTelemetry
+
 data class Line(@JvmField val p1: Vec2, @JvmField val p2: Vec2) {
     fun isIntersects(l: Line) = k != l.k
 
