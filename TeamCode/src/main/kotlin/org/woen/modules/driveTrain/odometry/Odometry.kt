@@ -154,19 +154,30 @@ class Odometry : IModule {
                     val cornerLeftBack = _currentOrientation.pos + Vec2(-halfSize.x, -halfSize.y)
                         .turn(_currentOrientation.angle)
 
-                    val robotLines = arrayOf(Line(cornerLeftForward, cornerRightForward),
+                    val robotPoints = arrayOf(cornerLeftBack, cornerRightBack,
+                        cornerRightForward, cornerLeftForward)
+
+                    val robotLines = arrayOf(
+                        Line(cornerLeftForward, cornerRightForward),
                         Line(cornerRightBack, cornerRightForward),
                         Line(cornerRightBack, cornerLeftBack),
-                        Line(cornerLeftForward, cornerLeftBack))
+                        Line(cornerLeftForward, cornerLeftBack)
+                    )
 
-                    for (shootLine in Configs.DRIVE_TRAIN.SHOOTING_LINES) {
-                        for(l in robotLines){
-                            if(!l.isIntersects(shootLine))
-                                continue
+                    for (shootTriangle in Configs.DRIVE_TRAIN.SHOOT_TRIANGLES) {
+                        for (shootLine in shootTriangle.lines) {
+                            for (l in robotLines) {
+                                if (!l.isIntersects(shootLine))
+                                    continue
 
-                            if(l.isPointOnLine(l.getIntersects(shootLine)))
-                                return true
+                                if (l.isPointOnLine(l.getIntersects(shootLine)))
+                                    return true
+                            }
                         }
+
+                        for(robotPoint in robotPoints)
+                            if(shootTriangle.isPointLocated(robotPoint))
+                                return true
                     }
 
                     return false
@@ -176,8 +187,8 @@ class Odometry : IModule {
 
                 _robotLocatedInShootingArea.set(locate)
 
-                if(_oldRobotLocate != locate){
-                    if(locate)
+                if (_oldRobotLocate != locate) {
+                    if (locate)
                         ThreadedEventBus.LAZY_INSTANCE.invoke(RobotEnterShootingAreaEvent())
                     else
                         ThreadedEventBus.LAZY_INSTANCE.invoke(RobotExitShootingAreaEvent())

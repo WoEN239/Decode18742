@@ -118,10 +118,7 @@ object Configs {
         var ROBOT_SIZE = Vec2(0.2, 0.2)
 
         @JvmField
-        var SHOOTING_LINES = arrayOf<Line>()
-
-        @JvmField
-        var TRIANGLES = arrayOf<Triangle>()
+        var SHOOT_TRIANGLES = arrayOf<Triangle>()
     }
 
     @Config
