@@ -215,8 +215,9 @@ class Odometry : IModule {
                     _currentOrientation.pos,
                     Configs.DRIVE_TRAIN.ROBOT_SIZE,
                     _currentOrientation.angle,
-                    Color.RED
+                    if(_robotLocatedInShootingArea.get()) Color.GREEN else Color.RED
                 )
+
                 it.addData("orientation", _currentOrientation)
                 it.addData("vel", _currentVelocity)
                 it.addData("rotation vel", _currentRotationVelocity)

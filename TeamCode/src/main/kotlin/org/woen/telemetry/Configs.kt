@@ -115,7 +115,7 @@ object Configs {
         var POW_MOVE_ENABLED = true
 
         @JvmField
-        var ROBOT_SIZE = Vec2(0.2, 0.2)
+        var ROBOT_SIZE = Vec2(0.380, 0.364)
 
         @JvmField
         var SHOOT_TRIANGLES = arrayOf<Triangle>()
