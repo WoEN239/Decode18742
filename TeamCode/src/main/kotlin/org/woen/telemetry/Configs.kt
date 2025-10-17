@@ -165,6 +165,9 @@ object Configs {
 
         @JvmField
         var CAMERA_ENABLE = false
+
+        @JvmField
+        var CAMERA_TRIGGER_DISTANCE = 1.0
     }
 
     @Config

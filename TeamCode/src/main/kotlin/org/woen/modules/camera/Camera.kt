@@ -92,11 +92,16 @@ class Camera private constructor() : DisposableHandle {
                         rotatedPosVector.get(1).toDouble()
                     ).length()
 
-                    val fieldCameraPos = fieldTagPos.subtracted(rotatedPosVector)
+                    if(dist < Configs.CAMERA.CAMERA_TRIGGER_DISTANCE) {
+                        val fieldCameraPos = fieldTagPos.subtracted(rotatedPosVector)
 
-                    sum += Vec2(fieldCameraPos.get(0).toDouble(), fieldCameraPos.get(1).toDouble())
+                        sum += Vec2(
+                            fieldCameraPos.get(0).toDouble(),
+                            fieldCameraPos.get(1).toDouble()
+                        )
 
-                    suitableDetections++
+                        suitableDetections++
+                    }
                 }
             }
 
