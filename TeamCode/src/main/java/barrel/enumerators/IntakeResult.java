@@ -15,23 +15,23 @@ public class IntakeResult
 
     public IntakeResult(int value)
     {
-        Set(ToName(value), value);
+        Set(value, ToName(value));
     }
     public IntakeResult(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
     public IntakeResult(int value, Name name)
     {
-        Set(name, value);
+        Set(value, name);
     }
     public IntakeResult(Name name, int value)
     {
-        Set(name, value);
+        Set(value, name);
     }
     public IntakeResult()
     {
-        Set(Name.FAIL_UNKNOWN, FAIL_UNKNOWN);
+        Set(FAIL_UNKNOWN, Name.FAIL_UNKNOWN);
     }
 
 
@@ -50,19 +50,19 @@ public class IntakeResult
 
 
 
-    public void Set(int value)
-    {
-        Set(ToName(value), value);
-    }
     public void Set(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
-    public void Set(int value, Name name)
+    public void Set(int value)
     {
-        Set(name, value);
+        Set(value, ToName(value));
     }
     public void Set(Name name, int value)
+    {
+        Set(value, name);
+    }
+    public void Set(int value, Name name)
     {
         _memId = value;
         _memName = name;
@@ -86,7 +86,7 @@ public class IntakeResult
     }
     public boolean SolutionIsMobileSlot()
     {
-        return _memId == SUCCESS_MOBILE_OUT || _memId == SUCCESS_MOBILE_OUT;
+        return _memId == SUCCESS_MOBILE_OUT || _memId == SUCCESS_MOBILE_IN;
     }
 
     public boolean DidFail()

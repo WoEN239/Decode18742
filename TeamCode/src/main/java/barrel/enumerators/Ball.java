@@ -11,24 +11,26 @@ public class Ball
 
     public Ball(int value)
     {
-        Set(ToName(value), value);
+        Set(value, ToName(value));
     }
     public Ball(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
     public Ball(int value, Name name)
     {
-        Set(name, value);
+        Set(value, name);
     }
     public Ball(Name name, int value)
     {
-        Set(name, value);
+        Set(value, name);
     }
     public Ball()
     {
         Empty();
     }
+
+
     public enum Name
     {
         NONE,
@@ -40,26 +42,27 @@ public class Ball
 
     public void Empty()
     {
-        Set(Name.NONE, NONE);
+        Set(NONE, Name.NONE);
     }
 
-    public void Set(int value)
-    {
-        Set(ToName(value), value);
-    }
     public void Set(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
-    public void Set(int value, Name name)
+    public void Set(int value)
     {
-        Set(name, value);
+        Set(value, ToName(value));
     }
     public void Set(Name name, int value)
+    {
+        Set(value, name);
+    }
+    public void Set(int value, Name name)
     {
         _memId = value;
         _memName = name;
     }
+
 
 
     public Name Name()

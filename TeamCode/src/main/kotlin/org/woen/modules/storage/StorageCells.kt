@@ -43,7 +43,7 @@ class StorageCells
 
     fun HandleIntake(): IntakeResult
     {
-        val result = IntakeResult(IntakeResult.Name.FAIL_STORAGE_IS_FULL, IntakeResult.FAIL_STORAGE_IS_FULL)
+        val result = IntakeResult(IntakeResult.FAIL_STORAGE_IS_FULL, IntakeResult.Name.FAIL_STORAGE_IS_FULL)
 
         var i = StorageSlot.BOTTOM
         while (i < StorageSlot.MOBILE_IN)
@@ -57,8 +57,8 @@ class StorageCells
         }
         if (result.SolutionIsMobileOut() && _mobileSlot.IsFilled())
             return IntakeResult(
-                IntakeResult.Name.FAIL_STORAGE_IS_FULL,
-                IntakeResult.FAIL_STORAGE_IS_FULL
+                IntakeResult.FAIL_STORAGE_IS_FULL,
+                IntakeResult.Name.FAIL_STORAGE_IS_FULL
             )
 
         return result
@@ -81,8 +81,8 @@ class StorageCells
     private fun RequestSearch(requested: Ball.Name): RequestResult
     {
         val result = RequestResult(
-            RequestResult.Name.FAIL_COLOR_NOT_PRESENT,
-            RequestResult.FAIL_COLOR_NOT_PRESENT
+            RequestResult.FAIL_COLOR_NOT_PRESENT,
+            RequestResult.Name.FAIL_COLOR_NOT_PRESENT
         )
 
         var i = StorageSlot.BOTTOM
@@ -115,6 +115,12 @@ class StorageCells
 
         if (requestCondition)  _storageCells[StorageSlot.MOBILE_OUT].Empty()
         return requestCondition
+    }
+
+
+    fun FixStorageDesync()
+    {
+        TODO("Add storage recalibrations using in robot color sensors")
     }
 
 
@@ -225,7 +231,7 @@ class StorageCells
     }
     fun StorageFiltered(): Array<Ball>
     {
-        return arrayOf<Ball>(
+        return arrayOf(
             _storageCells[StorageSlot.BOTTOM],
             _storageCells[StorageSlot.CENTER],
             _mobileSlot.Ball()
@@ -296,7 +302,7 @@ class StorageCells
     }
     fun IsMobileSlotIn(): Boolean
     {
-        return _mobileSlot.IsSlotIn();
+        return _mobileSlot.IsSlotIn()
     }
 
 

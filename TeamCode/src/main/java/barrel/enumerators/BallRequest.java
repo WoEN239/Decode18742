@@ -11,23 +11,23 @@ public class BallRequest
 
     public BallRequest(int value)
     {
-        Set(ToName(value), value);
+        Set(value, ToName(value));
     }
     public BallRequest(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
     public BallRequest(int value, Name name)
     {
-        Set(name, value);
+        Set(value, name);
     }
     public BallRequest(Name name, int value)
     {
-        Set(name, value);
+        Set(value, name);
     }
     public BallRequest()
     {
-        Set(Name.NONE, NONE);
+        Set(NONE, Name.NONE);
     }
 
 
@@ -41,19 +41,19 @@ public class BallRequest
 
 
 
-    public void Set(int value)
-    {
-        Set(ToName(value), value);
-    }
     public void Set(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
-    public void Set(int value, Name name)
+    public void Set(int value)
     {
-        Set(name, value);
+        Set(value, ToName(value));
     }
     public void Set(Name name, int value)
+    {
+        Set(value, name);
+    }
+    public void Set(int value, Name name)
     {
         _memId = value;
         _memName = name;

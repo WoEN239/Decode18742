@@ -13,27 +13,27 @@ public class RunStatus
 
     public RunStatus(int value)
     {
-        SetTermination(TerminationStatus.IS_INACTIVE, IS_INACTIVE);
+        SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
         Set(ToName(value), value);
     }
     public RunStatus(Name name)
     {
-        SetTermination(TerminationStatus.IS_INACTIVE, IS_INACTIVE);
+        SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
         Set(name, ToInt(name));
     }
     public RunStatus(int value, Name name)
     {
-        SetTermination(TerminationStatus.IS_INACTIVE, IS_INACTIVE);
+        SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
         Set(name, value);
     }
     public RunStatus(Name name, int value)
     {
-        SetTermination(TerminationStatus.IS_INACTIVE, IS_INACTIVE);
+        SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
         Set(name, value);
     }
     public RunStatus()
     {
-        SetTermination(TerminationStatus.IS_INACTIVE, IS_INACTIVE);
+        SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
         Set(Name.INACTIVE, INACTIVE);
     }
 
@@ -58,11 +58,11 @@ public class RunStatus
 
     public void Set(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
     public void Set(int value)
     {
-        Set(ToName(value), value);
+        Set(value, ToName(value));
     }
     public void Set(Name name, int value)
     {
@@ -80,23 +80,24 @@ public class RunStatus
         if (_terminationId == IS_TERMINATED)
             SetTermination(IS_ACTIVE, TerminationStatus.IS_ACTIVE);
     }
-    public void SetTermination(int value)
-    {
-        SetTermination(ToTermination(value), value);
-    }
     public void SetTermination(TerminationStatus name)
     {
-        SetTermination(name, ToInt(name));
+        SetTermination(ToInt(name), name);
     }
-    public void SetTermination(int value, TerminationStatus name)
+    public void SetTermination(int value)
     {
-        SetTermination(name, value);
+        SetTermination(value, ToTermination(value));
     }
     public void SetTermination(TerminationStatus name, int value)
+    {
+        SetTermination(value, name);
+    }
+    public void SetTermination(int value, TerminationStatus name)
     {
         _terminationStatus = name;
         _terminationId = value;
     }
+
 
 
     public Name Name()
@@ -153,7 +154,6 @@ public class RunStatus
             default:         return USED_BY_ANOTHER_PROCESS;
         }
     }
-
 
 
     static public TerminationStatus ToTermination (int value)

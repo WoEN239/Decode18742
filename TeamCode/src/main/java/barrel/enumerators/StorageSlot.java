@@ -11,19 +11,19 @@ public class StorageSlot
 
     StorageSlot(int value)
     {
-        Set(ToName(value), value);
+        Set(value, ToName(value));
     }
     StorageSlot(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
     StorageSlot(int value, Name name)
     {
-        Set(name, value);
+        Set(value, name);
     }
     StorageSlot(Name name, int value)
     {
-        Set(name, value);
+        Set(value, name);
     }
     public StorageSlot()
     {
@@ -42,19 +42,19 @@ public class StorageSlot
     }
 
 
-    public void Set(int value)
-    {
-        Set(ToName(value), value);
-    }
     public void Set(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
-    public void Set(int value, Name name)
+    public void Set(int value)
     {
-        Set(name, value);
+        Set(value, ToName(value));
     }
     public void Set(Name name, int value)
+    {
+        Set(value, name);
+    }
+    public void Set(int value, Name name)
     {
         _memId = value;
         _memName = name;

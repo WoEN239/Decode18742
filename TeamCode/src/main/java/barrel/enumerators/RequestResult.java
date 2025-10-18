@@ -7,7 +7,8 @@ public class RequestResult
             SUCCESS_MOBILE_OUT = 3, SUCCESS_MOBILE_IN = 4, SUCCESS_IS_NOW_EMPTY = 5,
                 FAIL_UNKNOWN = 6, FAIL_IS_EMPTY = 7, FAIL_COLOR_NOT_PRESENT = 8,
                     FAIL_IS_CURRENTLY_BUSY = 9, FAIL_NOT_ENOUGH_COLORS = 10,
-                        FAIL_PROCESS_WAS_TERMINATED = 11;
+                        FAIL_HARDWARE_PROBLEM = 11, FAIL_SOFTWARE_STORAGE_DESYNC = 12,
+                            FAIL_PROCESS_WAS_TERMINATED = 13;
 
     private Name _memName;
     private int  _memId;
@@ -15,23 +16,23 @@ public class RequestResult
 
     public RequestResult(int value)
     {
-        Set(ToName(value), value);
+        Set(value, ToName(value));
     }
     public RequestResult(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
     public RequestResult(int value, Name name)
     {
-        Set(name, value);
+        Set(value, name);
     }
     public RequestResult(Name name, int value)
     {
-        Set(name, value);
+        Set(value, name);
     }
     public RequestResult()
     {
-        Set(Name.FAIL_UNKNOWN, FAIL_UNKNOWN);
+        Set(FAIL_UNKNOWN, Name.FAIL_UNKNOWN);
     }
 
 
@@ -48,24 +49,26 @@ public class RequestResult
         FAIL_COLOR_NOT_PRESENT,
         FAIL_IS_CURRENTLY_BUSY,
         FAIL_NOT_ENOUGH_COLORS,
+        FAIL_HARDWARE_PROBLEM,
+        FAIL_SOFTWARE_STORAGE_DESYNC,
         FAIL_PROCESS_WAS_TERMINATED
     }
 
 
 
-    public void Set(int value)
-    {
-        Set(ToName(value), value);
-    }
     public void Set(Name name)
     {
-        Set(name, ToInt(name));
+        Set(ToInt(name), name);
     }
-    public void Set(int value, Name name)
+    public void Set(int value)
     {
-        Set(name, value);
+        Set(value, ToName(value));
     }
     public void Set(Name name, int value)
+    {
+        Set(value, name);
+    }
+    public void Set(int value, Name name)
     {
         _memId = value;
         _memName = name;
@@ -117,15 +120,17 @@ public class RequestResult
             case SUCCESS: return  Name.SUCCESS;
             case SUCCESS_BOTTOM: return  Name.SUCCESS_BOTTOM;
             case SUCCESS_CENTER: return  Name.SUCCESS_CENTER;
-            case SUCCESS_MOBILE_OUT:   return  Name.SUCCESS_MOBILE_OUT;
-            case SUCCESS_MOBILE_IN:    return  Name.SUCCESS_MOBILE_IN;
-            case SUCCESS_IS_NOW_EMPTY: return  Name.SUCCESS_IS_NOW_EMPTY;
+            case SUCCESS_MOBILE_OUT:     return  Name.SUCCESS_MOBILE_OUT;
+            case SUCCESS_MOBILE_IN:      return  Name.SUCCESS_MOBILE_IN;
+            case SUCCESS_IS_NOW_EMPTY:   return  Name.SUCCESS_IS_NOW_EMPTY;
 
             case FAIL_UNKNOWN:   return  Name.FAIL_UNKNOWN;
             case FAIL_IS_EMPTY:  return  Name.FAIL_IS_EMPTY;
             case FAIL_COLOR_NOT_PRESENT: return  Name.FAIL_COLOR_NOT_PRESENT;
             case FAIL_IS_CURRENTLY_BUSY: return  Name.FAIL_IS_CURRENTLY_BUSY;
             case FAIL_NOT_ENOUGH_COLORS: return  Name.FAIL_NOT_ENOUGH_COLORS;
+            case FAIL_HARDWARE_PROBLEM:  return  Name.FAIL_HARDWARE_PROBLEM;
+            case FAIL_SOFTWARE_STORAGE_DESYNC: return Name.FAIL_SOFTWARE_STORAGE_DESYNC;
             default: return Name.FAIL_PROCESS_WAS_TERMINATED;
         }
     }
@@ -145,6 +150,8 @@ public class RequestResult
             case FAIL_COLOR_NOT_PRESENT: return  FAIL_COLOR_NOT_PRESENT;
             case FAIL_IS_CURRENTLY_BUSY: return  FAIL_IS_CURRENTLY_BUSY;
             case FAIL_NOT_ENOUGH_COLORS: return  FAIL_NOT_ENOUGH_COLORS;
+            case FAIL_HARDWARE_PROBLEM:  return  FAIL_HARDWARE_PROBLEM;
+            case FAIL_SOFTWARE_STORAGE_DESYNC: return FAIL_SOFTWARE_STORAGE_DESYNC;
             default: return FAIL_PROCESS_WAS_TERMINATED;
         }
     }
