@@ -1,4 +1,4 @@
-package org.woen.modules.driveTrain.odometry
+package org.woen.modules.driveTrain.odometry.odometersOdometry
 
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
@@ -12,7 +12,7 @@ import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 
-class HardwareOdometry(
+class HardwareOdometersOdometry(
     private val _leftOdometerName: String,
     private val _rightOdometerName: String
 ) : IHardwareDevice {

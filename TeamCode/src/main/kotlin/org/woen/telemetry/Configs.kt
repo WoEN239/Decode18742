@@ -1,9 +1,7 @@
 package org.woen.telemetry
 
 import com.acmerobotics.dashboard.config.Config
-import org.woen.modules.driveTrain.odometry.Odometry
 import org.woen.utils.regulator.RegulatorParameters
-import org.woen.utils.units.Line
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
@@ -118,8 +116,19 @@ object Configs {
         var ROBOT_SIZE = Vec2(0.380, 0.364)
 
         @JvmField
-        var SHOOT_TRIANGLES = arrayOf(Triangle(Vec2(-1.83, 1.83), Vec2(0.0, 0.0), Vec2(-1.83, -1.83)),
-            Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61)))
+        var SHOOT_TRIANGLES = arrayOf(
+            Triangle(Vec2(-1.83, 1.83), Vec2(0.0, 0.0), Vec2(-1.83, -1.83)),
+            Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
+        )
+
+        @EventConfig
+        var ENCODER_VELOCITY_FILTER_K = ThreadedTelemetry.EventValueProvider(0.1)
+
+        @JvmField
+        var ENCODER_TICKS = 28.0
+
+        @JvmField
+        var WHEEL_DIAMETER = 1.0
     }
 
     @Config

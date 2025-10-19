@@ -6,6 +6,7 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.camera.Camera
 import org.woen.modules.driveTrain.HardwareGyro
+import org.woen.modules.driveTrain.odometry.odometersOdometry.OdometersOdometry
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
@@ -19,11 +20,7 @@ import org.woen.utils.units.Color
 import org.woen.utils.units.Line
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
 
 data class OnOdometryUpdateEvent(
     val odometryOrientation: Orientation,
@@ -42,165 +39,99 @@ class RobotEnterShootingAreaEvent()
 class RobotExitShootingAreaEvent()
 
 class Odometry : IModule {
-    private val _hardwareOdometry = HardwareOdometry("leftFrowardDrive", "rightBackDrive")
-    private val _threeOdometry = HardwareThreeOdometry("sideOdometer")
+    private var _odometryJob: Job? = null
+
+    private var _currentOrientation = Orientation.ZERO
+    private var _currentPositionVelocity = Vec2.ZERO
+    private var _currentRotationVelocity = 0.0
+
+    private var _robotLocatedInShootingArea = AtomicBoolean(false)
+    private var _oldRobotLocate = false
+
     private val _gyro = HardwareGyro()
 
     private val _gyroMutex = SmartMutex()
-
     private val _odometryMutex = SmartMutex()
-
     private val _mergePositionMutex = SmartMutex()
 
     private val _gyroFilter = ExponentialFilter(Configs.GYRO.GYRO_MERGE_COEF.get())
     private val _positionXFilter = ExponentialFilter(Configs.ODOMETRY.ODOMETRY_MERGE_COEF.get())
     private val _positionYFilter = ExponentialFilter(Configs.ODOMETRY.ODOMETRY_MERGE_COEF.get())
 
-    private var _odometryJob: Job? = null
-
-    private var _oldLeftPosition = 0.0
-    private var _oldRightPosition = 0.0
-    private var _oldSidePosition = 0.0
-
-    private var _oldRotation = Angle.ZERO
-    private var _oldOdometerRotation = Angle.ZERO
-
-    private var _currentOrientation = Orientation.ZERO
-    private var _currentVelocity = Vec2.ZERO
-    private var _currentRotationVelocity = 0.0
-
-    private var _robotLocatedInShootingArea = AtomicBoolean(false)
-    private var _oldRobotLocate = false
+    private val _odometryHandler = OdometersOdometry()
 
     override suspend fun process() {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
                 return@launch
 
-            val leftPos = _hardwareOdometry.leftPosition.get()
-            val rightPos = _hardwareOdometry.rightPosition.get()
-            val sidePos = _threeOdometry.odometerPosition.get()
-
-            val leftVelocity = _hardwareOdometry.leftVelocity.get()
-            val rightVelocity = _hardwareOdometry.rightVelocity.get()
-            val sideVelocity = _threeOdometry.odometerVelocity.get()
-
             _odometryMutex.smartLock {
-                val odometryRotation = Angle(
-                    (rightPos / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
-                            - leftPos / Configs.ODOMETRY.ODOMETER_LEFT_RADIUS) / 2.0
+                val odometryTick = _odometryHandler.update(_currentOrientation.angl)
+
+                _currentOrientation.pos += odometryTick.deltaPos
+                _currentOrientation.angl += odometryTick.deltaRotation
+
+                _currentPositionVelocity = odometryTick.positionVelocity
+                _currentRotationVelocity = odometryTick.rotationVelocity
+            }
+
+            fun checkToLocate(): Boolean {
+                val halfSize = Configs.DRIVE_TRAIN.ROBOT_SIZE / 2.0
+
+                val cornerLeftForward = _currentOrientation.pos + Vec2(-halfSize.x, halfSize.y)
+                    .turn(_currentOrientation.angle)
+                val cornerRightForward = _currentOrientation.pos + Vec2(halfSize.x, halfSize.y)
+                    .turn(_currentOrientation.angle)
+                val cornerRightBack = _currentOrientation.pos + Vec2(halfSize.x, -halfSize.y)
+                    .turn(_currentOrientation.angle)
+                val cornerLeftBack = _currentOrientation.pos + Vec2(-halfSize.x, -halfSize.y)
+                    .turn(_currentOrientation.angle)
+
+                val robotPoints = arrayOf(
+                    cornerLeftBack, cornerRightBack,
+                    cornerRightForward, cornerLeftForward
                 )
 
-                _currentRotationVelocity =
-                    (rightVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS
-                            - leftVelocity / Configs.ODOMETRY.ODOMETER_RIGHT_RADIUS) / 2.0
-
-                val deltaLeft = leftPos - _oldLeftPosition
-                val deltaRight = rightPos - _oldRightPosition
-                val deltaSide = sidePos - _oldSidePosition
-                val deltaRotation = (odometryRotation - _oldOdometerRotation).angle
-
-                _currentOrientation.angl += odometryRotation - _oldOdometerRotation
-                _oldOdometerRotation = odometryRotation
-
-                val deltaX = (deltaLeft + deltaRight) / 2.0
-                val deltaY =
-                    deltaSide - (Configs.ODOMETRY.ODOMETER_SIDE_RADIUS * deltaRotation)
-
-                val deltaXCorrected: Double
-                val deltaYCorrected: Double
-
-                if (abs(deltaRotation) < Configs.ODOMETRY.ODOMETER_ROTATE_SENS) {
-                    deltaXCorrected = deltaX
-                    deltaYCorrected = deltaY
-                } else {
-                    deltaXCorrected =
-                        deltaX * sin(deltaRotation) / deltaRotation + deltaY * (cos(deltaRotation) - 1.0) / deltaRotation
-                    deltaYCorrected =
-                        deltaX * (1.0 - cos(deltaRotation)) / deltaRotation + deltaY * sin(
-                            deltaRotation
-                        ) / deltaRotation
-                }
-
-                _currentOrientation.pos += Vec2(deltaXCorrected, deltaYCorrected)
-                    .turn(odometryRotation.angle)
-
-                _currentVelocity = Vec2(
-                    (leftVelocity + rightVelocity) / 2.0,
-                    sideVelocity - Configs.ODOMETRY.ODOMETER_SIDE_RADIUS * _currentRotationVelocity
+                val robotLines = arrayOf(
+                    Line(cornerLeftForward, cornerRightForward),
+                    Line(cornerRightBack, cornerRightForward),
+                    Line(cornerRightBack, cornerLeftBack),
+                    Line(cornerLeftForward, cornerLeftBack)
                 )
 
-                _oldLeftPosition = leftPos
-                _oldRightPosition = rightPos
-                _oldSidePosition = sidePos
-                _oldRotation = _currentOrientation.angl
+                for (shootTriangle in Configs.DRIVE_TRAIN.SHOOT_TRIANGLES) {
+                    for (shootLine in shootTriangle.lines) {
+                        for (l in robotLines) {
+                            if (!l.isIntersects(shootLine))
+                                continue
 
-                ThreadedEventBus.LAZY_INSTANCE.invoke(
-                    OnOdometryUpdateEvent(
-                        _currentOrientation,
-                        _currentRotationVelocity,
-                        _currentVelocity
-                    )
-                )
+                            val intersects = l.getIntersects(shootLine)
 
-                fun checkToLocate(): Boolean {
-                    val halfSize = Configs.DRIVE_TRAIN.ROBOT_SIZE / 2.0
-
-                    val cornerLeftForward = _currentOrientation.pos + Vec2(-halfSize.x, halfSize.y)
-                        .turn(_currentOrientation.angle)
-                    val cornerRightForward = _currentOrientation.pos + Vec2(halfSize.x, halfSize.y)
-                        .turn(_currentOrientation.angle)
-                    val cornerRightBack = _currentOrientation.pos + Vec2(halfSize.x, -halfSize.y)
-                        .turn(_currentOrientation.angle)
-                    val cornerLeftBack = _currentOrientation.pos + Vec2(-halfSize.x, -halfSize.y)
-                        .turn(_currentOrientation.angle)
-
-                    val robotPoints = arrayOf(
-                        cornerLeftBack, cornerRightBack,
-                        cornerRightForward, cornerLeftForward
-                    )
-
-                    val robotLines = arrayOf(
-                        Line(cornerLeftForward, cornerRightForward),
-                        Line(cornerRightBack, cornerRightForward),
-                        Line(cornerRightBack, cornerLeftBack),
-                        Line(cornerLeftForward, cornerLeftBack)
-                    )
-
-                    for (shootTriangle in Configs.DRIVE_TRAIN.SHOOT_TRIANGLES) {
-                        for (shootLine in shootTriangle.lines) {
-                            for (l in robotLines) {
-                                if (!l.isIntersects(shootLine))
-                                    continue
-
-                                val intersects = l.getIntersects(shootLine)
-
-                                if (l.isPointOnLine(intersects) && shootLine.isPointOnLine(intersects))
-                                    return true
-                            }
-                        }
-
-                        for (robotPoint in robotPoints)
-                            if (shootTriangle.isPointLocated(robotPoint))
+                            if (l.isPointOnLine(intersects) && shootLine.isPointOnLine(intersects))
                                 return true
+                        }
                     }
 
-                    return false
+                    for (robotPoint in robotPoints)
+                        if (shootTriangle.isPointLocated(robotPoint))
+                            return true
                 }
 
-                val locate = checkToLocate()
-
-                _robotLocatedInShootingArea.set(locate)
-
-                if (_oldRobotLocate != locate) {
-                    if (locate)
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(RobotEnterShootingAreaEvent())
-                    else
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(RobotExitShootingAreaEvent())
-                }
-
-                _oldRobotLocate = locate
+                return false
             }
+
+            val locate = checkToLocate()
+
+            _robotLocatedInShootingArea.set(locate)
+
+            if (_oldRobotLocate != locate) {
+                if (locate)
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(RobotEnterShootingAreaEvent())
+                else
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(RobotExitShootingAreaEvent())
+            }
+
+            _oldRobotLocate = locate
         }
     }
 
@@ -212,7 +143,7 @@ class Odometry : IModule {
     }
 
     init {
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry, _threeOdometry, _gyro)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_gyro)
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             _odometryMutex.smartLock {
@@ -224,7 +155,7 @@ class Odometry : IModule {
                 )
 
                 it.addData("orientation", _currentOrientation)
-                it.addData("vel", _currentVelocity)
+                it.addData("vel", _currentPositionVelocity)
                 it.addData("rotation vel", _currentRotationVelocity)
             }
         }
@@ -234,7 +165,7 @@ class Odometry : IModule {
             {
                 _odometryMutex.smartLock {
                     it.odometryOrientation = _currentOrientation
-                    it.odometryVelocity = _currentVelocity
+                    it.odometryVelocity = _currentPositionVelocity
                     it.odometryRotateVelocity = _currentRotationVelocity
                 }
             })

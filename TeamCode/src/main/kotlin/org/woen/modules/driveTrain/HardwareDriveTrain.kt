@@ -24,10 +24,10 @@ class HardwareDriveTrain(
     private val _rightForwardMotorName: String,
     private val _rightBackMotorName: String
 ) : IHardwareDevice {
-    private lateinit var _leftForwardMotor: DcMotorEx
-    private lateinit var _leftBackMotor: DcMotorEx
-    private lateinit var _rightBackMotor: DcMotorEx
-    private lateinit var _rightForwardMotor: DcMotorEx
+    private lateinit var _leftForwardMotor: MotorOnly
+    private lateinit var _leftBackMotor: MotorOnly
+    private lateinit var _rightBackMotor: MotorOnly
+    private lateinit var _rightForwardMotor: MotorOnly
 
     private val _forwardRegulator = Regulator(Configs.DRIVE_TRAIN.DRIVE_FORWARD_REGULATOR_PARAMS)
     private val _sideRegulator = Regulator(Configs.DRIVE_TRAIN.DRIVE_SIDE_REGULATOR_PARAMS)
