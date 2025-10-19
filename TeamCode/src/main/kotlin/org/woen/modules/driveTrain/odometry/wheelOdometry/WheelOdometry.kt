@@ -6,6 +6,9 @@ import org.woen.telemetry.Configs
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 class WheelOdometry : IOdometry {
     private val _hardwareOdometry = HardwareWheelOdometry("", "", "", "")
@@ -36,19 +39,32 @@ class WheelOdometry : IOdometry {
         _oldLeftBackPosition = leftBackPosition
         _oldRightBackPosition = rightBackPosition
 
-        val halfRobotSizeY = Configs.DRIVE_TRAIN.ROBOT_SIZE.y / 2.0
+        val deltaRotation =
+            (rightForwardPosition + rightBackPosition + -leftForwardPosition + -leftBackPosition) / Configs.DRIVE_TRAIN.ROBOT_SIZE.y
+
+        val deltaPosition = Vec2(
+            (deltaLeftForwardPosition + deltaRightForwardPosition + deltaLeftBackPosition + deltaRightBackPosition) / 4.0,
+            (-deltaLeftForwardPosition + deltaRightForwardPosition + deltaLeftBackPosition + -deltaRightBackPosition) / 4.0 * Configs.DRIVE_TRAIN.Y_LAG
+        )
+
+        val deltaCorrectedPosition = if (abs(deltaRotation) < Configs.ODOMETRY.ODOMETER_ROTATE_SENS)
+            deltaPosition
+        else
+            Vec2(
+                deltaPosition.x * sin(deltaRotation) / deltaRotation +
+                        deltaPosition.y * (cos(deltaRotation) - 1.0) / deltaRotation,
+                deltaPosition.x * (1.0 - cos(deltaRotation)) / deltaRotation +
+                        deltaPosition.y * sin(deltaRotation) / deltaRotation
+            )
 
         return OdometryTick(
-            Vec2(
-                (deltaLeftForwardPosition + deltaRightForwardPosition + deltaLeftBackPosition + deltaRightBackPosition) / 4.0,
-                (-deltaLeftForwardPosition + deltaRightForwardPosition + deltaLeftBackPosition + -deltaRightBackPosition) / 4.0
-            ).turn(rotation.angle),
+            deltaCorrectedPosition.turn(rotation.angle),
             Vec2(
                 (leftForwardVelocity + rightForwardVelocity + leftBackVelocity + rightBackVelocity) / 4.0,
-                (-leftForwardVelocity + rightForwardVelocity + leftBackVelocity - rightBackVelocity)
+                (-leftForwardVelocity + rightForwardVelocity + leftBackVelocity - rightBackVelocity) / 4.0 * Configs.DRIVE_TRAIN.Y_LAG
             ),
-            ((rightForwardPosition + rightBackPosition) / 2.0) / halfRobotSizeY - ((leftForwardPosition + leftBackPosition) / 2.0) / halfRobotSizeY,
-            ((rightForwardVelocity + rightBackVelocity) / 2.0) / halfRobotSizeY - ((leftForwardVelocity + leftBackVelocity) / 2.0) / halfRobotSizeY
+            deltaRotation,
+            (rightForwardVelocity + rightBackVelocity + -leftForwardVelocity + -leftBackVelocity) / Configs.DRIVE_TRAIN.ROBOT_SIZE.y
         )
     }
 

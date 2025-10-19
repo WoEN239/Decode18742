@@ -129,6 +129,9 @@ object Configs {
 
         @JvmField
         var WHEEL_DIAMETER = 1.0
+
+        @JvmField
+        var Y_LAG = 1.0
     }
 
     @Config
