@@ -7,15 +7,22 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.telemetry.Configs
+import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.smartMutex.SmartMutex
+import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 
 data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotationVelocity: Double)
+
+data class RequestLookModeEvent(var lookMode: Boolean = false) : StoppingEvent
+
+data class SetLookMode(val lookMode: Boolean)
 
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain(
@@ -32,6 +39,8 @@ class DriveTrain : IModule {
 
     private var _driveJob: Job? = null
 
+    private var _lookMode = AtomicReference(false)
+
     override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
@@ -41,8 +50,14 @@ class DriveTrain : IModule {
 
             _driveMutex.smartLock {
                 _hardwareDriveTrain.drive(
-                    _targetTranslateVelocity.turn(-odometry.odometryOrientation.angl.angle),
-                    _targetRotateVelocity
+                    _targetTranslateVelocity.turn(-odometry.odometryOrientation.angle),
+                    if (_lookMode.get())
+                        Angle(
+                            (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition
+                                    - odometry.odometryOrientation.pos).rot()
+                                    - odometry.odometryOrientation.angle
+                        ).angle * Configs.DRIVE_TRAIN.LOOK_P
+                    else _targetRotateVelocity
                 )
             }
         }
@@ -72,7 +87,7 @@ class DriveTrain : IModule {
 
                 var rx = -gamepadData.right_stick_x.toDouble()
 
-                if(Configs.DRIVE_TRAIN.POW_MOVE_ENABLED) {
+                if (Configs.DRIVE_TRAIN.POW_MOVE_ENABLED) {
                     ly *= abs(ly)
                     lx *= abs(lx)
                     rx *= abs(rx)
@@ -91,6 +106,14 @@ class DriveTrain : IModule {
                     )
                 )
             }
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(SetLookMode::class, {
+            _lookMode.set(it.lookMode)
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestLookModeEvent::class, {
+            it.lookMode = _lookMode.get()
         })
     }
 }

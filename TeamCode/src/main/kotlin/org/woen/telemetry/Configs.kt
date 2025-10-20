@@ -132,6 +132,9 @@ object Configs {
 
         @JvmField
         var Y_LAG = 1.0
+
+        @JvmField
+        var LOOK_P = 0.3
     }
 
     @Config
