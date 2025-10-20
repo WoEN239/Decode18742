@@ -22,7 +22,7 @@ data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotation
 
 data class RequestLookModeEvent(var lookMode: Boolean = false) : StoppingEvent
 
-data class SetLookMode(val lookMode: Boolean)
+data class SetLookModeEvent(val lookMode: Boolean)
 
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain(
@@ -108,7 +108,7 @@ class DriveTrain : IModule {
             }
         })
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(SetLookMode::class, {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(SetLookModeEvent::class, {
             _lookMode.set(it.lookMode)
         })
 
