@@ -12,6 +12,7 @@ import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
 import org.woen.threading.hardware.HardwareThreads
+import org.woen.utils.process.Process
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
@@ -22,7 +23,7 @@ data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotation
 
 data class RequestLookModeEvent(var lookMode: Boolean = false) : StoppingEvent
 
-data class SetLookModeEvent(val lookMode: Boolean)
+data class SetLookModeEvent(val lookMode: Boolean, val process: Process)
 
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain(
@@ -40,6 +41,7 @@ class DriveTrain : IModule {
     private var _driveJob: Job? = null
 
     private var _lookMode = AtomicReference(false)
+    private var _lookProcess = AtomicReference(Process())
 
     override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -48,15 +50,25 @@ class DriveTrain : IModule {
 
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
+            val rotationErr = if (_lookMode.get()) {
+                val err = Angle(
+                    (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition
+                            - odometry.odometryOrientation.pos).rot()
+                            - odometry.odometryOrientation.angle
+                ).angle
+
+                if(abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS)
+                    _lookProcess.get().close()
+
+                err
+            } else
+                0.0
+
             _driveMutex.smartLock {
                 _hardwareDriveTrain.drive(
                     _targetTranslateVelocity.turn(-odometry.odometryOrientation.angle),
                     if (_lookMode.get())
-                        Angle(
-                            (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition
-                                    - odometry.odometryOrientation.pos).rot()
-                                    - odometry.odometryOrientation.angle
-                        ).angle * Configs.DRIVE_TRAIN.LOOK_P
+                        rotationErr * Configs.DRIVE_TRAIN.LOOK_P
                     else _targetRotateVelocity
                 )
             }
@@ -110,6 +122,7 @@ class DriveTrain : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetLookModeEvent::class, {
             _lookMode.set(it.lookMode)
+            _lookProcess.set(it.process)
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestLookModeEvent::class, {

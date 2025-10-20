@@ -135,6 +135,9 @@ object Configs {
 
         @JvmField
         var LOOK_P = 0.3
+
+        @JvmField
+        var LOOK_SENS = 0.1
     }
 
     @Config
