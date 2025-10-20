@@ -3,6 +3,7 @@ package org.woen.modules.scoringSystem.turret
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.Servo
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
@@ -15,8 +16,10 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 import kotlin.math.abs
 
-class HardwareTurret(private val _motorName: String) : IHardwareDevice {
+class HardwareTurret(private val _motorName: String, private var _servoName: String) :
+    IHardwareDevice {
     private lateinit var _motor: DcMotorEx
+    private lateinit var _servo: Servo
 
     var targetVelocity: Double
         get() = _realTargetVelocity.get() /
@@ -26,6 +29,12 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
                 value /
                         (2.0 * PI * Configs.TURRET.PULLEY_RADIUS) * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
             )
+        }
+
+    var servoPosition
+        get() = _servo.position
+        set(value) {
+            _servo.position = value
         }
 
     private var _realTargetVelocity = AtomicReference(0.0)
@@ -46,7 +55,7 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
     var velocityAtTarget = AtomicBoolean(false)
 
     override fun update() {
-        if(HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
             return
 
         val currentMotorPosition = _motor.currentPosition.toDouble()
@@ -83,6 +92,7 @@ class HardwareTurret(private val _motorName: String) : IHardwareDevice {
 
     override fun init(hardwareMap: HardwareMap) {
         _motor = hardwareMap.get(_motorName) as DcMotorEx
+        _servo = hardwareMap.get(_servoName) as Servo
 
         _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 

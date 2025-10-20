@@ -1,5 +1,6 @@
 package org.woen.modules.scoringSystem.turret
 
+import com.acmerobotics.roadrunner.clamp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
@@ -25,7 +26,7 @@ class SetCurrentTurretStateEvent(
 )
 
 class Turret : IModule {
-    private val _hardwareTurret = HardwareTurret("turretMotor")
+    private val _hardwareTurret = HardwareTurret("turretMotor", "")
 
     enum class TurretState {
         STOP,
@@ -61,8 +62,17 @@ class Turret : IModule {
             (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get()
                 .basketPosition).length()
 
+        val shootingAngle = clamp(
+            (1.0 - shootDistance / Configs.TURRET.MAX_SHOOTING_DISTANCE) * PI / 4 + PI / 4,
+            Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE
+        )
+
+        _hardwareTurret.servoPosition =
+            (shootingAngle - Configs.TURRET.MIN_TURRET_ANGLE) * (Configs.TURRET.MAX_TURRET_SERVO_ANGLE - Configs.TURRET.MIN_TURRET_SERVO_ANGLE) /
+                    (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_SERVO_ANGLE
+
         fun getHitHeight(startVel: Double): Double {
-            var vecVel = Vec2(startVel, 0.0).setRot(Configs.TURRET.TURRET_ANGLE)
+            var vecVel = Vec2(startVel, 0.0).setRot(shootDistance)
             var pos = Vec2.ZERO
 
             while (pos.x < shootDistance) {
