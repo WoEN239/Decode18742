@@ -38,6 +38,20 @@ class StorageCells
 {
     private val _storageCells: Array<Ball> = Array(4) { Ball() }
     private val _mobileSlot: MobileSlot = MobileSlot()
+    private val _preferredRequestSlotOrder: Array<Int> = arrayOf(
+            StorageSlot.MOBILE_OUT,
+            StorageSlot.CENTER,
+            StorageSlot.MOBILE_IN,
+            StorageSlot.BOTTOM
+        )
+    private val _preferredIntakeSlotOrder: Array<Int> = arrayOf(
+        StorageSlot.BOTTOM,
+        StorageSlot.CENTER,
+        StorageSlot.MOBILE_OUT,
+        StorageSlot.MOBILE_IN
+    )
+    private val _slotCount = 4; private val _realSlotCount = 3
+    //!  TODO("Add these 3 parameters to configs")
 
 
 
@@ -45,15 +59,15 @@ class StorageCells
     {
         val result = IntakeResult(IntakeResult.FAIL_STORAGE_IS_FULL, IntakeResult.Name.FAIL_STORAGE_IS_FULL)
 
-        var i = StorageSlot.BOTTOM
-        while (i < StorageSlot.MOBILE_IN)
+        var curSlotId = 0
+        while (curSlotId < _realSlotCount)
         {
-            if (_storageCells[i].IsEmpty())
+            if (_storageCells[_preferredIntakeSlotOrder[curSlotId]].IsEmpty())
             {
-                result.Set(i)
-                i += 2 //  Fast break, preferring closest slot to intake
+                result.Set(curSlotId)
+                curSlotId += 2  //  Fast break, preferring chosen slot order
             }
-            i++
+            curSlotId++
         }
         if (result.SolutionIsMobileOut() && _mobileSlot.IsFilled())
             return IntakeResult(
@@ -66,18 +80,29 @@ class StorageCells
 
     fun HandleRequest(request: BallRequest.Name): RequestResult
     {
-        val requestBuffer = BallRequest.ToInt(request)
-        if (requestBuffer == BallRequest.ANY)
+        val requestBuffer = BallRequest(request)
+
+        if (requestBuffer.IsNone())
+            return RequestResult(
+                RequestResult.FAIL_ILLEGAL_ARGUMENT,
+                RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
+            )
+
+
+        if (requestBuffer.IsPreferred())
         {   //  Optimised comparing by id without extra unnecessary conversions
 
-            val requestResult = RequestSearch(Ball.Name.PURPLE)
-            if (requestResult.Id() == RequestResult.FAIL_COLOR_NOT_PRESENT)
-                return RequestSearch(Ball.Name.GREEN)
+            val requestResult = RequestSearch(requestBuffer.ToBall())
+
+            if (requestResult.DidFail())
+                return RequestSearch(requestBuffer.ToInverseBall())
 
             return requestResult
         }
-        else return RequestSearch(Ball.ToName(requestBuffer))
+        else if (requestBuffer.IsAny()) return AnyBallRequestSearch()
+        else return RequestSearch(requestBuffer.ToBall())
     }
+
     private fun RequestSearch(requested: Ball.Name): RequestResult
     {
         val result = RequestResult(
@@ -85,16 +110,35 @@ class StorageCells
             RequestResult.Name.FAIL_COLOR_NOT_PRESENT
         )
 
-        var i = StorageSlot.BOTTOM
-        while (i < StorageSlot.MOBILE)
+        var curSlotId = 0
+        while (curSlotId < _slotCount)
         {
-            if (_storageCells[i].Name() == requested)
+            if (_storageCells[_preferredRequestSlotOrder[curSlotId]].Name() == requested)
             {
-                result.Set(i)
-                if (i != StorageSlot.BOTTOM) i += 3 //  Fast break
-                //  Preferring the closest slot to shooting
+                result.Set(curSlotId)
+                curSlotId += 3  //  Fast break, preferring chosen slot order
             }
-            i++
+            curSlotId++
+        }
+
+        return result
+    }
+    private fun AnyBallRequestSearch(): RequestResult
+    {
+        val result = RequestResult(
+            RequestResult.FAIL_IS_EMPTY,
+            RequestResult.Name.FAIL_IS_EMPTY
+        )
+
+        var curSlotId = 0
+        while (curSlotId < _slotCount)
+        {
+            if (_storageCells[_preferredRequestSlotOrder[curSlotId]].HasBall())
+            {
+                result.Set(curSlotId)
+                curSlotId += 3  //  Fast break, preferring chosen slot order
+            }
+            curSlotId++
         }
 
         return result

@@ -3,7 +3,7 @@ package barrel.enumerators;
 
 public class BallRequest
 {
-    static public final int NONE = 0, PURPLE = 1, GREEN = 2, ANY = 3;
+    static public final int NONE = 0, PURPLE = 1, GREEN = 2, PREFER_PURPLE = 3, PREFER_GREEN = 4, ANY_CLOSEST = 5;
 
     private Name _memName;
     private int  _memId;
@@ -36,7 +36,9 @@ public class BallRequest
         NONE,
         PURPLE,
         GREEN,
-        ANY
+        PREFER_PURPLE,
+        PREFER_GREEN,
+        ANY_CLOSEST
     }
 
 
@@ -71,6 +73,123 @@ public class BallRequest
 
 
 
+    public boolean IsNone()
+    {
+        return _memId == NONE;
+    }
+    static public boolean IsNone(int value)
+    {
+        return value == NONE;
+    }
+    static public boolean IsNone(Name name)
+    {
+        return IsNone(ToInt(name));
+    }
+
+
+    public boolean IsAny()
+    {
+        return _memId == ANY_CLOSEST;
+    }
+    static public boolean IsAny(int id)
+    {
+        return id == ANY_CLOSEST;
+    }
+    static public boolean IsAny(Name name)
+    {
+        return IsAny(ToInt(name));
+    }
+
+
+    public boolean IsAbstractAny()
+    {
+        return _memId > GREEN;
+    }
+    static public boolean IsAbstractAny(int id)
+    {
+        return id > GREEN;
+    }
+    static public boolean IsAbstractAny(Name name)
+    {
+        return IsAbstractAny(ToInt(name));
+    }
+
+
+    public boolean IsPreferred()
+    {
+        return _memId == PREFER_PURPLE || _memId == PREFER_GREEN;
+    }
+    static public boolean IsPreferred(int id)
+    {
+        return id == PREFER_PURPLE || id == PREFER_GREEN;
+    }
+    static public boolean IsPreferred(Name name)
+    {
+        return IsPreferred(ToInt(name));
+    }
+
+
+
+    public Ball.Name ToBall()
+    {
+        switch (_memId)
+        {
+            case PURPLE:
+            case PREFER_PURPLE:
+                return Ball.Name.PURPLE;
+            case GREEN:
+            case PREFER_GREEN:
+                return Ball.Name.GREEN;
+            default:
+                return Ball.Name.NONE;
+        }
+    }
+    static public Ball.Name ToBall(Name ballRequest)
+    {
+        switch (ballRequest)
+        {
+            case PURPLE:
+            case PREFER_PURPLE:
+                return Ball.Name.PURPLE;
+            case GREEN:
+            case PREFER_GREEN:
+                return Ball.Name.GREEN;
+            default:
+                return Ball.Name.NONE;
+        }
+    }
+
+    public Ball.Name ToInverseBall()
+    {
+        switch (_memId)
+        {
+            case PURPLE:
+            case PREFER_PURPLE:
+                return Ball.Name.GREEN;
+            case GREEN:
+            case PREFER_GREEN:
+                return Ball.Name.PURPLE;
+            default:
+                return Ball.Name.NONE;
+        }
+    }
+    static public Ball.Name ToInverseBall(Name ballRequest)
+    {
+        switch (ballRequest)
+        {
+            case PURPLE:
+            case PREFER_PURPLE:
+                return Ball.Name.GREEN;
+            case GREEN:
+            case PREFER_GREEN:
+                return Ball.Name.PURPLE;
+            default:
+                return Ball.Name.NONE;
+        }
+    }
+
+
+
     static public Name ToName (int value)
     {
         switch (value)
@@ -78,7 +197,9 @@ public class BallRequest
             case NONE:   return Name.NONE;
             case PURPLE: return Name.PURPLE;
             case GREEN:  return Name.GREEN;
-            default:     return Name.ANY;
+            case PREFER_PURPLE: return Name.PREFER_PURPLE;
+            case PREFER_GREEN:  return Name.PREFER_GREEN;
+            default:     return Name.ANY_CLOSEST;
         }
     }
     static public int ToInt (Name name)
@@ -88,7 +209,7 @@ public class BallRequest
             case NONE:   return NONE;
             case PURPLE: return PURPLE;
             case GREEN:  return GREEN;
-            default:     return ANY;
+            default:     return ANY_CLOSEST;
         }
     }
 }

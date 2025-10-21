@@ -229,7 +229,7 @@ class Storage
         while (i < 3)
         {
                 if (DoTerminateRequest()) return TerminateRequest()
-            val requestResult = _storageCells.HandleRequest(BallRequest.Name.ANY)
+            val requestResult = _storageCells.HandleRequest(BallRequest.Name.ANY_CLOSEST)
 
                 if (DoTerminateRequest()) return TerminateRequest()
             shootingResult = ShootRequestFinalPhase(requestResult)
@@ -333,9 +333,9 @@ class Storage
 
         for (i in 0..2)
         {
-            if      (requestOrder[i] == BallRequest.Name.PURPLE) countPGA[0]++
-            else if (requestOrder[i] == BallRequest.Name.GREEN)  countPGA[1]++
-            else if (requestOrder[i] == BallRequest.Name.ANY)    countPGA[2]++
+            if      (requestOrder[i] == BallRequest.Name.PURPLE)        countPGA[0]++
+            else if (requestOrder[i] == BallRequest.Name.GREEN)         countPGA[1]++
+            else if (BallRequest.IsAbstractAny(requestOrder[i])) countPGA[2]++
         }
         return countPGA
     }
