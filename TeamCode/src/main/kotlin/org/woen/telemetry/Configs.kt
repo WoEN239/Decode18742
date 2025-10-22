@@ -1,5 +1,6 @@
 package org.woen.telemetry
 
+import barrel.enumerators.StorageSlot
 import com.acmerobotics.dashboard.config.Config
 import org.woen.utils.regulator.RegulatorParameters
 import org.woen.utils.units.Orientation
@@ -261,5 +262,40 @@ object Configs {
     internal object BARREL {
         @JvmField
         var BARREL_REGULATOR_PARAMETERS = RegulatorParameters()
+    }
+
+    @Config
+    internal object STORAGE
+    {
+        @JvmField
+        var SLOTS_COUNT = 4
+
+        @JvmField
+        var REAL_SLOT_COUNT = 3
+
+
+
+        @JvmField
+        var PREFERRED_INTAKE_SLOT_ORDER: Array<Int> = arrayOf(
+            StorageSlot.BOTTOM,
+            StorageSlot.CENTER,
+            StorageSlot.MOBILE_OUT,
+            StorageSlot.MOBILE_IN
+        )
+
+        @JvmField
+        var PREFERRED_REQUEST_SLOT_ORDER: Array<Int> = arrayOf(
+            StorageSlot.MOBILE_OUT,
+            StorageSlot.CENTER,
+            StorageSlot.BOTTOM,
+            StorageSlot.MOBILE_IN
+        )
+
+
+        @JvmField
+        var INTAKE_RACE_CONDITION_DELAY: Long = 4
+
+        @JvmField
+        var REQUEST_RACE_CONDITION_DELAY: Long = 2
     }
 }

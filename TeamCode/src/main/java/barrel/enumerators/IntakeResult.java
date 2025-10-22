@@ -105,11 +105,11 @@ public class IntakeResult
     {
         return _memId < FAIL_UNKNOWN;
     }
-    static public boolean DidSucceed(Name name)
+    static public  boolean DidSucceed(Name name)
     {
         return DidSucceed(ToInt(name));
     }
-    static public boolean DidSucceed(int value)
+    static public  boolean DidSucceed(int value)
     {
         return value < FAIL_UNKNOWN;
     }

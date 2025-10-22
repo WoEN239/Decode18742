@@ -1,10 +1,18 @@
 package org.woen.modules.storage
 
+
 import barrel.enumerators.Ball
 import barrel.enumerators.BallRequest
+
 import barrel.enumerators.IntakeResult
 import barrel.enumerators.RequestResult
+
 import barrel.enumerators.StorageSlot
+
+import org.woen.telemetry.Configs.STORAGE.SLOTS_COUNT
+import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
+import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
+import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 
 
 
@@ -36,22 +44,8 @@ import barrel.enumerators.StorageSlot
 
 class StorageCells
 {
-    private val _storageCells: Array<Ball> = Array(4) { Ball() }
+    private val _storageCells: Array<Ball> = Array(SLOTS_COUNT) { Ball() }
     private val _mobileSlot: MobileSlot = MobileSlot()
-    private val _preferredRequestSlotOrder: Array<Int> = arrayOf(
-            StorageSlot.MOBILE_OUT,
-            StorageSlot.CENTER,
-            StorageSlot.MOBILE_IN,
-            StorageSlot.BOTTOM
-        )
-    private val _preferredIntakeSlotOrder: Array<Int> = arrayOf(
-        StorageSlot.BOTTOM,
-        StorageSlot.CENTER,
-        StorageSlot.MOBILE_OUT,
-        StorageSlot.MOBILE_IN
-    )
-    private val _slotCount = 4; private val _realSlotCount = 3
-    //!  TODO("Add these 3 parameters to configs")
 
 
 
@@ -60,12 +54,12 @@ class StorageCells
         val result = IntakeResult(IntakeResult.FAIL_STORAGE_IS_FULL, IntakeResult.Name.FAIL_STORAGE_IS_FULL)
 
         var curSlotId = 0
-        while (curSlotId < _realSlotCount)
+        while (curSlotId < REAL_SLOT_COUNT)
         {
-            if (_storageCells[_preferredIntakeSlotOrder[curSlotId]].IsEmpty())
+            if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].IsEmpty())
             {
                 result.Set(curSlotId)
-                curSlotId += 2  //  Fast break, preferring chosen slot order
+                curSlotId += REAL_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -111,12 +105,12 @@ class StorageCells
         )
 
         var curSlotId = 0
-        while (curSlotId < _slotCount)
+        while (curSlotId < SLOTS_COUNT)
         {
-            if (_storageCells[_preferredRequestSlotOrder[curSlotId]].Name() == requested)
+            if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].Name() == requested)
             {
                 result.Set(curSlotId)
-                curSlotId += 3  //  Fast break, preferring chosen slot order
+                curSlotId += SLOTS_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -131,12 +125,12 @@ class StorageCells
         )
 
         var curSlotId = 0
-        while (curSlotId < _slotCount)
+        while (curSlotId < SLOTS_COUNT)
         {
-            if (_storageCells[_preferredRequestSlotOrder[curSlotId]].HasBall())
+            if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].HasBall())
             {
                 result.Set(curSlotId)
-                curSlotId += 3  //  Fast break, preferring chosen slot order
+                curSlotId += SLOTS_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }

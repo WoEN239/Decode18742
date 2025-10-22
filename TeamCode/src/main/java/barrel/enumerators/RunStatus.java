@@ -167,7 +167,7 @@ public class RunStatus
 
     public boolean IsTerminated()
     {
-        return _memId == TERMINATED;
+        return _terminationId == TERMINATED;
     }
     public boolean IsUsedByAnotherProcess()
     {

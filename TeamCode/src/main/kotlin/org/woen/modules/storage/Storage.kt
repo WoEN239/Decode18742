@@ -14,6 +14,10 @@ import org.woen.threading.ThreadedEventBus
 
 import android.annotation.SuppressLint
 
+import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
+import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
+import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
+
 
 
 class Storage
@@ -46,18 +50,18 @@ class Storage
         SafeResumeRequestLogic()
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
-    suspend fun IntakeRaceConditionIsPresent(): Boolean
+    private suspend fun IntakeRaceConditionIsPresent(): Boolean
     {
         if (_intakeRunStatus.IsActive())
         {
             ForceStopRequest()
 
-            delay(4)
+            delay(INTAKE_RACE_CONDITION_DELAY)
             return _intakeRunStatus.IsUsedByAnotherProcess()
         }
         return true
     }
-    suspend fun NoIntakeRaceConditionProblems(): Boolean
+    private suspend fun NoIntakeRaceConditionProblems(): Boolean
     {
         _intakeRunStatus.SafeResetTermination()
 
@@ -153,7 +157,7 @@ class Storage
         {
             ForceStopIntake()
 
-            delay(2)
+            delay(REQUEST_RACE_CONDITION_DELAY)
             return _requestRunStatus.IsUsedByAnotherProcess()
         }
         return true
@@ -234,7 +238,7 @@ class Storage
         var shootingResult = RequestResult(RequestResult.FAIL_IS_EMPTY, RequestResult.Name.FAIL_IS_EMPTY)
 
         var i = 0
-        while (i < 3)
+        while (i < REAL_SLOT_COUNT)
         {
                 if (DoTerminateRequest()) return TerminateRequest()
             val requestResult = _storageCells.HandleRequest(BallRequest.Name.ANY_CLOSEST)
@@ -264,13 +268,16 @@ class Storage
     {
         var shootingResult = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
 
-        for (i in 0..2)
+        var i = 0
+        while (i < REAL_SLOT_COUNT)
         {
                 if (DoTerminateRequest()) return TerminateRequest()
             val requestResult = _storageCells.HandleRequest(requestOrder[i])
 
                 if (DoTerminateRequest()) return TerminateRequest()
             shootingResult = ShootRequestFinalPhase(requestResult).Name()
+
+            i++
         }
         return shootingResult
     }
@@ -293,14 +300,14 @@ class Storage
         val shootingResult = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
 
         var i = 0
-        while (i < 3)
+        while (i < REAL_SLOT_COUNT)
         {
                 if (DoTerminateRequest()) return TerminateRequest()
             var requestResult = _storageCells.HandleRequest(requestOrder[i])
 
                 if (DoTerminateRequest()) return TerminateRequest()
             requestResult = ShootRequestFinalPhase(requestResult)
-            if (requestResult.DidFail()) i += 2 //  Fast break if storage is empty
+            if (requestResult.DidFail()) i += REAL_SLOT_COUNT //  Fast break if storage is empty
 
             i++
         }
@@ -337,11 +344,14 @@ class Storage
     {
         val countPGA = intArrayOf(0, 0, 0)
 
-        for (i in 0..2)
+        var i = 0
+        while (i < REAL_SLOT_COUNT)
         {
             if      (requestOrder[i] == BallRequest.Name.PURPLE)        countPGA[0]++
             else if (requestOrder[i] == BallRequest.Name.GREEN)         countPGA[1]++
             else if (BallRequest.IsAbstractAny(requestOrder[i])) countPGA[2]++
+
+            i++
         }
         return countPGA
     }
@@ -360,7 +370,8 @@ class Storage
     {
         var requestResult = RequestResult()
 
-        for (i in 0..2)
+        var i = 0
+        while (i < REAL_SLOT_COUNT)
         {
                 if (DoTerminateRequest()) return TerminateRequest()
             requestResult = _storageCells.HandleRequest(requestOrder[i])
@@ -369,10 +380,11 @@ class Storage
             requestResult = ShootRequestFinalPhase(requestResult)
 
             if (requestResult.DidFail())  return requestResult.Name()  //  Fast break if something went wrong
+
+            i++
         }
         return requestResult.Name()
     }
-
 
 
 
