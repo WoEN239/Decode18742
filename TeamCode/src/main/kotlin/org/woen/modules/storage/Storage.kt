@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import org.woen.threading.ThreadedEventBus
 
 import android.annotation.SuppressLint
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
 
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
@@ -116,7 +117,7 @@ class Storage
 
         return true
     }
-    private fun ShootRequestFinalPhase(requestResult: RequestResult) : RequestResult
+    private suspend fun ShootRequestFinalPhase(requestResult: RequestResult) : RequestResult
     {
         if (requestResult.DidFail()) return requestResult
         else if (UpdateAfterRequest(requestResult))
@@ -165,11 +166,12 @@ class Storage
     private suspend fun HandleRequestRaceCondition()
     {
         _requestRunStatus.SafeResetTermination()
-        while (RequestRaceConditionIsPresent()) ;
+        while (RequestRaceConditionIsPresent())
+            delay(DELAY_FOR_EVENT_AWAITING)
     }
-    private fun WaitForShotFiredEvent()
+    private suspend fun WaitForShotFiredEvent()
     {
-        while (!_shotWasFired) ;
+        while (!_shotWasFired) delay(DELAY_FOR_EVENT_AWAITING)
         _shotWasFired = false  //!  Maybe improve this later
     }
     private fun DoTerminateRequest(): Boolean
@@ -179,8 +181,8 @@ class Storage
     private fun TerminateRequest(): RequestResult.Name
     {
         _requestRunStatus.SetTermination(
-            RunStatus.IS_ACTIVE,
-            RunStatus.TerminationStatus.IS_ACTIVE
+            RunStatus.IS_TERMINATED,
+            RunStatus.TerminationStatus.IS_TERMINATED
         )
 
         SafeResumeIntakeLogic()
@@ -233,7 +235,7 @@ class Storage
 
 
     @SuppressLint("SuspiciousIndentation")
-    private fun ShootEverything(): RequestResult.Name
+    private suspend fun ShootEverything(): RequestResult.Name
     {
         var shootingResult = RequestResult(RequestResult.FAIL_IS_EMPTY, RequestResult.Name.FAIL_IS_EMPTY)
 
@@ -253,7 +255,7 @@ class Storage
 
 
 
-    private fun ShootEntireRequestCanSkip(
+    private suspend fun ShootEntireRequestCanSkip(
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>
     ): RequestResult.Name
@@ -264,7 +266,7 @@ class Storage
         return ShootEntireCanSkipLogic(failsafeOrder)
     }
     @SuppressLint("SuspiciousIndentation")
-    private fun ShootEntireCanSkipLogic(requestOrder: Array<BallRequest.Name>): RequestResult.Name
+    private suspend fun ShootEntireCanSkipLogic(requestOrder: Array<BallRequest.Name>): RequestResult.Name
     {
         var shootingResult = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
 
@@ -284,7 +286,7 @@ class Storage
 
 
 
-    private fun ShootEntireUntilPatternBreaks(
+    private suspend fun ShootEntireUntilPatternBreaks(
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>
     ): RequestResult.Name
@@ -295,7 +297,7 @@ class Storage
         return ShootEntireUntilBreaksLogic(failsafeOrder)
     }
     @SuppressLint("SuspiciousIndentation")
-    private fun ShootEntireUntilBreaksLogic(requestOrder: Array<BallRequest.Name>): RequestResult.Name
+    private suspend fun ShootEntireUntilBreaksLogic(requestOrder: Array<BallRequest.Name>): RequestResult.Name
     {
         val shootingResult = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
 
@@ -317,7 +319,7 @@ class Storage
 
 
     @SuppressLint("SuspiciousIndentation")
-    private fun ShootEntireRequestIsValid(
+    private suspend fun ShootEntireRequestIsValid(
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>
     ): RequestResult.Name
@@ -366,7 +368,7 @@ class Storage
                 storageDeltaAfterRequests[0] + storageDeltaAfterRequests[1] >= requestCountPGA[2]
     }
     @SuppressLint("SuspiciousIndentation")
-    private fun ShootEntireValidRequestLogic(requestOrder: Array<BallRequest.Name>): RequestResult.Name
+    private suspend fun ShootEntireValidRequestLogic(requestOrder: Array<BallRequest.Name>): RequestResult.Name
     {
         var requestResult = RequestResult()
 
@@ -429,34 +431,34 @@ class Storage
 
 
 
-    fun StorageRaw(): Array<Ball>
+    fun storageRaw(): Array<Ball>
     {
         return _storageCells.StorageRaw()
     }
-    fun StorageFiltered(): Array<Ball>
+    fun storageFiltered(): Array<Ball>
     {
         return _storageCells.StorageFiltered()
     }
 
-    fun BallColorCountPG(): IntArray
+    fun ballColorCountPG(): IntArray
     {
         return _storageCells.BallColorCountPG()
     }
 
-    fun PurpleBallCount(): Int
+    fun purpleBallCount(): Int
     {
         return _storageCells.SelectedBallCount(Ball.Name.PURPLE)
     }
-    fun GreenBallCount(): Int
+    fun greenBallCount(): Int
     {
         return _storageCells.SelectedBallCount(Ball.Name.GREEN)
     }
 
-    fun AnyBallCount(): Int
+    fun anyBallCount(): Int
     {
         return _storageCells.AnyBallCount()
     }
-    fun BallCount(): Int
+    fun ballCount(): Int
     {
         return _storageCells.AnyBallCount()
     }
@@ -467,9 +469,9 @@ class Storage
 
     fun start()
     {
-        if (_intakeRunStatus.IsOnPause())
+        if (_intakeRunStatus.IsInactive())
             _intakeRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
-        if (_requestRunStatus.IsOnPause())
+        if (_requestRunStatus.IsInactive())
             _requestRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
     }
 
@@ -477,18 +479,18 @@ class Storage
     {
         _intakeRunStatus.DoTerminate()
         while (_intakeRunStatus.IsTerminated())
-            _intakeRunStatus.Set(RunStatus.Name.PAUSE, RunStatus.PAUSE)
+            _intakeRunStatus.SetInactive()
 
         _requestRunStatus.DoTerminate()
         while (_intakeRunStatus.IsTerminated())
-            _intakeRunStatus.Set(RunStatus.Name.PAUSE, RunStatus.PAUSE)
+            _intakeRunStatus.SetInactive()
 
         return true
     }
     fun forceStop()
     {
-        _intakeRunStatus.Set(RunStatus.Name.PAUSE, RunStatus.PAUSE)
-        _requestRunStatus.Set(RunStatus.Name.PAUSE, RunStatus.PAUSE)
+        _intakeRunStatus.SetInactive()
+        _requestRunStatus.SetInactive()
     }
 
 

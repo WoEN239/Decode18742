@@ -3,12 +3,13 @@ package barrel.enumerators;
 
 public class RunStatus
 {
-    static public final int INACTIVE = 0, ACTIVE = 1, PAUSE = 2, TERMINATED = 3, USED_BY_ANOTHER_PROCESS = 4;
+    static public final int INACTIVE = 0, ACTIVE = 1, TERMINATED = 3, USED_BY_ANOTHER_PROCESS = 4;
     static public final int IS_INACTIVE = 0, IS_ACTIVE = 1, DO_TERMINATE = 2, IS_TERMINATED = 3;
 
     private TerminationStatus _terminationStatus;
     private Name _memName;
     private int  _memId, _terminationId;
+
 
 
     public RunStatus(int value)
@@ -34,15 +35,15 @@ public class RunStatus
     public RunStatus()
     {
         SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
-        Set(Name.INACTIVE, INACTIVE);
+        SetInactive();
     }
+
 
 
     public enum Name
     {
         INACTIVE,
         ACTIVE,
-        PAUSE,
         TERMINATED,
         USED_BY_ANOTHER_PROCESS
     }
@@ -56,6 +57,10 @@ public class RunStatus
 
 
 
+    public void SetInactive()
+    {
+        Set(INACTIVE, Name.INACTIVE);
+    }
     public void Set(Name name)
     {
         Set(ToInt(name), name);
@@ -123,19 +128,6 @@ public class RunStatus
     }
 
 
-    public boolean IsOnPause()
-    {
-        return _memId == PAUSE;
-    }
-    static public boolean IsOnPause(int value)
-    {
-        return value == PAUSE;
-    }
-    static public boolean IsOnPause(Name name)
-    {
-        return IsOnPause(ToInt(name));
-    }
-
 
     public boolean IsActive()
     {
@@ -161,7 +153,7 @@ public class RunStatus
     }
     static public boolean IsInactive(Name name)
     {
-        return IsActive(ToInt(name));
+        return IsInactive(ToInt(name));
     }
 
 
@@ -182,7 +174,6 @@ public class RunStatus
         {
             case INACTIVE:   return Name.INACTIVE;
             case ACTIVE:     return Name.ACTIVE;
-            case PAUSE:      return Name.PAUSE;
             case TERMINATED: return Name.TERMINATED;
             default:         return Name.USED_BY_ANOTHER_PROCESS;
         }
@@ -193,7 +184,6 @@ public class RunStatus
         {
             case INACTIVE:   return INACTIVE;
             case ACTIVE:     return ACTIVE;
-            case PAUSE:      return PAUSE;
             case TERMINATED: return TERMINATED;
             default:         return USED_BY_ANOTHER_PROCESS;
         }

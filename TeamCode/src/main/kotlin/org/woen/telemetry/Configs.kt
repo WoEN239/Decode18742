@@ -293,9 +293,12 @@ object Configs {
 
 
         @JvmField
-        var INTAKE_RACE_CONDITION_DELAY: Long = 4
+        var INTAKE_RACE_CONDITION_DELAY: Long = 10
 
         @JvmField
-        var REQUEST_RACE_CONDITION_DELAY: Long = 2
+        var REQUEST_RACE_CONDITION_DELAY: Long = 5
+
+        @JvmField
+        var DELAY_FOR_EVENT_AWAITING: Long = 5
     }
 }
