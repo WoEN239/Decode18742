@@ -18,7 +18,6 @@ import android.annotation.SuppressLint
 
 class Storage
 {
-    private var _runStatus = RunStatus()
     private var _intakeRunStatus  = RunStatus()
     private var _requestRunStatus = RunStatus()
 
@@ -31,9 +30,7 @@ class Storage
     @SuppressLint("SuspiciousIndentation")
     suspend fun HandleIntake(inputBall: Ball.Name): IntakeResult.Name
     {
-        _intakeRunStatus.SafeResetTermination()
-
-        if (!IntakeRaceConditionIsPresent())
+        if (NoIntakeRaceConditionProblems())
         {
                 if (DoTerminateIntake()) return TerminateIntake()
             val intakeResult = _storageCells.HandleIntake()
@@ -43,8 +40,9 @@ class Storage
                 intakeResult.Set(IntakeResult.FAIL_UNKNOWN, IntakeResult.Name.FAIL_UNKNOWN)
 
             SafeResumeRequestLogic()
-            return if (intakeResult.DidSucceed()) IntakeResult.Name.SUCCESS else intakeResult.Name()
+            return intakeResult.Name()
         }
+
         SafeResumeRequestLogic()
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
@@ -58,6 +56,12 @@ class Storage
             return _intakeRunStatus.IsUsedByAnotherProcess()
         }
         return true
+    }
+    suspend fun NoIntakeRaceConditionProblems(): Boolean
+    {
+        _intakeRunStatus.SafeResetTermination()
+
+        return !IntakeRaceConditionIsPresent()
     }
     private fun UpdateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): Boolean
     {
@@ -86,16 +90,14 @@ class Storage
 
 
 
-    @SuppressLint("SuspiciousIndentation")
     suspend fun HandleRequest(request: BallRequest.Name): RequestResult.Name
     {
-        _requestRunStatus.SafeResetTermination()
-        while (RequestRaceConditionIsPresent()) ;
+        HandleRequestRaceCondition()
+        if (DoTerminateRequest()) return TerminateRequest()
 
-            if (DoTerminateRequest()) return TerminateRequest()
         var requestResult = _storageCells.HandleRequest(request)
+        if (DoTerminateRequest()) return TerminateRequest()
 
-            if (DoTerminateRequest()) return TerminateRequest()
         requestResult = ShootRequestFinalPhase(requestResult)
 
         SafeResumeIntakeLogic()
@@ -115,8 +117,7 @@ class Storage
         if (requestResult.DidFail()) return requestResult
         else if (UpdateAfterRequest(requestResult))
         {
-            while (!_shotWasFired) ;
-            _shotWasFired = false  //!  Maybe improve this later
+            WaitForShotFiredEvent()
 
             if (_storageCells.UpdateAfterRequest())
             {
@@ -157,6 +158,16 @@ class Storage
         }
         return true
     }
+    private suspend fun HandleRequestRaceCondition()
+    {
+        _requestRunStatus.SafeResetTermination()
+        while (RequestRaceConditionIsPresent()) ;
+    }
+    private fun WaitForShotFiredEvent()
+    {
+        while (!_shotWasFired) ;
+        _shotWasFired = false  //!  Maybe improve this later
+    }
     private fun DoTerminateRequest(): Boolean
     {
         return _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
@@ -177,14 +188,13 @@ class Storage
 
     suspend fun ShootEntireDrumRequest(): RequestResult.Name
     {
-        _requestRunStatus.SafeResetTermination()
-        while (RequestRaceConditionIsPresent()) ;
-
+        HandleRequestRaceCondition()
         if (DoTerminateRequest()) return TerminateRequest()
-        ShootEverything()
+
+        val requestResult = ShootEverything()
 
         SafeResumeIntakeLogic()
-        return RequestResult.Name.SUCCESS_IS_NOW_EMPTY
+        return requestResult
     }
     suspend fun ShootEntireDrumRequest(
         requestOrder: Array<BallRequest.Name>,
@@ -200,12 +210,10 @@ class Storage
         shotType: ShotType = ShotType.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
     ): RequestResult.Name
     {
-        _requestRunStatus.SafeResetTermination()
-        while (RequestRaceConditionIsPresent()) ;
-
+        HandleRequestRaceCondition()
         if (DoTerminateRequest()) return TerminateRequest()
 
-        val requestResult: RequestResult.Name =
+        val requestResult =
             when (shotType)
             {
                 ShotType.FIRE_EVERYTHING_YOU_HAVE -> ShootEverything()
@@ -248,8 +256,7 @@ class Storage
     {
         val shootingResult = ShootEntireCanSkipLogic(requestOrder)
 
-        if (RequestResult.DidSucceed(shootingResult))
-            return shootingResult
+        if (RequestResult.DidSucceed(shootingResult)) return shootingResult
         return ShootEntireCanSkipLogic(failsafeOrder)
     }
     @SuppressLint("SuspiciousIndentation")
@@ -277,8 +284,7 @@ class Storage
     {
         val shootingResult = ShootEntireUntilBreaksLogic(requestOrder)
 
-        if (RequestResult.DidSucceed(shootingResult))
-            return shootingResult
+        if (RequestResult.DidSucceed(shootingResult)) return shootingResult
         return ShootEntireUntilBreaksLogic(failsafeOrder)
     }
     @SuppressLint("SuspiciousIndentation")
@@ -449,22 +455,39 @@ class Storage
 
     fun start()
     {
-        if (_runStatus.Name() != RunStatus.Name.PAUSE)
-            _runStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
+        if (_intakeRunStatus.IsOnPause())
+            _intakeRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
+        if (_requestRunStatus.IsOnPause())
+            _requestRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
     }
+
+    fun safeStop(): Boolean
+    {
+        _intakeRunStatus.DoTerminate()
+        while (_intakeRunStatus.IsTerminated())
+            _intakeRunStatus.Set(RunStatus.Name.PAUSE, RunStatus.PAUSE)
+
+        _requestRunStatus.DoTerminate()
+        while (_intakeRunStatus.IsTerminated())
+            _intakeRunStatus.Set(RunStatus.Name.PAUSE, RunStatus.PAUSE)
+
+        return true
+    }
+    fun forceStop()
+    {
+        _intakeRunStatus.Set(RunStatus.Name.PAUSE, RunStatus.PAUSE)
+        _requestRunStatus.Set(RunStatus.Name.PAUSE, RunStatus.PAUSE)
+    }
+
+
+
     init
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
-            _intakeRunStatus.SetTermination(
-                RunStatus.DO_TERMINATE,
-                RunStatus.TerminationStatus.DO_TERMINATE
-            )
+            _intakeRunStatus.DoTerminate()
         } )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
-            _requestRunStatus.SetTermination(
-                RunStatus.DO_TERMINATE,
-                RunStatus.TerminationStatus.DO_TERMINATE
-            )
+            _requestRunStatus.DoTerminate()
         } )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(GiveNextRequest::class, {
             _shotWasFired = true

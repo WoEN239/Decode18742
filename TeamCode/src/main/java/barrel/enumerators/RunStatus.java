@@ -74,6 +74,11 @@ public class RunStatus
         _memName = name;
     }
 
+    public void DoTerminate()
+    {
+        SetTermination(DO_TERMINATE, TerminationStatus.DO_TERMINATE);
+    }
+
 
     public void SafeResetTermination()
     {
@@ -117,13 +122,52 @@ public class RunStatus
         return _terminationId;
     }
 
+
+    public boolean IsOnPause()
+    {
+        return _memId == PAUSE;
+    }
+    static public boolean IsOnPause(int value)
+    {
+        return value == PAUSE;
+    }
+    static public boolean IsOnPause(Name name)
+    {
+        return IsOnPause(ToInt(name));
+    }
+
+
     public boolean IsActive()
     {
         return _memId == IS_ACTIVE;
     }
+    static public boolean IsActive(int value)
+    {
+        return value == IS_ACTIVE;
+    }
+    static public boolean IsActive(Name name)
+    {
+        return IsActive(ToInt(name));
+    }
+
+
     public boolean IsInactive()
     {
         return _memId == IS_INACTIVE;
+    }
+    static public boolean IsInactive(int value)
+    {
+        return value == IS_INACTIVE;
+    }
+    static public boolean IsInactive(Name name)
+    {
+        return IsActive(ToInt(name));
+    }
+
+
+    public boolean IsTerminated()
+    {
+        return _memId == TERMINATED;
     }
     public boolean IsUsedByAnotherProcess()
     {
