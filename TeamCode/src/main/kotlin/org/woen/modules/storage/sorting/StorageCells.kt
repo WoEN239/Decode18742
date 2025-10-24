@@ -1,4 +1,4 @@
-package org.woen.modules.storage
+package org.woen.modules.storage.sorting
 
 
 import barrel.enumerators.Ball
@@ -22,6 +22,8 @@ import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
  *   //  It behaves and is treated as one slot,
  *   //  => there CAN NOT be balls in both position
  *
+ *   //  Every slot can only move the balls in one direction (CW)
+ *
  *                     __--__
  *                    /      \
  *                    |      |    Storage RotateCW
@@ -30,11 +32,11 @@ import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
  *   |  ^^  |
  *   |  ||  \_________________________________________
  *   |  ||                                            \
- *   |  [MOBILE_OUT slot]    <->   [MOBILE_IN slot]   |
- *   |      ^^^                           vvv         |
- *   |      |||                     one-directional   |
- *   |      vvv                           vvv         \---------
- *   |  [CENTER slot]       <->      [BOTTOM slot]  <---- INTAKE
+ *   |  [MOBILE_OUT slot]   ---->   [MOBILE_IN slot]  |
+ *   |      ^^^                           |||         |
+ *   |      |||                           |||         |
+ *   |      |||                           vvv         \---------
+ *   |  [CENTER slot]       <---     [BOTTOM slot]  <---- INTAKE
  *   \________________________________________________/---------
  *
  *
@@ -44,14 +46,17 @@ import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 
 class StorageCells
 {
-    private val _storageCells: Array<Ball> = Array(SLOTS_COUNT) { Ball() }
-    private val _mobileSlot: MobileSlot = MobileSlot()
+    private val _storageCells = Array(SLOTS_COUNT) { Ball() }
+    private val _mobileSlot = MobileSlot()
 
 
 
-    fun HandleIntake(): IntakeResult
+    fun handleIntake(): IntakeResult
     {
-        val result = IntakeResult(IntakeResult.FAIL_STORAGE_IS_FULL, IntakeResult.Name.FAIL_STORAGE_IS_FULL)
+        val result = IntakeResult(
+            IntakeResult.FAIL_STORAGE_IS_FULL,
+            IntakeResult.Name.FAIL_STORAGE_IS_FULL
+        )
 
         var curSlotId = 0
         while (curSlotId < REAL_SLOT_COUNT)
@@ -63,7 +68,7 @@ class StorageCells
             }
             curSlotId++
         }
-        if (result.SolutionIsMobileOut() && _mobileSlot.IsFilled())
+        if (result.SolutionIsMobileOut() && _mobileSlot.isFilled())
             return IntakeResult(
                 IntakeResult.FAIL_STORAGE_IS_FULL,
                 IntakeResult.Name.FAIL_STORAGE_IS_FULL
@@ -72,7 +77,7 @@ class StorageCells
         return result
     }
 
-    fun HandleRequest(request: BallRequest.Name): RequestResult
+    fun handleRequest(request: BallRequest.Name): RequestResult
     {
         val requestBuffer = BallRequest(request)
 
@@ -86,18 +91,17 @@ class StorageCells
         if (requestBuffer.IsPreferred())
         {   //  Optimised comparing by id without extra unnecessary conversions
 
-            val requestResult = RequestSearch(requestBuffer.ToBall())
+            val requestResult = requestSearch(requestBuffer.ToBall())
 
             if (requestResult.DidFail())
-                return RequestSearch(requestBuffer.ToInverseBall())
+                return requestSearch(requestBuffer.ToInverseBall())
 
             return requestResult
         }
-        else if (requestBuffer.IsAny()) return AnyBallRequestSearch()
-        else return RequestSearch(requestBuffer.ToBall())
+        else if (requestBuffer.IsAny()) return anyBallRequestSearch()
+        else return requestSearch(requestBuffer.ToBall())
     }
-
-    private fun RequestSearch(requested: Ball.Name): RequestResult
+    private fun requestSearch(requested: Ball.Name): RequestResult
     {
         val result = RequestResult(
             RequestResult.FAIL_COLOR_NOT_PRESENT,
@@ -117,7 +121,7 @@ class StorageCells
 
         return result
     }
-    private fun AnyBallRequestSearch(): RequestResult
+    private fun anyBallRequestSearch(): RequestResult
     {
         val result = RequestResult(
             RequestResult.FAIL_IS_EMPTY,
@@ -140,14 +144,14 @@ class StorageCells
 
 
 
-    fun UpdateAfterIntake(inputBall: Ball.Name): Boolean
+    fun updateAfterIntake(inputBall: Ball.Name): Boolean
     {
         val intakeCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
 
         if (intakeCondition)  _storageCells[StorageSlot.BOTTOM].Set(inputBall)
         return intakeCondition
     }
-    fun UpdateAfterRequest(): Boolean
+    fun updateAfterRequest(): Boolean
     {
         val requestCondition = _storageCells[StorageSlot.MOBILE_OUT].IsFilled()
 
@@ -156,14 +160,14 @@ class StorageCells
     }
 
 
-    fun FixStorageDesync()
+    fun fixStorageDesync()
     {
         TODO("Add storage recalibrations using in robot color sensors")
     }
 
 
 
-    fun FullRotateCW(): Boolean
+    fun fullRotateCW(): Boolean
     {
         val buffer = _storageCells[StorageSlot.MOBILE_IN]
 
@@ -175,7 +179,7 @@ class StorageCells
         //!  TODO(Rotate the hardware storage);
         return true //! TODO(Replace with hardware rotation succession)
     }
-    fun Partial1RotateCW(): Boolean
+    fun partial1RotateCW(): Boolean
     {
         val rotationCondition = _storageCells[StorageSlot.CENTER].IsEmpty()
 
@@ -187,7 +191,7 @@ class StorageCells
         }
         return rotationCondition
     }
-    fun Partial2RotateCW(): Boolean
+    fun partial2RotateCW(): Boolean
     {
         val rotationCondition = _storageCells[StorageSlot.MOBILE_OUT].IsEmpty()
 
@@ -200,7 +204,7 @@ class StorageCells
         }
         return rotationCondition
     }
-    fun Partial3RotateCW(): Boolean
+    fun partial3RotateCW(): Boolean
     {
         val rotationCondition = _storageCells[StorageSlot.MOBILE_IN].IsEmpty()
 
@@ -214,93 +218,52 @@ class StorageCells
         }
         return rotationCondition
     }
-    fun PartialAutoRotateCW(): Boolean
+    fun partialAutoRotateCW(): Boolean
     {
-        return if (Partial2RotateCW()) true
-        else Partial3RotateCW()
-    }
-
-
-    fun Partial1RotateCCW(): Boolean
-    {
-        val rotationCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
-
-        if (rotationCondition)
-        {
-            _storageCells[StorageSlot.BOTTOM] = _storageCells[StorageSlot.CENTER]
-
-            //!  TODO(Rotate the hardware storage);
-        }
-        return rotationCondition
-    }
-    fun Partial2RotateCCW(): Boolean
-    {
-        val rotationCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
-
-        if (rotationCondition)
-        {
-            _storageCells[StorageSlot.BOTTOM] = _storageCells[StorageSlot.CENTER]
-            _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.MOBILE_OUT]
-
-            //!  TODO(Rotate the hardware storage);
-        }
-        return rotationCondition
-    }
-    fun Partial3RotateCCW(): Boolean
-    {
-        val rotationCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
-
-        if (rotationCondition)
-        {
-            _storageCells[StorageSlot.BOTTOM] = _storageCells[StorageSlot.CENTER]
-            _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.MOBILE_OUT]
-            _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.MOBILE_IN]
-
-            //!  TODO(Rotate the hardware storage);
-        }
-        return rotationCondition
+        return if (partial2RotateCW()) true
+        else partial3RotateCW()
     }
 
 
 
-    fun StorageRaw(): Array<Ball>
+    fun storageRaw(): Array<Ball>
     {
         return _storageCells
     }
-    fun StorageFiltered(): Array<Ball>
+    fun storageFiltered(): Array<Ball>
     {
         return arrayOf(
             _storageCells[StorageSlot.BOTTOM],
             _storageCells[StorageSlot.CENTER],
-            _mobileSlot.Ball()
+            _mobileSlot.ball()
         )
     }
 
-    fun AnyBallCount(): Int
+    fun anyBallCount(): Int
     {
         var count = 0
 
-        if (_mobileSlot.IsFilled()) count++
+        if (_mobileSlot.isFilled()) count++
         for (slotId in StorageSlot.BOTTOM..<StorageSlot.MOBILE_OUT)
             if (_storageCells[slotId].HasBall()) count++
 
         return count
     }
-    fun SelectedBallCount(ball: Ball.Name): Int
+    fun selectedBallCount(ball: Ball.Name): Int
     {
         var count = 0
 
-        if (_mobileSlot.BallName() == ball) count++
+        if (_mobileSlot.ballName() == ball) count++
         for (slotId in StorageSlot.BOTTOM..<StorageSlot.MOBILE_OUT)
             if (_storageCells[slotId].HasBall(ball)) count++
 
         return count
     }
-    fun BallColorCountPG(): IntArray
+    fun ballColorCountPG(): IntArray
     {
         val countPG = intArrayOf(0, 0, 0)
 
-        countPG[_mobileSlot.BallId()]++
+        countPG[_mobileSlot.ballId()]++
         for (i in StorageSlot.BOTTOM..<StorageSlot.MOBILE_OUT)
             countPG[_storageCells[i].Id()]++
 
@@ -308,39 +271,43 @@ class StorageCells
     }
 
 
-    fun MobileSlotBall(): Ball
+    fun slotBall(): Ball
     {
-        return _mobileSlot.Ball()
+        return _mobileSlot.ball()
     }
-    fun MobileSlotBallName(): Ball.Name
+    fun slotBallName(): Ball.Name
     {
-        return _mobileSlot.BallName()
+        return _mobileSlot.ballName()
     }
-    fun MobileSlotBallId(): Int
+    fun slotBallId(): Int
     {
-        return _mobileSlot.BallId()
+        return _mobileSlot.ballId()
     }
 
 
-    fun MobileSlot(): MobileSlot
+    fun mobileSlot(): MobileSlot
     {
         return _mobileSlot
     }
-    fun MobileSlotState(): StorageSlot
+    fun ballSlotState(): StorageSlot
     {
-        return _mobileSlot.SlotState()
+        return _mobileSlot.ballSlotState()
     }
-    fun MobileSlotName(): StorageSlot.Name
+    fun ballSlotName(): StorageSlot.Name
     {
-        return _mobileSlot.SlotStateName()
+        return _mobileSlot.ballSlotStateName()
     }
-    fun MobileSlotId(): Int
+    fun ballSlotStateId(): Int
     {
-        return _mobileSlot.SlotStateId()
+        return _mobileSlot.ballSlotStateId()
     }
-    fun IsMobileSlotIn(): Boolean
+    fun isBallInSlotIn(): Boolean
     {
-        return _mobileSlot.IsSlotIn()
+        return _mobileSlot.isBallInSlotIn()
+    }
+    fun isBallInSlotOut(): Boolean
+    {
+        return _mobileSlot.isBallInSlotOut()
     }
 
 
@@ -349,7 +316,6 @@ class StorageCells
 
     init
     {
-        _mobileSlot.SetSlot(StorageSlot.Name.MOBILE_IN)
-        //!  TODO(Hardware calibration of mobile slot)
+        TODO("Hardware calibration of mobile slot")  //!
     }
 }
