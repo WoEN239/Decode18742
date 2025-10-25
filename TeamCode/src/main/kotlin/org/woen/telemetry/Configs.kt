@@ -2,6 +2,7 @@ package org.woen.telemetry
 
 
 import barrel.enumerators.StorageSlot
+import barrel.enumerators.StorageType
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.woen.utils.regulator.RegulatorParameters
@@ -308,5 +309,9 @@ object Configs {
 
         @JvmField
         var STREAM_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
+
+
+        @JvmField
+        var USED_STORAGE_TYPE = StorageType.STREAM_STORAGE
     }
 }

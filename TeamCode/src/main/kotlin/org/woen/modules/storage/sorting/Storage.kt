@@ -476,7 +476,7 @@ class Storage
 
 
 
-    fun start()
+    fun safeStart()
     {
         if (_intakeRunStatus.IsInactive())
             _intakeRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)

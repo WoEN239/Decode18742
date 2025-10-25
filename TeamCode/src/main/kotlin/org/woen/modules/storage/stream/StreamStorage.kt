@@ -39,6 +39,8 @@ class StreamStorage
     @SuppressLint("SuspiciousIndentation")
     suspend fun handleIntake(): IntakeResult.Name
     {
+        if (_ballCount >= 3) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
+
         if (noIntakeRaceConditionProblems())
         {
                 if (doTerminateIntake()) return terminateIntake()
@@ -111,6 +113,8 @@ class StreamStorage
 
     suspend fun shootEntireDrumRequest(): RequestResult.Name
     {
+        if (_ballCount <= 0) return RequestResult.Name.FAIL_IS_EMPTY
+
         handleRequestRaceCondition()
         if (doTerminateRequest()) return terminateRequest()
 
@@ -233,6 +237,11 @@ class StreamStorage
 
 
 
+
+    fun ballCount(): Int
+    {
+        return _ballCount
+    }
 
     fun safeStart()
     {
