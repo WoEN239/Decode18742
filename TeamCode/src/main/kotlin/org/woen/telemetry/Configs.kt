@@ -1,14 +1,19 @@
 package org.woen.telemetry
 
+
 import barrel.enumerators.StorageSlot
 import com.acmerobotics.dashboard.config.Config
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.woen.utils.regulator.RegulatorParameters
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
 import kotlin.math.PI
 
+
+
 object Configs {
+
     @Config
     internal object BRUSH {
         @JvmField
@@ -300,5 +305,8 @@ object Configs {
 
         @JvmField
         var DELAY_FOR_EVENT_AWAITING: Long = 5
+
+        @JvmField
+        var STREAM_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
     }
 }

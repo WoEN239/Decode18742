@@ -1,20 +1,27 @@
-package org.woen.modules.storage
+package org.woen.modules.storage.stream
 
+
+import kotlinx.coroutines.delay
+import barrel.enumerators.RunStatus
+
+import android.annotation.SuppressLint
 
 import barrel.enumerators.IntakeResult
 import barrel.enumerators.RequestResult
 
-import barrel.enumerators.RunStatus
-
-import kotlinx.coroutines.delay
-import org.woen.threading.ThreadedEventBus
-
-import android.annotation.SuppressLint
+import org.woen.modules.storage.GiveNextRequest
+import org.woen.modules.storage.TerminateIntakeEvent
+import org.woen.modules.storage.TerminateRequestEvent
 
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
+
+
+
+import org.woen.threading.ThreadedEventBus
+import org.woen.threading.hardware.HardwareThreads
 
 
 
@@ -25,7 +32,7 @@ class StreamStorage
 
     private var _intakeRunStatus  = RunStatus()
     private var _requestRunStatus = RunStatus()
-    //!  private var _hwStreamStorage = HardwareStreamStorage()
+    private var _hwStreamStorage  = HwStreamStorage("")
 
 
 
@@ -194,8 +201,6 @@ class StreamStorage
 
 
 
-
-
     fun forceStopIntake()
     {
         _intakeRunStatus.Set(
@@ -211,10 +216,6 @@ class StreamStorage
                 RunStatus.Name.ACTIVE
             )
     }
-    private fun unsafeForceResumeIntakeLogic()
-    {
-        _intakeRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
-    }
 
     fun forceStopRequest()
     {
@@ -228,21 +229,19 @@ class StreamStorage
         if (_requestRunStatus.IsUsedByAnotherProcess())
             _requestRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
     }
-    private fun unsafeForceResumeRequestLogic()
-    {
-        _requestRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
-    }
 
 
 
 
 
-    fun start()
+    fun safeStart()
     {
         if (_intakeRunStatus.IsInactive())
             _intakeRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
         if (_requestRunStatus.IsInactive())
             _requestRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
+
+        _hwStreamStorage.start()
     }
 
     fun safeStop(): Boolean
@@ -255,34 +254,33 @@ class StreamStorage
         while (_intakeRunStatus.IsTerminated())
             _intakeRunStatus.SetInactive()
 
+        _hwStreamStorage.stop()
+
         return true
     }
     fun forceStop()
     {
         _intakeRunStatus.SetInactive()
         _requestRunStatus.SetInactive()
+
+        _hwStreamStorage.stop()
     }
 
 
 
     init
     {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
             _intakeRunStatus.DoTerminate()
         } )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
             _requestRunStatus.DoTerminate()
         } )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(GiveNextRequest::class, {
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(GiveNextRequest::class, {
             _shotWasFired = true
         } )
 
 
-
-        TODO("Add hardware initialisation logic")
-
-        //_hwStreamStorage = HardwareStorage(deviceName, direction)
-        //_hwStreamStorage.init(hwMap)
-        //HardwareThreads.getLAZY_INSTANCE().getEXPANSION().addDevices(_hwStreamStorage)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwStreamStorage)
     }
 }
