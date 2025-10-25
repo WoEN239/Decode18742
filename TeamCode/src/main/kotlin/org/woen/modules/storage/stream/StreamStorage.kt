@@ -9,18 +9,11 @@ import android.annotation.SuppressLint
 import barrel.enumerators.IntakeResult
 import barrel.enumerators.RequestResult
 
-import org.woen.modules.storage.GiveNextRequest
-import org.woen.modules.storage.TerminateIntakeEvent
-import org.woen.modules.storage.TerminateRequestEvent
-
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
 
-
-
-import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 
 
@@ -32,7 +25,7 @@ class StreamStorage
 
     private var _intakeRunStatus  = RunStatus()
     private var _requestRunStatus = RunStatus()
-    private var _hwStreamStorage  = HwStreamStorage("")
+    private lateinit var _hwStreamStorage : HwStreamStorage  //  DO NOT JOIN ASSIGNMENT
 
 
 
@@ -107,6 +100,10 @@ class StreamStorage
 
         safeResumeRequestLogic()
         return IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
+    }
+    fun switchTerminateIntake()
+    {
+        _intakeRunStatus.DoTerminate()
     }
 
 
@@ -200,7 +197,10 @@ class StreamStorage
         safeResumeIntakeLogic()
         return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
     }
-
+    fun switchTerminateRequest()
+    {
+        _requestRunStatus.DoTerminate()
+    }
 
 
 
@@ -212,7 +212,7 @@ class StreamStorage
             RunStatus.Name.USED_BY_ANOTHER_PROCESS
         )
     }
-    private fun safeResumeIntakeLogic()
+    fun safeResumeIntakeLogic()
     {
         if (_intakeRunStatus.IsUsedByAnotherProcess())
             _intakeRunStatus.Set(
@@ -228,13 +228,18 @@ class StreamStorage
             RunStatus.Name.USED_BY_ANOTHER_PROCESS
         )
     }
-    private fun safeResumeRequestLogic()
+    fun safeResumeRequestLogic()
     {
         if (_requestRunStatus.IsUsedByAnotherProcess())
             _requestRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
     }
 
 
+
+    fun shotWasFired()
+    {
+        _shotWasFired = true
+    }
 
 
 
@@ -277,19 +282,9 @@ class StreamStorage
 
 
 
-    init
+    fun linkHardware()
     {
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
-            _intakeRunStatus.DoTerminate()
-        } )
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
-            _requestRunStatus.DoTerminate()
-        } )
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(GiveNextRequest::class, {
-            _shotWasFired = true
-        } )
-
-
+        _hwStreamStorage = HwStreamStorage("")
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwStreamStorage)
     }
 }

@@ -11,11 +11,6 @@ import barrel.enumerators.RequestResult
 import barrel.enumerators.RunStatus
 
 import kotlinx.coroutines.delay
-import org.woen.threading.ThreadedEventBus
-
-import org.woen.modules.storage.GiveNextRequest
-import org.woen.modules.storage.TerminateIntakeEvent
-import org.woen.modules.storage.TerminateRequestEvent
 
 import android.annotation.SuppressLint
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
@@ -26,20 +21,22 @@ import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
 
 
 
-class Storage
+class SortingStorage
 {
     private var _intakeRunStatus  = RunStatus()
     private var _requestRunStatus = RunStatus()
 
     private var _storageCells: StorageCells = StorageCells()
     private var _shotWasFired: Boolean = false
-    //!  private HardwareStorage hwStorage
+    //!  private lateinit var hwStorage: HwStorage  //  DO NOT JOIN ASSIGNMENT
 
 
 
     @SuppressLint("SuspiciousIndentation")
     suspend fun handleIntake(inputBall: Ball.Name): IntakeResult.Name
     {
+        if (_storageCells.anyBallCount() >= 3) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
+
         if (noIntakeRaceConditionProblems())
         {
                 if (doTerminateIntake()) return terminateIntake()
@@ -97,11 +94,17 @@ class Storage
         safeResumeRequestLogic()
         return IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
     }
+    fun switchTerminateIntake()
+    {
+        _intakeRunStatus.DoTerminate()
+    }
 
 
 
     suspend fun handleRequest(request: BallRequest.Name): RequestResult.Name
     {
+        if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
+
         handleRequestRaceCondition()
         if (doTerminateRequest()) return terminateRequest()
 
@@ -193,12 +196,18 @@ class Storage
         safeResumeIntakeLogic()
         return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
     }
+    fun switchTerminateRequest()
+    {
+        _requestRunStatus.DoTerminate()
+    }
 
 
 
 
     suspend fun shootEntireDrumRequest(): RequestResult.Name
     {
+        if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
+
         handleRequestRaceCondition()
         if (doTerminateRequest()) return terminateRequest()
 
@@ -221,6 +230,8 @@ class Storage
         shotType: ShotType = ShotType.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
     ): RequestResult.Name
     {
+        if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
+
         handleRequestRaceCondition()
         if (doTerminateRequest()) return terminateRequest()
 
@@ -404,17 +415,13 @@ class Storage
             RunStatus.Name.USED_BY_ANOTHER_PROCESS
         )
     }
-    private fun safeResumeIntakeLogic()
+    fun safeResumeIntakeLogic()
     {
         if (_intakeRunStatus.IsUsedByAnotherProcess())
             _intakeRunStatus.Set(
                 RunStatus.ACTIVE,
                 RunStatus.Name.ACTIVE
             )
-    }
-    private fun unsafeForceResumeIntakeLogic()
-    {
-        _intakeRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
     }
 
     fun forceStopRequest()
@@ -424,14 +431,17 @@ class Storage
             RunStatus.Name.USED_BY_ANOTHER_PROCESS
         )
     }
-    private fun safeResumeRequestLogic()
+    fun safeResumeRequestLogic()
     {
         if (_requestRunStatus.IsUsedByAnotherProcess())
             _requestRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
     }
-    private fun unsafeForceResumeRequestLogic()
+
+
+
+    fun shotWasFired()
     {
-        _requestRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
+        _shotWasFired = true
     }
 
 
@@ -464,10 +474,6 @@ class Storage
     }
 
     fun anyBallCount(): Int
-    {
-        return _storageCells.anyBallCount()
-    }
-    fun ballCount(): Int
     {
         return _storageCells.anyBallCount()
     }
@@ -507,24 +513,11 @@ class Storage
 
 
 
-    init
+    fun linkHardware()
     {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
-            _intakeRunStatus.DoTerminate()
-        } )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
-            _requestRunStatus.DoTerminate()
-        } )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(GiveNextRequest::class, {
-            _shotWasFired = true
-        } )
-
-
-
         TODO("Add hardware initialisation logic")
 
-        //_hwStorage = HardwareStorage(deviceName, direction)
-        //_hwStorage.init(hwMap)
-        //HardwareThreads.getLAZY_INSTANCE().getEXPANSION().addDevices(_hwStorage)
+        //_hwStorage = HardwareStorage("")
+        //HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwStorage)
     }
 }
