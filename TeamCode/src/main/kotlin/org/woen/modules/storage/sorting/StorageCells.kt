@@ -15,7 +15,6 @@ import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 
 
-
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
  *
  *   //  The MobileSlot is a combined unit
@@ -314,8 +313,8 @@ class StorageCells
 
 
 
-    init
+    fun linkMobileSlotHardware()
     {
-        TODO("Hardware calibration of mobile slot")  //!
+        _mobileSlot.initHardware()
     }
 }

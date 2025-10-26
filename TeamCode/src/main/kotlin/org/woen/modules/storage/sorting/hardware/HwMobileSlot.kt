@@ -16,7 +16,7 @@ import org.woen.telemetry.Configs.STORAGE.PUSH_MOTOR_DIRECTION
 class HwMobileSlot (private val _gateMotorName: String,
                     private val _pushMotorName: String) : IHardwareDevice
 {
-    private lateinit var _gateMotor   : DcMotorEx
+    private lateinit var _gateMotor : DcMotorEx
     private lateinit var _pushMotor : DcMotorEx
 
 
@@ -37,6 +37,15 @@ class HwMobileSlot (private val _gateMotorName: String,
     fun stopPusher()
     {
         _pushMotor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(0.0)
+    }
+
+    fun calibrateGate()
+    {
+
+    }
+    fun calibratePush()
+    {
+
     }
 
 

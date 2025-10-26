@@ -318,6 +318,11 @@ object Configs {
         @JvmField
         var PUSH_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
 
+        @JvmField
+        var SORTING_BELT_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
+
+
+
 
         @JvmField
         var USED_STORAGE_TYPE = StorageType.STREAM_STORAGE

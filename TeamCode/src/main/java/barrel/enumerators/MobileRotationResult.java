@@ -1,5 +1,7 @@
 package barrel.enumerators;
 
+import org.woen.modules.storage.sorting.MobileSlot;
+
 public class MobileRotationResult
 {
     static public final int SUCCESS = 0,
@@ -113,6 +115,8 @@ public class MobileRotationResult
 
 
 
+
+
     static public Name ToName (int value)
     {
         switch (value)
@@ -149,6 +153,26 @@ public class MobileRotationResult
 
             case FAIL_SAME_POSITION: return FAIL_SAME_POSITION;
             default:                 return FAIL_CANT_ROTATE_BACKWARDS;
+        }
+    }
+
+    public int ToEndStorageSlot()
+    {
+        switch (_memId)
+        {
+            case SUCCESS_IN:
+                return StorageSlot.MOBILE_OUT;
+
+            case SUCCESS:
+            case SUCCESS_IN_DOUBLE:
+                return StorageSlot.MOBILE_IN;
+
+
+            case SUCCESS_OUT:
+            case SUCCESS_OUT_DOUBLE:
+                return StorageSlot.OUTSIDE_MOBILE;
+
+            default: return StorageSlot.UNDEFINED;
         }
     }
 }

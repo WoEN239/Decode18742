@@ -3,19 +3,24 @@ package org.woen.modules.storage.sorting
 
 import barrel.enumerators.Ball
 
+import barrel.enumerators.MobileGate
 import barrel.enumerators.StorageSlot
 import barrel.enumerators.MobileRotationResult
 
-import barrel.enumerators.MobileGate
+import org.woen.threading.hardware.HardwareThreads
+
+import org.woen.modules.storage.sorting.hardware.HwMobileSlot
+
 
 
 class MobileSlot
 {
-    private val _gate = MobileGate()
-    private val _ballSlot = StorageSlot()
-    //!  private val _hwMobileSlot = HardwareMobileSlot()
-
     private val _ball = Ball()
+    private val _ballSlot = StorageSlot()
+
+    private val _gate = MobileGate()
+
+    private lateinit var _hwMobileSlot: HwMobileSlot  //  DO NOT JOIN ASSIGNMENT
 
 
 
@@ -30,49 +35,63 @@ class MobileSlot
     }
     private fun moveBall(result: MobileRotationResult): MobileRotationResult
     {
+        _ballSlot.Set(result.ToEndStorageSlot())
+
         when (result.Id())
         {
-            MobileRotationResult.SUCCESS ->
-            {
-                _ballSlot.SetMobileIn()
-                TODO("Add hardware moving: MOBILE_OUT -> MOBILE_IN")
-            }
             MobileRotationResult.SUCCESS_IN ->
             {
-                _ballSlot.SetMobileOut()
                 TODO("Add hardware moving: OUTSIDE -> MOBILE_OUT")
             }
+
             MobileRotationResult.SUCCESS_IN_DOUBLE ->
             {
-                _ballSlot.SetMobileIn()
                 TODO("Add hardware moving: OUTSIDE -> MOBILE_IN")
             }
+
+            MobileRotationResult.SUCCESS ->
+            {
+                TODO("Add hardware moving: MOBILE_OUT -> MOBILE_IN")
+            }
+
             MobileRotationResult.SUCCESS_OUT ->
             {
-                _ballSlot.SetOutsideMobile()
-                TODO("Add hardware moving: MOBILE_OUT -> OUTSIDE")
-            }
-            MobileRotationResult.SUCCESS_OUT_DOUBLE ->
-            {
-                _ballSlot.SetOutsideMobile()
+                _ball.Empty()
                 TODO("Add hardware moving: MOBILE_IN -> OUTSIDE")
             }
-            else ->
-            {
-                return MobileRotationResult()
-            }
-        }
 
-        return result
+            MobileRotationResult.SUCCESS_OUT_DOUBLE ->
+            {
+                _ball.Empty()
+                TODO("Add hardware moving: MOBILE_OUT -> OUTSIDE")
+            }
+
+            else -> return MobileRotationResult()
+        }
     }
 
     fun tryFillSlot(ball: Ball.Name): Boolean
     {
-       return tryRotateSlot(StorageSlot.Name.MOBILE_OUT).DidSucceed()
+        val fillResult = tryRotateSlot(StorageSlot.Name.MOBILE_OUT)
+        val fillSucceeded = fillResult.DidSucceed()
+
+        if (fillSucceeded)
+        {
+            _ball.Set(ball)
+            _ballSlot.Set(fillResult.ToEndStorageSlot())
+        }
+        return fillSucceeded
     }
     fun emptySlot(): Boolean
     {
-        return tryRotateSlot(StorageSlot.Name.OUTSIDE_MOBILE).DidSucceed()
+        val emptyingSucceed = tryRotateSlot(StorageSlot.Name.OUTSIDE_MOBILE).DidSucceed()
+
+        if (emptyingSucceed)
+        {
+            _ball.Empty()
+            _ballSlot.SetOutsideMobile()
+        }
+        return emptyingSucceed
     }
 
 
@@ -129,24 +148,38 @@ class MobileSlot
     }
 
 
-
     fun ballCount(): Int
     {
-        return if (_ball.Id() == 0) 0 else 1
+        return if (_ball.Id() == Ball.NONE) 0 else 1
     }
 
 
 
 
 
+    fun linkHardware()
+    {
+        _hwMobileSlot = HwMobileSlot("", "")
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwMobileSlot)
+    }
+    fun calibrateHardware()
+    {
+        _hwMobileSlot.calibrateGate()
+        _hwMobileSlot.calibratePush()
+    }
+
+    fun initHardware()
+    {
+
+        linkHardware()
+        calibrateHardware()
+    }
+
+
+
     init
     {
         _ballSlot.SetOutsideMobile()
-
-        //!  _hwMobileSlot = new HardwareMobileSlot(hwMap)
-        TODO("Add hardware mobile slot linking")
-
         _gate.Set(MobileGate.CLOSED, MobileGate.Name.CLOSED)
-        TODO("Add hardware gate calibration")
     }
 }

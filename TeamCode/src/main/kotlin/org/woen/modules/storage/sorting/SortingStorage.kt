@@ -11,11 +11,13 @@ import barrel.enumerators.RequestResult
 import barrel.enumerators.RunStatus
 
 import kotlinx.coroutines.delay
-
 import android.annotation.SuppressLint
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
+
+import org.woen.threading.hardware.HardwareThreads
+import org.woen.modules.storage.sorting.hardware.HwSorting
 
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
 
@@ -23,12 +25,13 @@ import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
 
 class SortingStorage
 {
-    private var _intakeRunStatus  = RunStatus()
-    private var _requestRunStatus = RunStatus()
+    private val _intakeRunStatus  = RunStatus()
+    private val _requestRunStatus = RunStatus()
 
-    private var _storageCells: StorageCells = StorageCells()
-    private var _shotWasFired: Boolean = false
-    //!  private lateinit var hwStorage: HwStorage  //  DO NOT JOIN ASSIGNMENT
+    private var _shotWasFired = false
+    private val _storageCells = StorageCells()
+
+    private lateinit var _hwStorage: HwSorting  //  DO NOT JOIN ASSIGNMENT
 
 
 
@@ -515,9 +518,9 @@ class SortingStorage
 
     fun linkHardware()
     {
-        TODO("Add hardware initialisation logic")
+        _hwStorage = HwSorting("")
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwStorage)
 
-        //_hwStorage = HardwareStorage("")
-        //HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwStorage)
+        _storageCells.linkMobileSlotHardware()
     }
 }
