@@ -43,8 +43,6 @@ class HwStreamStorage(private val _deviceName: String) : IHardwareDevice
 
         _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(12.0)
-
         _motor.direction = STREAM_MOTOR_DIRECTION
     }
 }

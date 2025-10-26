@@ -307,8 +307,16 @@ object Configs {
         @JvmField
         var DELAY_FOR_EVENT_AWAITING: Long = 5
 
+
+
         @JvmField
         var STREAM_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
+
+        @JvmField
+        var GATE_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
+
+        @JvmField
+        var PUSH_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
 
 
         @JvmField
