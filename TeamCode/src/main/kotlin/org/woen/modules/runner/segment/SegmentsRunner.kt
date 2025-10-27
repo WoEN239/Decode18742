@@ -113,6 +113,8 @@ class SegmentsRunner : IModule {
             _segmentTimerMutex.smartLock {
                 _segmentTimer.reset()
             }
+
+            _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequireRRBuilderEvent::class, {

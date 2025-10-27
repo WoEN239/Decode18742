@@ -11,8 +11,6 @@ import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
 import kotlin.math.PI
 
-
-
 object Configs {
 
     @Config
@@ -51,10 +49,10 @@ object Configs {
         var DEFAULT_SERVO_ANGLE = PI * 1.5
 
         @JvmField
-        var DEFAULT_SERVO_V_MAX = 3.0
+        var DEFAULT_SERVO_V_MAX = PI * 1.5 * 12.0
 
         @JvmField
-        var DEFAULT_SERVO_A = 1.0
+        var DEFAULT_SERVO_A = PI * 1.5 * 12.0
 
         @JvmField
         var DEFAULT_SERVO_OFFSET = 0.1
@@ -132,10 +130,10 @@ object Configs {
         var ENCODER_VELOCITY_FILTER_K = ThreadedTelemetry.EventValueProvider(0.1)
 
         @JvmField
-        var ENCODER_TICKS = 28.0
+        var ENCODER_TICKS = (1.0 + (46.0 / 17.0)) * (1.0 + (46.0 / 17.0)) * 28.0
 
         @JvmField
-        var WHEEL_DIAMETER = 1.0
+        var WHEEL_DIAMETER = 0.098
 
         @JvmField
         var Y_LAG = 1.0
@@ -159,19 +157,19 @@ object Configs {
         var ROAD_RUNNER_POS_H_P = 0.0
 
         @JvmField
-        var ROAD_RUNNER_TRANSLATE_VELOCITY = 1.0
+        var ROAD_RUNNER_TRANSLATE_VELOCITY = 0.02
 
         @JvmField
-        var ROAD_RUNNER_ROTATE_VELOCITY = 1.0
+        var ROAD_RUNNER_ROTATE_VELOCITY = 2.0
 
         @JvmField
-        var ROAD_RUNNER_ROTATE_ACCEL = 1.0
+        var ROAD_RUNNER_ROTATE_ACCEL = 2.0
 
         @JvmField
-        var ROAD_RUNNER_MIN_TRANSLATION_ACCEL = -1.0
+        var ROAD_RUNNER_MIN_TRANSLATION_ACCEL = -0.02
 
         @JvmField
-        var ROAD_RUNNER_MAX_TRANSLATION_ACCEL = 1.0
+        var ROAD_RUNNER_MAX_TRANSLATION_ACCEL = 0.02
     }
 
     @Config
@@ -201,7 +199,7 @@ object Configs {
         var PULLEY_RADIUS = 10.0 / 2.0
 
         @JvmField
-        var PULLEY_TICKS_IN_REVOLUTION = 24.0
+        var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
         var PULLEY_REGULATOR = RegulatorParameters()
