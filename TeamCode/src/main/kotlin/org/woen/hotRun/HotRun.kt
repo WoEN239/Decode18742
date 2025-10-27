@@ -96,6 +96,7 @@ class HotRun private constructor() {
             ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
             HardwareThreads.LAZY_INSTANCE
             ActionRunner.LAZY_INSTANCE
+            Camera.LAZY_INSTANCE
 
             opModeInitEvent.invoke(opMode)
 

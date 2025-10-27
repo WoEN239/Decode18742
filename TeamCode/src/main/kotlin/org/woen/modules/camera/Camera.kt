@@ -1,5 +1,6 @@
 package org.woen.modules.camera
 
+import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import kotlinx.coroutines.DisposableHandle
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
@@ -54,8 +55,13 @@ class Camera private constructor() : DisposableHandle {
 
     val cameraPositionUpdateEvent = SimpleEvent<Vec2>()
 
-    private val _thread = ThreadManager.Companion.LAZY_INSTANCE.register(thread {
+    private val _thread = ThreadManager.Companion.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted && Configs.CAMERA.CAMERA_ENABLE) {
+            if(HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN){
+                Thread.sleep(5)
+                continue
+            }
+
             val detections = _aprilProcessor.freshDetections
 
             if (detections == null) {
@@ -119,16 +125,16 @@ class Camera private constructor() : DisposableHandle {
             val hardwareMap =
                 OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
 
+            val helpCameraProcessor = HelpCameraProcessor()
+
             _visionPortal =
                 VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
-                    .addProcessor(_aprilProcessor).build()
+                    .addProcessors(helpCameraProcessor, _aprilProcessor).build()
 
-            HotRun.Companion.LAZY_INSTANCE.opModeInitEvent += {
-                _thread.start()
-            }
+            FtcDashboard.getInstance().startCameraStream(helpCameraProcessor, 15.0)
 
             HotRun.Companion.LAZY_INSTANCE.opModeStopEvent += {
-                _thread.interrupt()
+                FtcDashboard.getInstance().stopCameraStream()
             }
         }
     }
