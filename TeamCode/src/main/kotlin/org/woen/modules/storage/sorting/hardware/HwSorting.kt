@@ -1,7 +1,6 @@
 package org.woen.modules.storage.sorting.hardware
 
 
-import barrel.enumerators.RunStatus
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
@@ -9,8 +8,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 
-import kotlinx.coroutines.delay
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
+import java.util.concurrent.atomic.AtomicReference
+
 import org.woen.telemetry.Configs.STORAGE.SORTING_BELT_MOTOR_DIRECTION
 
 
@@ -18,89 +17,27 @@ import org.woen.telemetry.Configs.STORAGE.SORTING_BELT_MOTOR_DIRECTION
 class HwSorting (private val _deviceName: String) : IHardwareDevice
 {
     private lateinit var _beltMotor : DcMotorEx
-    private val _runStatus = RunStatus()
+    private val _motorPower = AtomicReference(0.0)
 
 
 
-    fun safeStart(): Boolean
+    fun startBeltMotor()
     {
-        if (_runStatus.IsActive()) return true
-
-        val startCondition = _runStatus.IsInactive()
-        if (startCondition)
-        {
-            _runStatus.SetActive()
-            _beltMotor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(12.0)
-        }
-
-        return startCondition
+        _motorPower.set(12.0)
     }
-    fun safeStop(): Boolean
+    fun stopBeltMotor()
     {
-        if (_runStatus.IsInactive()) return true  //  Already stopped
-        val stopCondition = _runStatus.IsActive()
-        if (stopCondition)
-        {
-            _runStatus.SetInactive()
-            _beltMotor.power = 0.0
-        }
-
-        return stopCondition
-    }
-    fun forceStop()
-    {
-        _runStatus.SetInactive()
-        _beltMotor.power = 0.0
-    }
-
-    fun safePause(): Boolean
-    {
-        if (_runStatus.IsUsedByAnotherProcess()) return true  //  Already paused
-
-        val pauseCondition = _runStatus.IsActive()
-        if (pauseCondition)
-        {
-            _runStatus.Set(
-                RunStatus.USED_BY_ANOTHER_PROCESS,
-                RunStatus.Name.USED_BY_ANOTHER_PROCESS
-            )
-            _beltMotor.power = 0.0
-        }
-
-        return pauseCondition
-    }
-    suspend fun forceSafePause(): Boolean
-    {
-        while (!safePause()) delay(DELAY_FOR_EVENT_AWAITING)
-
-        return true
-    }
-
-    fun safeResume(): Boolean
-    {
-        if (_runStatus.IsActive()) return true  //  Already active
-
-        val resumeCondition = _runStatus.IsUsedByAnotherProcess()  //  NOT INACTIVE
-        if (resumeCondition)
-        {
-            _runStatus.SetActive()
-            _beltMotor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(12.0)
-        }
-
-        return resumeCondition
-    }
-    suspend fun forceSafeResume(): Boolean
-    {
-        while (!safeResume()) delay(DELAY_FOR_EVENT_AWAITING)
-
-        return true
+        _motorPower.set(0.0)
     }
 
 
-
-    override fun update() { }
 
     override fun dispose() { }
+
+    override fun update()
+    {
+        _beltMotor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motorPower.get())
+    }
 
     override fun init(hardwareMap : HardwareMap)
     {

@@ -19,7 +19,7 @@ import org.woen.telemetry.Configs.STORAGE.USED_STORAGE_TYPE
 
 
 
-class SwitchStorage
+class SwitchStorage  //  Schrodinger storage
 {
     private val _isStream  = StorageType.IsStream(USED_STORAGE_TYPE)
     private val _isSorting = !_isStream

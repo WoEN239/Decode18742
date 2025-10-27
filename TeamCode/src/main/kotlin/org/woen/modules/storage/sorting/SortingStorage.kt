@@ -20,6 +20,7 @@ import org.woen.modules.storage.StorageFinishedEveryRequestEvent
 
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.modules.storage.sorting.hardware.HwSorting
+import org.woen.modules.storage.sorting.hardware.HwSortingManager
 
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
@@ -36,7 +37,7 @@ class SortingStorage
     private var _shotWasFired = false
     private val _storageCells = StorageCells()
 
-    private lateinit var _hwStorage: HwSorting  //  DO NOT JOIN ASSIGNMENT
+    private lateinit var _hwStorage: HwSortingManager  //  DO NOT JOIN ASSIGNMENT
 
 
 
@@ -570,8 +571,8 @@ class SortingStorage
 
     fun linkHardware()
     {
-        _hwStorage = HwSorting("")
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwStorage)
+        _hwStorage = HwSortingManager("")
+        _hwStorage.addDevice()
 
         _storageCells.linkMobileSlotHardware()
     }
