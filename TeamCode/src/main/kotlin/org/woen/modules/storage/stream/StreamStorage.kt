@@ -215,10 +215,7 @@ class StreamStorage
     fun safeResumeIntakeLogic()
     {
         if (_intakeRunStatus.IsUsedByAnotherProcess())
-            _intakeRunStatus.Set(
-                RunStatus.ACTIVE,
-                RunStatus.Name.ACTIVE
-            )
+            _intakeRunStatus.SetActive()
     }
 
     fun forceStopRequest()
@@ -231,7 +228,7 @@ class StreamStorage
     fun safeResumeRequestLogic()
     {
         if (_requestRunStatus.IsUsedByAnotherProcess())
-            _requestRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
+            _requestRunStatus.SetActive()
     }
 
 
@@ -248,25 +245,43 @@ class StreamStorage
         return _ballCount
     }
 
-    fun safeStart()
+
+
+    fun trySafeStart()
     {
         if (_intakeRunStatus.IsInactive())
-            _intakeRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
+            _intakeRunStatus.SetActive()
         if (_requestRunStatus.IsInactive())
-            _requestRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
+            _requestRunStatus.SetActive()
 
         _hwStreamStorage.start()
     }
+    suspend fun safeStart(): Boolean
+    {
+        while (!_intakeRunStatus.IsInactive())
+            delay(DELAY_FOR_EVENT_AWAITING)
+        _intakeRunStatus.SetActive()
 
-    fun safeStop(): Boolean
+        while (!_requestRunStatus.IsInactive())
+            delay(DELAY_FOR_EVENT_AWAITING)
+        _requestRunStatus.SetActive()
+
+        _hwStreamStorage.start()
+
+        return true
+    }
+
+    suspend fun safeStop(): Boolean
     {
         _intakeRunStatus.DoTerminate()
-        while (_intakeRunStatus.IsTerminated())
-            _intakeRunStatus.SetInactive()
+        while (!_intakeRunStatus.IsTerminated())
+            delay(DELAY_FOR_EVENT_AWAITING)
+        _intakeRunStatus.SetInactive()
 
         _requestRunStatus.DoTerminate()
-        while (_intakeRunStatus.IsTerminated())
-            _intakeRunStatus.SetInactive()
+        while (!_intakeRunStatus.IsTerminated())
+            delay(DELAY_FOR_EVENT_AWAITING)
+        _intakeRunStatus.SetInactive()
 
         _hwStreamStorage.stop()
 
@@ -275,7 +290,10 @@ class StreamStorage
     fun forceStop()
     {
         _intakeRunStatus.SetInactive()
+        _intakeRunStatus.DoTerminate()
+
         _requestRunStatus.SetInactive()
+        _requestRunStatus.DoTerminate()
 
         _hwStreamStorage.stop()
     }

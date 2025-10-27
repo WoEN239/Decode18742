@@ -57,6 +57,10 @@ public class RunStatus
 
 
 
+    public void SetActive()
+    {
+        Set(ACTIVE, Name.ACTIVE);
+    }
     public void SetInactive()
     {
         Set(INACTIVE, Name.INACTIVE);

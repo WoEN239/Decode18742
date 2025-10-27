@@ -13,6 +13,10 @@ import barrel.enumerators.RunStatus
 import kotlinx.coroutines.delay
 import android.annotation.SuppressLint
 
+import org.woen.threading.ThreadedEventBus
+import org.woen.modules.storage.StorageFinishedIntakeEvent
+import org.woen.modules.storage.StorageRequestIsReadyEvent
+
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.modules.storage.sorting.hardware.HwSorting
 
@@ -43,14 +47,16 @@ class SortingStorage
         if (noIntakeRaceConditionProblems())
         {
                 if (doTerminateIntake()) return terminateIntake()
-            val intakeResult = _storageCells.handleIntake()
+            val storageCanHandle = _storageCells.handleIntake()
 
                 if (doTerminateIntake()) return terminateIntake()
-            if (!updateAfterInput(intakeResult, inputBall))  //  Safe updating after intake
-                intakeResult.Set(IntakeResult.FAIL_UNKNOWN, IntakeResult.Name.FAIL_UNKNOWN)
+            val intakeResult = updateAfterInput(storageCanHandle, inputBall)
+            //  Safe updating storage after intake  - wont update if an error occurs
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedIntakeEvent(intakeResult))
 
             safeResumeRequestLogic()
-            return intakeResult.Name()
+            return intakeResult
         }
 
         safeResumeRequestLogic()
@@ -73,15 +79,20 @@ class SortingStorage
 
         return !intakeRaceConditionIsPresent()
     }
-    private fun updateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): Boolean
+    private fun updateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
     {
-        if (intakeResult.DidFail()) return false  //  Intake failed
+        if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
+        if (!_hwStorage.safeStop()) return IntakeResult.Name.FAIL_HARDWARE_PROBLEM
 
+
+        _hwStorage.safePause()
         //!  Align center slot to be empty
         TODO("Handle motor rotation to correct slot")
 
 
-        return _storageCells.updateAfterIntake(inputBall)  //  Safe intake
+        return if (_storageCells.updateAfterIntake(inputBall))
+             IntakeResult.Name.SUCCESS
+        else IntakeResult.Name.FAIL_UNKNOWN
     }
     private fun doTerminateIntake(): Boolean
     {
@@ -121,10 +132,10 @@ class SortingStorage
     }
     private fun updateAfterRequest(requestResult: RequestResult): Boolean
     {
-        TODO("Rotate motor to target slot")
+        if (!_hwStorage.safeStop()) return false
 
+        TODO("Rotate motor to target slot")  //!
 
-        //!  ThreadedEventBus.LAZY_INSTANCE.invoke(storageRequestIsReadyEvent())
 
         return true
     }
@@ -133,6 +144,7 @@ class SortingStorage
         if (requestResult.DidFail()) return requestResult
         else if (updateAfterRequest(requestResult))
         {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
             waitForShotFiredEvent()
 
             if (_storageCells.updateAfterRequest())
@@ -140,11 +152,11 @@ class SortingStorage
                 return if (_storageCells.anyBallCount() > 0)
                      RequestResult(
                         RequestResult.SUCCESS,
-                     RequestResult.Name.SUCCESS
+                        RequestResult.Name.SUCCESS
                     )
                 else RequestResult(
-                    RequestResult.SUCCESS_IS_NOW_EMPTY,
-                    RequestResult.Name.SUCCESS_IS_NOW_EMPTY
+                        RequestResult.SUCCESS_IS_NOW_EMPTY,
+                        RequestResult.Name.SUCCESS_IS_NOW_EMPTY
                     )
             }
 
@@ -152,8 +164,8 @@ class SortingStorage
             {
                 _storageCells.fixStorageDesync()
                 return RequestResult(
-                    RequestResult.FAIL_SOFTWARE_STORAGE_DESYNC,
-                    RequestResult.Name.FAIL_SOFTWARE_STORAGE_DESYNC
+                        RequestResult.FAIL_SOFTWARE_STORAGE_DESYNC,
+                        RequestResult.Name.FAIL_SOFTWARE_STORAGE_DESYNC
                     )
             }
         }
@@ -421,10 +433,7 @@ class SortingStorage
     fun safeResumeIntakeLogic()
     {
         if (_intakeRunStatus.IsUsedByAnotherProcess())
-            _intakeRunStatus.Set(
-                RunStatus.ACTIVE,
-                RunStatus.Name.ACTIVE
-            )
+            _intakeRunStatus.SetActive()
     }
 
     fun forceStopRequest()
@@ -437,7 +446,7 @@ class SortingStorage
     fun safeResumeRequestLogic()
     {
         if (_requestRunStatus.IsUsedByAnotherProcess())
-            _requestRunStatus.Set(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
+            _requestRunStatus.SetActive()
     }
 
 
@@ -485,23 +494,45 @@ class SortingStorage
 
 
 
-    fun safeStart()
+    fun trySafeStart()
     {
         if (_intakeRunStatus.IsInactive())
-            _intakeRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
+            _intakeRunStatus.SetActive()
         if (_requestRunStatus.IsInactive())
-            _requestRunStatus.Set(RunStatus.Name.ACTIVE, RunStatus.ACTIVE)
+            _requestRunStatus.SetActive()
+
+        _hwStorage.safeStart()
+    }
+    suspend fun safeStart(): Boolean
+    {
+        while (!_intakeRunStatus.IsInactive())
+            delay(DELAY_FOR_EVENT_AWAITING)
+        _intakeRunStatus.SetActive()
+
+        while (!_requestRunStatus.IsInactive())
+            delay(DELAY_FOR_EVENT_AWAITING)
+        _requestRunStatus.SetActive()
+
+        while (!_hwStorage.safeStart())
+            delay(DELAY_FOR_EVENT_AWAITING)
+
+        return true
     }
 
-    fun safeStop(): Boolean
+    suspend fun safeStop(): Boolean
     {
         _intakeRunStatus.DoTerminate()
-        while (_intakeRunStatus.IsTerminated())
-            _intakeRunStatus.SetInactive()
+        while (!_intakeRunStatus.IsTerminated())
+            delay(DELAY_FOR_EVENT_AWAITING)
+        _intakeRunStatus.SetInactive()
 
         _requestRunStatus.DoTerminate()
-        while (_intakeRunStatus.IsTerminated())
-            _intakeRunStatus.SetInactive()
+        while (!_intakeRunStatus.IsTerminated())
+            delay(DELAY_FOR_EVENT_AWAITING)
+        _intakeRunStatus.SetInactive()
+
+        while (!_hwStorage.safeStop())
+            delay(DELAY_FOR_EVENT_AWAITING)
 
         return true
     }
@@ -512,6 +543,8 @@ class SortingStorage
 
         _requestRunStatus.SetInactive()
         _requestRunStatus.DoTerminate()
+
+        _hwStorage.forceStop()
     }
 
 

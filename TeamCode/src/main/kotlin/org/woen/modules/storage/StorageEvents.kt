@@ -3,17 +3,22 @@ package org.woen.modules.storage
 import barrel.enumerators.IntakeResult
 import barrel.enumerators.RequestResult
 
+
+
 class TerminateIntakeEvent()
 class TerminateRequestEvent()
 
 
-class BarrelRequestIsReadyEvent()
-data class BarrelFinishedRequestEvent(
-    var requestResult: RequestResult.Name
-)
-data class BarrelFinishedIntakeEvent(
+
+data class StorageFinishedIntakeEvent(
     var intakeResult: IntakeResult.Name
 )
+
+class StorageRequestIsReadyEvent()
+data class StorageFinishedEveryRequestEvent(
+    var requestResult: RequestResult.Name
+)
+
 
 
 class GiveNextRequest()

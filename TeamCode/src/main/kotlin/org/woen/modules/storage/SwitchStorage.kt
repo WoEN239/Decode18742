@@ -48,12 +48,18 @@ class SwitchStorage
         else _sortingStorage.anyBallCount()
     }
 
-    fun safeStart()
+    suspend fun safeStart()
     {
         if (_isStream) _streamStorage.safeStart()
         else _sortingStorage.safeStart()
     }
-    fun safeStop(): Boolean
+    fun trySafeStart()
+    {
+        if (_isStream) _streamStorage.trySafeStart()
+        else _sortingStorage.trySafeStart()
+    }
+
+    suspend fun safeStop(): Boolean
     {
         return if (_isStream) _streamStorage.safeStop()
         else _sortingStorage.safeStop()
