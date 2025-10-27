@@ -22,7 +22,6 @@ class HardwareThreads private constructor() : DisposableHandle {
                 return@smartLock _nullableInstance!!
             }
 
-
         fun restart() {
             _instanceMutex.smartLock {
                 _nullableInstance?.dispose()

@@ -11,7 +11,7 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.Executors
 
-class ThreadManager : DisposableHandle {
+class ThreadManager private constructor(): DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadManager? = null
 

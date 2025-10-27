@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.modules.camera.Camera
+import org.woen.modules.runner.actions.ActionRunner
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
@@ -39,6 +40,7 @@ class HotRun private constructor() {
 
             ThreadManager.restart()
             ThreadedTelemetry.restart()
+            ActionRunner.restart()
             ThreadedTimers.restart()
             ThreadedEventBus.restart()
             Camera.restart()
@@ -93,6 +95,7 @@ class HotRun private constructor() {
             ThreadedGamepad.LAZY_INSTANCE.init()
             ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
             HardwareThreads.LAZY_INSTANCE
+            ActionRunner.LAZY_INSTANCE
 
             opModeInitEvent.invoke(opMode)
 
