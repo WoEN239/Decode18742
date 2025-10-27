@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 
+import kotlinx.coroutines.delay
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
 import org.woen.telemetry.Configs.STORAGE.SORTING_BELT_MOTOR_DIRECTION
 
 
@@ -22,6 +24,8 @@ class HwSorting (private val _deviceName: String) : IHardwareDevice
 
     fun safeStart(): Boolean
     {
+        if (_runStatus.IsActive()) return true
+
         val startCondition = _runStatus.IsInactive()
         if (startCondition)
         {
@@ -33,6 +37,7 @@ class HwSorting (private val _deviceName: String) : IHardwareDevice
     }
     fun safeStop(): Boolean
     {
+        if (_runStatus.IsInactive()) return true  //  Already stopped
         val stopCondition = _runStatus.IsActive()
         if (stopCondition)
         {
@@ -50,6 +55,8 @@ class HwSorting (private val _deviceName: String) : IHardwareDevice
 
     fun safePause(): Boolean
     {
+        if (_runStatus.IsUsedByAnotherProcess()) return true  //  Already paused
+
         val pauseCondition = _runStatus.IsActive()
         if (pauseCondition)
         {
@@ -62,8 +69,17 @@ class HwSorting (private val _deviceName: String) : IHardwareDevice
 
         return pauseCondition
     }
+    suspend fun forceSafePause(): Boolean
+    {
+        while (!safePause()) delay(DELAY_FOR_EVENT_AWAITING)
+
+        return true
+    }
+
     fun safeResume(): Boolean
     {
+        if (_runStatus.IsActive()) return true  //  Already active
+
         val resumeCondition = _runStatus.IsUsedByAnotherProcess()  //  NOT INACTIVE
         if (resumeCondition)
         {
@@ -72,6 +88,12 @@ class HwSorting (private val _deviceName: String) : IHardwareDevice
         }
 
         return resumeCondition
+    }
+    suspend fun forceSafeResume(): Boolean
+    {
+        while (!safeResume()) delay(DELAY_FOR_EVENT_AWAITING)
+
+        return true
     }
 
 

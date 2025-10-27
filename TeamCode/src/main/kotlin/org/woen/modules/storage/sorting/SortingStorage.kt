@@ -16,6 +16,7 @@ import android.annotation.SuppressLint
 import org.woen.threading.ThreadedEventBus
 import org.woen.modules.storage.StorageFinishedIntakeEvent
 import org.woen.modules.storage.StorageRequestIsReadyEvent
+import org.woen.modules.storage.StorageFinishedEveryRequestEvent
 
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.modules.storage.sorting.hardware.HwSorting
@@ -53,13 +54,11 @@ class SortingStorage
             val intakeResult = updateAfterInput(storageCanHandle, inputBall)
             //  Safe updating storage after intake  - wont update if an error occurs
 
-            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedIntakeEvent(intakeResult))
-
-            safeResumeRequestLogic()
+            fullResumeRequestLogic(intakeResult)
             return intakeResult
         }
 
-        safeResumeRequestLogic()
+        fullResumeRequestLogic(IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY)
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
     private suspend fun intakeRaceConditionIsPresent(): Boolean
@@ -79,16 +78,17 @@ class SortingStorage
 
         return !intakeRaceConditionIsPresent()
     }
-    private fun updateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
+    private suspend fun updateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
     {
-        if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
-        if (!_hwStorage.safeStop()) return IntakeResult.Name.FAIL_HARDWARE_PROBLEM
+        if (intakeResult.DidFail())  return intakeResult.Name()   //  Intake failed
+        _hwStorage.forceSafePause()
 
 
-        _hwStorage.safePause()
         //!  Align center slot to be empty
         TODO("Handle motor rotation to correct slot")
 
+
+       _hwStorage.forceSafeResume()
 
         return if (_storageCells.updateAfterIntake(inputBall))
              IntakeResult.Name.SUCCESS
@@ -127,12 +127,13 @@ class SortingStorage
 
         requestResult = shootRequestFinalPhase(requestResult)
 
-        safeResumeIntakeLogic()
+        fullResumeIntakeLogic(requestResult.Name())
         return requestResult.Name()
     }
-    private fun updateAfterRequest(requestResult: RequestResult): Boolean
+    private suspend fun updateAfterRequest(requestResult: RequestResult): Boolean
     {
-        if (!_hwStorage.safeStop()) return false
+        _hwStorage.forceSafePause()
+
 
         TODO("Rotate motor to target slot")  //!
 
@@ -144,8 +145,7 @@ class SortingStorage
         if (requestResult.DidFail()) return requestResult
         else if (updateAfterRequest(requestResult))
         {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
-            waitForShotFiredEvent()
+            fullWaitForShotFired()
 
             if (_storageCells.updateAfterRequest())
             {
@@ -192,11 +192,6 @@ class SortingStorage
         while (requestRaceConditionIsPresent())
             delay(DELAY_FOR_EVENT_AWAITING)
     }
-    private suspend fun waitForShotFiredEvent()
-    {
-        while (!_shotWasFired) delay(DELAY_FOR_EVENT_AWAITING)
-        _shotWasFired = false  //!  Maybe improve this later
-    }
     private fun doTerminateRequest(): Boolean
     {
         return _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
@@ -228,7 +223,7 @@ class SortingStorage
 
         val requestResult = shootEverything()
 
-        safeResumeIntakeLogic()
+        fullResumeIntakeLogic(requestResult)
         return requestResult
     }
     suspend fun shootEntireDrumRequest(
@@ -259,7 +254,7 @@ class SortingStorage
                 else  -> shootEntireRequestIsValid(requestOrder, failsafeOrder)
             }
 
-        safeResumeIntakeLogic()
+        fullResumeIntakeLogic(requestResult)
         return requestResult
     }
 
@@ -435,6 +430,13 @@ class SortingStorage
         if (_intakeRunStatus.IsUsedByAnotherProcess())
             _intakeRunStatus.SetActive()
     }
+    private suspend fun fullResumeIntakeLogic(requestResult: RequestResult.Name)
+    {
+        safeResumeIntakeLogic()
+        _hwStorage.forceSafeResume()
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedEveryRequestEvent(requestResult))
+    }
 
     fun forceStopRequest()
     {
@@ -448,12 +450,29 @@ class SortingStorage
         if (_requestRunStatus.IsUsedByAnotherProcess())
             _requestRunStatus.SetActive()
     }
+    private suspend fun fullResumeRequestLogic(intakeResult: IntakeResult.Name)
+    {
+        safeResumeRequestLogic()
+        _hwStorage.forceSafeResume()
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedIntakeEvent(intakeResult))
+    }
 
 
 
     fun shotWasFired()
     {
         _shotWasFired = true
+    }
+    private suspend fun waitForShotFiredEvent()
+    {
+        while (!_shotWasFired) delay(DELAY_FOR_EVENT_AWAITING)
+        _shotWasFired = false
+    }
+    private suspend fun fullWaitForShotFired()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
+        waitForShotFiredEvent()
     }
 
 
