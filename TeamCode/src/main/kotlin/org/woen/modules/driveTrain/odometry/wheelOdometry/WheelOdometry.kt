@@ -40,7 +40,8 @@ class WheelOdometry : IOdometry {
         _oldRightBackPosition = rightBackPosition
 
         val deltaRotation =
-            (rightForwardPosition + rightBackPosition + -leftForwardPosition + -leftBackPosition) / Configs.DRIVE_TRAIN.ROBOT_SIZE.y
+            (rightForwardPosition + rightBackPosition + -leftForwardPosition + -leftBackPosition) /
+                    (4 * (Configs.DRIVE_TRAIN.WHEEL_CENTER_POS.x + Configs.DRIVE_TRAIN.WHEEL_CENTER_POS.y))
 
         val deltaPosition = Vec2(
             (deltaLeftForwardPosition + deltaRightForwardPosition + deltaLeftBackPosition + deltaRightBackPosition) / 4.0,
@@ -64,7 +65,8 @@ class WheelOdometry : IOdometry {
                 (-leftForwardVelocity + rightForwardVelocity + leftBackVelocity - rightBackVelocity) / 4.0 * Configs.DRIVE_TRAIN.Y_LAG
             ),
             deltaRotation,
-            (rightForwardVelocity + rightBackVelocity + -leftForwardVelocity + -leftBackVelocity) / Configs.DRIVE_TRAIN.ROBOT_SIZE.y
+            (rightForwardVelocity + rightBackVelocity + -leftForwardVelocity + -leftBackVelocity) /
+                    (4 * (Configs.DRIVE_TRAIN.WHEEL_CENTER_POS.x + Configs.DRIVE_TRAIN.WHEEL_CENTER_POS.y))
         )
     }
 

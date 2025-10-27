@@ -143,6 +143,9 @@ object Configs {
 
         @JvmField
         var LOOK_SENS = 0.1
+
+        @JvmField
+        var WHEEL_CENTER_POS = Vec2(1.0, 1.0)
     }
 
     @Config
