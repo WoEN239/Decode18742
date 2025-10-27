@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 
+import java.util.concurrent.atomic.AtomicReference
+
 import org.woen.telemetry.Configs.STORAGE.STREAM_MOTOR_DIRECTION
 
 
@@ -15,24 +17,29 @@ import org.woen.telemetry.Configs.STORAGE.STREAM_MOTOR_DIRECTION
 class HwStreamStorage(private val _deviceName: String) : IHardwareDevice
 {
     private lateinit var _motor : DcMotorEx
+    private var _motorPower = AtomicReference(0.0)
+
 
 
     fun start()
     {
-        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(12.0)
+        _motorPower.set(12.0)
     }
     fun stop()
     {
-        _motor.power = 0.0
+        _motorPower.set(0.0)
     }
 
 
 
-    override fun update() { }
+    override fun update()
+    {
+        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motorPower.get())
+    }
+
+
 
     override fun dispose() { }
-
-
 
     override fun init(hardwareMap : HardwareMap)
     {

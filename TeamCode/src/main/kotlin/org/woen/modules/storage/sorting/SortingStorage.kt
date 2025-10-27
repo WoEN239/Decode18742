@@ -18,8 +18,6 @@ import org.woen.modules.storage.StorageFinishedIntakeEvent
 import org.woen.modules.storage.StorageRequestIsReadyEvent
 import org.woen.modules.storage.StorageFinishedEveryRequestEvent
 
-import org.woen.threading.hardware.HardwareThreads
-import org.woen.modules.storage.sorting.hardware.HwSorting
 import org.woen.modules.storage.sorting.hardware.HwSortingManager
 
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
@@ -37,7 +35,7 @@ class SortingStorage
     private var _shotWasFired = false
     private val _storageCells = StorageCells()
 
-    private lateinit var _hwStorage: HwSortingManager  //  DO NOT JOIN ASSIGNMENT
+    private lateinit var _hwSortingM: HwSortingManager  //  DO NOT JOIN ASSIGNMENT
 
 
 
@@ -82,14 +80,14 @@ class SortingStorage
     private suspend fun updateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
     {
         if (intakeResult.DidFail())  return intakeResult.Name()   //  Intake failed
-        _hwStorage.forceSafePause()
+        _hwSortingM.forceSafePause()
 
 
         //!  Align center slot to be empty
         TODO("Handle motor rotation to correct slot")
 
 
-       _hwStorage.forceSafeResume()
+       _hwSortingM.forceSafeResume()
 
         return if (_storageCells.updateAfterIntake(inputBall))
              IntakeResult.Name.SUCCESS
@@ -133,7 +131,7 @@ class SortingStorage
     }
     private suspend fun updateAfterRequest(requestResult: RequestResult): Boolean
     {
-        _hwStorage.forceSafePause()
+        _hwSortingM.forceSafePause()
 
 
         TODO("Rotate motor to target slot")  //!
@@ -434,7 +432,7 @@ class SortingStorage
     private suspend fun fullResumeIntakeLogic(requestResult: RequestResult.Name)
     {
         safeResumeIntakeLogic()
-        _hwStorage.forceSafeResume()
+        _hwSortingM.forceSafeResume()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedEveryRequestEvent(requestResult))
     }
@@ -454,7 +452,7 @@ class SortingStorage
     private suspend fun fullResumeRequestLogic(intakeResult: IntakeResult.Name)
     {
         safeResumeRequestLogic()
-        _hwStorage.forceSafeResume()
+        _hwSortingM.forceSafeResume()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedIntakeEvent(intakeResult))
     }
@@ -521,7 +519,7 @@ class SortingStorage
         if (_requestRunStatus.IsInactive())
             _requestRunStatus.SetActive()
 
-        _hwStorage.safeStart()
+        _hwSortingM.safeStart()
     }
     suspend fun safeStart(): Boolean
     {
@@ -533,7 +531,7 @@ class SortingStorage
             delay(DELAY_FOR_EVENT_AWAITING)
         _requestRunStatus.SetActive()
 
-        while (!_hwStorage.safeStart())
+        while (!_hwSortingM.safeStart())
             delay(DELAY_FOR_EVENT_AWAITING)
 
         return true
@@ -551,7 +549,7 @@ class SortingStorage
             delay(DELAY_FOR_EVENT_AWAITING)
         _intakeRunStatus.SetInactive()
 
-        while (!_hwStorage.safeStop())
+        while (!_hwSortingM.safeStop())
             delay(DELAY_FOR_EVENT_AWAITING)
 
         return true
@@ -564,15 +562,15 @@ class SortingStorage
         _requestRunStatus.SetInactive()
         _requestRunStatus.DoTerminate()
 
-        _hwStorage.forceStop()
+        _hwSortingM.forceStop()
     }
 
 
 
     fun linkHardware()
     {
-        _hwStorage = HwSortingManager("")
-        _hwStorage.addDevice()
+        _hwSortingM = HwSortingManager("")
+        _hwSortingM.addDevice()
 
         _storageCells.linkMobileSlotHardware()
     }
