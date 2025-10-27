@@ -12,6 +12,7 @@ import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
+import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
@@ -71,8 +72,17 @@ class Turret : IModule {
             (shootingAngle - Configs.TURRET.MIN_TURRET_ANGLE) * (Configs.TURRET.MAX_TURRET_SERVO_ANGLE - Configs.TURRET.MIN_TURRET_SERVO_ANGLE) /
                     (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_SERVO_ANGLE
 
+        val robotRotationBasketErr = Angle(
+            (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition
+                    - odometry.odometryOrientation.pos).rot()
+                    - odometry.odometryOrientation.angle
+        ).angle
+
+        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
+
         fun getHitHeight(startVel: Double): Double {
             var vecVel = Vec2(startVel, 0.0).setRot(shootDistance)
+            vecVel += robotXVel
             var pos = Vec2.ZERO
 
             while (pos.x < shootDistance) {
