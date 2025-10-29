@@ -1,9 +1,0 @@
-package barrel.enumerators;
-
-public enum ShotType
-{
-    FIRE_EVERYTHING_YOU_HAVE,
-    FIRE_PATTERN_CAN_SKIP,
-    FIRE_UNTIL_PATTERN_IS_BROKEN,
-    FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
-}

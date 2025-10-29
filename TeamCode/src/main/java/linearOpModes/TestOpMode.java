@@ -4,10 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.woen.telemetry.ThreadedTelemetry;
-import org.woen.utils.units.Vec2;
-
-import neural.NeuralNetwork;
+import woen239.neural.NeuralNetwork;
 
 @Disabled
 @TeleOp
