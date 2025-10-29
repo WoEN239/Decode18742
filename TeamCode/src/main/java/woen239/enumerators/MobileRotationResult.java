@@ -1,5 +1,6 @@
 package woen239.enumerators;
 
+
 public class MobileRotationResult
 {
     static public final int SUCCESS = 0,

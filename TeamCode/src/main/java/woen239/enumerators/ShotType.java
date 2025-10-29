@@ -1,5 +1,6 @@
 package woen239.enumerators;
 
+
 public enum ShotType
 {
     FIRE_EVERYTHING_YOU_HAVE,

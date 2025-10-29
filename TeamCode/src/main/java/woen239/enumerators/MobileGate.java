@@ -1,5 +1,6 @@
 package woen239.enumerators;
 
+
 public class MobileGate
 {
     static public final int UNDEFINED = 0, OPEN = 1, CLOSED = 2;
