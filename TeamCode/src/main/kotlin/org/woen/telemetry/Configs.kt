@@ -1,8 +1,8 @@
 package org.woen.telemetry
 
 
-import barrel.enumerators.StorageSlot
-import barrel.enumerators.StorageType
+import org.woen.enumerators.StorageSlot
+import org.woen.enumerators.StorageType
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.woen.utils.regulator.RegulatorParameters

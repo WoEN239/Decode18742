@@ -2,9 +2,7 @@ package org.woen.modules.scoringSystem
 
 
 import org.woen.modules.IModule
-import org.woen.modules.storage.SwitchStorage
-import org.woen.threading.ThreadedEventBus
-
+import org.woen.modules.scoringSystem.storage.SwitchStorage
 
 
 class ScoringModulesConnector: IModule
