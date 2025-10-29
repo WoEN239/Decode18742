@@ -1,27 +1,33 @@
 package org.woen.modules.storage.stream
 
 
-import kotlinx.coroutines.delay
 import barrel.enumerators.RunStatus
+import barrel.enumerators.IntakeResult
+import barrel.enumerators.RequestResult
 
 import android.annotation.SuppressLint
 
-import barrel.enumerators.IntakeResult
-import barrel.enumerators.RequestResult
+import kotlinx.coroutines.delay
+import org.woen.modules.storage.StorageFinishedEveryRequestEvent
+import org.woen.modules.storage.StorageFinishedIntakeEvent
+import java.util.concurrent.atomic.AtomicReference
+
+import org.woen.threading.hardware.HardwareThreads
+
+import org.woen.threading.ThreadedEventBus
+import org.woen.modules.storage.StorageRequestIsReadyEvent
 
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
 
-import org.woen.threading.hardware.HardwareThreads
-
 
 
 class StreamStorage
 {
-    private var _ballCount: Int = 0
-    private var _shotWasFired = false
+    private var _ballCount = AtomicReference(0)
+    private var _shotWasFired = AtomicReference(false)
 
     private var _intakeRunStatus  = RunStatus()
     private var _requestRunStatus = RunStatus()
@@ -32,7 +38,7 @@ class StreamStorage
     @SuppressLint("SuspiciousIndentation")
     suspend fun handleIntake(): IntakeResult.Name
     {
-        if (_ballCount >= 3) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
+        if (_ballCount.get() >= 3) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
 
         if (noIntakeRaceConditionProblems())
         {
@@ -43,16 +49,17 @@ class StreamStorage
             if (!updateAfterInput(intakeResult))  //  Safe updating after intake
                 intakeResult.Set(IntakeResult.FAIL_UNKNOWN, IntakeResult.Name.FAIL_UNKNOWN)
 
-            safeResumeRequestLogic()
+            safeResumeRequestLogic(intakeResult.Name())
             return intakeResult.Name()
         }
 
-        safeResumeRequestLogic()
-        return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
+        val intakeFail = IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
+        safeResumeRequestLogic(intakeFail)
+        return intakeFail
     }
     private fun storageCanHandleIntake(): IntakeResult
     {
-        if (_ballCount < REAL_SLOT_COUNT) return IntakeResult(
+        if (_ballCount.get() < REAL_SLOT_COUNT) return IntakeResult(
             IntakeResult.SUCCESS,
             IntakeResult.Name.SUCCESS
         )
@@ -83,7 +90,7 @@ class StreamStorage
     {
         if (intakeResult.DidFail()) return false
 
-        _ballCount++
+        _ballCount.set(_ballCount.get() + 1)
         return true
     }
 
@@ -98,8 +105,10 @@ class StreamStorage
             RunStatus.TerminationStatus.IS_TERMINATED
         )
 
-        safeResumeRequestLogic()
-        return IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
+        val intakeFail = IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
+        safeResumeRequestLogic(intakeFail)
+
+        return intakeFail
     }
     fun switchTerminateIntake()
     {
@@ -110,14 +119,14 @@ class StreamStorage
 
     suspend fun shootEntireDrumRequest(): RequestResult.Name
     {
-        if (_ballCount <= 0) return RequestResult.Name.FAIL_IS_EMPTY
+        if (_ballCount.get() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
 
         handleRequestRaceCondition()
         if (doTerminateRequest()) return terminateRequest()
 
         val requestResult = shootEverything()
 
-        safeResumeIntakeLogic()
+        safeResumeIntakeLogic(requestResult)
         return requestResult
     }
     private suspend fun shootEverything(): RequestResult.Name
@@ -138,9 +147,9 @@ class StreamStorage
     }
     private fun updateAfterRequest(): RequestResult
     {
-        _ballCount--
+        _ballCount.set(_ballCount.get() - 1)
 
-        return if (_ballCount > 0)
+        return if (_ballCount.get() > 0)
             RequestResult(
                 RequestResult.SUCCESS,
                 RequestResult.Name.SUCCESS
@@ -177,11 +186,6 @@ class StreamStorage
         while (requestRaceConditionIsPresent())
             delay(REQUEST_RACE_CONDITION_DELAY)
     }
-    private suspend fun waitForShotFiredEvent()
-    {
-        while (!_shotWasFired) delay(DELAY_FOR_EVENT_AWAITING)
-        _shotWasFired = false  //!  Maybe improve this later
-    }
 
     private fun doTerminateRequest(): Boolean
     {
@@ -194,8 +198,9 @@ class StreamStorage
             RunStatus.TerminationStatus.IS_TERMINATED
         )
 
-        safeResumeIntakeLogic()
-        return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
+        val requestFail = RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
+        safeResumeIntakeLogic(requestFail)
+        return requestFail
     }
     fun switchTerminateRequest()
     {
@@ -204,45 +209,55 @@ class StreamStorage
 
 
 
-
-    fun forceStopIntake()
+    private fun forceStopIntake()
     {
         _intakeRunStatus.Set(
             RunStatus.USED_BY_ANOTHER_PROCESS,
             RunStatus.Name.USED_BY_ANOTHER_PROCESS
         )
     }
-    fun safeResumeIntakeLogic()
+    private fun safeResumeIntakeLogic(requestResult: RequestResult.Name)
     {
         if (_intakeRunStatus.IsUsedByAnotherProcess())
             _intakeRunStatus.SetActive()
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedEveryRequestEvent(requestResult))
     }
 
-    fun forceStopRequest()
+    private fun forceStopRequest()
     {
         _requestRunStatus.Set(
             RunStatus.USED_BY_ANOTHER_PROCESS,
             RunStatus.Name.USED_BY_ANOTHER_PROCESS
         )
     }
-    fun safeResumeRequestLogic()
+    private fun safeResumeRequestLogic(intakeResult: IntakeResult.Name)
     {
         if (_requestRunStatus.IsUsedByAnotherProcess())
             _requestRunStatus.SetActive()
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedIntakeEvent(intakeResult))
     }
 
 
 
     fun shotWasFired()
     {
-        _shotWasFired = true
+        _shotWasFired.set(true)
+    }
+    private suspend fun waitForShotFiredEvent()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
+
+        while (!_shotWasFired.get()) delay(DELAY_FOR_EVENT_AWAITING)
+        _shotWasFired.set(false)
     }
 
 
 
     fun ballCount(): Int
     {
-        return _ballCount
+        return _ballCount.get()
     }
 
 

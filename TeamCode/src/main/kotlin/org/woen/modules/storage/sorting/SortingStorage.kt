@@ -11,6 +11,8 @@ import barrel.enumerators.RequestResult
 import barrel.enumerators.RunStatus
 
 import kotlinx.coroutines.delay
+import java.util.concurrent.atomic.AtomicReference
+
 import android.annotation.SuppressLint
 
 import org.woen.threading.ThreadedEventBus
@@ -32,10 +34,11 @@ class SortingStorage
     private val _intakeRunStatus  = RunStatus()
     private val _requestRunStatus = RunStatus()
 
-    private var _shotWasFired = false
     private val _storageCells = StorageCells()
-
     private lateinit var _hwSortingM: HwSortingManager  //  DO NOT JOIN ASSIGNMENT
+
+    private var _shotWasFired = AtomicReference(false)
+
 
 
 
@@ -57,8 +60,9 @@ class SortingStorage
             return intakeResult
         }
 
-        fullResumeRequestLogic(IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY)
-        return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
+        val intakeFail = IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
+        fullResumeRequestLogic(intakeFail)
+        return intakeFail
     }
     private suspend fun intakeRaceConditionIsPresent(): Boolean
     {
@@ -97,15 +101,17 @@ class SortingStorage
     {
         return _intakeRunStatus.TerminationId() == RunStatus.DO_TERMINATE
     }
-    private fun terminateIntake(): IntakeResult.Name
+    private suspend fun terminateIntake(): IntakeResult.Name
     {
         _intakeRunStatus.SetTermination(
             RunStatus.IS_TERMINATED,
             RunStatus.TerminationStatus.IS_TERMINATED
         )
 
-        safeResumeRequestLogic()
-        return IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
+        val intakeFail = IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
+        fullResumeRequestLogic(intakeFail)
+
+        return intakeFail
     }
     fun switchTerminateIntake()
     {
@@ -195,15 +201,17 @@ class SortingStorage
     {
         return _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
     }
-    private fun terminateRequest(): RequestResult.Name
+    private suspend fun terminateRequest(): RequestResult.Name
     {
         _requestRunStatus.SetTermination(
             RunStatus.IS_TERMINATED,
             RunStatus.TerminationStatus.IS_TERMINATED
         )
 
-        safeResumeIntakeLogic()
-        return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
+        val requestFail = RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
+        fullResumeIntakeLogic(requestFail)
+
+        return requestFail
     }
     fun switchTerminateRequest()
     {
@@ -374,8 +382,8 @@ class SortingStorage
         var i = 0
         while (i < REAL_SLOT_COUNT)
         {
-            if      (requestOrder[i] == BallRequest.Name.PURPLE)        countPGA[0]++
-            else if (requestOrder[i] == BallRequest.Name.GREEN)         countPGA[1]++
+            if      (requestOrder[i] == BallRequest.Name.PURPLE) countPGA[0]++
+            else if (requestOrder[i] == BallRequest.Name.GREEN)  countPGA[1]++
             else if (BallRequest.IsAbstractAny(requestOrder[i])) countPGA[2]++
 
             i++
@@ -444,14 +452,11 @@ class SortingStorage
             RunStatus.Name.USED_BY_ANOTHER_PROCESS
         )
     }
-    fun safeResumeRequestLogic()
+    private suspend fun fullResumeRequestLogic(intakeResult: IntakeResult.Name)
     {
         if (_requestRunStatus.IsUsedByAnotherProcess())
             _requestRunStatus.SetActive()
-    }
-    private suspend fun fullResumeRequestLogic(intakeResult: IntakeResult.Name)
-    {
-        safeResumeRequestLogic()
+
         _hwSortingM.forceSafeResume()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedIntakeEvent(intakeResult))
@@ -461,17 +466,14 @@ class SortingStorage
 
     fun shotWasFired()
     {
-        _shotWasFired = true
-    }
-    private suspend fun waitForShotFiredEvent()
-    {
-        while (!_shotWasFired) delay(DELAY_FOR_EVENT_AWAITING)
-        _shotWasFired = false
+        _shotWasFired.set(true)
     }
     private suspend fun fullWaitForShotFired()
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
-        waitForShotFiredEvent()
+
+        while (!_shotWasFired.get()) delay(DELAY_FOR_EVENT_AWAITING)
+        _shotWasFired.set(false)
     }
 
 

@@ -86,28 +86,6 @@ class SwitchStorage  //  Schrodinger storage
         else _sortingStorage.shotWasFired()
     }
 
-    fun forceStopIntake()
-    {
-        if (_isStream) _streamStorage.forceStopIntake()
-        else _sortingStorage.forceStopIntake()
-    }
-    fun safeResumeIntakeLogic()
-    {
-        if (_isStream) _streamStorage.safeResumeIntakeLogic()
-        else _sortingStorage.safeResumeIntakeLogic()
-    }
-
-    fun forceStopRequest()
-    {
-        if (_isStream) _streamStorage.forceStopRequest()
-        else _sortingStorage.forceStopRequest()
-    }
-    fun safeResumeRequestLogic()
-    {
-        if (_isStream) _streamStorage.safeResumeRequestLogic()
-        else _sortingStorage.safeResumeRequestLogic()
-    }
-
 
 
 
