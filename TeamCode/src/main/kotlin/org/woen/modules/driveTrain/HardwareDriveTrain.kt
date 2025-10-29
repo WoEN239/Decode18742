@@ -82,8 +82,8 @@ class HardwareDriveTrain(
         _rightForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         _rightBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-        _leftForwardMotor.direction = DcMotorSimple.Direction.REVERSE
-        _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
+        _rightForwardMotor.direction = DcMotorSimple.Direction.REVERSE
+        _rightBackMotor.direction = DcMotorSimple.Direction.REVERSE
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _regulatorMutex.smartLock {

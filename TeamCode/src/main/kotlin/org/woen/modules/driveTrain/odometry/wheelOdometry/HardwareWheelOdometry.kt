@@ -1,9 +1,12 @@
 package org.woen.modules.driveTrain.odometry.wheelOdometry
 
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.motor.EncoderOnly
@@ -44,6 +47,8 @@ class HardwareWheelOdometry(
 
     private val _filterMutex = SmartMutex()
 
+    private val _deltaTime = ElapsedTime()
+
     override fun update() {
         val currentLeftForwardPosition = _leftForwardEncoder.currentPosition.toDouble() /
                 Configs.DRIVE_TRAIN.ENCODER_TICKS * PI * Configs.DRIVE_TRAIN.WHEEL_DIAMETER
@@ -70,10 +75,10 @@ class HardwareWheelOdometry(
         val oldLeftBackVelocity = leftBackVelocity.get()
         val oldRightBackVelocity = rightBackVelocity.get()
 
-        val rawLeftForwardVelocity = currentLeftForwardPosition - _oldLeftForwardPosition
-        val rawRightForwardVelocity = currentRightForwardPosition - _oldRightForwardPosition
-        val rawLeftBackVelocity = currentLeftBackPosition - _oldLeftBackPosition
-        val rawRightBackVelocity = currentRightBackPosition - _oldRightBackPosition
+        val rawLeftForwardVelocity = (currentLeftForwardPosition - _oldLeftForwardPosition) / _deltaTime.seconds()
+        val rawRightForwardVelocity = (currentRightForwardPosition - _oldRightForwardPosition) / _deltaTime.seconds()
+        val rawLeftBackVelocity = (currentLeftBackPosition - _oldLeftBackPosition) / _deltaTime.seconds()
+        val rawRightBackVelocity = (currentRightBackPosition - _oldRightBackPosition) / _deltaTime.seconds()
 
         _filterMutex.smartLock {
             leftForwardVelocity.set(_leftForwardFilter.updateRaw(oldLeftForwardVelocity, rawLeftForwardVelocity - oldLeftForwardVelocity))
@@ -86,6 +91,8 @@ class HardwareWheelOdometry(
         _oldRightForwardPosition = currentRightForwardPosition
         _oldLeftBackPosition = currentLeftBackPosition
         _oldRightBackPosition = currentRightBackPosition
+
+        _deltaTime.reset()
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -93,6 +100,9 @@ class HardwareWheelOdometry(
         _rightForwardEncoder = EncoderOnly(hardwareMap.get(_rightForwardEncoderName) as DcMotorEx)
         _leftBackEncoder = EncoderOnly(hardwareMap.get(_leftBackEncoderName) as DcMotorEx)
         _rightBackEncoder = EncoderOnly(hardwareMap.get(_rightBackEncoderName) as DcMotorEx)
+
+        _rightForwardEncoder.direction = DcMotorSimple.Direction.REVERSE
+        _rightBackEncoder.direction = DcMotorSimple.Direction.REVERSE
 
         Configs.DRIVE_TRAIN.ENCODER_VELOCITY_FILTER_K.onSet += {
             _filterMutex.smartLock {
@@ -103,6 +113,13 @@ class HardwareWheelOdometry(
             }
         }
 
+        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            it.addData("leftForwardPos", leftForwardPosition.get())
+            it.addData("rightForwardPosition", rightForwardPosition.get())
+            it.addData("leftBackPosition", leftBackPosition.get())
+            it.addData("rightBackPosition", rightBackPosition.get())
+        }
+
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _filterMutex.smartLock {
                 _leftForwardFilter.start()
@@ -110,6 +127,8 @@ class HardwareWheelOdometry(
                 _leftBackFilter.start()
                 _rightBackFilter.start()
             }
+
+            _deltaTime.reset()
 
             if(HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO){
                 _leftForwardEncoder.resetEncoder()

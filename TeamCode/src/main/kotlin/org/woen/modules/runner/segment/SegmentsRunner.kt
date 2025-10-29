@@ -16,6 +16,8 @@ import org.woen.modules.IModule
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.process.Process
@@ -23,12 +25,12 @@ import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 
-data class RunSegmentEvent(val segment: ISegment, val process: Process)
+data class RunSegmentEvent(val segment: ISegment, val process: Process = Process())
 
 data class RequireRRBuilderEvent(
     val startOrientation: Orientation? = null,
     var trajectoryBuilder: TrajectoryBuilder? = null
-)
+): StoppingEvent
 
 class SegmentsRunner : IModule {
     private var _runnerJob: Job? = null
@@ -57,11 +59,12 @@ class SegmentsRunner : IModule {
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SetDriveTargetVelocityEvent(
+                    (
                     orientationErr.pos * Vec2(
                         Configs.ROAR_RUNNER.ROAD_RUNNER_POS_X_P,
                         Configs.ROAR_RUNNER.ROAD_RUNNER_POS_Y_P
                     ) +
-                            _targetTranslateVelocity,
+                            _targetTranslateVelocity).turn(-odometry.odometryOrientation.angle),
                     orientationErr.angl.angle * Configs.ROAR_RUNNER.ROAD_RUNNER_POS_H_P +
                             _targetRotateVelocity
                 )
@@ -96,7 +99,7 @@ class SegmentsRunner : IModule {
     }
 
     override val isBusy: Boolean
-        get() = _runnerJob == null || _runnerJob!!.isCompleted
+        get() = _runnerJob != null && !_runnerJob!!.isCompleted
 
     override fun dispose() {
         _runnerJob?.cancel()
@@ -115,6 +118,10 @@ class SegmentsRunner : IModule {
             }
 
             _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
+        }
+
+        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            it.addData("target", _targetOrientation)
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequireRRBuilderEvent::class, {

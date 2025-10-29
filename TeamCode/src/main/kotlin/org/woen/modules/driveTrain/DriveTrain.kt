@@ -27,7 +27,7 @@ data class SetLookModeEvent(val lookMode: Boolean, val process: Process)
 
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain(
-        "leftFrowardDrive",
+        "leftForwardDrive",
         "leftBackDrive",
         "rightForwardDrive",
         "rightBackDrive"
@@ -66,7 +66,7 @@ class DriveTrain : IModule {
 
             _driveMutex.smartLock {
                 _hardwareDriveTrain.drive(
-                    _targetTranslateVelocity.turn(-odometry.odometryOrientation.angle),
+                    _targetTranslateVelocity/*.turn(-odometry.odometryOrientation.angle)*/,
                     if (_lookMode.get())
                         rotationErr * Configs.DRIVE_TRAIN.LOOK_P
                     else _targetRotateVelocity

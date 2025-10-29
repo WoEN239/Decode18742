@@ -1,14 +1,23 @@
 package org.woen.modules.runner.actions
 
+import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.Vector2d
 import kotlinx.coroutines.DisposableHandle
 import org.woen.hotRun.HotRun
+import org.woen.modules.runner.segment.RRTrajectorySegment
+import org.woen.modules.runner.segment.RequireRRBuilderEvent
+import org.woen.modules.runner.segment.RunSegmentEvent
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
+import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.smartMutex.SmartMutex
+import org.woen.utils.units.Orientation
 import kotlin.concurrent.thread
+import kotlin.math.PI
 
-class ActionRunner private constructor(): DisposableHandle {
-    companion object{
+class ActionRunner private constructor() : DisposableHandle {
+    companion object {
         private var _nullableInstance: ActionRunner? = null
 
         private val _instanceMutex = SmartMutex()
@@ -30,8 +39,16 @@ class ActionRunner private constructor(): DisposableHandle {
         }
     }
 
-    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread {
-
+    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.splineToLinearHeading(Pose2d(Vector2d(0.6097, 0.6097), PI), PI / 2.0).build()
+                )
+            )
+        )
     })
 
     init {
@@ -46,6 +63,6 @@ class ActionRunner private constructor(): DisposableHandle {
     }
 
     override fun dispose() {
-        _thread.stop()
+
     }
 }

@@ -100,25 +100,25 @@ object Configs {
     @Config
     internal object DRIVE_TRAIN {
         @JvmField
-        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters()
+        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 5.6)
 
         @JvmField
-        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters()
+        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 5.1)
 
         @JvmField
-        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters()
+        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 1.1)
 
         @JvmField
-        var DRIVE_VEC_MULTIPLIER = 0.02
+        var DRIVE_VEC_MULTIPLIER = 2.0
 
         @JvmField
-        var DRIVE_ANGLE_MULTIPLIER = 2.0
+        var DRIVE_ANGLE_MULTIPLIER = 12.0
 
         @JvmField
         var POW_MOVE_ENABLED = true
 
         @JvmField
-        var ROBOT_SIZE = Vec2(0.380, 0.364)
+        var ROBOT_SIZE = Vec2(0.380, 0.135)
 
         @JvmField
         var SHOOT_TRIANGLES = arrayOf(
@@ -136,7 +136,10 @@ object Configs {
         var WHEEL_DIAMETER = 0.098
 
         @JvmField
-        var Y_LAG = 1.0
+        var LAG = Vec2(1.0544982698961938, 1.160952380952381)
+
+        @JvmField
+        var H_LAG = 0.88
 
         @JvmField
         var LOOK_P = 0.3
@@ -145,34 +148,34 @@ object Configs {
         var LOOK_SENS = 0.1
 
         @JvmField
-        var WHEEL_CENTER_POS = Vec2(1.0, 1.0)
+        var WHEEL_CENTER_POS = Vec2(0.03, 0.13)
     }
 
     @Config
     internal object ROAR_RUNNER {
         @JvmField
-        var ROAD_RUNNER_POS_X_P = 0.0
+        var ROAD_RUNNER_POS_X_P = 5.0
 
         @JvmField
-        var ROAD_RUNNER_POS_Y_P = 0.0
+        var ROAD_RUNNER_POS_Y_P = 5.0
 
         @JvmField
-        var ROAD_RUNNER_POS_H_P = 0.0
+        var ROAD_RUNNER_POS_H_P = 12.0
 
         @JvmField
-        var ROAD_RUNNER_TRANSLATE_VELOCITY = 0.02
+        var ROAD_RUNNER_TRANSLATE_VELOCITY = 2.0
 
         @JvmField
-        var ROAD_RUNNER_ROTATE_VELOCITY = 2.0
+        var ROAD_RUNNER_ROTATE_VELOCITY = 12.0
 
         @JvmField
-        var ROAD_RUNNER_ROTATE_ACCEL = 2.0
+        var ROAD_RUNNER_ROTATE_ACCEL = 6.0
 
         @JvmField
-        var ROAD_RUNNER_MIN_TRANSLATION_ACCEL = -0.02
+        var ROAD_RUNNER_MIN_TRANSLATION_ACCEL = -1.0
 
         @JvmField
-        var ROAD_RUNNER_MAX_TRANSLATION_ACCEL = 0.02
+        var ROAD_RUNNER_MAX_TRANSLATION_ACCEL = 1.0
     }
 
     @Config

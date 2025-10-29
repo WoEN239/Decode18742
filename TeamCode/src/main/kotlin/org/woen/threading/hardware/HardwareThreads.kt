@@ -3,6 +3,7 @@ package org.woen.threading.hardware
 import kotlinx.coroutines.DisposableHandle
 import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.odometry.Odometry
+import org.woen.modules.runner.segment.SegmentsRunner
 import org.woen.utils.smartMutex.SmartMutex
 
 class HardwareThreads private constructor() : DisposableHandle {
@@ -40,6 +41,6 @@ class HardwareThreads private constructor() : DisposableHandle {
     }
 
     fun initModules() {
-        CONTROL.link.addModules(Odometry(), DriveTrain())
+        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
     }
 }
