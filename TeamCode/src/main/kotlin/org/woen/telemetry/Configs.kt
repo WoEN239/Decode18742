@@ -24,14 +24,9 @@ object Configs {
         @JvmField
         var BRUSH_TARGET_CURRENT = 0.3
 
-        @JvmField
-        var BRUSH_MOTORS_FORWARD = 1
 
         @JvmField
-        var BRUSH_MOTORS_STOP = 0
-
-        @JvmField
-        var BRUSH_MOTORS_BACK = 2
+        var TIME_FOR_BRUSH_REVERSING: Long = 1000
     }
 
     @Config
@@ -268,11 +263,16 @@ object Configs {
         var MAX_SHOOTING_DISTANCE = 5.0
     }
 
+
+
     @Config
-    internal object BARREL {
+    internal object COLOR_SENSORS_AND_OPTIC_PARE
+    {
         @JvmField
-        var BARREL_REGULATOR_PARAMETERS = RegulatorParameters()
+        var OPTIC_PARE_SEES_NOT_BLACK = 3.4
     }
+
+
 
     @Config
     internal object STORAGE
@@ -325,6 +325,9 @@ object Configs {
         @JvmField
         var SORTING_BELT_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
 
+
+        @JvmField
+        var MAX_WAITING_TIME_FOR_INTAKE_MS = 2000
 
 
 

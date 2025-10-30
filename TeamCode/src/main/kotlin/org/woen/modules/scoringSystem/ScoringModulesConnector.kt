@@ -12,15 +12,21 @@ import woen239.enumerators.RequestResult
 
 import org.woen.modules.IModule
 import org.woen.modules.scoringSystem.brush.BrushSoft
+import org.woen.modules.scoringSystem.brush.SwitchBrush
 import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.modules.scoringSystem.storage.SwitchStorage
 
+import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
+import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
 
 import org.woen.threading.ThreadedEventBus
 import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
 import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
+
+import org.woen.modules.scoringSystem.storage.BottomOpticPareSeesSomethingEvent
+import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent             // Intake event
 import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent   // Intake event
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent             // Request event
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent    // Request event
@@ -31,12 +37,14 @@ import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent // R
 class ScoringModulesConnector: IModule
 {
     private val _storage = SwitchStorage()  //  Schrodinger storage
-    private val _brush   = BrushSoft()
 
     private val _isStream  = _storage.isStream()
     private val _isSorting = _storage.isSorting()
 
     private var _isBusy = AtomicReference(false)
+
+    private var _ballWasEaten = AtomicReference(false)
+    private var _isAwaitingEating = AtomicReference(false)
 
 
 
@@ -49,6 +57,20 @@ class ScoringModulesConnector: IModule
     fun setIdle()
     {
         _isBusy.set(false)
+    }
+
+    fun setAwaitingEating()
+    {
+        _isAwaitingEating.set(true)
+    }
+    fun setNotAwaitingEating()
+    {
+        _isAwaitingEating.set(false)
+    }
+
+    fun ballWasEaten()
+    {
+        if (_isAwaitingEating.get()) _ballWasEaten.set(true)
     }
 
 
@@ -65,30 +87,47 @@ class ScoringModulesConnector: IModule
          */
 
 
-
         if (isBusy) return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
+
         setBusy()
+        setAwaitingEating()
 
         val intakeResult = _storage.handleIntake(inputBall)
 
 
         if (_storage.ballCount() >= REAL_SLOT_COUNT)
-            _brush.revers(1000)  //!  Improve this, add to configs
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                SwitchBrush(
+                    BrushSoft.AcktBrush.REVERS,
+                    TIME_FOR_BRUSH_REVERSING))
 
         setIdle()
         return intakeResult
     }
+    suspend fun currentlyEatingIntakeProcess()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SwitchBrush(BrushSoft.AcktBrush.ACKT))
+
+        awaitSuccessfulBallIntake()
+    }
     suspend fun awaitSuccessfulBallIntake()
     {
-        TODO("Add awaiting for sensor ball intake detection")
-        //!  Ball intake validation by sensors (BOTTOM sensor sees ball = intake success)
+        var maxWaitForIntakeMS: Long = 0
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(BallWasEatenByTheStorageEvent())
-    }
-    fun currentlyEatingIntakeProcess()
-    {
-        //!  _brush.StartIntake
-        TODO("Active brushes to intake")
+        while (!_ballWasEaten.get() &&
+            maxWaitForIntakeMS < MAX_WAITING_TIME_FOR_INTAKE_MS)
+        {
+            delay(DELAY_FOR_EVENT_AWAITING)
+            maxWaitForIntakeMS += DELAY_FOR_EVENT_AWAITING
+        }
+
+        setNotAwaitingEating()
+
+        if (maxWaitForIntakeMS > MAX_WAITING_TIME_FOR_INTAKE_MS)
+             ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
+
+        else ThreadedEventBus.LAZY_INSTANCE.invoke(BallWasEatenByTheStorageEvent())
     }
 
 
@@ -220,6 +259,12 @@ class ScoringModulesConnector: IModule
 
                 currentlyShootingRequestsProcess()
         } )
+
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+            BottomOpticPareSeesSomethingEvent::class, {
+
+                ballWasEaten()
+            } )
 
     }
 }

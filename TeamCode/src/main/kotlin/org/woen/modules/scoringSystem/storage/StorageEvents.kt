@@ -24,3 +24,8 @@ class StorageRequestIsReadyEvent()
 data class StorageFinishedEveryRequestEvent(
     var requestResult: RequestResult.Name
 )
+
+
+
+class BottomOpticPareSeesSomethingEvent()
+class MobileOutOpticPareSeesSomethingEvent()

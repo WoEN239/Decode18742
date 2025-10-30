@@ -41,17 +41,16 @@ class SortingStorage
 
 
 
-    @SuppressLint("SuspiciousIndentation")
     suspend fun handleIntake(inputBall: Ball.Name): IntakeResult.Name
     {
         if (_storageCells.anyBallCount() >= 3) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
 
         if (noIntakeRaceConditionProblems())
         {
-                if (doTerminateIntake()) return terminateIntake()
+            if (doTerminateIntake()) return terminateIntake()
+
             val storageCanHandle = _storageCells.handleIntake()
 
-                if (doTerminateIntake()) return terminateIntake()
             val intakeResult = updateAfterInput(storageCanHandle, inputBall)
             //  Safe updating storage after intake  - wont update if an error occurs
 
@@ -84,9 +83,13 @@ class SortingStorage
     {
         if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
 
+
         if (intakeResult.SolutionIsMobileIn()) _storageCells.fullRotateCW()
 
-        fullWaitForIntakeIsFinishedEvent()
+
+        if (!fullWaitForIntakeIsFinishedEvent())
+            return terminateIntake()
+
 
         return if (_storageCells.updateAfterIntake(inputBall))
              IntakeResult.Name.SUCCESS
@@ -465,12 +468,18 @@ class SortingStorage
     {
         _ballWasEaten.set(true)
     }
-    private suspend fun fullWaitForIntakeIsFinishedEvent()
+    private suspend fun fullWaitForIntakeIsFinishedEvent(): Boolean
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageIsReadyToEatIntakeEvent())
 
-        while (!_ballWasEaten.get()) delay(DELAY_FOR_EVENT_AWAITING)
+        while (!_ballWasEaten.get())
+        {
+            delay(DELAY_FOR_EVENT_AWAITING)
+            if (doTerminateIntake()) return false
+        }
+
         _ballWasEaten.set(false)
+        return true
     }
 
 
