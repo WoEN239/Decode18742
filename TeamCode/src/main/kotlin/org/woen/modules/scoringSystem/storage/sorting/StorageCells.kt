@@ -1,6 +1,8 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
+import kotlinx.coroutines.delay
+import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
 
@@ -47,6 +49,8 @@ class StorageCells
 {
     private val _storageCells = Array(SLOTS_COUNT) { Ball() }
     private val _mobileSlot = MobileSlot()
+
+    private lateinit var _hwSortingM: HwSortingManager  //  DO NOT JOIN ASSIGNMENT
 
 
 
@@ -147,7 +151,12 @@ class StorageCells
     {
         val intakeCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
 
-        if (intakeCondition)  _storageCells[StorageSlot.BOTTOM].Set(inputBall)
+        if (intakeCondition)
+        {
+            _storageCells[StorageSlot.BOTTOM].Set(inputBall)
+            if (partial2RotateCW()) partial2RotateCW()
+        }
+
         return intakeCondition
     }
     fun updateAfterRequest(): Boolean
@@ -199,7 +208,8 @@ class StorageCells
             _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
 
-            //!  TODO(Rotate the hardware storage);
+            _hwSortingM.safeStart()
+            //!  TODO("Rotate the hardware storage until the sensors say stop")
         }
         return rotationCondition
     }
@@ -222,6 +232,22 @@ class StorageCells
         return if (partial2RotateCW()) true
         else partial3RotateCW()
     }
+
+
+
+    suspend fun forceSafeStartHwBelt()
+    {
+        _hwSortingM.forceSafeStart()
+    }
+    suspend fun forceSafeStopHwBelt()
+    {
+        _hwSortingM.forceSafeStop()
+    }
+    fun forceStopHwBelt()
+    {
+        _hwSortingM.forceStop()
+    }
+
 
 
 
@@ -313,6 +339,11 @@ class StorageCells
 
 
 
+    fun linkBeltHardware()
+    {
+        _hwSortingM = HwSortingManager("")
+        _hwSortingM.addDevice()
+    }
     fun linkMobileSlotHardware()
     {
         _mobileSlot.initHardware()

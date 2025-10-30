@@ -81,6 +81,10 @@ public class IntakeResult
 
 
 
+    public boolean SolutionIsMobileIn()
+    {
+        return _memId == SUCCESS_MOBILE_IN;
+    }
     public boolean SolutionIsMobileOut()
     {
         return _memId == SUCCESS_MOBILE_OUT;

@@ -48,27 +48,25 @@ class SwitchStorage  //  Schrodinger storage
         else _sortingStorage.anyBallCount()
     }
 
-    suspend fun safeStart()
+
+
+    suspend fun forceSafeStart()
     {
-        if (_isStream) _streamStorage.safeStart()
-        else _sortingStorage.safeStart()
+        if (_isStream) _streamStorage.forceSafeStart()
+        else _sortingStorage.forceSafeStart()
     }
-    fun trySafeStart()
+    suspend fun forceSafeStop()
     {
-        if (_isStream) _streamStorage.trySafeStart()
-        else _sortingStorage.trySafeStart()
+        if (_isStream) _streamStorage.forceSafeStop()
+        else _sortingStorage.forceSafeStop()
+    }
+    fun emergencyForceStop()
+    {
+        if (_isStream) _streamStorage.emergencyForceStop()
+        else _sortingStorage.emergencyForceStop()
     }
 
-    suspend fun safeStop(): Boolean
-    {
-        return if (_isStream) _streamStorage.safeStop()
-        else _sortingStorage.safeStop()
-    }
-    fun forceStop()
-    {
-        if (_isStream) _streamStorage.forceStop()
-        else _sortingStorage.forceStop()
-    }
+
 
     fun terminateIntake()
     {
@@ -84,6 +82,11 @@ class SwitchStorage  //  Schrodinger storage
     {
         if (_isStream) _streamStorage.shotWasFired()
         else _sortingStorage.shotWasFired()
+    }
+    fun ballWasEaten()
+    {
+        if (_isStream) _streamStorage.ballWasEaten()
+        else _sortingStorage.ballWasEaten()
     }
 
 
@@ -163,9 +166,15 @@ class SwitchStorage  //  Schrodinger storage
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
             terminateRequest()
         } )
+
+
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(GiveNextRequest::class, {
             shotWasFired()
         } )
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(BallWasEatenByTheStorageEvent::class, {
+            ballWasEaten()
+        } )
+
 
         if (_isStream) _streamStorage.linkHardware()
         else _sortingStorage.linkHardware()

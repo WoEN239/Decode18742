@@ -10,16 +10,17 @@ class TerminateRequestEvent()
 
 
 
+class StorageIsReadyToEatIntakeEvent()
+class BallWasEatenByTheStorageEvent()
 data class StorageFinishedIntakeEvent(
     var intakeResult: IntakeResult.Name
-)
-
-class StorageRequestIsReadyEvent()
-data class StorageFinishedEveryRequestEvent(
-    var requestResult: RequestResult.Name
 )
 
 
 
 class GiveNextRequest()
-class GiveNextIntake()
+
+class StorageRequestIsReadyEvent()
+data class StorageFinishedEveryRequestEvent(
+    var requestResult: RequestResult.Name
+)

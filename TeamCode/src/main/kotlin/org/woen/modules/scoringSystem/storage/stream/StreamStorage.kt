@@ -10,6 +10,7 @@ import android.annotation.SuppressLint
 import kotlinx.coroutines.delay
 import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
 import java.util.concurrent.atomic.AtomicReference
 
 import org.woen.threading.hardware.HardwareThreads
@@ -26,12 +27,14 @@ import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
 
 class StreamStorage
 {
-    private var _ballCount = AtomicReference(0)
-    private var _shotWasFired = AtomicReference(false)
-
     private var _intakeRunStatus  = RunStatus()
     private var _requestRunStatus = RunStatus()
     private lateinit var _hwStreamStorage : HwStreamStorage  //  DO NOT JOIN ASSIGNMENT
+
+
+    private var _ballCount = AtomicReference(0)
+    private var _shotWasFired = AtomicReference(false)
+    private var _ballWasEaten = AtomicReference(false)
 
 
 
@@ -86,11 +89,14 @@ class StreamStorage
 
         return !intakeRaceConditionIsPresent()
     }
-    private fun updateAfterInput(intakeResult: IntakeResult): Boolean
+    private suspend fun updateAfterInput(intakeResult: IntakeResult): Boolean
     {
         if (intakeResult.DidFail()) return false
 
+        fullWaitForIntakeIsFinishedEvent()
+
         _ballCount.set(_ballCount.get() + 1)
+
         return true
     }
 
@@ -254,6 +260,19 @@ class StreamStorage
     }
 
 
+    fun ballWasEaten()
+    {
+        _ballWasEaten.set(true)
+    }
+    private suspend fun fullWaitForIntakeIsFinishedEvent()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageIsReadyToEatIntakeEvent())
+
+        while (!_ballWasEaten.get()) delay(DELAY_FOR_EVENT_AWAITING)
+        _ballWasEaten.set(false)
+    }
+
+
 
     fun ballCount(): Int
     {
@@ -262,16 +281,7 @@ class StreamStorage
 
 
 
-    fun trySafeStart()
-    {
-        if (_intakeRunStatus.IsInactive())
-            _intakeRunStatus.SetActive()
-        if (_requestRunStatus.IsInactive())
-            _requestRunStatus.SetActive()
-
-        _hwStreamStorage.start()
-    }
-    suspend fun safeStart(): Boolean
+    suspend fun forceSafeStart()
     {
         while (!_intakeRunStatus.IsInactive())
             delay(DELAY_FOR_EVENT_AWAITING)
@@ -282,11 +292,9 @@ class StreamStorage
         _requestRunStatus.SetActive()
 
         _hwStreamStorage.start()
-
-        return true
     }
 
-    suspend fun safeStop(): Boolean
+    suspend fun forceSafeStop()
     {
         _intakeRunStatus.DoTerminate()
         while (!_intakeRunStatus.IsTerminated())
@@ -299,10 +307,8 @@ class StreamStorage
         _intakeRunStatus.SetInactive()
 
         _hwStreamStorage.stop()
-
-        return true
     }
-    fun forceStop()
+    fun emergencyForceStop()
     {
         _intakeRunStatus.SetInactive()
         _intakeRunStatus.DoTerminate()

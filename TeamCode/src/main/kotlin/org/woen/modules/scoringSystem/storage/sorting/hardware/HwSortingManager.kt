@@ -29,9 +29,15 @@ class HwSortingManager(private val _deviceName: String)
 
         return startCondition
     }
+    suspend fun forceSafeStart()
+    {
+        while (!safeStart())
+            delay(DELAY_FOR_EVENT_AWAITING)
+    }
     fun safeStop(): Boolean
     {
         if (_runStatus.IsInactive()) return true  //  Already stopped
+
         val stopCondition = _runStatus.IsActive()
         if (stopCondition)
         {
@@ -45,6 +51,11 @@ class HwSortingManager(private val _deviceName: String)
     {
         _runStatus.SetInactive()
         _hwSorting.stopBeltMotor()
+    }
+    suspend fun forceSafeStop()
+    {
+        while (!safeStop())
+            delay(DELAY_FOR_EVENT_AWAITING)
     }
 
     fun safePause(): Boolean
@@ -63,11 +74,10 @@ class HwSortingManager(private val _deviceName: String)
 
         return pauseCondition
     }
-    suspend fun forceSafePause(): Boolean
+    suspend fun forceSafePause()
     {
-        while (!safePause()) delay(DELAY_FOR_EVENT_AWAITING)
-
-        return true
+        while (!safePause())
+            delay(DELAY_FOR_EVENT_AWAITING)
     }
 
     fun safeResume(): Boolean
@@ -83,11 +93,10 @@ class HwSortingManager(private val _deviceName: String)
 
         return resumeCondition
     }
-    suspend fun forceSafeResume(): Boolean
+    suspend fun forceSafeResume()
     {
-        while (!safeResume()) delay(DELAY_FOR_EVENT_AWAITING)
-
-        return true
+        while (!safeResume())
+            delay(DELAY_FOR_EVENT_AWAITING)
     }
 
 
