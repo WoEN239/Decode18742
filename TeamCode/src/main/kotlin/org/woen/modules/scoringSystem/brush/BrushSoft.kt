@@ -11,9 +11,9 @@ import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import java.util.concurrent.atomic.AtomicReference
 
-class SwitchBrush(var a: brush_Soft.AcktBrush, var time1: Long = 1000)
+class SwitchBrush(var a: BrushSoft.AcktBrush, var time1: Long = 1000)
 
-class brush_Soft : IModule {
+class BrushSoft : IModule {
     enum class AcktBrush {
         ACKT,
         NOT_ACKT,
@@ -33,39 +33,45 @@ class brush_Soft : IModule {
     }
 
     private var _currentJob: Job? = null //отслеживание текущей задачи
-    private var bruh = brush_hard(Configs.BRUSH.BRUSH_MOTOR_NAME);
+    private var bruh = BrushHard(Configs.BRUSH.BRUSH_MOTOR_NAME);
     private var turnOn = AtomicReference(AcktBrush.NOT_ACKT);
     private var timerRevers = AtomicReference<Long>(0);
     private var tmr = ElapsedTime();
+    private var tmr1 = ElapsedTime();
+    private var f12 =false ;
     suspend fun AvtoUse() {
+        if(!f12){f12=true; tmr1.reset();}
         val difTmr = tmr.time() > Configs.BRUSH.BRUSH_DEF_TIME;
+        val startTmr = tmr1.time() > Configs.BRUSH.BRUSH_DEF_TIME;
 
         when (turnOn.get()) {
             AcktBrush.ACKT -> {
-                bruh.setDir(Configs.BRUSH.BRUSH_MOTORS_FORWARD);
-                if (!bruh.IsSafe.get()){ turnOn.set(AcktBrush.SAFE); tmr.reset();}
+                bruh.setDir(BrushHard.motor_state.ACKT);
+                if (!bruh.IsSafe.get()&&startTmr){ turnOn.set(AcktBrush.SAFE); tmr.reset();}
             }
 
             AcktBrush.SAFE  -> {
-                bruh.setDir(Configs.BRUSH.BRUSH_MOTORS_BACK);
-                if (bruh.IsSafe.get() && difTmr) turnOn.set(AcktBrush.ACKT);
+                bruh.setDir(BrushHard.motor_state.REVERS);
+                if (bruh.IsSafe.get() && difTmr){ turnOn.set(AcktBrush.ACKT);}
+                tmr1.reset();
             }
 
             AcktBrush.NOT_ACKT -> {
-                bruh.setDir(Configs.BRUSH.BRUSH_MOTORS_STOP);
-
+                bruh.setDir(BrushHard.motor_state.NOT_ACKT);
+                tmr1.reset();
             }
 
             AcktBrush.REVERS -> {
                 revers(timerRevers.get());
                 turnOn.set(AcktBrush.NOT_ACKT);
+                tmr1.reset();
             }
 
         }
     }
 
     suspend fun revers(tmr1: Long = 1000) {
-        bruh.setDir(Configs.BRUSH.BRUSH_MOTORS_BACK);
+        bruh.setDir(BrushHard.motor_state.REVERS);
         delay(tmr1);
     }
 
