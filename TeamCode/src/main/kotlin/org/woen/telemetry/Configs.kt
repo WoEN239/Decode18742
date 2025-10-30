@@ -185,13 +185,16 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ACCURACY = 150
+        var CAMERA_ACCURACY = 300
 
         @JvmField
-        var CAMERA_ENABLE = false
+        var CAMERA_ENABLE = true
 
         @JvmField
-        var CAMERA_TRIGGER_DISTANCE = 1.0
+        var CAMERA_TRIGGER_DISTANCE = 3.0
+
+        @JvmField
+        var CAMERA_POSITION = Vec2(0.17, 0.1)
     }
 
     @Config
@@ -261,6 +264,12 @@ object Configs {
 
         @JvmField
         var MAX_SHOOTING_DISTANCE = 5.0
+
+        @JvmField
+        var ROTATION_TICKS_IN_REVOLUTION = 8192.0
+
+        @JvmField
+        var ROTATION_PID_CONFIG = RegulatorParameters()
     }
 
 

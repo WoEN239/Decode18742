@@ -49,13 +49,13 @@ class Odometry : IModule {
     private var _robotLocatedInShootingArea = AtomicBoolean(false)
     private var _oldRobotLocate = false
 
-//    private val _gyro = HardwareGyro()
+    private val _gyro = HardwareGyro()
 
-//    private val _gyroMutex = SmartMutex()
+    private val _gyroMutex = SmartMutex()
     private val _odometryMutex = SmartMutex()
     private val _mergePositionMutex = SmartMutex()
 
-//    private val _gyroFilter = ExponentialFilter(Configs.GYRO.GYRO_MERGE_COEF.get())
+    private val _gyroFilter = ExponentialFilter(Configs.GYRO.GYRO_MERGE_COEF.get())
     private val _positionXFilter = ExponentialFilter(Configs.ODOMETRY.ODOMETRY_MERGE_COEF.get())
     private val _positionYFilter = ExponentialFilter(Configs.ODOMETRY.ODOMETRY_MERGE_COEF.get())
 
@@ -144,7 +144,7 @@ class Odometry : IModule {
     }
 
     init {
-//        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_gyro)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             _odometryMutex.smartLock {
@@ -171,32 +171,32 @@ class Odometry : IModule {
                 }
             })
 
-//        _gyro.gyroUpdateEvent += {
-//            _gyroMutex.smartLock {
-//                _odometryMutex.smartLock {
-//                    _currentOrientation.angl = Angle(
-//                        _gyroFilter.updateRaw(
-//                            _currentOrientation.angle,
-//                            (it - _currentOrientation.angl).angle
-//                        )
-//                    )
-//                }
-//            }
-//        }
-//
-//        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-//            _gyroMutex.smartLock {
-//                _gyroFilter.start()
-//            }
-//
-//            _mergePositionMutex.smartLock {
-//                _positionXFilter.start()
-//                _positionYFilter.start()
-//            }
-//
-//            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
-//                _currentOrientation = HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
-//        }
+        _gyro.gyroUpdateEvent += {
+            _gyroMutex.smartLock {
+                _odometryMutex.smartLock {
+                    _currentOrientation.angl = Angle(
+                        _gyroFilter.updateRaw(
+                            _currentOrientation.angle,
+                            (it - _currentOrientation.angl).angle
+                        )
+                    )
+                }
+            }
+        }
+
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+            _gyroMutex.smartLock {
+                _gyroFilter.start()
+            }
+
+            _mergePositionMutex.smartLock {
+                _positionXFilter.start()
+                _positionYFilter.start()
+            }
+
+            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
+                _currentOrientation = HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
+        }
 
         Configs.ODOMETRY.ODOMETRY_MERGE_COEF.onSet += {
             _mergePositionMutex.smartLock {

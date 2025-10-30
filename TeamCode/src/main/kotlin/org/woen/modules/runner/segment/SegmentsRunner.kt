@@ -59,12 +59,11 @@ class SegmentsRunner : IModule {
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SetDriveTargetVelocityEvent(
-                    (
                     orientationErr.pos * Vec2(
                         Configs.ROAR_RUNNER.ROAD_RUNNER_POS_X_P,
                         Configs.ROAR_RUNNER.ROAD_RUNNER_POS_Y_P
                     ) +
-                            _targetTranslateVelocity).turn(-odometry.odometryOrientation.angle),
+                            _targetTranslateVelocity,
                     orientationErr.angl.angle * Configs.ROAR_RUNNER.ROAD_RUNNER_POS_H_P +
                             _targetRotateVelocity
                 )

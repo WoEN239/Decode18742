@@ -16,8 +16,11 @@ import org.woen.utils.process.Process
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
+import java.lang.Math.pow
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.sign
 
 data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotationVelocity: Double)
 
@@ -66,7 +69,7 @@ class DriveTrain : IModule {
 
             _driveMutex.smartLock {
                 _hardwareDriveTrain.drive(
-                    _targetTranslateVelocity/*.turn(-odometry.odometryOrientation.angle)*/,
+                    _targetTranslateVelocity.turn(-odometry.odometryOrientation.angle),
                     if (_lookMode.get())
                         rotationErr * Configs.DRIVE_TRAIN.LOOK_P
                     else _targetRotateVelocity
@@ -100,9 +103,9 @@ class DriveTrain : IModule {
                 var rx = -gamepadData.right_stick_x.toDouble()
 
                 if (Configs.DRIVE_TRAIN.POW_MOVE_ENABLED) {
-                    ly *= abs(ly)
-                    lx *= abs(lx)
-                    rx *= abs(rx)
+                    ly = sign(ly) * (4.0 * (abs(ly) - 0.5).pow(3.0) + 0.5)
+                    lx = sign(lx) * (4.0 * (abs(lx) - 0.5).pow(3.0) + 0.5)
+                    rx = sign(rx) * (4.0 * (abs(rx) - 0.5).pow(3.0) + 0.5)
                 }
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(

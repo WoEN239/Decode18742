@@ -1,5 +1,6 @@
 package org.woen.modules.scoringSystem.turret
 
+import com.qualcomm.robotcore.hardware.CRServo
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
@@ -9,6 +10,7 @@ import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
+import org.woen.utils.motor.EncoderOnly
 import org.woen.utils.regulator.Regulator
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicBoolean
@@ -16,10 +18,17 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 import kotlin.math.abs
 
-class HardwareTurret(private val _motorName: String, private var _servoName: String) :
+class HardwareTurret(
+    private val _motorName: String,
+    private var _servoName: String,
+    private var _rotationServoName: String,
+    private var _rotationEncoderName: String
+) :
     IHardwareDevice {
     private lateinit var _motor: DcMotorEx
-    private lateinit var _servo: Servo
+    private lateinit var _angleSevo: Servo
+    private lateinit var _rotationServo: CRServo
+    private lateinit var _rotationEncoder: EncoderOnly
 
     var targetVelocity: Double
         get() = _realTargetVelocity.get() /
@@ -31,11 +40,8 @@ class HardwareTurret(private val _motorName: String, private var _servoName: Str
             )
         }
 
-    var servoPosition
-        get() = _servo.position
-        set(value) {
-            _servo.position = value
-        }
+    var anglePosition = AtomicReference(0.0)
+    var rotationPosition = AtomicReference(0.0)
 
     private var _realTargetVelocity = AtomicReference(0.0)
 
@@ -54,9 +60,13 @@ class HardwareTurret(private val _motorName: String, private var _servoName: Str
 
     var velocityAtTarget = AtomicBoolean(false)
 
+    private var _rotationRegulator = Regulator(Configs.TURRET.ROTATION_PID_CONFIG)
+
     override fun update() {
         if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
             return
+
+        _angleSevo.position = anglePosition.get()
 
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
@@ -80,6 +90,9 @@ class HardwareTurret(private val _motorName: String, private var _servoName: Str
         else
             velocityAtTarget.set(true)
 
+        _rotationServo.power =
+            _rotationRegulator.update(rotationPosition.get() / Configs.TURRET.ROTATION_TICKS_IN_REVOLUTION - _rotationEncoder.currentPosition)
+
         _pulleyRegulatorMutex.smartLock {
             _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
                 _pulleyRegulator.update(
@@ -92,7 +105,11 @@ class HardwareTurret(private val _motorName: String, private var _servoName: Str
 
     override fun init(hardwareMap: HardwareMap) {
         _motor = hardwareMap.get(_motorName) as DcMotorEx
-        _servo = hardwareMap.get(_servoName) as Servo
+        _angleSevo = hardwareMap.get(_servoName) as Servo
+
+        _rotationServo = hardwareMap.get(_rotationServoName) as CRServo
+
+        _rotationEncoder = EncoderOnly(hardwareMap.get(_rotationEncoderName) as DcMotorEx)
 
         _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
@@ -109,6 +126,11 @@ class HardwareTurret(private val _motorName: String, private var _servoName: Str
             _pulleyRegulatorMutex.smartLock {
                 _pulleyRegulator.start()
             }
+
+            _rotationRegulator.start()
+
+            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
+                _rotationEncoder.resetEncoder()
         }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {

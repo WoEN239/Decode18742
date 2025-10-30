@@ -7,6 +7,8 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.robotcore.external.navigation.Position
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagMetadata
@@ -15,6 +17,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 import org.woen.hotRun.HotRun
 import org.woen.modules.scoringSystem.turret.Pattern
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.smartMutex.SmartMutex
@@ -47,7 +50,10 @@ class Camera private constructor() : DisposableHandle {
     private var _visionPortal: VisionPortal? = null
 
     private val _aprilProcessor: AprilTagProcessor =
-        AprilTagProcessor.Builder().setOutputUnits(DistanceUnit.CM, AngleUnit.DEGREES)
+        AprilTagProcessor.Builder().setOutputUnits(DistanceUnit.METER, AngleUnit.RADIANS).setCameraPose(
+            Position(DistanceUnit.METER, Configs.CAMERA.CAMERA_POSITION.x, Configs.CAMERA.CAMERA_POSITION.y, 0.0, 0),
+            YawPitchRollAngles(AngleUnit.DEGREES, 0.0, 0.0, 90.0, 0)
+        )
             .setDrawAxes(true).build()
 
     var currentPattern: Pattern? = null
@@ -88,7 +94,7 @@ class Camera private constructor() : DisposableHandle {
                     val rawTagRotation = rawTagPose.R
                     val metadata: AprilTagMetadata = detection.metadata
                     val fieldTagPos =
-                        metadata.fieldPosition.multiplied(DistanceUnit.mmPerInch.toFloat() / 10f)
+                        metadata.fieldPosition.multiplied(DistanceUnit.mmPerInch.toFloat() / 1000f)
                     val fieldTagQ = metadata.fieldOrientation
                     rawTagPoseVector = rawTagRotation.inverted().multiplied(rawTagPoseVector)
                     val rotatedPosVector = fieldTagQ.applyToVector(rawTagPoseVector)
