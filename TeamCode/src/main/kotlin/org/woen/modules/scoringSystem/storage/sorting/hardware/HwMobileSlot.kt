@@ -18,6 +18,7 @@ class HwMobileSlot (private val _gateMotorName: String,
 {
     private lateinit var _gateMotor : DcMotorEx
     private lateinit var _pushMotor : DcMotorEx
+    private lateinit var _fallMotor : DcMotorEx
 
 
 

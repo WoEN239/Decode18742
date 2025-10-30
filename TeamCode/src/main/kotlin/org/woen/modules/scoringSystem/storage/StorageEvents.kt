@@ -18,7 +18,7 @@ data class StorageFinishedIntakeEvent(
 
 
 
-class GiveNextRequest()
+class ShotWasFiredEvent()
 
 class StorageRequestIsReadyEvent()
 data class StorageFinishedEveryRequestEvent(

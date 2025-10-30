@@ -228,14 +228,6 @@ class SortingStorage
         return requestResult
     }
     suspend fun shootEntireDrumRequest(
-        requestOrder: Array<BallRequest.Name>,
-        shotType: ShotType
-    ): RequestResult.Name
-    {
-        return shootEntireDrumRequest(requestOrder, requestOrder, shotType)
-    }
-    @JvmOverloads
-    suspend fun shootEntireDrumRequest(
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name> = requestOrder,
         shotType: ShotType = ShotType.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID

@@ -29,6 +29,17 @@ class SwitchStorage  //  Schrodinger storage
 
 
 
+    fun isStream():  Boolean
+    {
+        return _isStream
+    }
+    fun isSorting(): Boolean
+    {
+        return _isSorting
+    }
+
+
+
     //------------------------  UNIVERSAL METHODS  ------------------------//
 
     suspend fun handleIntake(inputBall: Ball.Name) : IntakeResult.Name
@@ -100,15 +111,6 @@ class SwitchStorage  //  Schrodinger storage
         return if (_isSorting) _sortingStorage.handleRequest(request)
         else RequestResult.Name.FAIL_USING_DIFFERENT_STORAGE_TYPE
     }
-
-    suspend fun shootEntireDrumRequest(
-        requestOrder: Array<BallRequest.Name>,
-        shotType: ShotType
-    ): RequestResult.Name
-    {
-        return if (_isSorting) _sortingStorage.shootEntireDrumRequest(requestOrder, shotType)
-        else RequestResult.Name.FAIL_USING_DIFFERENT_STORAGE_TYPE
-    }
     suspend fun shootEntireDrumRequest(
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name> = requestOrder,
@@ -168,7 +170,7 @@ class SwitchStorage  //  Schrodinger storage
         } )
 
 
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(GiveNextRequest::class, {
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(ShotWasFiredEvent::class, {
             shotWasFired()
         } )
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(BallWasEatenByTheStorageEvent::class, {
