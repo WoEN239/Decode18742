@@ -266,7 +266,7 @@ object Configs {
         var MAX_SHOOTING_DISTANCE = 5.0
 
         @JvmField
-        var ROTATION_TICKS_IN_REVOLUTION = 8192.0
+        var ROTATION_TICKS_IN_REVOLUTION = 8192.0 * (23.0 / 6.0)
 
         @JvmField
         var ROTATION_PID_CONFIG = RegulatorParameters()
