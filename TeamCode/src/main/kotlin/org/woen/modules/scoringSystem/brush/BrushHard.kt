@@ -8,12 +8,18 @@ import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import java.util.concurrent.atomic.AtomicReference
 
-class brush_hard(private val _deviceName: String)  : IHardwareDevice {
+class BrushHard(private val _deviceName: String)  : IHardwareDevice {
     private lateinit var _motor: DcMotorEx
     public var IsSafe= AtomicReference(true);
     override fun update() {
         voltageSafe();
     }
+    enum class motor_state {
+        ACKT,
+        NOT_ACKT,
+        REVERS,
+    }
+
 
     fun voltageSafe(){
         var volt=_motor.getCurrent(CurrentUnit.AMPS);
@@ -22,15 +28,15 @@ class brush_hard(private val _deviceName: String)  : IHardwareDevice {
 
     }
 
-    fun setDir(Motor: Int){
+    fun setDir(Motor: motor_state){
         when(Motor){
-            Configs.BRUSH.BRUSH_MOTORS_FORWARD -> {
+            motor_state.ACKT  -> {
                 _motor.setPower(1.0);
             }
-            Configs.BRUSH.BRUSH_MOTORS_STOP -> {
+            motor_state.NOT_ACKT-> {
                 _motor.setPower(0.0);
             }
-            Configs.BRUSH.BRUSH_MOTORS_BACK -> {
+            motor_state.REVERS -> {
                 _motor.setPower(-1.0);
             }
         }
