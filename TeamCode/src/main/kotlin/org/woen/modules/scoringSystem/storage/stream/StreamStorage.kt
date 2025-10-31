@@ -5,8 +5,6 @@ import woen239.enumerators.RunStatus
 import woen239.enumerators.IntakeResult
 import woen239.enumerators.RequestResult
 
-import android.annotation.SuppressLint
-
 import kotlinx.coroutines.delay
 import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedIntakeEvent
@@ -39,22 +37,21 @@ class StreamStorage
 
 
 
-    @SuppressLint("SuspiciousIndentation")
     suspend fun handleIntake(): IntakeResult.Name
     {
-        if (_ballCount.get() >= 3) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
+        if (_ballCount.get() >= MAX_BALL_COUNT) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
 
         if (noIntakeRaceConditionProblems())
         {
-                if (doTerminateIntake()) return terminateIntake()
-            val intakeResult = storageCanHandleIntake()
+            if (doTerminateIntake()) return terminateIntake()
 
-                if (doTerminateIntake()) return terminateIntake()
-            if (!updateAfterInput(intakeResult))  //  Safe updating after intake
-                intakeResult.Set(IntakeResult.FAIL_UNKNOWN, IntakeResult.Name.FAIL_UNKNOWN)
+            val storageCanHandle = storageCanHandleIntake()
 
-            safeResumeRequestLogic(intakeResult.Name())
-            return intakeResult.Name()
+            val intakeResult = updateAfterInput(storageCanHandle)
+            //  Safe updating storage after intake  - wont update if an error occurs
+
+            safeResumeRequestLogic(intakeResult)
+            return intakeResult
         }
 
         val intakeFail = IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
@@ -90,15 +87,17 @@ class StreamStorage
 
         return !intakeRaceConditionIsPresent()
     }
-    private suspend fun updateAfterInput(intakeResult: IntakeResult): Boolean
+    private suspend fun updateAfterInput(intakeResult: IntakeResult): IntakeResult.Name
     {
-        if (intakeResult.DidFail()) return false
+        if (intakeResult.DidFail())
+            return intakeResult.Name()
 
-        fullWaitForIntakeIsFinishedEvent()
+        if (!fullWaitForIntakeIsFinishedEvent())
+            return terminateIntake()
 
         _ballCount.set(_ballCount.get() + 1)
 
-        return true
+        return IntakeResult.Name.SUCCESS
     }
 
     private fun doTerminateIntake(): Boolean
@@ -265,12 +264,18 @@ class StreamStorage
     {
         _ballWasEaten.set(true)
     }
-    private suspend fun fullWaitForIntakeIsFinishedEvent()
+    private suspend fun fullWaitForIntakeIsFinishedEvent(): Boolean
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageIsReadyToEatIntakeEvent())
 
-        while (!_ballWasEaten.get()) delay(DELAY_FOR_EVENT_AWAITING)
+        while (!_ballWasEaten.get())
+        {
+            delay(DELAY_FOR_EVENT_AWAITING)
+            if (doTerminateIntake()) return false
+        }
+
         _ballWasEaten.set(false)
+        return true
     }
 
 
