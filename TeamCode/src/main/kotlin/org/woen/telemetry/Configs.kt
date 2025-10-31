@@ -28,7 +28,7 @@ object Configs {
 
 
         @JvmField
-        var TIME_FOR_BRUSH_REVERSING: Long = 1000
+        var TIME_FOR_BRUSH_REVERSING: Long = 1500
     }
 
     @Config
@@ -293,6 +293,9 @@ object Configs {
 
         @JvmField
         var REAL_SLOT_COUNT = 3
+
+        @JvmField
+        var MAX_BALL_COUNT = 3
 
 
 

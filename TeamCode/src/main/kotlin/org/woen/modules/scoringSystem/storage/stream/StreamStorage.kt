@@ -18,6 +18,7 @@ import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.ThreadedEventBus
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
+import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
@@ -62,7 +63,7 @@ class StreamStorage
     }
     private fun storageCanHandleIntake(): IntakeResult
     {
-        if (_ballCount.get() < REAL_SLOT_COUNT) return IntakeResult(
+        if (_ballCount.get() < MAX_BALL_COUNT) return IntakeResult(
             IntakeResult.SUCCESS,
             IntakeResult.Name.SUCCESS
         )

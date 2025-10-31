@@ -16,10 +16,10 @@ import org.woen.modules.scoringSystem.brush.SwitchBrush
 import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.modules.scoringSystem.storage.SwitchStorage
 
-import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
+import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
 import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
+import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
 
 import org.woen.threading.ThreadedEventBus
 import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
@@ -34,6 +34,10 @@ import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent // R
 
 
 
+class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
+
+
+
 class ScoringModulesConnector: IModule
 {
     private val _storage = SwitchStorage()  //  Schrodinger storage
@@ -42,6 +46,7 @@ class ScoringModulesConnector: IModule
     private val _isSorting = _storage.isSorting()
 
     private var _isBusy = AtomicReference(false)
+    private var _canRestartBrushes = AtomicReference(false)
 
     private var _ballWasEaten = AtomicReference(false)
     private var _isAwaitingEating = AtomicReference(false)
@@ -87,7 +92,12 @@ class ScoringModulesConnector: IModule
          */
 
 
-        if (isBusy) return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
+        if (isBusy)
+        {
+            reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
+
+            return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
+        }
 
         setBusy()
         setAwaitingEating()
@@ -95,14 +105,43 @@ class ScoringModulesConnector: IModule
         val intakeResult = _storage.handleIntake(inputBall)
 
 
-        if (_storage.ballCount() >= REAL_SLOT_COUNT)
+        if (_storage.ballCount() >= MAX_BALL_COUNT)
+        {
+            _canRestartBrushes.set(false)
+
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SwitchBrush(
                     BrushSoft.AcktBrush.REVERS,
-                    TIME_FOR_BRUSH_REVERSING))
+                    TIME_FOR_BRUSH_REVERSING
+            ) )
+        }
 
         setIdle()
         return intakeResult
+    }
+
+    fun reverseAndThenStartBrushesAfterTimePeriod(reverseTime: Long)
+    {
+        _canRestartBrushes.set(true)
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SwitchBrush(
+                BrushSoft.AcktBrush.REVERS,
+                reverseTime))
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            ReverseAndThenStartBrushesAgain(
+                reverseTime
+            )
+        )
+    }
+    suspend fun startBrushesAfterDelay(delay: Long)
+    {
+        delay(delay)
+
+        if (_canRestartBrushes.get())
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                SwitchBrush(BrushSoft.AcktBrush.ACKT))
     }
     suspend fun currentlyEatingIntakeProcess()
     {
@@ -132,20 +171,6 @@ class ScoringModulesConnector: IModule
 
 
 
-
-
-    fun setTurretToWaitMode()
-    {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SetCurrentTurretStateEvent(
-                Turret.TurretState.WAITING))
-    }
-    fun setTurretToShootMode()
-    {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-        SetCurrentTurretStateEvent(
-            Turret.TurretState.SHOOT))
-    }
 
 
     suspend fun startDrumRequest(
@@ -213,6 +238,20 @@ class ScoringModulesConnector: IModule
         return requestResult
     }
 
+    fun setTurretToWaitMode()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SetCurrentTurretStateEvent(
+                Turret.TurretState.WAITING))
+    }
+    fun setTurretToShootMode()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SetCurrentTurretStateEvent(
+                Turret.TurretState.SHOOT))
+    }
+
+
 
     suspend fun currentlyShootingRequestsProcess()
     {
@@ -260,11 +299,17 @@ class ScoringModulesConnector: IModule
                 currentlyShootingRequestsProcess()
         } )
 
+
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
             BottomOpticPareSeesSomethingEvent::class, {
 
                 ballWasEaten()
-            } )
+        } )
 
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+            ReverseAndThenStartBrushesAgain::class, {
+                startBrushesAfterDelay(it.reverseTime)
+            }
+        )
     }
 }
