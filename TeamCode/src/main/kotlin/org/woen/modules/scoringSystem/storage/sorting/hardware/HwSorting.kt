@@ -32,8 +32,6 @@ class HwSorting (private val _deviceName: String) : IHardwareDevice
     private lateinit var _mobileOutOpticPare2 : AnalogInput
 
 
-    private lateinit var _intakeColorSensor1 : AdafruitI2cColorSensor
-    private lateinit var _intakeColorSensor2 : AdafruitI2cColorSensor
 
 
     private lateinit var _beltMotor : DcMotorEx
@@ -75,8 +73,6 @@ class HwSorting (private val _deviceName: String) : IHardwareDevice
         _mobileOutOpticPare1 = hardwareMap.get("mobile-out optic-pare 1") as AnalogInput
         _mobileOutOpticPare2 = hardwareMap.get("mobile-out optic-pare 2") as AnalogInput
 
-        _intakeColorSensor1 = fixSensor(hardwareMap.get("intake color 1") as AdafruitI2cColorSensor)
-        _intakeColorSensor2 = fixSensor(hardwareMap.get("intake color 2") as AdafruitI2cColorSensor)
 
 
 

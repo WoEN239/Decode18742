@@ -18,7 +18,7 @@ import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
 
@@ -255,7 +255,7 @@ class StreamStorage
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
 
-        while (!_shotWasFired.get()) delay(DELAY_FOR_EVENT_AWAITING)
+        while (!_shotWasFired.get()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         _shotWasFired.set(false)
     }
 
@@ -270,7 +270,7 @@ class StreamStorage
 
         while (!_ballWasEaten.get())
         {
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
             if (doTerminateIntake()) return false
         }
 
@@ -290,11 +290,11 @@ class StreamStorage
     suspend fun forceSafeStart()
     {
         while (!_intakeRunStatus.IsInactive())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
         _intakeRunStatus.SetActive()
 
         while (!_requestRunStatus.IsInactive())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
         _requestRunStatus.SetActive()
 
         _hwStreamStorage.start()
@@ -304,12 +304,12 @@ class StreamStorage
     {
         _intakeRunStatus.DoTerminate()
         while (!_intakeRunStatus.IsTerminated())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
         _intakeRunStatus.SetInactive()
 
         _requestRunStatus.DoTerminate()
         while (!_intakeRunStatus.IsTerminated())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
         _intakeRunStatus.SetInactive()
 
         _hwStreamStorage.stop()

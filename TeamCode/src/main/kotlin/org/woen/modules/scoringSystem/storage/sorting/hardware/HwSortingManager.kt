@@ -5,7 +5,7 @@ import woen239.enumerators.RunStatus
 import org.woen.threading.hardware.HardwareThreads
 
 import kotlinx.coroutines.delay
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 
 
 
@@ -32,7 +32,7 @@ class HwSortingManager(private val _deviceName: String)
     suspend fun forceSafeStart()
     {
         while (!safeStart())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
     }
     fun safeStop(): Boolean
     {
@@ -55,7 +55,7 @@ class HwSortingManager(private val _deviceName: String)
     suspend fun forceSafeStop()
     {
         while (!safeStop())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
     }
 
     fun safePause(): Boolean
@@ -77,7 +77,7 @@ class HwSortingManager(private val _deviceName: String)
     suspend fun forceSafePause()
     {
         while (!safePause())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
     }
 
     fun safeResume(): Boolean
@@ -96,7 +96,7 @@ class HwSortingManager(private val _deviceName: String)
     suspend fun forceSafeResume()
     {
         while (!safeResume())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
     }
 
 

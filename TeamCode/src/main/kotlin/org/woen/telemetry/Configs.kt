@@ -272,6 +272,9 @@ object Configs {
 
         @JvmField
         var ROTATION_PID_CONFIG = RegulatorParameters()
+
+        @JvmField
+        var MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS: Long = 100
     }
 
 
@@ -323,7 +326,10 @@ object Configs {
         var REQUEST_RACE_CONDITION_DELAY: Long = 5
 
         @JvmField
-        var DELAY_FOR_EVENT_AWAITING: Long = 5
+        var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
+
+        @JvmField
+        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 500
 
 
 

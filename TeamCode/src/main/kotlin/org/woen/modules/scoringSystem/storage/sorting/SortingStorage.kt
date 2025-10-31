@@ -22,7 +22,8 @@ import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
 
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
 
@@ -37,6 +38,7 @@ class SortingStorage
 
     private var _shotWasFired = AtomicReference(false)
     private var _ballWasEaten = AtomicReference(false)
+
 
 
 
@@ -192,7 +194,7 @@ class SortingStorage
     {
         _requestRunStatus.SafeResetTermination()
         while (requestRaceConditionIsPresent())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
     }
     private fun doTerminateRequest(): Boolean
     {
@@ -213,6 +215,17 @@ class SortingStorage
     fun switchTerminateRequest()
     {
         _requestRunStatus.DoTerminate()
+    }
+
+
+
+    suspend fun pushNext(pushingTime: Long = DELAY_FOR_ONE_BALL_PUSHING_MS)
+    {
+        _storageCells.forceSafeStartHwBelt()
+
+        delay(pushingTime)
+
+        _storageCells.forceSafeStopHwBelt()
     }
 
 
@@ -458,7 +471,7 @@ class SortingStorage
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
 
-        while (!_shotWasFired.get()) delay(DELAY_FOR_EVENT_AWAITING)
+        while (!_shotWasFired.get()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         _shotWasFired.set(false)
     }
 
@@ -474,7 +487,7 @@ class SortingStorage
 
         while (!_ballWasEaten.get())
         {
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
             if (doTerminateIntake()) return false
         }
 
@@ -523,11 +536,11 @@ class SortingStorage
     suspend fun forceSafeStart()
     {
         while (!_intakeRunStatus.IsInactive())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
         _intakeRunStatus.SetActive()
 
         while (!_requestRunStatus.IsInactive())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
         _requestRunStatus.SetActive()
 
         _storageCells.forceSafeStartHwBelt()
@@ -536,12 +549,12 @@ class SortingStorage
     {
         _intakeRunStatus.DoTerminate()
         while (!_intakeRunStatus.IsTerminated())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
         _intakeRunStatus.SetInactive()
 
         _requestRunStatus.DoTerminate()
         while (!_intakeRunStatus.IsTerminated())
-            delay(DELAY_FOR_EVENT_AWAITING)
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
         _intakeRunStatus.SetInactive()
 
         _storageCells.forceSafeStopHwBelt()

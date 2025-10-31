@@ -7,15 +7,18 @@ import woen239.enumerators.BallRequest
 import woen239.enumerators.IntakeResult
 import woen239.enumerators.RequestResult
 
-import org.woen.threading.ThreadedEventBus
-
 import woen239.enumerators.ShotType
 import woen239.enumerators.StorageType
 
-import org.woen.modules.scoringSystem.storage.stream.StreamStorage
-import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
+import kotlinx.coroutines.delay
+
+import org.woen.threading.ThreadedEventBus
 
 import org.woen.telemetry.Configs.STORAGE.USED_STORAGE_TYPE
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
+
+import org.woen.modules.scoringSystem.storage.stream.StreamStorage
+import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
 
 
 
@@ -27,6 +30,8 @@ class SwitchStorage  //  Schrodinger storage
     private var _streamStorage  = StreamStorage()
     private var _sortingStorage = SortingStorage()
 
+    private var _hwSwitchStorage = HwSwitchStorage()
+
 
 
     fun isStream():  Boolean
@@ -36,6 +41,32 @@ class SwitchStorage  //  Schrodinger storage
     fun isSorting(): Boolean
     {
         return _isSorting
+    }
+
+
+    private fun openGate()
+    {
+        _hwSwitchStorage.openGate()
+    }
+    private fun closeGate()
+    {
+        _hwSwitchStorage.closeGate()
+    }
+
+    suspend fun pushNext()
+    {
+        openGate()
+        if (_isSorting)
+        {
+            _sortingStorage.pushNext()
+            closeGate()
+            _sortingStorage.pushNext(100)
+        }
+        else
+        {
+            delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
+            closeGate()
+        }
     }
 
 
