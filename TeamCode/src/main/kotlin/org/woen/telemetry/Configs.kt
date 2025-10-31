@@ -15,6 +15,8 @@ object Configs {
 
     @Config
     internal object BRUSH {
+        var BRUSH_SAFE_TIME=1.0;
+        var BRUSH_ERR_TIME=1.0;
         @JvmField
         var BRUSH_DEF_TIME = 1.0
 

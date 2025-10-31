@@ -11,8 +11,10 @@ import java.util.concurrent.atomic.AtomicReference
 class BrushHard(private val _deviceName: String)  : IHardwareDevice {
     private lateinit var _motor: DcMotorEx
     public var IsSafe= AtomicReference(true);
+    private var motor_power=0.0;
     override fun update() {
         voltageSafe();
+        _motor.setPower(motor_power);
     }
     enum class motor_state {
         ACKT,
@@ -31,13 +33,13 @@ class BrushHard(private val _deviceName: String)  : IHardwareDevice {
     fun setDir(Motor: motor_state){
         when(Motor){
             motor_state.ACKT  -> {
-                _motor.setPower(1.0);
+                motor_power=1.0;
             }
             motor_state.NOT_ACKT-> {
-                _motor.setPower(0.0);
+                motor_power=0.0;
             }
             motor_state.REVERS -> {
-                _motor.setPower(-1.0);
+               motor_power=-1.0;
             }
         }
 
