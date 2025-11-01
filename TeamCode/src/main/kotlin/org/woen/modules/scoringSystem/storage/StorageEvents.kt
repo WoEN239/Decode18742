@@ -29,7 +29,7 @@ class StorageGiveSimpleDrumRequest()
 class StorageGiveDrumRequest(
     var shotType: ShotType,
     var requestPattern: Array<BallRequest.Name>,
-    var failsafePattern: Array<BallRequest.Name> = arrayOf(),
+    var failsafePattern: Array<BallRequest.Name> = arrayOf()
 )
 
 
@@ -48,5 +48,8 @@ class MobileOutOpticPareSeesSomethingEvent()
 
 
 class ColorSensorsSeeIntakeIncoming(
-    var inputBall: Ball.Name
+    var inputBall: Ball.Name = Ball.Name.NONE
+)
+class StorageGetReadyForIntake(
+    var inputBall: Ball.Name = Ball.Name.NONE
 )

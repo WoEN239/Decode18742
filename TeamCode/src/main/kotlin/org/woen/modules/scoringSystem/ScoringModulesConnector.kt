@@ -27,7 +27,6 @@ import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
 import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
 
 import org.woen.modules.scoringSystem.storage.BottomOpticPareSeesSomethingEvent
-import org.woen.modules.scoringSystem.storage.ColorSensorsSeeIntakeIncoming
 
 //import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
@@ -39,7 +38,7 @@ import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
-
+import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntake
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -276,7 +275,7 @@ class ScoringModulesConnector: IModule
     }
     suspend fun awaitSuccessfulRequestShot()
     {
-        while (!shotWasFired()) _storage.pushNext()
+        while (!shotWasFired()) _storage.pushNextWithoutUpdating()
 
         _shotWasFired.set(false)
 
@@ -311,7 +310,7 @@ class ScoringModulesConnector: IModule
     init
     {
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
-            ColorSensorsSeeIntakeIncoming::class, {
+            StorageGetReadyForIntake::class, {
 
                 startIntakeProcess(it.inputBall)
             }

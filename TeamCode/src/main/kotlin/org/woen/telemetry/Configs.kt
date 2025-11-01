@@ -353,6 +353,9 @@ object Configs {
         @JvmField
         var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 500
 
+        @JvmField
+        var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1000
+
 
         @JvmField
         var MAX_WAITING_TIME_FOR_INTAKE_MS = 2000

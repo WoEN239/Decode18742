@@ -53,14 +53,14 @@ class SwitchStorage  //  Schrodinger storage
         _hwSwitchStorage.closeGate()
     }
 
-    suspend fun pushNext()
+    suspend fun pushNextWithoutUpdating()
     {
         openGate()
         if (_isSorting)
         {
-            _sortingStorage.pushNext()
+            _sortingStorage.pushNextWithoutUpdating()
             closeGate()
-            _sortingStorage.pushNext(100)
+            _sortingStorage.pushNextWithoutUpdating(100)
         }
         else
         {
@@ -77,6 +77,9 @@ class SwitchStorage  //  Schrodinger storage
 
     suspend fun handleIntake(inputBall: Ball.Name) : IntakeResult.Name
     {
+        if (inputBall == Ball.Name.NONE && _isSorting)
+            return IntakeResult.Name.FAIL_USING_DIFFERENT_STORAGE_TYPE
+
         return if (_isStream) _streamStorage.handleIntake()
         else _sortingStorage.handleIntake(inputBall)
     }
@@ -190,6 +193,16 @@ class SwitchStorage  //  Schrodinger storage
     //-------------  Hardware linker for storage type logic  -------------//
     init
     {
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+            ColorSensorsSeeIntakeIncoming::class, {
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                StorageGetReadyForIntake(it.inputBall)
+            )
+            //  Alias
+        } )
+
+
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
             terminateIntake()
         } )

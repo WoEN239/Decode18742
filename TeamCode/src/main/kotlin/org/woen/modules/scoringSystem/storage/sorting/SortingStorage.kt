@@ -27,7 +27,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
-
+import woen239.enumerators.StorageSlot
 
 
 class SortingStorage
@@ -87,21 +87,13 @@ class SortingStorage
         if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
 
 
-        _storageCells.forceSafeResumeHwBelt()
-
         when (intakeResult.Name())
         {
-            IntakeResult.Name.SUCCESS_CENTER -> delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
-            IntakeResult.Name.SUCCESS_MOBILE_OUT -> delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
-            IntakeResult.Name.SUCCESS_MOBILE_IN  ->
-            {
-                _storageCells.forceSafePauseHwBelt()
-                _storageCells.fullRotateCW()
-            }
+            IntakeResult.Name.SUCCESS_CENTER -> _storageCells.partial1RotateCW()
+            IntakeResult.Name.SUCCESS_MOBILE_OUT -> _storageCells.autoPartial2RotateCW()
+            IntakeResult.Name.SUCCESS_MOBILE_IN  -> _storageCells.partial3RotateCW()
             else -> { }
         }
-
-        _storageCells.forceSafePauseHwBelt()
 
 
         if (!fullWaitForIntakeIsFinishedEvent())
@@ -155,26 +147,24 @@ class SortingStorage
         if (requestResult.DidFail()) return requestResult   //  Intake failed
 
 
-        _storageCells.forceSafeResumeHwBelt()
-
-        when (requestResult.Name())
-        {
-            RequestResult.Name.SUCCESS_CENTER -> delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
-            RequestResult.Name.SUCCESS_BOTTOM -> delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
-            RequestResult.Name.SUCCESS_MOBILE_IN ->
-            {
-                _storageCells.forceSafePauseHwBelt()
-                _storageCells.fullRotateCW()
-                _storageCells.forceSafeResumeHwBelt()
-                delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
-            }
-            else -> { }
+        val fullRotations = when (requestResult.Name()) {
+            RequestResult.Name.SUCCESS_MOBILE_IN -> 2
+            RequestResult.Name.SUCCESS_BOTTOM -> 1
+            RequestResult.Name.SUCCESS_CENTER -> 0
+            else -> -1
         }
 
-        _storageCells.forceSafePauseHwBelt()
+        if (fullRotations >= 0)
+        {
+            repeat(fullRotations) {
+                _storageCells.fullRotateCW()
+            }
+
+            _storageCells.partial2RotateCW()
+        }
 
 
-        if (!fullWaitForIntakeIsFinishedEvent())
+        if (!fullWaitForShotFired())
             return RequestResult(terminateRequest())
 
 
@@ -259,15 +249,10 @@ class SortingStorage
 
 
 
-    suspend fun pushNext(pushingTime: Long = DELAY_FOR_ONE_BALL_PUSHING_MS)
+    suspend fun pushNextWithoutUpdating(time: Long = DELAY_FOR_ONE_BALL_PUSHING_MS)
     {
-        _storageCells.forceSafeStartHwBelt()
-
-        delay(pushingTime)
-
-        _storageCells.forceSafeStopHwBelt()
+        _storageCells.hwRotateBeltCW(time)
     }
-
 
 
 

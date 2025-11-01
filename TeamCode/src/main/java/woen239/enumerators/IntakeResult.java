@@ -5,8 +5,9 @@ public class IntakeResult
 {
     static public final int SUCCESS = 0, SUCCESS_BOTTOM = 1, SUCCESS_CENTER = 2,
         SUCCESS_MOBILE_OUT = 3, SUCCESS_MOBILE_IN = 4, FAIL_UNKNOWN = 5,
-            FAIL_STORAGE_IS_FULL = 6, FAIL_IS_CURRENTLY_BUSY = 7,
-                FAIL_HARDWARE_PROBLEM = 8, FAIL_PROCESS_WAS_TERMINATED = 9;
+            FAIL_STORAGE_IS_FULL = 6, FAIL_HARDWARE_PROBLEM = 7,
+                FAIL_USING_DIFFERENT_STORAGE_TYPE = 8,
+                    FAIL_IS_CURRENTLY_BUSY = 9, FAIL_PROCESS_WAS_TERMINATED = 10;
 
 
     private Name _memName;
@@ -42,11 +43,15 @@ public class IntakeResult
         SUCCESS_CENTER,
         SUCCESS_MOBILE_OUT,
         SUCCESS_MOBILE_IN,
+
         FAIL_UNKNOWN,
         FAIL_STORAGE_IS_FULL,
-        FAIL_IS_CURRENTLY_BUSY,
+
         FAIL_HARDWARE_PROBLEM,
-        FAIL_PROCESS_WAS_TERMINATED
+        FAIL_USING_DIFFERENT_STORAGE_TYPE,
+
+        FAIL_IS_CURRENTLY_BUSY,
+        FAIL_PROCESS_WAS_TERMINATED,
     }
 
 
@@ -133,8 +138,11 @@ public class IntakeResult
 
             case FAIL_UNKNOWN:            return Name.FAIL_UNKNOWN;
             case FAIL_STORAGE_IS_FULL:    return Name.FAIL_STORAGE_IS_FULL;
-            case FAIL_IS_CURRENTLY_BUSY:  return Name.FAIL_IS_CURRENTLY_BUSY;
+
             case FAIL_HARDWARE_PROBLEM:   return Name.FAIL_HARDWARE_PROBLEM;
+            case FAIL_USING_DIFFERENT_STORAGE_TYPE: return Name.FAIL_USING_DIFFERENT_STORAGE_TYPE;
+
+            case FAIL_IS_CURRENTLY_BUSY:  return Name.FAIL_IS_CURRENTLY_BUSY;
             default:                      return Name.FAIL_PROCESS_WAS_TERMINATED;
         }
     }
@@ -150,8 +158,11 @@ public class IntakeResult
 
             case FAIL_UNKNOWN:            return FAIL_UNKNOWN;
             case FAIL_STORAGE_IS_FULL:    return FAIL_STORAGE_IS_FULL;
-            case FAIL_IS_CURRENTLY_BUSY:  return FAIL_IS_CURRENTLY_BUSY;
+
             case FAIL_HARDWARE_PROBLEM:   return FAIL_HARDWARE_PROBLEM;
+            case FAIL_USING_DIFFERENT_STORAGE_TYPE: return FAIL_USING_DIFFERENT_STORAGE_TYPE;
+
+            case FAIL_IS_CURRENTLY_BUSY:  return FAIL_IS_CURRENTLY_BUSY;
             default:                      return FAIL_PROCESS_WAS_TERMINATED;
         }
     }

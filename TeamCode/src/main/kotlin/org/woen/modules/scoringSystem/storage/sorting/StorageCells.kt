@@ -1,6 +1,7 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
+import kotlinx.coroutines.delay
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
 
@@ -16,6 +17,8 @@ import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_MAX_SERVO_POSITION_CHANGE
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -156,14 +159,14 @@ class StorageCells
 
 
 
-    fun updateAfterIntake(inputBall: Ball.Name): Boolean
+    suspend fun updateAfterIntake(inputBall: Ball.Name): Boolean
     {
         val intakeCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
 
         if (intakeCondition)
         {
             _storageCells[StorageSlot.BOTTOM].Set(inputBall)
-            if (partial2RotateCW()) partial2RotateCW()
+            if (autoPartial2RotateCW()) partial2RotateCW()
         }
         //!  else fixStorageDesync()
 
@@ -186,19 +189,57 @@ class StorageCells
 
 
 
-    fun fullRotateCW(): Boolean
+    suspend fun hwRotateBeltCW(time: Long)
     {
+        _hwSortingM.forceSafeResume()
+        delay(time)
+        _hwSortingM.forceSafePause()
+    }
+    suspend fun hwRotateMobileSlotsCW()
+    {
+        _mobileSlot.openGate()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        _mobileSlot.openPush()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+
+
+        _mobileSlot.closeGate()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        _mobileSlot.closePush()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+    }
+    suspend fun hwRotateFallSlotCW()
+    {
+        _mobileSlot.openFall()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE
+                + DELAY_FOR_ONE_BALL_PUSHING_MS)
+
+        _mobileSlot.closeFall()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+    }
+
+    suspend fun fullRotateCW()
+    {
+        hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
+
+        if (_storageCells[StorageSlot.MOBILE_IN].IsFilled())
+            hwRotateFallSlotCW()
+
+        if (_storageCells[StorageSlot.MOBILE_OUT].IsFilled())
+            hwRotateMobileSlotsCW()
+
+        hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
+
+
+
         val buffer = _storageCells[StorageSlot.MOBILE_IN]
 
         _storageCells[StorageSlot.MOBILE_IN]  = _storageCells[StorageSlot.MOBILE_OUT]
         _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
         _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
         _storageCells[StorageSlot.BOTTOM] = buffer
-
-        //!  TODO(Rotate the hardware storage);
-        return true //! TODO(Replace with hardware rotation succession)
     }
-    fun partial1RotateCW(): Boolean
+    suspend fun partial1RotateCW(): Boolean
     {
         val rotationCondition = _storageCells[StorageSlot.CENTER].IsEmpty()
 
@@ -206,11 +247,11 @@ class StorageCells
         {
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
 
-            //!  TODO(Rotate the hardware storage);
+            hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
         }
         return rotationCondition
     }
-    fun partial2RotateCW(): Boolean
+    suspend fun partial2RotateCW(): Boolean
     {
         val rotationCondition = _storageCells[StorageSlot.MOBILE_OUT].IsEmpty()
 
@@ -219,12 +260,16 @@ class StorageCells
             _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
 
-            _hwSortingM.safeStart()
-            //!  TODO("Rotate the hardware storage until the sensors say stop")
+            hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         }
         return rotationCondition
     }
-    fun partial3RotateCW(): Boolean
+    suspend fun autoPartial2RotateCW(): Boolean
+    {
+        return if (partial2RotateCW()) true
+        else partial1RotateCW()
+    }
+    suspend fun partial3RotateCW(): Boolean
     {
         val rotationCondition = _storageCells[StorageSlot.MOBILE_IN].IsEmpty()
 
@@ -234,7 +279,9 @@ class StorageCells
             _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
 
-            //!  TODO(Rotate the hardware storage);
+            _hwSortingM.forceSafePause()
+            hwRotateMobileSlotsCW()
+            hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         }
         return rotationCondition
     }
