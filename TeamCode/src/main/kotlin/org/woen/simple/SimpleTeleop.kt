@@ -8,7 +8,9 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.hardware.VoltageSensor
 import com.qualcomm.robotcore.util.ElapsedTime
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import kotlin.math.abs
 import kotlin.math.max
@@ -18,34 +20,40 @@ import kotlin.math.sign
 @Config
 internal object SimpleConfig {
     @JvmField
-    var BRUSH_REVERSE_TIME = 1.0
+    var BRUSH_REVERSE_TIME = 0.6
 
     @JvmField
-    var START_SERVO_OPEN = 1.0
+    var START_SERVO_OPEN = 0.9
 
     @JvmField
-    var START_SERVO_CLOSE = 0.0
+    var START_SERVO_CLOSE = 0.6
 
     @JvmField
-    var SHOOT_TIME = 1.0
+    var PUSH_SERVO_OPEN = 0.2
 
     @JvmField
-    var PUSH_SERVO_OPEN = 1.0
+    var PUSH_SERVO_CLOSE = 0.65
 
     @JvmField
-    var PUSH_SERVO_CLOSE = 0.0
+    var LONG_PULLEY_SPEED = 9.6
 
     @JvmField
-    var PUSH_TIME = 1.0
+    var SHORT_PULLEY_SPEED = 5.0
 
     @JvmField
-    var LONG_PULLEY_SPEED = 1.0
+    var IDLE_PULLEY_SPEED = 1.0
 
     @JvmField
-    var SHORT_PULLEY_SPEED = 0.5
+    var CURRENT_TRIGER = 0.9
 
     @JvmField
-    var IDLE_PULLEY_SPEED = 0.2
+    var CURRENT_TRIGER_TIME = 0.6
+
+    @JvmField
+    var PUSH_TIME = 0.5
+
+    @JvmField
+    var SHOOT_TIME = 3.0
 }
 
 @TeleOp
@@ -58,6 +66,9 @@ class SimpleTeleop : LinearOpMode() {
     lateinit var startServo: Servo
     lateinit var pushServo: Servo
     lateinit var pulleyMotor: DcMotorEx
+    lateinit var battery: VoltageSensor
+
+    var targetPulleyVoltage = SimpleConfig.IDLE_PULLEY_SPEED
 
     override fun runOpMode() {
         leftForwardDrive = hardwareMap.get("leftForwardDrive") as DcMotorEx
@@ -83,15 +94,18 @@ class SimpleTeleop : LinearOpMode() {
         beltLeftMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         beltRightMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-        beltLeftMotor.power = 1.0
-        beltRightMotor.power = -1.0
-
-        startServo = hardwareMap.get("") as Servo
-        pushServo = hardwareMap.get("") as Servo
+        startServo = hardwareMap.get("starterServo") as Servo
+        pushServo = hardwareMap.get("pushServo") as Servo
 
         pulleyMotor = hardwareMap.get("pulleyMotor") as DcMotorEx
 
         pulleyMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+
+        pulleyMotor.direction = DcMotorSimple.Direction.REVERSE
+
+        battery = hardwareMap.get(VoltageSensor::class.java, "Control Hub")
+
+        val angleServo = hardwareMap.get("angleServo") as Servo
 
         while (!isStarted()){
             if(gamepad1.left_bumper || gamepad1.square || gamepad1.right_bumper || gamepad1.circle ||
@@ -102,10 +116,19 @@ class SimpleTeleop : LinearOpMode() {
 
         resetRuntime()
 
+        angleServo.position = 0.75
+
+        pulleyMotor.power = SimpleConfig.IDLE_PULLEY_SPEED
+
+        beltLeftMotor.power = 1.0
+        beltRightMotor.power = -1.0
+
         while (opModeIsActive()) {
             updateDriveTrain()
             updateBrush()
             updateCannon()
+
+            telemetry.update()
         }
     }
 
@@ -148,25 +171,22 @@ class SimpleTeleop : LinearOpMode() {
         rightForwardDrive.power = rightForwardPower
     }
 
-    var oldBrushButton = false
     var reverseTimer = ElapsedTime()
     var brushState = true
+    var currentTimer = ElapsedTime()
 
     fun updateBrush() {
-        val brushButton = gamepad1.circle
+        if(brushMotor.getCurrent(CurrentUnit.AMPS) < SimpleConfig.CURRENT_TRIGER || !brushState)
+            currentTimer.reset()
 
-        if (brushButton != oldBrushButton && brushButton) {
-            brushState = !brushState
-
-            if (!brushState)
-                reverseTimer.reset()
+        if(currentTimer.seconds() > SimpleConfig.CURRENT_TRIGER_TIME) {
+            brushState = false
+            currentTimer.reset()
+            reverseTimer.reset()
         }
-
-        oldBrushButton = brushButton
 
         if (!brushState && reverseTimer.seconds() > SimpleConfig.BRUSH_REVERSE_TIME)
             brushState = true
-
 
         brushMotor.power = if (brushState) 1.0 else -1.0
     }
@@ -177,19 +197,24 @@ class SimpleTeleop : LinearOpMode() {
     val shootTimer = ElapsedTime()
     var pushState = false
     var startState = false
+    var isShooting = false
 
     fun updateCannon(){
         val shootLongButton = gamepad1.left_bumper
         val shootShortButton = gamepad1.square
         val shootButton = gamepad1.right_bumper
 
-        if(shootLongButton != oldShootButton && shootLongButton)
-            pulleyMotor.power = SimpleConfig.LONG_PULLEY_SPEED
+        if(shootLongButton != oldShootButton && shootLongButton) {
+            targetPulleyVoltage = SimpleConfig.LONG_PULLEY_SPEED
+            isShooting = true
+        }
 
-        if(shootShortButton != oldShootShortButton && shootShortButton)
-            pulleyMotor.power = SimpleConfig.SHORT_PULLEY_SPEED
+        if(shootShortButton != oldShootShortButton && shootShortButton) {
+            targetPulleyVoltage = SimpleConfig.SHORT_PULLEY_SPEED
+            isShooting = true
+        }
 
-        if(shootButton != oldShootButton) {
+        if(shootButton != oldShootButton && shootButton && isShooting) {
             startState = true
             shootTimer.reset()
         }
@@ -205,10 +230,12 @@ class SimpleTeleop : LinearOpMode() {
             startState = false
             pushState = false
 
-            pulleyMotor.power = SimpleConfig.IDLE_PULLEY_SPEED
+            targetPulleyVoltage = SimpleConfig.IDLE_PULLEY_SPEED
+            isShooting = false
         }
 
         pushServo.position = if(pushState) SimpleConfig.PUSH_SERVO_OPEN else SimpleConfig.PUSH_SERVO_CLOSE
         startServo.position = if(startState) SimpleConfig.START_SERVO_OPEN else SimpleConfig.START_SERVO_CLOSE
+        pulleyMotor.power = targetPulleyVoltage / battery.voltage
     }
 }
