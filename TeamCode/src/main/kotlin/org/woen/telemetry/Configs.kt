@@ -370,7 +370,9 @@ object Configs {
         @JvmField
         var STREAM_STORAGE_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
         @JvmField
-        var SORTING_STORAGE_BELT_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
+        var SORTING_STORAGE_BELT_MOTOR_1_DIRECTION = DcMotorSimple.Direction.REVERSE
+        @JvmField
+        var SORTING_STORAGE_BELT_MOTOR_2_DIRECTION = DcMotorSimple.Direction.REVERSE
 
 
         @JvmField
@@ -419,7 +421,9 @@ object Configs {
 
 
         @JvmField
-        var SORTING_STORAGE_BELT_MOTOR = "sorting storage belt motor"
+        var SORTING_STORAGE_BELT_MOTOR_1 = "sorting storage belt motor 1"
+        @JvmField
+        var SORTING_STORAGE_BELT_MOTOR_2 = "sorting storage belt motor 2"
 
 
         @JvmField
