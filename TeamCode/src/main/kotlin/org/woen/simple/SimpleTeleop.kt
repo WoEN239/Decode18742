@@ -27,6 +27,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 @Config
 internal object SimpleConfig {
     @JvmField
+    var AUTO_PULLEY_SPEED = 9.1
+
+    @JvmField
     var BRUSH_REVERSE_TIME = 0.6
 
     @JvmField
@@ -42,7 +45,7 @@ internal object SimpleConfig {
     var PUSH_SERVO_CLOSE = 0.65
 
     @JvmField
-    var LONG_PULLEY_SPEED = 9.6
+    var LONG_PULLEY_SPEED = 9.7
 
     @JvmField
     var SHORT_PULLEY_SPEED = 5.0
@@ -63,10 +66,10 @@ internal object SimpleConfig {
     var FIRST_SHOT_DELAY_DURATION = 1.3
 
     @JvmField
-    var PUSH_TIME = 1.0
+    var PUSH_TIME = 1.2
 
     @JvmField
-    var SHOOT_TIME = 2.0
+    var SHOOT_TIME = 2.2
 }
 
 @TeleOp
