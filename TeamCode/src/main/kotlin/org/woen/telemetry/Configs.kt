@@ -381,6 +381,8 @@ object Configs {
         var SORTING_PUSH_SERVO_OPEN_VALUE = 0.0
         @JvmField
         var SORTING_FALL_SERVO_OPEN_VALUE = 0.0
+        @JvmField
+        var SORTING_LAUNCH_SERVO_OPEN_VALUE = 0.2
 
         @JvmField
         var SORTING_GATE_SERVO_CLOSE_VALUE = 0.5
@@ -388,6 +390,15 @@ object Configs {
         var SORTING_PUSH_SERVO_CLOSE_VALUE = 0.5
         @JvmField
         var SORTING_FALL_SERVO_CLOSE_VALUE = 0.5
+        @JvmField
+        var SORTING_LAUNCH_SERVO_CLOSE_VALUE = 0.65
+
+
+        @JvmField
+        var HW_SORTING_SERVO_GATE_OPEN_VALUE = 0.9
+        @JvmField
+        var HW_SORTING_SERVO_GATE_CLOSE_VALUE = 0.6
+
 
 
 
@@ -436,5 +447,7 @@ object Configs {
         var MOBILE_PUSH_SERVO = "mobile push servo"
         @JvmField
         var MOBILE_FALL_SERVO = "mobile fall servo"
+        @JvmField
+        var MOBILE_LAUNCH_SERVO = "mobile launch servo"
     }
 }

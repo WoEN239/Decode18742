@@ -4,15 +4,19 @@ package org.woen.modules.scoringSystem.storage
 import woen239.enumerators.Ball
 import woen239.FixColorSensor.fixSensor
 
-import org.woen.threading.hardware.IHardwareDevice
-
 import kotlin.math.min
 import java.util.concurrent.atomic.AtomicReference
 
-import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
+
 import org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion
+
+import org.woen.threading.hardware.IHardwareDevice
+
+import org.woen.telemetry.Configs.STORAGE.HW_SORTING_SERVO_GATE_OPEN_VALUE
+import org.woen.telemetry.Configs.STORAGE.HW_SORTING_SERVO_GATE_CLOSE_VALUE
 
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_1
@@ -27,10 +31,11 @@ import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MIN_C_BLUE
 
 
+
 class HwSwitchStorage : IHardwareDevice
 {
     private lateinit var _turretGateServo : Servo
-    private var _gatePosition = AtomicReference(0.5)
+    private var _gatePosition = AtomicReference(HW_SORTING_SERVO_GATE_CLOSE_VALUE)
 
 
     private lateinit var _intakeColorSensor1 : AdafruitI2cColorSensor
@@ -62,11 +67,11 @@ class HwSwitchStorage : IHardwareDevice
             ColorSensorsSeeIntakeIncoming(Ball.Name.GREEN)
         }
         else if (r1 > THRESHOLD_PURPLE_MIN_C_RED &&
-            g1 - min(r1, b1) > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
+            min(r1, b1) - g1 > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
             b1 > THRESHOLD_PURPLE_MIN_C_BLUE
             ||
             r2 > THRESHOLD_PURPLE_MIN_C_RED &&
-            g2 - min(r2, b2) > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
+            min(r2, b2) - g2 > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
             b2 > THRESHOLD_PURPLE_MIN_C_BLUE)
         {
             ColorSensorsSeeIntakeIncoming(Ball.Name.PURPLE)
@@ -76,18 +81,13 @@ class HwSwitchStorage : IHardwareDevice
         _turretGateServo.position = _gatePosition.get()
     }
 
-    fun calibrateGateServo()
-    {
-        //!  TODO("CALIBRATE SERVO PLS")
-    }
-
     fun openGate()
     {
-        _gatePosition.set(0.0)
+        _gatePosition.set(HW_SORTING_SERVO_GATE_OPEN_VALUE)
     }
     fun closeGate()
     {
-        _gatePosition.set(0.5)
+        _gatePosition.set(HW_SORTING_SERVO_GATE_CLOSE_VALUE)
     }
 
 
@@ -108,6 +108,6 @@ class HwSwitchStorage : IHardwareDevice
 
         _turretGateServo = hardwareMap.get(TURRET_GATE_SERVO) as Servo
 
-        //!  calibrateGateServo()
+        closeGate()
     }
 }

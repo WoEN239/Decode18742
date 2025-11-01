@@ -20,7 +20,9 @@ import org.woen.telemetry.Configs.STORAGE.SORTING_FALL_SERVO_CLOSE_VALUE
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_FALL_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_PUSH_SERVO
-
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_LAUNCH_SERVO
+import org.woen.telemetry.Configs.STORAGE.SORTING_LAUNCH_SERVO_CLOSE_VALUE
+import org.woen.telemetry.Configs.STORAGE.SORTING_LAUNCH_SERVO_OPEN_VALUE
 
 
 class HwMobileSlot () : IHardwareDevice
@@ -33,6 +35,9 @@ class HwMobileSlot () : IHardwareDevice
 
     private lateinit var _fallServo : Servo
     private var _fallPosition = AtomicReference(SORTING_FALL_SERVO_CLOSE_VALUE)
+
+    private lateinit var _launchServo : Servo
+    private var _launchPosition = AtomicReference(SORTING_LAUNCH_SERVO_CLOSE_VALUE)
 
 
 
@@ -60,6 +65,14 @@ class HwMobileSlot () : IHardwareDevice
     {
         _fallPosition.set(SORTING_FALL_SERVO_CLOSE_VALUE)
     }
+    fun openLaunch()
+    {
+        _launchPosition.set(SORTING_LAUNCH_SERVO_OPEN_VALUE)
+    }
+    fun closeLaunch()
+    {
+        _launchPosition.set(SORTING_LAUNCH_SERVO_CLOSE_VALUE)
+    }
 
 
 
@@ -68,6 +81,7 @@ class HwMobileSlot () : IHardwareDevice
         closeGate()
         closePush()
         closeFall()
+        closeLaunch()
     }
 
 
@@ -77,6 +91,7 @@ class HwMobileSlot () : IHardwareDevice
         _gateServo.position = _gatePosition.get()
         _pushServo.position = _pushPosition.get()
         _fallServo.position = _fallPosition.get()
+        _launchServo.position = _launchPosition.get()
     }
 
 
@@ -88,6 +103,7 @@ class HwMobileSlot () : IHardwareDevice
         _gateServo = hardwareMap.get(MOBILE_GATE_SERVO) as Servo
         _pushServo = hardwareMap.get(MOBILE_PUSH_SERVO) as Servo
         _fallServo = hardwareMap.get(MOBILE_FALL_SERVO) as Servo
+        _launchServo = hardwareMap.get(MOBILE_LAUNCH_SERVO) as Servo
 
         fullCalibrate()
     }

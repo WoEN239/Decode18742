@@ -54,10 +54,10 @@ internal object SimpleConfig {
     var IDLE_PULLEY_SPEED = 1.0
 
     @JvmField
-    var CURRENT_TRIGER = 0.9
+    var CURRENT_TRIGGER = 0.9
 
     @JvmField
-    var CURRENT_TRIGER_TIME = 0.6
+    var CURRENT_TRIGGER_TIME = 0.6
 
     @JvmField
     var DELAY_AFTER_FIRST_SHOT = 0.5
@@ -202,10 +202,10 @@ class SimpleTeleop : LinearOpMode() {
 
 
     fun updateBrush() {
-        if(brushMotor.getCurrent(CurrentUnit.AMPS) < SimpleConfig.CURRENT_TRIGER || !brushState)
+        if(brushMotor.getCurrent(CurrentUnit.AMPS) < SimpleConfig.CURRENT_TRIGGER || !brushState)
             currentTimer.reset()
 
-        if(currentTimer.seconds() > SimpleConfig.CURRENT_TRIGER_TIME) {
+        if(currentTimer.seconds() > SimpleConfig.CURRENT_TRIGGER_TIME) {
             brushState = false
             currentTimer.reset()
             reverseTimer.reset()

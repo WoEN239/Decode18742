@@ -21,9 +21,9 @@ class SmartMutex {
             if (_lockedThread.get() == null)
                 _mutex.withLock {
                     _lockedThread.set(Thread.currentThread())
+                    result = action()
                 }
-
-            result = action()
+            else result = action()
         }
 
         _lockedThread.set(null)
