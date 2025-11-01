@@ -57,16 +57,16 @@ internal object SimpleConfig {
     var CURRENT_TRIGER_TIME = 0.6
 
     @JvmField
-    var DELAY_AFTER_FIRST_SHOT_MS = 500
+    var DELAY_AFTER_FIRST_SHOT = 0.5
 
     @JvmField
-    var FIRST_SHOT_DELAY_DURATION_MS = 1500
+    var FIRST_SHOT_DELAY_DURATION = 1.3
 
     @JvmField
-    var PUSH_TIME = 0.5
+    var PUSH_TIME = 1.0
 
     @JvmField
-    var SHOOT_TIME = 3.0 + FIRST_SHOT_DELAY_DURATION_MS / 1000.0
+    var SHOOT_TIME = 2.0
 }
 
 @TeleOp
@@ -222,6 +222,8 @@ class SimpleTeleop : LinearOpMode() {
     var startState = false
     var isShooting = false
     var isWaitingSecondCharge = false
+    var isCharging = false
+    var isSorter = false
 
     fun updateCannon(){
         val shootLongButton = gamepad1.left_bumper
@@ -238,45 +240,51 @@ class SimpleTeleop : LinearOpMode() {
             isShooting = true
         }
 
-        if(shootButton != oldShootButton && shootButton && isShooting) {
+        if(shootButton != oldShootButton && shootButton && isShooting && !isSorter) {
             startState = true
             shootTimer.reset()
+            shotDelayTimer.reset()
+            isCharging = true
+            isSorter = true
         }
 
         oldShootLongButton = shootLongButton
         oldShootShortButton = shootShortButton
         oldShootButton = shootButton
 
-        if(startState && shootTimer.seconds() > SimpleConfig.SHOOT_TIME)
+        if(startState && shootTimer.seconds() > SimpleConfig.SHOOT_TIME + SimpleConfig.FIRST_SHOT_DELAY_DURATION)
             pushState = true
 
-        if(pushState && shootTimer.seconds() > SimpleConfig.SHOOT_TIME + SimpleConfig.PUSH_TIME){
+        if(pushState && shootTimer.seconds() > SimpleConfig.SHOOT_TIME + SimpleConfig.FIRST_SHOT_DELAY_DURATION + SimpleConfig.PUSH_TIME){
             startState = false
             pushState = false
 
             targetPulleyVoltage = SimpleConfig.IDLE_PULLEY_SPEED
             isShooting = false
+            isSorter = false
         }
 
-        if (startState && !isWaitingSecondCharge &&
-            shotDelayTimer.seconds() > SimpleConfig.DELAY_AFTER_FIRST_SHOT_MS)
+        if (startState && !isWaitingSecondCharge && isCharging &&
+            shotDelayTimer.seconds() > SimpleConfig.DELAY_AFTER_FIRST_SHOT)
         {
             isWaitingSecondCharge = true
+            isCharging = false
             shotDelayTimer.reset()
 
             leftBeltMotor.power = 0.0
             rightBeltMotor.power = 0.0
         }
         if (isWaitingSecondCharge &&
-            shotDelayTimer.seconds() > SimpleConfig.FIRST_SHOT_DELAY_DURATION_MS)
+            shotDelayTimer.seconds() > SimpleConfig.FIRST_SHOT_DELAY_DURATION)
         {
             leftBeltMotor.power = 1.0
             rightBeltMotor.power = -1.0
 
             isWaitingSecondCharge = false
+            isCharging = false
+
+            shotDelayTimer.reset()
         }
-
-
 
         pushServo.position = if(pushState) SimpleConfig.PUSH_SERVO_OPEN else SimpleConfig.PUSH_SERVO_CLOSE
         startServo.position = if(startState) SimpleConfig.START_SERVO_OPEN else SimpleConfig.START_SERVO_CLOSE
