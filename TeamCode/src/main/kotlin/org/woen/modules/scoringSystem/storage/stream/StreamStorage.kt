@@ -18,9 +18,10 @@ import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
+import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
+import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
-import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
-import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EATING_INTAKE_IN_STREAM_STORAGE_MS
 
 
 
@@ -76,7 +77,7 @@ class StreamStorage
         {
             forceStopRequest()
 
-            delay(INTAKE_RACE_CONDITION_DELAY)
+            delay(INTAKE_RACE_CONDITION_DELAY_MS)
             return _intakeRunStatus.IsUsedByAnotherProcess()
         }
         return true
@@ -96,6 +97,10 @@ class StreamStorage
             return terminateIntake()
 
         _ballCount.set(_ballCount.get() + 1)
+
+        _hwStreamStorage.start()
+        delay(DELAY_FOR_EATING_INTAKE_IN_STREAM_STORAGE_MS)
+        _hwStreamStorage.stop()
 
         return IntakeResult.Name.SUCCESS
     }
@@ -128,7 +133,7 @@ class StreamStorage
         if (_ballCount.get() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
 
         handleRequestRaceCondition()
-        if (doTerminateRequest()) return terminateRequest()
+        if (doTerminateRequest()) return terminateRequest().Name()
 
         val requestResult = shootEverything()
 
@@ -145,8 +150,11 @@ class StreamStorage
         var i = 0
         while (i < REAL_SLOT_COUNT)
         {
-            if (doTerminateRequest()) return terminateRequest()
             shootingResult = shootClosest(shootingResult)
+
+            if (doTerminateRequest() || shootingResult.WasTerminated())
+                return shootingResult.Name()
+
             i++
         }
         return shootingResult.Name()
@@ -170,7 +178,7 @@ class StreamStorage
         if (requestResult.DidFail()) return requestResult
         else
         {
-            waitForShotFiredEvent()
+            if (!waitForShotFiredEvent()) return terminateRequest()
             return updateAfterRequest()
         }
     }
@@ -180,7 +188,7 @@ class StreamStorage
         {
             forceStopIntake()
 
-            delay(REQUEST_RACE_CONDITION_DELAY)
+            delay(REQUEST_RACE_CONDITION_DELAY_MS)
             return _requestRunStatus.IsUsedByAnotherProcess()
         }
         return true
@@ -190,22 +198,25 @@ class StreamStorage
         _requestRunStatus.SafeResetTermination()
 
         while (requestRaceConditionIsPresent())
-            delay(REQUEST_RACE_CONDITION_DELAY)
+            delay(REQUEST_RACE_CONDITION_DELAY_MS)
     }
 
     private fun doTerminateRequest(): Boolean
     {
         return _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
     }
-    private fun terminateRequest(): RequestResult.Name
+    private fun terminateRequest(): RequestResult
     {
         _requestRunStatus.SetTermination(
             RunStatus.IS_TERMINATED,
             RunStatus.TerminationStatus.IS_TERMINATED
         )
 
-        val requestFail = RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
-        safeResumeIntakeLogic(requestFail)
+        val requestFail = RequestResult(
+            RequestResult.FAIL_PROCESS_WAS_TERMINATED,
+            RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
+
+        safeResumeIntakeLogic(requestFail.Name())
         return requestFail
     }
     fun switchTerminateRequest()
@@ -246,17 +257,33 @@ class StreamStorage
     }
 
 
+    fun startHwBelt()
+    {
+        _hwStreamStorage.start()
+    }
+    fun stopHwBelt()
+    {
+        _hwStreamStorage.stop()
+    }
+
+
 
     fun shotWasFired()
     {
         _shotWasFired.set(true)
     }
-    private suspend fun waitForShotFiredEvent()
+    private suspend fun waitForShotFiredEvent(): Boolean
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
 
-        while (!_shotWasFired.get()) delay(DELAY_FOR_EVENT_AWAITING_MS)
+        while (!_shotWasFired.get())
+        {
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            if (doTerminateRequest()) return false
+        }
+
         _shotWasFired.set(false)
+        return true
     }
 
 
@@ -329,7 +356,7 @@ class StreamStorage
 
     fun linkHardware()
     {
-        _hwStreamStorage = HwStreamStorage("")
+        _hwStreamStorage = HwStreamStorage()
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwStreamStorage)
     }
 }

@@ -1,77 +1,94 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
-import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.hardware.HardwareMap
 
+import java.util.concurrent.atomic.AtomicReference
+
 import org.woen.threading.hardware.IHardwareDevice
-import org.woen.threading.hardware.ThreadedBattery
 
-import org.woen.telemetry.Configs.STORAGE.GATE_MOTOR_DIRECTION
-import org.woen.telemetry.Configs.STORAGE.PUSH_MOTOR_DIRECTION
+import org.woen.telemetry.Configs.STORAGE.SORTING_GATE_SERVO_OPEN_VALUE
+import org.woen.telemetry.Configs.STORAGE.SORTING_GATE_SERVO_CLOSE_VALUE
+
+import org.woen.telemetry.Configs.STORAGE.SORTING_PUSH_SERVO_OPEN_VALUE
+import org.woen.telemetry.Configs.STORAGE.SORTING_PUSH_SERVO_CLOSE_VALUE
+
+import org.woen.telemetry.Configs.STORAGE.SORTING_FALL_SERVO_OPEN_VALUE
+import org.woen.telemetry.Configs.STORAGE.SORTING_FALL_SERVO_CLOSE_VALUE
+
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_FALL_SERVO
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_GATE_SERVO
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_PUSH_SERVO
 
 
 
-class HwMobileSlot (private val _gateMotorName: String,
-                    private val _pushMotorName: String) : IHardwareDevice
+class HwMobileSlot () : IHardwareDevice
 {
-    private lateinit var _gateMotor : DcMotorEx
-    private lateinit var _pushMotor : DcMotorEx
-    private lateinit var _fallMotor : DcMotorEx
+    private lateinit var _gateServo : Servo
+    private var _gatePosition = AtomicReference(SORTING_GATE_SERVO_CLOSE_VALUE)
+
+    private lateinit var _pushServo : Servo
+    private var _pushPosition = AtomicReference(SORTING_PUSH_SERVO_CLOSE_VALUE)
+
+    private lateinit var _fallServo : Servo
+    private var _fallPosition = AtomicReference(SORTING_FALL_SERVO_CLOSE_VALUE)
 
 
 
     fun openGate()
     {
-        TODO("Rotate gate motor to open state")
+        _gatePosition.set(SORTING_GATE_SERVO_OPEN_VALUE)
     }
     fun closeGate()
     {
-        TODO("Rotate gate motor to close state")
+        _gatePosition.set(SORTING_GATE_SERVO_CLOSE_VALUE)
     }
-    fun startPusher()
+    fun openPush()
     {
-        //!  Figure out - rotate 90 deg or by timer
-        TODO("Push ball into MOBILE_IN slot")
+        _pushPosition.set(SORTING_PUSH_SERVO_OPEN_VALUE)
     }
-    fun stopPusher()
+    fun closePush()
     {
-        _pushMotor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(0.0)
+        _pushPosition.set(SORTING_PUSH_SERVO_CLOSE_VALUE)
     }
-
-    fun calibrateGate()
+    fun openFall()
     {
-
+        _fallPosition.set(SORTING_FALL_SERVO_OPEN_VALUE)
     }
-    fun calibratePush()
+    fun closeFall()
     {
-
+        _fallPosition.set(SORTING_FALL_SERVO_CLOSE_VALUE)
     }
 
 
 
-    override fun update() { }
+    fun fullCalibrate()
+    {
+        closeGate()
+        closePush()
+        closeFall()
+    }
+
+
+
+    override fun update()
+    {
+        _gateServo.position = _gatePosition.get()
+        _pushServo.position = _pushPosition.get()
+        _fallServo.position = _fallPosition.get()
+    }
+
+
 
     override fun dispose() { }
 
-
-
     override fun init(hardwareMap : HardwareMap)
     {
-        _gateMotor = hardwareMap.get(_gateMotorName) as DcMotorEx
-        _pushMotor = hardwareMap.get(_pushMotorName) as DcMotorEx
+        _gateServo = hardwareMap.get(MOBILE_GATE_SERVO) as Servo
+        _pushServo = hardwareMap.get(MOBILE_PUSH_SERVO) as Servo
+        _fallServo = hardwareMap.get(MOBILE_FALL_SERVO) as Servo
 
-        _gateMotor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        //!  _gateMotor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-
-        _pushMotor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        //!  _pushMotor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-
-        _gateMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        _pushMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-        _gateMotor.direction = GATE_MOTOR_DIRECTION
-        _pushMotor.direction = PUSH_MOTOR_DIRECTION
+        fullCalibrate()
     }
 }

@@ -15,8 +15,8 @@ object Configs {
 
     @Config
     internal object BRUSH {
-        var BRUSH_SAFE_TIME=1.0;
-        var BRUSH_ERR_TIME=1.0;
+        var BRUSH_SAFE_TIME = 1.0
+        var BRUSH_ERR_TIME = 1.0
         @JvmField
         var BRUSH_DEF_TIME = 1.0
 
@@ -274,7 +274,7 @@ object Configs {
         var ROTATION_PID_CONFIG = RegulatorParameters()
 
         @JvmField
-        var MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS: Long = 100
+        var MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS: Long = 300
     }
 
 
@@ -284,6 +284,28 @@ object Configs {
     {
         @JvmField
         var OPTIC_PARE_SEES_NOT_BLACK = 3.4
+
+
+
+        @JvmField
+        var THRESHOLD_GREEN_MAX_C_RED   = 75
+
+        @JvmField
+        var THRESHOLD_GREEN_MIN_C_GREEN = 150
+
+        @JvmField
+        var THRESHOLD_GREEN_MAX_C_BLUE  = 75
+
+
+
+        @JvmField
+        var THRESHOLD_PURPLE_MIN_C_RED = 64
+
+        @JvmField
+        var THRESHOLD_PURPLE_MIN_C_BLUE = 64
+
+        @JvmField
+        var THRESHOLD_PURPLE_MIN_C_GREEN_DIFF = 50
     }
 
 
@@ -319,11 +341,11 @@ object Configs {
         )
 
 
-        @JvmField
-        var INTAKE_RACE_CONDITION_DELAY: Long = 10
 
         @JvmField
-        var REQUEST_RACE_CONDITION_DELAY: Long = 5
+        var INTAKE_RACE_CONDITION_DELAY_MS: Long = 10
+        @JvmField
+        var REQUEST_RACE_CONDITION_DELAY_MS: Long = 5
 
         @JvmField
         var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
@@ -332,26 +354,80 @@ object Configs {
         var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 500
 
 
-
-        @JvmField
-        var STREAM_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
-
-        @JvmField
-        var GATE_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
-
-        @JvmField
-        var PUSH_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
-
-        @JvmField
-        var SORTING_BELT_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
-
-
         @JvmField
         var MAX_WAITING_TIME_FOR_INTAKE_MS = 2000
+
+        @JvmField
+        var DELAY_FOR_EATING_INTAKE_IN_STREAM_STORAGE_MS: Long = 1500
+
+
+
+
+
+        @JvmField
+        var STREAM_STORAGE_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
+        @JvmField
+        var SORTING_STORAGE_BELT_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
+
+
+        @JvmField
+        var SORTING_GATE_SERVO_OPEN_VALUE = 0.0
+        @JvmField
+        var SORTING_PUSH_SERVO_OPEN_VALUE = 0.0
+        @JvmField
+        var SORTING_FALL_SERVO_OPEN_VALUE = 0.0
+
+        @JvmField
+        var SORTING_GATE_SERVO_CLOSE_VALUE = 0.5
+        @JvmField
+        var SORTING_PUSH_SERVO_CLOSE_VALUE = 0.5
+        @JvmField
+        var SORTING_FALL_SERVO_CLOSE_VALUE = 0.5
 
 
 
         @JvmField
         var USED_STORAGE_TYPE = StorageType.STREAM_STORAGE
+    }
+
+
+    @Config
+    internal object HARDWARE_DEVICES_NAMES
+    {
+        @JvmField
+        var INTAKE_COLOR_SENSOR_1 = "intake color sensor 1"
+        @JvmField
+        var INTAKE_COLOR_SENSOR_2 = "intake color sensor 2"
+
+
+        @JvmField
+        var BOTTOM_OPTIC_PARE_1 = "bottom optic pare sensor 1"
+        @JvmField
+        var BOTTOM_OPTIC_PARE_2 = "bottom optic pare sensor 2"
+
+        @JvmField
+        var MOBILE_OUT_OPTIC_PARE_1 = "mobile out optic pare sensor 1"
+        @JvmField
+        var MOBILE_OUT_OPTIC_PARE_2 = "mobile out optic pare sensor 2"
+
+
+        @JvmField
+        var TURRET_GATE_SERVO = "turret gate servo"
+
+
+        @JvmField
+        var SORTING_STORAGE_BELT_MOTOR = "sorting storage belt motor"
+
+
+        @JvmField
+        var STREAM_STORAGE_BELT_MOTOR = "stream storage belt motor"
+
+
+        @JvmField
+        var MOBILE_GATE_SERVO = "mobile gate servo"
+        @JvmField
+        var MOBILE_PUSH_SERVO = "mobile push servo"
+        @JvmField
+        var MOBILE_FALL_SERVO = "mobile fall servo"
     }
 }

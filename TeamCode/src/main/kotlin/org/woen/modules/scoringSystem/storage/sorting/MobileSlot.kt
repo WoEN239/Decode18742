@@ -1,176 +1,66 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
-import woen239.enumerators.Ball
-
-import woen239.enumerators.MobileGate
-import woen239.enumerators.StorageSlot
-import woen239.enumerators.MobileRotationResult
+import woen239.enumerators.ServoGate
 
 import org.woen.threading.hardware.HardwareThreads
-
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwMobileSlot
 
 
 
 class MobileSlot
 {
-    private val _ball = Ball()
-    private val _ballSlot = StorageSlot()
-
-    private val _gate = MobileGate()
+    private val _sortingGateState = ServoGate()
+    private val _sortingPushState = ServoGate()
+    private val _sortingFallState = ServoGate()
 
     private lateinit var _hwMobileSlot: HwMobileSlot  //  DO NOT JOIN ASSIGNMENT
 
 
 
-    fun tryRotateSlot(newBallSlot: StorageSlot.Name): MobileRotationResult
+    fun openGate()
     {
-        val rotationResult = StorageSlot.MobileCanBeRotated(
-            _ballSlot, StorageSlot(newBallSlot)
-        )
-
-        return if (rotationResult.DidFail()) rotationResult
-        else moveBall(rotationResult)
+        _hwMobileSlot.openGate()
     }
-    private fun moveBall(result: MobileRotationResult): MobileRotationResult
+    fun closeGate()
     {
-        _ballSlot.Set(result.ToEndStorageSlot())
-
-        when (result.Id())
-        {
-            MobileRotationResult.SUCCESS_IN ->
-            {
-                TODO("Add hardware moving: OUTSIDE -> MOBILE_OUT")
-            }
-
-            MobileRotationResult.SUCCESS_IN_DOUBLE ->
-            {
-                TODO("Add hardware moving: OUTSIDE -> MOBILE_IN")
-            }
-
-            MobileRotationResult.SUCCESS ->
-            {
-                TODO("Add hardware moving: MOBILE_OUT -> MOBILE_IN")
-            }
-
-            MobileRotationResult.SUCCESS_OUT ->
-            {
-                _ball.Empty()
-                TODO("Add hardware moving: MOBILE_IN -> OUTSIDE")
-            }
-
-            MobileRotationResult.SUCCESS_OUT_DOUBLE ->
-            {
-                _ball.Empty()
-                TODO("Add hardware moving: MOBILE_OUT -> OUTSIDE")
-            }
-
-            else -> return MobileRotationResult()
-        }
+        _hwMobileSlot.closeGate()
     }
-
-    fun tryFillSlot(ball: Ball.Name): Boolean
+    fun openPush()
     {
-        val fillResult = tryRotateSlot(StorageSlot.Name.MOBILE_OUT)
-        val fillSucceeded = fillResult.DidSucceed()
-
-        if (fillSucceeded)
-        {
-            _ball.Set(ball)
-            _ballSlot.Set(fillResult.ToEndStorageSlot())
-        }
-        return fillSucceeded
+        _hwMobileSlot.openPush()
     }
-    fun emptySlot(): Boolean
+    fun closePush()
     {
-        val emptyingSucceed = tryRotateSlot(StorageSlot.Name.OUTSIDE_MOBILE).DidSucceed()
-
-        if (emptyingSucceed)
-        {
-            _ball.Empty()
-            _ballSlot.SetOutsideMobile()
-        }
-        return emptyingSucceed
+        _hwMobileSlot.closePush()
     }
-
-
-
-    fun ballSlotState(): StorageSlot
+    fun openFall()
     {
-        return _ballSlot
+        _hwMobileSlot.openFall()
     }
-    fun ballSlotStateId(): Int
+    fun closeFall()
     {
-        return _ballSlot.Id()
+        _hwMobileSlot.closeFall()
     }
-    fun ballSlotStateName(): StorageSlot.Name
-    {
-        return _ballSlot.Name()
-    }
-
-    fun isBallInSlotOut(): Boolean
-    {
-        return _ballSlot.Is_MOBILE_OUT()
-    }
-    fun isBallInSlotIn(): Boolean
-    {
-        return _ballSlot.Is_MOBILE_IN()
-    }
-    fun isBallOutside(): Boolean
-    {
-        return _ballSlot.Is_OUTSIDE_MOBILE()
-    }
-
-
-
-    fun ball(): Ball
-    {
-        return _ball
-    }
-    fun ballId(): Int
-    {
-        return _ball.Id()
-    }
-    fun ballName(): Ball.Name
-    {
-        return _ball.Name()
-    }
-
-
-    fun isEmpty(): Boolean
-    {
-        return _ball.IsEmpty()
-    }
-    fun isFilled(): Boolean
-    {
-        return _ball.IsFilled()
-    }
-
-
-    fun ballCount(): Int
-    {
-        return if (_ball.Id() == Ball.NONE) 0 else 1
-    }
-
-
 
 
 
     fun linkHardware()
     {
-        _hwMobileSlot = HwMobileSlot("", "")
+        _hwMobileSlot = HwMobileSlot()
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwMobileSlot)
     }
     fun calibrateHardware()
     {
-        _hwMobileSlot.calibrateGate()
-        _hwMobileSlot.calibratePush()
+        _sortingGateState.Set(ServoGate.CLOSED, ServoGate.Name.CLOSED)
+        _sortingPushState.Set(ServoGate.CLOSED, ServoGate.Name.CLOSED)
+        _sortingFallState.Set(ServoGate.CLOSED, ServoGate.Name.CLOSED)
+
+        _hwMobileSlot.fullCalibrate()
     }
 
     fun initHardware()
     {
-
         linkHardware()
         calibrateHardware()
     }
@@ -179,7 +69,8 @@ class MobileSlot
 
     init
     {
-        _ballSlot.SetOutsideMobile()
-        _gate.Set(MobileGate.CLOSED, MobileGate.Name.CLOSED)
+        _sortingGateState.Set(ServoGate.UNDEFINED, ServoGate.Name.UNDEFINED)
+        _sortingPushState.Set(ServoGate.UNDEFINED, ServoGate.Name.UNDEFINED)
+        _sortingFallState.Set(ServoGate.UNDEFINED, ServoGate.Name.UNDEFINED)
     }
 }

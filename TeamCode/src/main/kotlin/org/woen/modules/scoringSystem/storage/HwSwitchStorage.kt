@@ -6,12 +6,25 @@ import woen239.FixColorSensor.fixSensor
 
 import org.woen.threading.hardware.IHardwareDevice
 
+import kotlin.math.min
+import java.util.concurrent.atomic.AtomicReference
+
 import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion
 
-import org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap
-import java.util.concurrent.atomic.AtomicReference
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_1
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_2
+
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_MAX_C_RED
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_MIN_C_GREEN
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_MAX_C_BLUE
+
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MIN_C_RED
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MIN_C_GREEN_DIFF
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MIN_C_BLUE
 
 
 class HwSwitchStorage : IHardwareDevice
@@ -20,11 +33,8 @@ class HwSwitchStorage : IHardwareDevice
     private var _gatePosition = AtomicReference(0.5)
 
 
-    private val _intakeColorSensor1 : AdafruitI2cColorSensor
-        = fixSensor(hardwareMap.get("intake color 1") as AdafruitI2cColorSensor)
-
-    private val _intakeColorSensor2 : AdafruitI2cColorSensor
-        = fixSensor(hardwareMap.get("intake color 2") as AdafruitI2cColorSensor)
+    private lateinit var _intakeColorSensor1 : AdafruitI2cColorSensor
+    private lateinit var _intakeColorSensor2 : AdafruitI2cColorSensor
 
 
 
@@ -32,19 +42,32 @@ class HwSwitchStorage : IHardwareDevice
 
     override fun update()
     {
-        if (_intakeColorSensor1.green() > 200
+        val r1 = _intakeColorSensor1.red()
+        val g1 = _intakeColorSensor1.green()
+        val b1 = _intakeColorSensor1.blue()
+
+        val r2 = _intakeColorSensor2.red()
+        val g2 = _intakeColorSensor2.green()
+        val b2 = _intakeColorSensor2.blue()
+
+
+        if (r1 < THRESHOLD_GREEN_MAX_C_RED &&
+            g1 > THRESHOLD_GREEN_MIN_C_GREEN &&
+            b1 < THRESHOLD_GREEN_MAX_C_BLUE
             ||
-            _intakeColorSensor2.green() > 200)
+            r2 < THRESHOLD_GREEN_MAX_C_RED &&
+            g2 > THRESHOLD_GREEN_MIN_C_GREEN &&
+            b2 < THRESHOLD_GREEN_MAX_C_BLUE)
         {
             ColorSensorsSeeIntakeIncoming(Ball.Name.GREEN)
         }
-
-
-        if (_intakeColorSensor1.red()  > 200 &&
-            _intakeColorSensor1.blue() > 200
+        else if (r1 > THRESHOLD_PURPLE_MIN_C_RED &&
+            g1 - min(r1, b1) > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
+            b1 > THRESHOLD_PURPLE_MIN_C_BLUE
             ||
-            _intakeColorSensor2.red()  > 200 &&
-            _intakeColorSensor2.blue() > 200)
+            r2 > THRESHOLD_PURPLE_MIN_C_RED &&
+            g2 - min(r2, b2) > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
+            b2 > THRESHOLD_PURPLE_MIN_C_BLUE)
         {
             ColorSensorsSeeIntakeIncoming(Ball.Name.PURPLE)
         }
@@ -55,7 +78,7 @@ class HwSwitchStorage : IHardwareDevice
 
     fun calibrateGateServo()
     {
-
+        //!  TODO("CALIBRATE SERVO PLS")
     }
 
     fun openGate()
@@ -73,8 +96,18 @@ class HwSwitchStorage : IHardwareDevice
 
     override fun init(hardwareMap: HardwareMap)
     {
-        _turretGateServo = hardwareMap.get("") as Servo
+        _intakeColorSensor1 = fixSensor(
+            BlocksOpModeCompanion.hardwareMap.get(INTAKE_COLOR_SENSOR_1)
+                    as AdafruitI2cColorSensor
+        )
+        _intakeColorSensor2 = fixSensor(
+            BlocksOpModeCompanion.hardwareMap.get(INTAKE_COLOR_SENSOR_2)
+                    as AdafruitI2cColorSensor
+        )
 
-        calibrateGateServo()
+
+        _turretGateServo = hardwareMap.get(TURRET_GATE_SERVO) as Servo
+
+        //!  calibrateGateServo()
     }
 }

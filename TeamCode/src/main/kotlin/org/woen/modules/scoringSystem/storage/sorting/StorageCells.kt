@@ -1,8 +1,6 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
-import kotlinx.coroutines.delay
-import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
 
@@ -13,32 +11,38 @@ import woen239.enumerators.StorageSlot
 
 import org.woen.telemetry.Configs.STORAGE.SLOTS_COUNT
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
+import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
+
+import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
  *
- *   //  The MobileSlot is a combined unit
- *   //  It behaves and is treated as one slot,
- *   //  => there CAN NOT be balls in both position
+ *   //  The MobileSlot is a legacy name for 2 slots unit
+ *   //  It behaves and is treated as two slots
+ *       there CAN be balls in both position
+ *   //  But the total ball count in all robot slots
+ *       must be less or equal to MAX_BALL_COUNT (3)
  *
  *   //  Every slot can only move the balls in one direction (CW)
  *
- *                     __--__
- *                    /      \
- *                    |      |    Storage RotateCW
- *                           V
- *    OUTPUT
- *   |  ^^  |
- *   |  ||  \_________________________________________
- *   |  ||                                            \
- *   |  [MOBILE_OUT slot]   ---->   [MOBILE_IN slot]  |
- *   |      ^^^                           |||         |
- *   |      |||                           |||         |
- *   |      |||                           vvv         \---------
- *   |  [CENTER slot]       <---     [BOTTOM slot]  <---- INTAKE
- *   \________________________________________________/---------
+ *                                          __--__
+ *                                         /      \
+ *                                         |      |    Storage RotateCW
+ *                                                V
+ *                    OUTPUT
+ *   SWITCH  |          ^^          |   SORTING
+ *    SERVO  |          ||          |   SERVO
+ *     GATE -|-----==SERVO GATE==   \___GATE______________________
+ *           |          ||             /                          \
+ *   PUSHER ===/   [MOBILE_OUT slot]  / --->   [MOBILE_IN slot]   |
+ *    SERVO  |          ^^^                           |||         |
+ *           |          |||                      ==FALL SERVO==   |
+ *           |          |||                           vvv         \---------
+ *           |      [CENTER slot]       <---     [BOTTOM slot]  <---- INTAKE
+ *           \____________________________________________________/---------
  *
  *
  */
@@ -60,9 +64,10 @@ class StorageCells
             IntakeResult.FAIL_STORAGE_IS_FULL,
             IntakeResult.Name.FAIL_STORAGE_IS_FULL
         )
+        if (anyBallCount() >= MAX_BALL_COUNT) return result
 
         var curSlotId = 0
-        while (curSlotId < REAL_SLOT_COUNT)
+        while (curSlotId < SLOTS_COUNT)
         {
             if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].IsEmpty())
             {
@@ -71,11 +76,6 @@ class StorageCells
             }
             curSlotId++
         }
-        if (result.SolutionIsMobileOut() && _mobileSlot.isFilled())
-            return IntakeResult(
-                IntakeResult.FAIL_STORAGE_IS_FULL,
-                IntakeResult.Name.FAIL_STORAGE_IS_FULL
-            )
 
         return result
     }
@@ -92,8 +92,7 @@ class StorageCells
 
 
         if (requestBuffer.IsPreferred())
-        {   //  Optimised comparing by id without extra unnecessary conversions
-
+        {
             val requestResult = requestSearch(requestBuffer.ToBall())
 
             if (requestResult.DidFail())
@@ -106,6 +105,13 @@ class StorageCells
     }
     private fun requestSearch(requested: Ball.Name): RequestResult
     {
+        if (anyBallCount() <= 0)
+            return RequestResult(
+                RequestResult.FAIL_IS_EMPTY,
+                RequestResult.Name.FAIL_IS_EMPTY
+            )
+
+
         val result = RequestResult(
             RequestResult.FAIL_COLOR_NOT_PRESENT,
             RequestResult.Name.FAIL_COLOR_NOT_PRESENT
@@ -130,6 +136,9 @@ class StorageCells
             RequestResult.FAIL_IS_EMPTY,
             RequestResult.Name.FAIL_IS_EMPTY
         )
+
+        if (anyBallCount() <= 0) return result
+
 
         var curSlotId = 0
         while (curSlotId < SLOTS_COUNT)
@@ -156,6 +165,7 @@ class StorageCells
             _storageCells[StorageSlot.BOTTOM].Set(inputBall)
             if (partial2RotateCW()) partial2RotateCW()
         }
+        //!  else fixStorageDesync()
 
         return intakeCondition
     }
@@ -164,6 +174,7 @@ class StorageCells
         val requestCondition = _storageCells[StorageSlot.MOBILE_OUT].IsFilled()
 
         if (requestCondition)  _storageCells[StorageSlot.MOBILE_OUT].Empty()
+        //!  else fixStorageDesync()
         return requestCondition
     }
 
@@ -227,11 +238,6 @@ class StorageCells
         }
         return rotationCondition
     }
-    fun partialAutoRotateCW(): Boolean
-    {
-        return if (partial2RotateCW()) true
-        else partial3RotateCW()
-    }
 
 
 
@@ -247,101 +253,64 @@ class StorageCells
     {
         _hwSortingM.forceStop()
     }
+    suspend fun forceSafePauseHwBelt()
+    {
+        _hwSortingM.forceSafePause()
+    }
+    suspend fun forceSafeResumeHwBelt()
+    {
+        _hwSortingM.forceSafeResume()
+    }
 
 
 
-
-    fun storageRaw(): Array<Ball>
+    fun storageData(): Array<Ball>
     {
         return _storageCells
-    }
-    fun storageFiltered(): Array<Ball>
-    {
-        return arrayOf(
-            _storageCells[StorageSlot.BOTTOM],
-            _storageCells[StorageSlot.CENTER],
-            _mobileSlot.ball()
-        )
     }
 
     fun anyBallCount(): Int
     {
-        var count = 0
+        var count = 0; var curSlotId = StorageSlot.BOTTOM
 
-        if (_mobileSlot.isFilled()) count++
-        for (slotId in StorageSlot.BOTTOM..<StorageSlot.MOBILE_OUT)
-            if (_storageCells[slotId].HasBall()) count++
+        while (curSlotId < StorageSlot.MOBILE_IN)
+        {
+            if (_storageCells[curSlotId].HasBall()) count++
+            curSlotId++
+        }
 
         return count
     }
     fun selectedBallCount(ball: Ball.Name): Int
     {
-        var count = 0
+        var count = 0; var curSlotId = StorageSlot.BOTTOM
 
-        if (_mobileSlot.ballName() == ball) count++
-        for (slotId in StorageSlot.BOTTOM..<StorageSlot.MOBILE_OUT)
-            if (_storageCells[slotId].HasBall(ball)) count++
+        while (curSlotId < StorageSlot.MOBILE_IN)
+        {
+            if (_storageCells[curSlotId].HasBall(ball)) count++
+            curSlotId++
+        }
 
         return count
     }
     fun ballColorCountPG(): IntArray
     {
-        val countPG = intArrayOf(0, 0, 0)
+        val countPG = intArrayOf(0, 0, 0); var curSlotId = StorageSlot.BOTTOM
 
-        countPG[_mobileSlot.ballId()]++
-        for (i in StorageSlot.BOTTOM..<StorageSlot.MOBILE_OUT)
-            countPG[_storageCells[i].Id()]++
+        while (curSlotId < StorageSlot.MOBILE_IN)
+        {
+            countPG[_storageCells[curSlotId].Id()]++
+            curSlotId++
+        }
 
         return intArrayOf(countPG[Ball.PURPLE], countPG[Ball.GREEN])
     }
 
 
-    fun slotBall(): Ball
-    {
-        return _mobileSlot.ball()
-    }
-    fun slotBallName(): Ball.Name
-    {
-        return _mobileSlot.ballName()
-    }
-    fun slotBallId(): Int
-    {
-        return _mobileSlot.ballId()
-    }
-
-
-    fun mobileSlot(): MobileSlot
-    {
-        return _mobileSlot
-    }
-    fun ballSlotState(): StorageSlot
-    {
-        return _mobileSlot.ballSlotState()
-    }
-    fun ballSlotName(): StorageSlot.Name
-    {
-        return _mobileSlot.ballSlotStateName()
-    }
-    fun ballSlotStateId(): Int
-    {
-        return _mobileSlot.ballSlotStateId()
-    }
-    fun isBallInSlotIn(): Boolean
-    {
-        return _mobileSlot.isBallInSlotIn()
-    }
-    fun isBallInSlotOut(): Boolean
-    {
-        return _mobileSlot.isBallInSlotOut()
-    }
-
-
-
-
 
     fun linkBeltHardware()
     {
-        _hwSortingM = HwSortingManager("")
+        _hwSortingM = HwSortingManager()
         _hwSortingM.addDevice()
     }
     fun linkMobileSlotHardware()

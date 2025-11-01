@@ -64,7 +64,9 @@ class SwitchStorage  //  Schrodinger storage
         }
         else
         {
+            _streamStorage.startHwBelt()
             delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
+            _streamStorage.stopHwBelt()
             closeGate()
         }
     }
@@ -153,14 +155,9 @@ class SwitchStorage  //  Schrodinger storage
     }
 
 
-    fun storageRaw(): Array<Ball>?
+    fun storageData(): Array<Ball>?
     {
-        return if (_isSorting) _sortingStorage.storageRaw()
-        else null
-    }
-    fun storageFiltered():  Array<Ball>?
-    {
-        return if (_isSorting) _sortingStorage.storageFiltered()
+        return if (_isSorting) _sortingStorage.storageData()
         else null
     }
 

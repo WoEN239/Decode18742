@@ -99,6 +99,10 @@ public class RequestResult
 
 
 
+    public boolean WasTerminated()
+    {
+        return _memId == FAIL_PROCESS_WAS_TERMINATED;
+    }
     public boolean DidFail()
     {
         return _memId > SUCCESS_IS_NOW_EMPTY;

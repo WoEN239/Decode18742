@@ -27,12 +27,19 @@ import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
 import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
 
 import org.woen.modules.scoringSystem.storage.BottomOpticPareSeesSomethingEvent
-import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent             // Intake event
-import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent   // Intake event
-import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent             // Request event
-import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent    // Request event
-import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent // Request event
 import org.woen.modules.scoringSystem.storage.ColorSensorsSeeIntakeIncoming
+
+//import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
+import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
+
+import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
+import org.woen.modules.scoringSystem.storage.StorageGiveSimpleDrumRequest
+import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
+
+import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
+import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
+
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -51,6 +58,8 @@ class ScoringModulesConnector: IModule
 
     private var _ballWasEaten = AtomicReference(false)
     private var _isAwaitingEating = AtomicReference(false)
+
+    private var _shotWasFired = AtomicReference(false)
 
 
 
@@ -77,6 +86,13 @@ class ScoringModulesConnector: IModule
     fun ballWasEaten()
     {
         if (_isAwaitingEating.get()) _ballWasEaten.set(true)
+    }
+    suspend fun shotWasFired(): Boolean
+    {
+        if (_shotWasFired.get()) return true
+
+        delay(MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS)
+        return true  //!  Temporary dumb always-succeed approach
     }
 
 
@@ -164,21 +180,24 @@ class ScoringModulesConnector: IModule
 
         setNotAwaitingEating()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            if (maxWaitForIntakeMS > MAX_WAITING_TIME_FOR_INTAKE_MS)
-                         TerminateIntakeEvent()
-                    else BallWasEatenByTheStorageEvent()
-        )
+        //  Bring back when fully finished
+//        ThreadedEventBus.LAZY_INSTANCE.invoke(
+//            if (maxWaitForIntakeMS > MAX_WAITING_TIME_FOR_INTAKE_MS)
+//                         TerminateIntakeEvent()
+//                    else BallWasEatenByTheStorageEvent()
+//        )
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke((BallWasEatenByTheStorageEvent()))
     }
 
 
 
 
 
-    suspend fun startDrumRequest(
+    suspend fun startDrumRequest(shotType: ShotType,
         requestPattern: Array<BallRequest.Name>,
-        failsafePattern: Array<BallRequest.Name>,
-        shotType: ShotType) : RequestResult.Name
+        failsafePattern: Array<BallRequest.Name>
+        ) : RequestResult.Name
     {
         /*----------  How every request in connector module works:
          *  0) = Wait while intake is finished (if is busy)
@@ -253,11 +272,13 @@ class ScoringModulesConnector: IModule
                 RequestTurretAtTargetEvent()).atTarget
         }
 
-        while (TODO("Wait for the ball being pushed by motor"))
-        {
-            _storage.pushNext()
-            delay(MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS)
-        }
+        awaitSuccessfulRequestShot()
+    }
+    suspend fun awaitSuccessfulRequestShot()
+    {
+        while (!shotWasFired()) _storage.pushNext()
+
+        _shotWasFired.set(false)
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
     }
@@ -295,6 +316,7 @@ class ScoringModulesConnector: IModule
                 startIntakeProcess(it.inputBall)
             }
         )
+
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
             StorageIsReadyToEatIntakeEvent::class, {
 
@@ -307,6 +329,27 @@ class ScoringModulesConnector: IModule
         } )
 
 
+
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+            StorageGiveSingleRequest::class, {
+
+                startSingleRequest(it.ballRequest)
+            }
+        )
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+            StorageGiveSimpleDrumRequest::class, {
+
+                startSimpleDrumRequest()
+            }
+        )
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+            StorageGiveDrumRequest::class, {
+
+                startDrumRequest(it.shotType,
+                    it.requestPattern,
+                    it.failsafePattern)
+            }
+        )
 
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
             StorageRequestIsReadyEvent::class, {

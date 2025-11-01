@@ -10,31 +10,32 @@ import org.woen.threading.hardware.ThreadedBattery
 
 import java.util.concurrent.atomic.AtomicReference
 
-import org.woen.telemetry.Configs.STORAGE.STREAM_MOTOR_DIRECTION
+import org.woen.telemetry.Configs.STORAGE.STREAM_STORAGE_MOTOR_DIRECTION
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.STREAM_STORAGE_BELT_MOTOR
 
 
 
-class HwStreamStorage(private val _deviceName: String) : IHardwareDevice
+class HwStreamStorage() : IHardwareDevice
 {
-    private lateinit var _motor : DcMotorEx
-    private var _motorPower = AtomicReference(0.0)
+    private lateinit var _beltMotor : DcMotorEx
+    private var _beltMotorPower = AtomicReference(0.0)
 
 
 
     fun start()
     {
-        _motorPower.set(12.0)
+        _beltMotorPower.set(12.0)
     }
     fun stop()
     {
-        _motorPower.set(0.0)
+        _beltMotorPower.set(0.0)
     }
 
 
 
     override fun update()
     {
-        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motorPower.get())
+        _beltMotor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_beltMotorPower.get())
     }
 
 
@@ -43,13 +44,13 @@ class HwStreamStorage(private val _deviceName: String) : IHardwareDevice
 
     override fun init(hardwareMap : HardwareMap)
     {
-        _motor = hardwareMap.get(_deviceName) as DcMotorEx
+        _beltMotor = hardwareMap.get(STREAM_STORAGE_BELT_MOTOR) as DcMotorEx
 
-        _motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        _beltMotor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        _beltMotor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
-        _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-        _motor.direction = STREAM_MOTOR_DIRECTION
+        _beltMotor.direction = STREAM_STORAGE_MOTOR_DIRECTION
     }
 }

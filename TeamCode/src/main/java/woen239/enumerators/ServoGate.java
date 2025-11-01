@@ -1,7 +1,7 @@
 package woen239.enumerators;
 
 
-public class MobileGate
+public class ServoGate
 {
     static public final int UNDEFINED = 0, OPEN = 1, CLOSED = 2;
 
@@ -18,23 +18,23 @@ public class MobileGate
 
 
 
-    public MobileGate(int value)
+    public ServoGate(int value)
     {
         Set(value, ToName(value));
     }
-    public MobileGate(Name name)
+    public ServoGate(Name name)
     {
         Set(ToInt(name), name);
     }
-    public MobileGate(int value, Name name)
+    public ServoGate(int value, Name name)
     {
         Set(value, name);
     }
-    public MobileGate(Name name, int value)
+    public ServoGate(Name name, int value)
     {
         Set(value, name);
     }
-    public MobileGate()
+    public ServoGate()
     {
         Set(UNDEFINED, Name.UNDEFINED);
     }

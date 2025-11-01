@@ -9,7 +9,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 
 
 
-class HwSortingManager(private val _deviceName: String)
+class HwSortingManager()
 {
     private lateinit var _hwSorting: HwSorting
     private val _runStatus = RunStatus()
@@ -107,7 +107,7 @@ class HwSortingManager(private val _deviceName: String)
     }
     fun linkHardware()
     {
-        _hwSorting = HwSorting(_deviceName)
+        _hwSorting = HwSorting()
     }
     init
     {

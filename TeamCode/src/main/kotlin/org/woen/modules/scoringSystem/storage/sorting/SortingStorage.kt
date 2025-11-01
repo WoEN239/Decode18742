@@ -21,11 +21,12 @@ import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
 
+import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
-import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY
-import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY
+import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
+import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
 
 
 
@@ -45,7 +46,7 @@ class SortingStorage
 
     suspend fun handleIntake(inputBall: Ball.Name): IntakeResult.Name
     {
-        if (_storageCells.anyBallCount() >= 3) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
+        if (_storageCells.anyBallCount() >= MAX_BALL_COUNT) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
 
         if (noIntakeRaceConditionProblems())
         {
@@ -70,7 +71,7 @@ class SortingStorage
         {
             forceStopRequest()
 
-            delay(INTAKE_RACE_CONDITION_DELAY)
+            delay(INTAKE_RACE_CONDITION_DELAY_MS)
             return _intakeRunStatus.IsUsedByAnotherProcess()
         }
         return true
@@ -86,7 +87,21 @@ class SortingStorage
         if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
 
 
-        if (intakeResult.SolutionIsMobileIn()) _storageCells.fullRotateCW()
+        _storageCells.forceSafeResumeHwBelt()
+
+        when (intakeResult.Name())
+        {
+            IntakeResult.Name.SUCCESS_CENTER -> delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
+            IntakeResult.Name.SUCCESS_MOBILE_OUT -> delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+            IntakeResult.Name.SUCCESS_MOBILE_IN  ->
+            {
+                _storageCells.forceSafePauseHwBelt()
+                _storageCells.fullRotateCW()
+            }
+            else -> { }
+        }
+
+        _storageCells.forceSafePauseHwBelt()
 
 
         if (!fullWaitForIntakeIsFinishedEvent())
@@ -135,19 +150,48 @@ class SortingStorage
         fullResumeIntakeLogic(requestResult.Name())
         return requestResult.Name()
     }
-    private fun updateAfterRequest(requestResult: RequestResult): Boolean
+    private suspend fun updateAfterRequest(requestResult: RequestResult): RequestResult
     {
+        if (requestResult.DidFail()) return requestResult   //  Intake failed
 
 
-        TODO("Rotate motor to target slot")  //!
+        _storageCells.forceSafeResumeHwBelt()
+
+        when (requestResult.Name())
+        {
+            RequestResult.Name.SUCCESS_CENTER -> delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
+            RequestResult.Name.SUCCESS_BOTTOM -> delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+            RequestResult.Name.SUCCESS_MOBILE_IN ->
+            {
+                _storageCells.forceSafePauseHwBelt()
+                _storageCells.fullRotateCW()
+                _storageCells.forceSafeResumeHwBelt()
+                delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+            }
+            else -> { }
+        }
+
+        _storageCells.forceSafePauseHwBelt()
 
 
-        return true
+        if (!fullWaitForIntakeIsFinishedEvent())
+            return RequestResult(terminateRequest())
+
+
+        return if (_storageCells.updateAfterRequest())
+            RequestResult(
+                RequestResult.SUCCESS,
+                RequestResult.Name.SUCCESS)
+        else RequestResult(
+            RequestResult.FAIL_HARDWARE_PROBLEM,
+            RequestResult.Name.FAIL_HARDWARE_PROBLEM)
     }
     private suspend fun shootRequestFinalPhase(requestResult: RequestResult) : RequestResult
     {
         if (requestResult.DidFail()) return requestResult
-        else if (updateAfterRequest(requestResult))
+
+        val updateResult = updateAfterRequest(requestResult)
+        if (updateResult.DidSucceed())
         {
             fullWaitForShotFired()
 
@@ -166,18 +210,14 @@ class SortingStorage
 
             else
             {
-                _storageCells.fixStorageDesync()
+                //!  _storageCells.fixStorageDesync()
                 return RequestResult(
                         RequestResult.FAIL_SOFTWARE_STORAGE_DESYNC,
                         RequestResult.Name.FAIL_SOFTWARE_STORAGE_DESYNC
                     )
             }
         }
-
-        return RequestResult(
-            RequestResult.FAIL_HARDWARE_PROBLEM,
-            RequestResult.Name.FAIL_HARDWARE_PROBLEM
-        )
+        else return updateResult
     }
     private suspend fun requestRaceConditionIsPresent(): Boolean
     {
@@ -185,7 +225,7 @@ class SortingStorage
         {
             forceStopIntake()
 
-            delay(REQUEST_RACE_CONDITION_DELAY)
+            delay(REQUEST_RACE_CONDITION_DELAY_MS)
             return _requestRunStatus.IsUsedByAnotherProcess()
         }
         return true
@@ -467,12 +507,18 @@ class SortingStorage
     {
         _shotWasFired.set(true)
     }
-    private suspend fun fullWaitForShotFired()
+    private suspend fun fullWaitForShotFired(): Boolean
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
 
-        while (!_shotWasFired.get()) delay(DELAY_FOR_EVENT_AWAITING_MS)
+        while (!_shotWasFired.get())
+        {
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            if (doTerminateRequest()) return false
+        }
+
         _shotWasFired.set(false)
+        return true
     }
 
 
@@ -497,13 +543,9 @@ class SortingStorage
 
 
 
-    fun storageRaw(): Array<Ball>
+    fun storageData(): Array<Ball>
     {
-        return _storageCells.storageRaw()
-    }
-    fun storageFiltered(): Array<Ball>
-    {
-        return _storageCells.storageFiltered()
+        return _storageCells.storageData()
     }
 
     fun ballColorCountPG(): IntArray

@@ -1,29 +1,32 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
-import woen239.FixColorSensor.fixSensor
-import com.qualcomm.robotcore.hardware.AnalogInput
-import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
-
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.HardwareMap
+
+import java.util.concurrent.atomic.AtomicReference
 
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
-
-import java.util.concurrent.atomic.AtomicReference
 
 import org.woen.threading.ThreadedEventBus
 import org.woen.modules.scoringSystem.storage.BottomOpticPareSeesSomethingEvent
 import org.woen.modules.scoringSystem.storage.MobileOutOpticPareSeesSomethingEvent
 
-import org.woen.telemetry.Configs.STORAGE.SORTING_BELT_MOTOR_DIRECTION
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTOR
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.BOTTOM_OPTIC_PARE_1
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.BOTTOM_OPTIC_PARE_2
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_OUT_OPTIC_PARE_1
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_OUT_OPTIC_PARE_2
+
+import org.woen.telemetry.Configs.STORAGE.SORTING_STORAGE_BELT_MOTOR_DIRECTION
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.OPTIC_PARE_SEES_NOT_BLACK
 
 
 
-class HwSorting (private val _deviceName: String) : IHardwareDevice
+class HwSorting () : IHardwareDevice
 {
     private lateinit var _bottomOpticPare1 : AnalogInput
     private lateinit var _bottomOpticPare2 : AnalogInput
@@ -56,6 +59,7 @@ class HwSorting (private val _deviceName: String) : IHardwareDevice
     {
         _beltMotor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motorPower.get())
 
+
         if (_bottomOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
             _bottomOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
             ThreadedEventBus.LAZY_INSTANCE.invoke(BottomOpticPareSeesSomethingEvent())
@@ -67,22 +71,21 @@ class HwSorting (private val _deviceName: String) : IHardwareDevice
 
     override fun init(hardwareMap : HardwareMap)
     {
-        _bottomOpticPare1 = hardwareMap.get("bottom optic-pare 1") as AnalogInput
-        _bottomOpticPare2 = hardwareMap.get("bottom optic-pare 2") as AnalogInput
+        _bottomOpticPare1 = hardwareMap.get(BOTTOM_OPTIC_PARE_1) as AnalogInput
+        _bottomOpticPare2 = hardwareMap.get(BOTTOM_OPTIC_PARE_2) as AnalogInput
 
-        _mobileOutOpticPare1 = hardwareMap.get("mobile-out optic-pare 1") as AnalogInput
-        _mobileOutOpticPare2 = hardwareMap.get("mobile-out optic-pare 2") as AnalogInput
-
-
+        _mobileOutOpticPare1 = hardwareMap.get(MOBILE_OUT_OPTIC_PARE_1) as AnalogInput
+        _mobileOutOpticPare2 = hardwareMap.get(MOBILE_OUT_OPTIC_PARE_2) as AnalogInput
 
 
-        _beltMotor = hardwareMap.get(_deviceName) as DcMotorEx
+
+        _beltMotor = hardwareMap.get(SORTING_STORAGE_BELT_MOTOR) as DcMotorEx
 
         _beltMotor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         _beltMotor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
         _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-        _beltMotor.direction = SORTING_BELT_MOTOR_DIRECTION
+        _beltMotor.direction = SORTING_STORAGE_BELT_MOTOR_DIRECTION
     }
 }
