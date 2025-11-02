@@ -101,9 +101,6 @@ class HardwareWheelOdometry(
         _leftBackEncoder = EncoderOnly(hardwareMap.get(_leftBackEncoderName) as DcMotorEx)
         _rightBackEncoder = EncoderOnly(hardwareMap.get(_rightBackEncoderName) as DcMotorEx)
 
-        _rightForwardEncoder.direction = DcMotorSimple.Direction.REVERSE
-        _rightBackEncoder.direction = DcMotorSimple.Direction.REVERSE
-
         Configs.DRIVE_TRAIN.ENCODER_VELOCITY_FILTER_K.onSet += {
             _filterMutex.smartLock {
                 _leftForwardFilter.coef = it
@@ -121,6 +118,9 @@ class HardwareWheelOdometry(
         }
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
+            _rightForwardEncoder.direction = DcMotorSimple.Direction.REVERSE
+            _rightBackEncoder.direction = DcMotorSimple.Direction.REVERSE
+
             _filterMutex.smartLock {
                 _leftForwardFilter.start()
                 _rightForwardFilter.start()

@@ -10,6 +10,8 @@ import org.woen.telemetry.Configs
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
+import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedGamepad.Companion.createAnalogListener
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
 import org.woen.utils.units.Angle
@@ -27,7 +29,7 @@ class SetCurrentTurretStateEvent(
 )
 
 class Turret : IModule {
-    private val _hardwareTurret = HardwareTurret("turretMotor", "")
+    private val _hardwareTurret = HardwareTurret("pulleyMotor",  "angleServo")
 
     enum class TurretState {
         STOP,
@@ -43,16 +45,16 @@ class Turret : IModule {
 
     override suspend fun process() {
         _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
-                return@launch
-
-            if (_hardwareTurret.velocityAtTarget.get())
-                _targetProcess.get().close()
-
-            if (_currentTurretState.get() != TurretState.SHOOT)
-                return@launch
-
-            _hardwareTurret.targetVelocity = calculatePulleySpeed()
+//            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+//                return@launch
+//
+//            if (_hardwareTurret.velocityAtTarget.get())
+//                _targetProcess.get().close()
+//
+//            if (_currentTurretState.get() != TurretState.SHOOT)
+//                return@launch
+//
+//            _hardwareTurret.targetVelocity = calculatePulleySpeed()
         }
     }
 
@@ -68,9 +70,9 @@ class Turret : IModule {
             Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE
         )
 
-        _hardwareTurret.servoPosition =
+        _hardwareTurret.anglePosition.set(
             (shootingAngle - Configs.TURRET.MIN_TURRET_ANGLE) * (Configs.TURRET.MAX_TURRET_SERVO_ANGLE - Configs.TURRET.MIN_TURRET_SERVO_ANGLE) /
-                    (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_SERVO_ANGLE
+                    (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_SERVO_ANGLE)
 
         val robotRotationBasketErr = Angle(
             (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition
@@ -122,7 +124,7 @@ class Turret : IModule {
     }
 
     override val isBusy: Boolean
-        get() = _turretJob == null || _turretJob!!.isCompleted
+        get() = _turretJob != null && !_turretJob!!.isCompleted
 
     override fun dispose() {
         _turretJob?.cancel()
@@ -159,5 +161,9 @@ class Turret : IModule {
         HotRun.LAZY_INSTANCE.opModeStopEvent += {
             ThreadedEventBus.LAZY_INSTANCE.invoke(SetCurrentTurretStateEvent(TurretState.STOP))
         }
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createAnalogListener( {it.left_trigger.toDouble()}, {
+            _hardwareTurret.targetVelocity = it * 100.0
+        }))
     }
 }

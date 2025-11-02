@@ -21,9 +21,6 @@ object Configs {
         var BRUSH_DEF_TIME = 1.0
 
         @JvmField
-        var BRUSH_MOTOR_NAME = "BrushMotor"
-
-        @JvmField
         var BRUSH_TARGET_CURRENT = 0.3
 
 
@@ -115,7 +112,7 @@ object Configs {
         var POW_MOVE_ENABLED = true
 
         @JvmField
-        var ROBOT_SIZE = Vec2(0.380, 0.135)
+        var ROBOT_SIZE = Vec2(0.38, 0.36)
 
         @JvmField
         var SHOOT_TRIANGLES = arrayOf(
@@ -130,13 +127,13 @@ object Configs {
         var ENCODER_TICKS = (1.0 + (46.0 / 17.0)) * (1.0 + (46.0 / 17.0)) * 28.0
 
         @JvmField
-        var WHEEL_DIAMETER = 0.098
+        var WHEEL_DIAMETER = 0.096
 
         @JvmField
-        var LAG = Vec2(1.0544982698961938, 1.160952380952381)
+        var LAG = Vec2(1.0, 1.0)
 
         @JvmField
-        var H_LAG = 0.88
+        var H_LAG = 1.0
 
         @JvmField
         var LOOK_P = 0.3
@@ -145,7 +142,7 @@ object Configs {
         var LOOK_SENS = 0.1
 
         @JvmField
-        var WHEEL_CENTER_POS = Vec2(0.03, 0.13)
+        var WHEEL_CENTER_POS = Vec2(0.267 / 2.0, 0.28 / 2.0)
     }
 
     @Config
@@ -190,7 +187,7 @@ object Configs {
         var CAMERA_ACCURACY = 300
 
         @JvmField
-        var CAMERA_ENABLE = true
+        var CAMERA_ENABLE = false
 
         @JvmField
         var CAMERA_TRIGGER_DISTANCE = 3.0
@@ -200,15 +197,21 @@ object Configs {
     }
 
     @Config
+    internal object TEST_CONFIG{
+        @JvmField
+        var TURRET_TARGET = 5.0
+    }
+
+    @Config
     internal object TURRET {
         @JvmField
-        var PULLEY_RADIUS = 10.0 / 2.0
+        var PULLEY_RADIUS = 0.05
 
         @JvmField
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters()
+        var PULLEY_REGULATOR = RegulatorParameters(kD = 0.0001, kI = 0.004, kP = 0.04)
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.1)

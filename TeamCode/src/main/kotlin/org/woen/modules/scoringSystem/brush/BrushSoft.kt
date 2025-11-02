@@ -9,6 +9,7 @@ import org.woen.modules.IModule
 import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
+import org.woen.threading.hardware.HardwareThreads
 import java.util.concurrent.atomic.AtomicReference
 
 class SwitchBrush(var a: BrushSoft.AcktBrush, var time1: Long = 1000)
@@ -21,19 +22,8 @@ class BrushSoft : IModule {
         SAFE
     }
 
-    init {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(SwitchBrush::class, {
-            turnOn.set(it.a);//1-ack; 2-notack; 3-brake; 4- revers with fixed time
-            timerRevers.set(it.time1);
-        })
-
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            turnOn.set(AcktBrush.ACKT)
-        }
-    }
-
     private var _currentJob: Job? = null //отслеживание текущей задачи
-    private var bruh = BrushHard(Configs.BRUSH.BRUSH_MOTOR_NAME);
+    private var bruh = BrushHard("brushMotor");
     private var turnOn = AtomicReference(AcktBrush.NOT_ACKT);
     private var timerRevers = AtomicReference<Long>(0);
     private var tmr = ElapsedTime();
@@ -94,5 +84,18 @@ class BrushSoft : IModule {
 
     override fun dispose() {
         _currentJob?.cancel()
+    }
+
+    init {
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(bruh)
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(SwitchBrush::class, {
+            turnOn.set(it.a);//1-ack; 2-notack; 3-brake; 4- revers with fixed time
+            timerRevers.set(it.time1);
+        })
+
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+            turnOn.set(AcktBrush.ACKT)
+        }
     }
 }

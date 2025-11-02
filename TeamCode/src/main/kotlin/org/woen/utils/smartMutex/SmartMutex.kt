@@ -1,12 +1,9 @@
 package org.woen.utils.smartMutex
 
-
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.atomic.AtomicReference
-
-
 
 class SmartMutex {
     private val _mutex = Mutex()
@@ -15,7 +12,6 @@ class SmartMutex {
 
     fun <T> smartLock(action: suspend () -> T): T {
         val result: T
-
 
         runBlocking {
             if (_lockedThread.get() == null)

@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
+import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import java.util.concurrent.atomic.AtomicReference
@@ -47,10 +48,21 @@ class BrushHard(private val _deviceName: String)  : IHardwareDevice {
     override fun init(hardwareMap: HardwareMap) {
         _motor = hardwareMap.get(_deviceName) as DcMotorEx;
 
-        _motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        val leftBeltMotor = hardwareMap.get("beltLeftMotor") as DcMotorEx
+        val rightBeltMotor = hardwareMap.get("beltRightMotor") as DcMotorEx
 
-        _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            _motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+            _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+
+            _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+
+            leftBeltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            rightBeltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+
+            leftBeltMotor.power = 1.0
+            rightBeltMotor.power = -1.0
+        }
     }
 
     override fun dispose() {

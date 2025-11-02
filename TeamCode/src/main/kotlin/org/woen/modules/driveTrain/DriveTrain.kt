@@ -69,7 +69,7 @@ class DriveTrain : IModule {
 
             _driveMutex.smartLock {
                 _hardwareDriveTrain.drive(
-                    _targetTranslateVelocity.turn(-odometry.odometryOrientation.angle),
+                    _targetTranslateVelocity/*.turn(-odometry.odometryOrientation.angle)*/,
                     if (_lookMode.get())
                         rotationErr * Configs.DRIVE_TRAIN.LOOK_P
                     else _targetRotateVelocity

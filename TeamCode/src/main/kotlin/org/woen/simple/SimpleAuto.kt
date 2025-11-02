@@ -31,7 +31,7 @@ class SimpleAuto: LinearOpMode() {
 
         pulleyMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-        pulleyMotor.direction = DcMotorSimple.Direction.REVERSE
+//        pulleyMotor.direction = DcMotorSimple.Direction.REVERSE
 
         val battery = hardwareMap.get(VoltageSensor::class.java, "Control Hub")
 
@@ -68,13 +68,16 @@ class SimpleAuto: LinearOpMode() {
         val timer = ElapsedTime()
         timer.reset()
 
-        while (opModeIsActive() && timer.seconds() < 5.0)
+        while (opModeIsActive() && timer.seconds() < 2.0)
             pulleyMotor.power = SimpleConfig.AUTO_PULLEY_SPEED / battery.voltage
 
         shootTimer.reset()
         shotDelayTimer.reset()
         isCharging = true
         startState = true
+        timer.reset()
+        pushServo.position = SimpleConfig.PUSH_SERVO_CLOSE
+        startServo.position = SimpleConfig.START_SERVO_OPEN
 
         while (opModeIsActive() && timer.seconds() < 10.0){
             pulleyMotor.power = SimpleConfig.AUTO_PULLEY_SPEED / battery.voltage

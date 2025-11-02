@@ -77,20 +77,20 @@ class HardwareDriveTrain(
         _rightBackMotor = MotorOnly(hardwareMap.get(_rightBackMotorName) as DcMotorEx)
         _rightForwardMotor = MotorOnly(hardwareMap.get(_rightForwardMotorName) as DcMotorEx)
 
-        _leftBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        _leftForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        _rightForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        _rightBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-        _rightForwardMotor.direction = DcMotorSimple.Direction.REVERSE
-        _rightBackMotor.direction = DcMotorSimple.Direction.REVERSE
-
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _regulatorMutex.smartLock {
                 _forwardRegulator.start()
                 _sideRegulator.start()
                 _rotateRegulator.start()
             }
+
+            _leftBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            _leftForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            _rightForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            _rightBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+
+            _rightForwardMotor.direction = DcMotorSimple.Direction.REVERSE
+            _rightBackMotor.direction = DcMotorSimple.Direction.REVERSE
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
