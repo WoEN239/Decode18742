@@ -74,14 +74,16 @@ class HardwareOdometersOdometry(
         _leftOdometer = EncoderOnly(hardwareMap.get(_leftOdometerName) as DcMotorEx)
         _rightOdometer = EncoderOnly(hardwareMap.get(_rightOdometerName) as DcMotorEx)
 
-        _leftOdometer.direction = DcMotorSimple.Direction.REVERSE
-        _rightOdometer.direction = DcMotorSimple.Direction.REVERSE
-
         Configs.ODOMETRY.VELOCITY_FILTER_K.onSet += {
             _filterMutex.smartLock {
                 _rightFilter.coef = it
                 _leftFilter.coef = it
             }
+        }
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            _leftOdometer.direction = DcMotorSimple.Direction.REVERSE
+            _rightOdometer.direction = DcMotorSimple.Direction.REVERSE
         }
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {

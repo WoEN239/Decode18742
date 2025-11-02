@@ -7,6 +7,7 @@ import kotlin.math.pow
 import kotlin.math.sign
 
 import com.acmerobotics.dashboard.config.Config
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 
 import com.qualcomm.robotcore.util.ElapsedTime
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
@@ -24,6 +25,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
 
 @Config
+@Disabled
 internal object SimpleConfig {
     @JvmField
     var AUTO_PULLEY_SPEED = 9.5

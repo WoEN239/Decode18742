@@ -42,8 +42,6 @@ class HardwareThreeOdometersOdometry(private val _odometryName: String) : IHardw
     override fun init(hardwareMap: HardwareMap) {
         _odometer = EncoderOnly(hardwareMap.get(_odometryName) as DcMotorEx)
 
-        _odometer.direction = DcMotorSimple.Direction.REVERSE
-
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _filterMutex.smartLock {
                 _filter.start()
@@ -51,6 +49,10 @@ class HardwareThreeOdometersOdometry(private val _odometryName: String) : IHardw
 
             if(HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
                 _odometer.resetEncoder()
+        }
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            _odometer.direction = DcMotorSimple.Direction.REVERSE
         }
 
         Configs.ODOMETRY.VELOCITY_FILTER_K.onSet += {

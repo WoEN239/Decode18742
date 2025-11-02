@@ -48,20 +48,11 @@ class BrushHard(private val _deviceName: String)  : IHardwareDevice {
     override fun init(hardwareMap: HardwareMap) {
         _motor = hardwareMap.get(_deviceName) as DcMotorEx;
 
-        val leftBeltMotor = hardwareMap.get("beltLeftMotor") as DcMotorEx
-        val rightBeltMotor = hardwareMap.get("beltRightMotor") as DcMotorEx
-
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
             _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-            leftBeltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            rightBeltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-            leftBeltMotor.power = 1.0
-            rightBeltMotor.power = -1.0
         }
     }
 

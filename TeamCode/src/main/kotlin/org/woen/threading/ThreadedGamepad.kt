@@ -1,6 +1,5 @@
 package org.woen.threading
 
-import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.Gamepad
 import kotlinx.coroutines.CoroutineScope

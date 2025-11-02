@@ -1,6 +1,7 @@
 package org.woen.simple
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import com.qualcomm.robotcore.hardware.DcMotor
@@ -12,6 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 
 @Autonomous
+@Disabled
 class SimpleAuto: LinearOpMode() {
     override fun runOpMode() {
         val leftForwardDrive = hardwareMap.get("leftForwardDrive") as DcMotorEx

@@ -1,6 +1,5 @@
 package org.woen.hotRun
 
-import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.modules.camera.Camera

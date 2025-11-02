@@ -117,10 +117,12 @@ class HardwareWheelOdometry(
             it.addData("rightBackPosition", rightBackPosition.get())
         }
 
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _rightForwardEncoder.direction = DcMotorSimple.Direction.REVERSE
             _rightBackEncoder.direction = DcMotorSimple.Direction.REVERSE
+        }
 
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _filterMutex.smartLock {
                 _leftForwardFilter.start()
                 _rightForwardFilter.start()

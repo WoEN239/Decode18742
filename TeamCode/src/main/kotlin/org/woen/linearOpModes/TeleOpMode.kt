@@ -1,6 +1,5 @@
 package org.woen.linearOpModes
 
-import com.qualcomm.robotcore.eventloop.opmode.GamepadOpMode
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp

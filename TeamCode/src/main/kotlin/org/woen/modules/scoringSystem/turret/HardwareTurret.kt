@@ -113,13 +113,6 @@ class HardwareTurret(
                 _velocityFilter.start()
             }
 
-            _motor.mode = DcMotor.RunMode.RESET_ENCODERS
-            _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-
-            _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-            _motor.direction = DcMotorSimple.Direction.REVERSE
-
             _pulleyRegulatorMutex.smartLock {
                 _pulleyRegulator.start()
             }
@@ -127,6 +120,13 @@ class HardwareTurret(
             _rotationRegulator.start()
 
             _deltaTime.reset()
+        }
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            _motor.mode = DcMotor.RunMode.RESET_ENCODERS
+            _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+
+            _motor.direction = DcMotorSimple.Direction.REVERSE
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
