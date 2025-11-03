@@ -42,25 +42,12 @@ class ThreadManager private constructor() : DisposableHandle {
 
     private val _allThreadsMutex = SmartMutex()
 
-    private var _mainHandler: Handler? = null
-
-    fun attachExceptionHandler() {
-        _mainHandler = Looper.myLooper()?.let { Handler(it) }
-    }
-
     fun register(thread: Thread): Thread {
-        thread.setUncaughtExceptionHandler { _, exception ->
-            if (exception !is InterruptedException) {
-                ThreadedTelemetry.LAZY_INSTANCE.log(exception.message!!)
-
-                for (i in exception.stackTrace)
-                    ThreadedTelemetry.LAZY_INSTANCE.log(i.className + ": " + i.methodName)
-
-                _mainHandler?.post {
-                    throw exception
-                }
-            }
-        }
+//        thread.setUncaughtExceptionHandler { _, exception ->
+//            if (exception !is InterruptedException) {
+//
+//            }
+//        }
 
         _allThreadsMutex.smartLock {
             _allThreads.add(thread)
