@@ -198,12 +198,6 @@ object Configs {
     }
 
     @Config
-    internal object TEST_CONFIG {
-        @JvmField
-        var TURRET_TARGET = 5.0
-    }
-
-    @Config
     internal object TURRET {
         @JvmField
         var PULLEY_RADIUS = 0.05
@@ -221,10 +215,10 @@ object Configs {
         var PULLEY_TARGET_SENS = 50.0
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(0.0, 0.0)
+        var BLUE_BASKET_POSITION = Vec2(-1.8, -1.8)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(0.0, 0.0)
+        var RED_BASKET_POSITION = Vec2(-1.8, 1.8)
 
         @JvmField
         var TURRET_HEIGHT = 1.0
@@ -276,6 +270,9 @@ object Configs {
 
         @JvmField
         var ROTATION_PID_CONFIG = RegulatorParameters()
+
+        @JvmField
+        var PULLEY_U = 0.5
 
         @JvmField
         var MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS: Long = 300

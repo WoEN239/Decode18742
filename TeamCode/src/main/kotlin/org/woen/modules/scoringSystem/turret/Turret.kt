@@ -43,9 +43,6 @@ class Turret : IModule {
 
     override suspend fun process() {
         _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
-                return@launch
-
             if (_hardwareTurret.velocityAtTarget.get())
                 _targetProcess.get().close()
 
@@ -82,7 +79,7 @@ class Turret : IModule {
         val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
 
         fun getHitHeight(startVel: Double): Double {
-            var vecVel = Vec2(startVel, 0.0).setRot(shootDistance)
+            var vecVel = Vec2(startVel * Configs.TURRET.PULLEY_U, 0.0).setRot(shootingAngle)
             vecVel += robotXVel
             var pos = Vec2.ZERO
 
