@@ -63,7 +63,7 @@ public class OdometryComputer extends I2cDeviceSynchDevice<I2cDeviceSynchSimple>
 
     @Override
     public String getDeviceName() {
-        return "goBILDA® Pinpoint Odometry Computer";
+        return "Odometry Computer";
     }
 
     /**
