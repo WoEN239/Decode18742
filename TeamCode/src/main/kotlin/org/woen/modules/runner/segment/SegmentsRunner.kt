@@ -30,7 +30,7 @@ data class RunSegmentEvent(val segment: ISegment, val process: Process = Process
 data class RequireRRBuilderEvent(
     val startOrientation: Orientation? = null,
     var trajectoryBuilder: TrajectoryBuilder? = null
-): StoppingEvent
+) : StoppingEvent
 
 class SegmentsRunner : IModule {
     private var _runnerJob: Job? = null
@@ -104,7 +104,7 @@ class SegmentsRunner : IModule {
         _runnerJob?.cancel()
     }
 
-    init {
+    constructor() {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RunSegmentEvent::class, {
             _segmentsMutex.smartLock {
                 _segmentsQueue.addLast(Pair(it.segment, it.process))

@@ -18,15 +18,15 @@ class Triangle {
     val lines
         get() = arrayOf(l1, l2, l3)
 
-    constructor(p1: Vec2, p2: Vec2, p3: Vec2): this(Line(p1, p2), Line(p2, p3), Line(p3, p1))
+    constructor(p1: Vec2, p2: Vec2, p3: Vec2) : this(Line(p1, p2), Line(p2, p3), Line(p3, p1))
 
-    constructor(l1: Line, l2: Line, l3: Line){
+    constructor(l1: Line, l2: Line, l3: Line) {
         this.l1 = l1
         this.l2 = l2
         this.l3 = l3
     }
 
-    fun isPointLocated(p: Vec2): Boolean{
+    fun isPointLocated(p: Vec2): Boolean {
         val denom = (p2.y - p3.y) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.y - p3.y)
 
         val u = ((p2.y - p3.y) * (p.x - p3.x) + (p3.x - p2.x) * (p.y - p3.y)) / denom

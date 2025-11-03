@@ -2,11 +2,10 @@ package org.woen.threading.hardware
 
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.VoltageSensor
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicReference
 
-class ThreadedBattery private constructor() : IHardwareDevice {
+class ThreadedBattery : IHardwareDevice {
     companion object {
         private var _nullableInstance: ThreadedBattery? = null
 
@@ -53,7 +52,7 @@ class ThreadedBattery private constructor() : IHardwareDevice {
 
     }
 
-    init {
+    private constructor() {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(this)
     }
 }

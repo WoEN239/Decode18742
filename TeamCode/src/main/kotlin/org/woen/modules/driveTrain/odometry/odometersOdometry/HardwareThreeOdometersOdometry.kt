@@ -47,7 +47,7 @@ class HardwareThreeOdometersOdometry(private val _odometryName: String) : IHardw
                 _filter.start()
             }
 
-            if(HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
+            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
                 _odometer.resetEncoder()
         }
 

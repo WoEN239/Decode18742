@@ -3,7 +3,6 @@ package org.woen.modules.driveTrain.odometry.wheelOdometry
 import org.woen.modules.driveTrain.odometry.IOdometry
 import org.woen.modules.driveTrain.odometry.OdometryTick
 import org.woen.telemetry.Configs
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
@@ -47,8 +46,9 @@ class WheelOdometry : IOdometry {
         _oldLeftBackPosition = leftBackPosition
         _oldRightBackPosition = rightBackPosition
 
-        val odometerRotation = (rightForwardPosition + rightBackPosition + -leftForwardPosition + -leftBackPosition) /
-                (4 * (Configs.DRIVE_TRAIN.WHEEL_CENTER_POS.x + Configs.DRIVE_TRAIN.WHEEL_CENTER_POS.y))
+        val odometerRotation =
+            (rightForwardPosition + rightBackPosition + -leftForwardPosition + -leftBackPosition) /
+                    (4 * (Configs.DRIVE_TRAIN.WHEEL_CENTER_POS.x + Configs.DRIVE_TRAIN.WHEEL_CENTER_POS.y))
 
         val deltaRotation = (odometerRotation - _oldRotation) * Configs.DRIVE_TRAIN.H_LAG
 
@@ -73,7 +73,8 @@ class WheelOdometry : IOdometry {
             deltaCorrectedPosition.turn(rotation.angle),
             Vec2(
                 (leftForwardVelocity + rightForwardVelocity + leftBackVelocity + rightBackVelocity) / 4.0,
-                (-leftForwardVelocity + rightForwardVelocity + leftBackVelocity + -rightBackVelocity) / 4.0) * Configs.DRIVE_TRAIN.LAG,
+                (-leftForwardVelocity + rightForwardVelocity + leftBackVelocity + -rightBackVelocity) / 4.0
+            ) * Configs.DRIVE_TRAIN.LAG,
             deltaRotation,
             (rightForwardVelocity + rightBackVelocity + -leftForwardVelocity + -leftBackVelocity) /
                     (4 * (Configs.DRIVE_TRAIN.WHEEL_CENTER_POS.x + Configs.DRIVE_TRAIN.WHEEL_CENTER_POS.y))
@@ -84,7 +85,7 @@ class WheelOdometry : IOdometry {
 
     }
 
-    init {
+    constructor() {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry)
     }
 }

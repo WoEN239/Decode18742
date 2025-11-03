@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
-class EncoderOnly(private val _motor: DcMotorEx) : DcMotorEx {
+class EncoderOnly : DcMotorEx {
     private var _direction = Direction.FORWARD
 
     override fun getManufacturer() = _motor.manufacturer
@@ -33,7 +33,7 @@ class EncoderOnly(private val _motor: DcMotorEx) : DcMotorEx {
         _direction = direction!!
     }
 
-    fun resetEncoder(){
+    fun resetEncoder() {
         _motor.mode = RunMode.STOP_AND_RESET_ENCODER
         _motor.mode = RunMode.RUN_WITHOUT_ENCODER
     }
@@ -181,7 +181,11 @@ class EncoderOnly(private val _motor: DcMotorEx) : DcMotorEx {
         throw Exception("encoderOnly not support current")
     }
 
-    init {
+    private val _motor: DcMotorEx
+
+    constructor(motor: DcMotorEx) {
+        _motor = motor
+
         _motor.direction = Direction.FORWARD
         _motor.mode = RunMode.STOP_AND_RESET_ENCODER
         _motor.mode = RunMode.RUN_WITHOUT_ENCODER

@@ -1,7 +1,6 @@
 package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.modules.camera.Camera
 import org.woen.modules.runner.actions.ActionRunner
 import org.woen.telemetry.Configs
@@ -66,7 +65,8 @@ class HotRun private constructor() {
         AUTO
     }
 
-    enum class RunColor(private val _basketPosition: Vec2, private val _startOrientation: Orientation
+    enum class RunColor(
+        private val _basketPosition: Vec2, private val _startOrientation: Orientation
     ) {
         RED(Configs.TURRET.RED_BASKET_POSITION, Configs.ODOMETRY.START_RED_ORIENTATION),
         BLUE(Configs.TURRET.BLUE_BASKET_POSITION, Configs.ODOMETRY.START_BLUE_ORIENTATION);

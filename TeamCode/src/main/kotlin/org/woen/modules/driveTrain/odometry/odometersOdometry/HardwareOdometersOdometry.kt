@@ -34,7 +34,7 @@ class HardwareOdometersOdometry(
     private var _oldRightPosition = 0.0
 
     override fun update() {
-        if(HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
             return
 
         val currentLeftPosition = (_leftOdometer.currentPosition.toDouble() /
@@ -92,7 +92,7 @@ class HardwareOdometersOdometry(
                 _leftFilter.start()
             }
 
-            if(HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO){
+            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO) {
                 _leftOdometer.resetEncoder()
                 _rightOdometer.resetEncoder()
             }

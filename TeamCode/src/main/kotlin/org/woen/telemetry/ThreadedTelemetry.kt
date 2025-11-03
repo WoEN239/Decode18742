@@ -24,7 +24,7 @@ import kotlin.reflect.full.findAnnotation
 
 annotation class EventConfig()
 
-class ThreadedTelemetry private constructor() : DisposableHandle {
+class ThreadedTelemetry : DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadedTelemetry? = null
 
@@ -61,7 +61,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
 
                 if (objClass != null) {
                     jt.declaredMemberProperties.forEach { zt ->
-                        if(zt.findAnnotation<EventConfig>() != null && zt.returnType.classifier == EventValueProvider::class) {
+                        if (zt.findAnnotation<EventConfig>() != null && zt.returnType.classifier == EventValueProvider::class) {
                             val value = zt.call(objClass) as EventValueProvider<*>
 
                             FtcDashboard.getInstance()
@@ -245,7 +245,7 @@ class ThreadedTelemetry private constructor() : DisposableHandle {
         }
     }
 
-    init {
+    private constructor() {
         Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.onSet += ::onUpdateHZChanged
 
         onUpdateHZChanged(Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.get())

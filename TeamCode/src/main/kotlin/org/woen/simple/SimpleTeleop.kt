@@ -1,27 +1,23 @@
 package org.woen.simple
 
 
+import com.acmerobotics.dashboard.config.Config
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.hardware.VoltageSensor
+import com.qualcomm.robotcore.util.ElapsedTime
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sign
-
-import com.acmerobotics.dashboard.config.Config
-import com.qualcomm.robotcore.eventloop.opmode.Disabled
-
-import com.qualcomm.robotcore.util.ElapsedTime
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-
-import com.qualcomm.robotcore.hardware.Servo
-import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple
-import com.qualcomm.robotcore.hardware.VoltageSensor
-
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
 
 @Config
@@ -257,9 +253,10 @@ class SimpleTeleop : LinearOpMode() {
             angleServo.position = SimpleConfig.SHORT_ANGLE_SERVO_POSITION
         }
 
-        if(isShooting &&
+        if (isShooting &&
             !isSorter &&
-            accelerationTimer.seconds() > SimpleConfig.ACCELERATION_TIME)
+            accelerationTimer.seconds() > SimpleConfig.ACCELERATION_TIME
+        )
             gamepad1.rumble(2)
 
         if (shootButton != oldShootButton && shootButton &&

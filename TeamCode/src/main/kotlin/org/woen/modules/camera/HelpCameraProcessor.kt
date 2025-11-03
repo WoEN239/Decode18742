@@ -8,12 +8,10 @@ import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration
 import org.firstinspires.ftc.vision.VisionProcessor
 import org.opencv.android.Utils
-import org.opencv.core.Core.ROTATE_90_CLOCKWISE
-import org.opencv.core.Core.rotate
 import org.opencv.core.Mat
 import java.util.concurrent.atomic.AtomicReference
 
-class HelpCameraProcessor: VisionProcessor, CameraStreamSource {
+class HelpCameraProcessor : VisionProcessor, CameraStreamSource {
     private var _lastFrame = AtomicReference(Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565))
 
     override fun init(
@@ -30,7 +28,7 @@ class HelpCameraProcessor: VisionProcessor, CameraStreamSource {
     ): Any? {
 //        rotate(frame, frame, ROTATE_90_CLOCKWISE)
 
-        if(frame != null) {
+        if (frame != null) {
             val b = Bitmap.createBitmap(
                 frame.width(),
                 frame.height(),

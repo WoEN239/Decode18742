@@ -14,7 +14,7 @@ import org.woen.utils.updateCounter.UpdateCounter
 import kotlin.concurrent.thread
 
 @SuppressLint("DefaultLocale")
-class HardwareThread(val link: HardwareLink) : DisposableHandle {
+class HardwareThread : DisposableHandle {
     private val _devices = mutableSetOf<IHardwareDevice>()
 
     private val _updateCounter = UpdateCounter()
@@ -74,7 +74,11 @@ class HardwareThread(val link: HardwareLink) : DisposableHandle {
         link.dispose()
     }
 
-    init {
+    val link: HardwareLink
+
+    constructor(link: HardwareLink) {
+        this.link = link
+
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData(
                 "hardware ups + " + _thread.name,

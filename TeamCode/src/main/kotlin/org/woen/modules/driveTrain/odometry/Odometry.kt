@@ -6,7 +6,6 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.camera.Camera
 import org.woen.modules.driveTrain.HardwareGyro
-import org.woen.modules.driveTrain.odometry.odometersOdometry.OdometersOdometry
 import org.woen.modules.driveTrain.odometry.wheelOdometry.WheelOdometry
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
@@ -143,7 +142,7 @@ class Odometry : IModule {
         _odometryJob?.cancel()
     }
 
-    init {
+    constructor() {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {

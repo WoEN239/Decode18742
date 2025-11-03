@@ -3,12 +3,10 @@ package org.woen.threading.hardware
 import kotlinx.coroutines.DisposableHandle
 import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.odometry.Odometry
-import org.woen.modules.runner.segment.SegmentsRunner
 import org.woen.modules.scoringSystem.brush.BrushSoft
-import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.utils.smartMutex.SmartMutex
 
-class HardwareThreads private constructor() : DisposableHandle {
+class HardwareThreads : DisposableHandle {
     companion object {
         private var _nullableInstance: HardwareThreads? = null
 
@@ -17,10 +15,8 @@ class HardwareThreads private constructor() : DisposableHandle {
         @JvmStatic
         val LAZY_INSTANCE: HardwareThreads
             get() = _instanceMutex.smartLock {
-                if (_nullableInstance == null) {
+                if (_nullableInstance == null)
                     _nullableInstance = HardwareThreads()
-                    _nullableInstance?.initModules()
-                }
 
                 return@smartLock _nullableInstance!!
             }
@@ -42,7 +38,7 @@ class HardwareThreads private constructor() : DisposableHandle {
         EXPANSION.dispose()
     }
 
-    fun initModules() {
+    private constructor() {
 //        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
         CONTROL.link.addModules(Odometry(), DriveTrain(), BrushSoft())
     }

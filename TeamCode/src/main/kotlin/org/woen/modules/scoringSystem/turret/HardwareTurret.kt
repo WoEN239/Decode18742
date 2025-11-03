@@ -1,6 +1,5 @@
 package org.woen.modules.scoringSystem.turret
 
-import com.qualcomm.robotcore.hardware.CRServo
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
@@ -13,7 +12,6 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
-import org.woen.utils.motor.EncoderOnly
 import org.woen.utils.regulator.Regulator
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicBoolean

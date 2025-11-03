@@ -16,7 +16,6 @@ import org.woen.utils.process.Process
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
-import java.lang.Math.pow
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 import kotlin.math.pow
@@ -60,7 +59,7 @@ class DriveTrain : IModule {
                             - odometry.odometryOrientation.angle
                 ).angle
 
-                if(abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS)
+                if (abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS)
                     _lookProcess.get().close()
 
                 err
@@ -85,7 +84,7 @@ class DriveTrain : IModule {
         _driveJob?.cancel()
     }
 
-    init {
+    constructor() {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {

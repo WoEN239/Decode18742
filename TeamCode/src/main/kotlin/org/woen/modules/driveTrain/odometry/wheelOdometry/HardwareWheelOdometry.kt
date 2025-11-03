@@ -40,10 +40,14 @@ class HardwareWheelOdometry(
     var leftBackVelocity = AtomicReference(0.0)
     var rightBackVelocity = AtomicReference(0.0)
 
-    private var _leftForwardFilter = ExponentialFilter(Configs.DRIVE_TRAIN.ENCODER_VELOCITY_FILTER_K.get())
-    private var _rightForwardFilter = ExponentialFilter(Configs.DRIVE_TRAIN.ENCODER_VELOCITY_FILTER_K.get())
-    private var _leftBackFilter = ExponentialFilter(Configs.DRIVE_TRAIN.ENCODER_VELOCITY_FILTER_K.get())
-    private var _rightBackFilter = ExponentialFilter(Configs.DRIVE_TRAIN.ENCODER_VELOCITY_FILTER_K.get())
+    private var _leftForwardFilter =
+        ExponentialFilter(Configs.DRIVE_TRAIN.ENCODER_VELOCITY_FILTER_K.get())
+    private var _rightForwardFilter =
+        ExponentialFilter(Configs.DRIVE_TRAIN.ENCODER_VELOCITY_FILTER_K.get())
+    private var _leftBackFilter =
+        ExponentialFilter(Configs.DRIVE_TRAIN.ENCODER_VELOCITY_FILTER_K.get())
+    private var _rightBackFilter =
+        ExponentialFilter(Configs.DRIVE_TRAIN.ENCODER_VELOCITY_FILTER_K.get())
 
     private val _filterMutex = SmartMutex()
 
@@ -75,16 +79,40 @@ class HardwareWheelOdometry(
         val oldLeftBackVelocity = leftBackVelocity.get()
         val oldRightBackVelocity = rightBackVelocity.get()
 
-        val rawLeftForwardVelocity = (currentLeftForwardPosition - _oldLeftForwardPosition) / _deltaTime.seconds()
-        val rawRightForwardVelocity = (currentRightForwardPosition - _oldRightForwardPosition) / _deltaTime.seconds()
-        val rawLeftBackVelocity = (currentLeftBackPosition - _oldLeftBackPosition) / _deltaTime.seconds()
-        val rawRightBackVelocity = (currentRightBackPosition - _oldRightBackPosition) / _deltaTime.seconds()
+        val rawLeftForwardVelocity =
+            (currentLeftForwardPosition - _oldLeftForwardPosition) / _deltaTime.seconds()
+        val rawRightForwardVelocity =
+            (currentRightForwardPosition - _oldRightForwardPosition) / _deltaTime.seconds()
+        val rawLeftBackVelocity =
+            (currentLeftBackPosition - _oldLeftBackPosition) / _deltaTime.seconds()
+        val rawRightBackVelocity =
+            (currentRightBackPosition - _oldRightBackPosition) / _deltaTime.seconds()
 
         _filterMutex.smartLock {
-            leftForwardVelocity.set(_leftForwardFilter.updateRaw(oldLeftForwardVelocity, rawLeftForwardVelocity - oldLeftForwardVelocity))
-            rightForwardVelocity.set(_rightForwardFilter.updateRaw(oldRightForwardVelocity, rawRightForwardVelocity - oldRightForwardVelocity))
-            leftBackVelocity.set(_leftBackFilter.updateRaw(oldLeftBackVelocity, rawLeftBackVelocity - oldLeftBackVelocity))
-            rightBackVelocity.set(_rightBackFilter.updateRaw(oldRightBackVelocity, rawRightBackVelocity - oldRightBackVelocity))
+            leftForwardVelocity.set(
+                _leftForwardFilter.updateRaw(
+                    oldLeftForwardVelocity,
+                    rawLeftForwardVelocity - oldLeftForwardVelocity
+                )
+            )
+            rightForwardVelocity.set(
+                _rightForwardFilter.updateRaw(
+                    oldRightForwardVelocity,
+                    rawRightForwardVelocity - oldRightForwardVelocity
+                )
+            )
+            leftBackVelocity.set(
+                _leftBackFilter.updateRaw(
+                    oldLeftBackVelocity,
+                    rawLeftBackVelocity - oldLeftBackVelocity
+                )
+            )
+            rightBackVelocity.set(
+                _rightBackFilter.updateRaw(
+                    oldRightBackVelocity,
+                    rawRightBackVelocity - oldRightBackVelocity
+                )
+            )
         }
 
         _oldLeftForwardPosition = currentLeftForwardPosition
@@ -132,7 +160,7 @@ class HardwareWheelOdometry(
 
             _deltaTime.reset()
 
-            if(HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO){
+            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO) {
                 _leftForwardEncoder.resetEncoder()
                 _rightForwardEncoder.resetEncoder()
                 _leftBackEncoder.resetEncoder()

@@ -1,14 +1,14 @@
 package org.woen.telemetry
 
 
-import woen239.enumerators.StorageSlot
-import woen239.enumerators.StorageType
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.woen.utils.regulator.RegulatorParameters
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
+import woen239.enumerators.StorageSlot
+import woen239.enumerators.StorageType
 import kotlin.math.PI
 
 object Configs {
@@ -17,6 +17,7 @@ object Configs {
     internal object BRUSH {
         var BRUSH_SAFE_TIME = 1.0
         var BRUSH_ERR_TIME = 1.0
+
         @JvmField
         var BRUSH_DEF_TIME = 1.0
 
@@ -197,7 +198,7 @@ object Configs {
     }
 
     @Config
-    internal object TEST_CONFIG{
+    internal object TEST_CONFIG {
         @JvmField
         var TURRET_TARGET = 5.0
     }
@@ -281,24 +282,20 @@ object Configs {
     }
 
 
-
     @Config
-    internal object COLOR_SENSORS_AND_OPTIC_PARE
-    {
+    internal object COLOR_SENSORS_AND_OPTIC_PARE {
         @JvmField
         var OPTIC_PARE_SEES_NOT_BLACK = 3.4
 
 
-
         @JvmField
-        var THRESHOLD_GREEN_MAX_C_RED   = 75
+        var THRESHOLD_GREEN_MAX_C_RED = 75
 
         @JvmField
         var THRESHOLD_GREEN_MIN_C_GREEN = 150
 
         @JvmField
-        var THRESHOLD_GREEN_MAX_C_BLUE  = 75
-
+        var THRESHOLD_GREEN_MAX_C_BLUE = 75
 
 
         @JvmField
@@ -312,10 +309,8 @@ object Configs {
     }
 
 
-
     @Config
-    internal object STORAGE
-    {
+    internal object STORAGE {
         @JvmField
         var SLOTS_COUNT = 4
 
@@ -324,7 +319,6 @@ object Configs {
 
         @JvmField
         var MAX_BALL_COUNT = 3
-
 
 
         @JvmField
@@ -344,9 +338,9 @@ object Configs {
         )
 
 
-
         @JvmField
         var INTAKE_RACE_CONDITION_DELAY_MS: Long = 10
+
         @JvmField
         var REQUEST_RACE_CONDITION_DELAY_MS: Long = 5
 
@@ -367,42 +361,46 @@ object Configs {
         var DELAY_FOR_EATING_INTAKE_IN_STREAM_STORAGE_MS: Long = 1500
 
 
-
-
-
         @JvmField
         var STREAM_STORAGE_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
+
         @JvmField
         var SORTING_STORAGE_BELT_MOTOR_1_DIRECTION = DcMotorSimple.Direction.REVERSE
+
         @JvmField
         var SORTING_STORAGE_BELT_MOTOR_2_DIRECTION = DcMotorSimple.Direction.REVERSE
 
 
         @JvmField
         var SORTING_GATE_SERVO_OPEN_VALUE = 0.0
+
         @JvmField
         var SORTING_PUSH_SERVO_OPEN_VALUE = 0.0
+
         @JvmField
         var SORTING_FALL_SERVO_OPEN_VALUE = 0.0
+
         @JvmField
         var SORTING_LAUNCH_SERVO_OPEN_VALUE = 0.2
 
         @JvmField
         var SORTING_GATE_SERVO_CLOSE_VALUE = 0.5
+
         @JvmField
         var SORTING_PUSH_SERVO_CLOSE_VALUE = 0.5
+
         @JvmField
         var SORTING_FALL_SERVO_CLOSE_VALUE = 0.5
+
         @JvmField
         var SORTING_LAUNCH_SERVO_CLOSE_VALUE = 0.65
 
 
         @JvmField
         var HW_SORTING_SERVO_GATE_OPEN_VALUE = 0.9
+
         @JvmField
         var HW_SORTING_SERVO_GATE_CLOSE_VALUE = 0.6
-
-
 
 
         @JvmField
@@ -411,21 +409,23 @@ object Configs {
 
 
     @Config
-    internal object HARDWARE_DEVICES_NAMES
-    {
+    internal object HARDWARE_DEVICES_NAMES {
         @JvmField
         var INTAKE_COLOR_SENSOR_1 = "intake color sensor 1"
+
         @JvmField
         var INTAKE_COLOR_SENSOR_2 = "intake color sensor 2"
 
 
         @JvmField
         var BOTTOM_OPTIC_PARE_1 = "bottom optic pare sensor 1"
+
         @JvmField
         var BOTTOM_OPTIC_PARE_2 = "bottom optic pare sensor 2"
 
         @JvmField
         var MOBILE_OUT_OPTIC_PARE_1 = "mobile out optic pare sensor 1"
+
         @JvmField
         var MOBILE_OUT_OPTIC_PARE_2 = "mobile out optic pare sensor 2"
 
@@ -436,6 +436,7 @@ object Configs {
 
         @JvmField
         var SORTING_STORAGE_BELT_MOTOR_1 = "sorting storage belt motor 1"
+
         @JvmField
         var SORTING_STORAGE_BELT_MOTOR_2 = "sorting storage belt motor 2"
 
@@ -446,10 +447,13 @@ object Configs {
 
         @JvmField
         var MOBILE_GATE_SERVO = "mobile gate servo"
+
         @JvmField
         var MOBILE_PUSH_SERVO = "mobile push servo"
+
         @JvmField
         var MOBILE_FALL_SERVO = "mobile fall servo"
+
         @JvmField
         var MOBILE_LAUNCH_SERVO = "mobile launch servo"
     }

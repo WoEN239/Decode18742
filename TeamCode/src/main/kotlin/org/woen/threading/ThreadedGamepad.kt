@@ -1,13 +1,11 @@
 package org.woen.threading
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.Gamepad
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.utils.smartMutex.SmartMutex
-import kotlin.concurrent.thread
 
 class ThreadedGamepad private constructor() {
     companion object {

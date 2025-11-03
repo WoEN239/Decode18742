@@ -17,14 +17,13 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 import org.woen.hotRun.HotRun
 import org.woen.modules.scoringSystem.turret.Pattern
 import org.woen.telemetry.Configs
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Vec2
 import kotlin.concurrent.thread
 
-class Camera private constructor() : DisposableHandle {
+class Camera : DisposableHandle {
     companion object {
         private var _nullableInstance: Camera? = null
 
@@ -50,10 +49,17 @@ class Camera private constructor() : DisposableHandle {
     private var _visionPortal: VisionPortal? = null
 
     private val _aprilProcessor: AprilTagProcessor =
-        AprilTagProcessor.Builder().setOutputUnits(DistanceUnit.METER, AngleUnit.RADIANS).setCameraPose(
-            Position(DistanceUnit.METER, Configs.CAMERA.CAMERA_POSITION.x, Configs.CAMERA.CAMERA_POSITION.y, 0.0, 0),
-            YawPitchRollAngles(AngleUnit.DEGREES, 0.0, 0.0, 90.0, 0)
-        )
+        AprilTagProcessor.Builder().setOutputUnits(DistanceUnit.METER, AngleUnit.RADIANS)
+            .setCameraPose(
+                Position(
+                    DistanceUnit.METER,
+                    Configs.CAMERA.CAMERA_POSITION.x,
+                    Configs.CAMERA.CAMERA_POSITION.y,
+                    0.0,
+                    0
+                ),
+                YawPitchRollAngles(AngleUnit.DEGREES, 0.0, 0.0, 90.0, 0)
+            )
             .setDrawAxes(true).build()
 
     var currentPattern: Pattern? = null
@@ -63,7 +69,7 @@ class Camera private constructor() : DisposableHandle {
 
     private val _thread = ThreadManager.Companion.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted && Configs.CAMERA.CAMERA_ENABLE) {
-            if(HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN){
+            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN) {
                 Thread.sleep(5)
                 continue
             }
@@ -104,7 +110,7 @@ class Camera private constructor() : DisposableHandle {
                         rotatedPosVector.get(1).toDouble()
                     ).length()
 
-                    if(dist < Configs.CAMERA.CAMERA_TRIGGER_DISTANCE) {
+                    if (dist < Configs.CAMERA.CAMERA_TRIGGER_DISTANCE) {
                         val fieldCameraPos = fieldTagPos.subtracted(rotatedPosVector)
 
                         sum += Vec2(
@@ -126,7 +132,7 @@ class Camera private constructor() : DisposableHandle {
         _visionPortal?.close()
     }
 
-    init {
+    private constructor() {
         if (Configs.CAMERA.CAMERA_ENABLE) {
             val hardwareMap =
                 OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap

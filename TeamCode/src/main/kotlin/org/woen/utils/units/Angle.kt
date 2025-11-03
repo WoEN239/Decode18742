@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import org.woen.utils.units.Angle.Companion.chop
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.roundToInt
 import kotlin.math.sign
 
 data class Angle(@JvmField var angle: Double) {

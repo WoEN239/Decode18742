@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 
 @Autonomous
 @Disabled
-class SimpleAuto: LinearOpMode() {
+class SimpleAuto : LinearOpMode() {
     override fun runOpMode() {
         val leftForwardDrive = hardwareMap.get("leftForwardDrive") as DcMotorEx
         val leftBackDrive = hardwareMap.get("leftBackDrive") as DcMotorEx
@@ -81,20 +81,20 @@ class SimpleAuto: LinearOpMode() {
         pushServo.position = SimpleConfig.PUSH_SERVO_CLOSE
         startServo.position = SimpleConfig.START_SERVO_OPEN
 
-        while (opModeIsActive() && timer.seconds() < 10.0){
+        while (opModeIsActive() && timer.seconds() < 10.0) {
             pulleyMotor.power = SimpleConfig.AUTO_PULLEY_SPEED / battery.voltage
 
-            if(startState && shootTimer.seconds() > SimpleConfig.SHOOT_TIME + SimpleConfig.FIRST_SHOT_DELAY_DURATION)
+            if (startState && shootTimer.seconds() > SimpleConfig.SHOOT_TIME + SimpleConfig.FIRST_SHOT_DELAY_DURATION)
                 pushState = true
 
-            if(pushState && shootTimer.seconds() > SimpleConfig.SHOOT_TIME + SimpleConfig.FIRST_SHOT_DELAY_DURATION + SimpleConfig.PUSH_TIME){
+            if (pushState && shootTimer.seconds() > SimpleConfig.SHOOT_TIME + SimpleConfig.FIRST_SHOT_DELAY_DURATION + SimpleConfig.PUSH_TIME) {
                 startState = false
                 pushState = false
             }
 
             if (startState && !isWaitingSecondCharge && isCharging &&
-                shotDelayTimer.seconds() > SimpleConfig.DELAY_AFTER_FIRST_SHOT)
-            {
+                shotDelayTimer.seconds() > SimpleConfig.DELAY_AFTER_FIRST_SHOT
+            ) {
                 isWaitingSecondCharge = true
                 isCharging = false
                 shotDelayTimer.reset()
@@ -103,8 +103,8 @@ class SimpleAuto: LinearOpMode() {
                 rightBeltMotor.power = 0.0
             }
             if (isWaitingSecondCharge &&
-                shotDelayTimer.seconds() > SimpleConfig.FIRST_SHOT_DELAY_DURATION)
-            {
+                shotDelayTimer.seconds() > SimpleConfig.FIRST_SHOT_DELAY_DURATION
+            ) {
                 leftBeltMotor.power = 1.0
                 rightBeltMotor.power = -1.0
 
@@ -114,8 +114,10 @@ class SimpleAuto: LinearOpMode() {
                 shotDelayTimer.reset()
             }
 
-            pushServo.position = if(pushState) SimpleConfig.PUSH_SERVO_OPEN else SimpleConfig.PUSH_SERVO_CLOSE
-            startServo.position = if(startState) SimpleConfig.START_SERVO_OPEN else SimpleConfig.START_SERVO_CLOSE
+            pushServo.position =
+                if (pushState) SimpleConfig.PUSH_SERVO_OPEN else SimpleConfig.PUSH_SERVO_CLOSE
+            startServo.position =
+                if (startState) SimpleConfig.START_SERVO_OPEN else SimpleConfig.START_SERVO_CLOSE
         }
 
         leftBackDrive.power = 1.0
@@ -130,7 +132,7 @@ class SimpleAuto: LinearOpMode() {
         rightForwardDrive.power = 0.0
         rightBackDrive.power = 0.0
 
-        while (opModeIsActive()){
+        while (opModeIsActive()) {
 
         }
 

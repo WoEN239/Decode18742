@@ -7,16 +7,13 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.runner.segment.RRTrajectorySegment
 import org.woen.modules.runner.segment.RequireRRBuilderEvent
 import org.woen.modules.runner.segment.RunSegmentEvent
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
-import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.smartMutex.SmartMutex
-import org.woen.utils.units.Orientation
 import kotlin.concurrent.thread
 import kotlin.math.PI
 
-class ActionRunner private constructor() : DisposableHandle {
+class ActionRunner : DisposableHandle {
     companion object {
         private var _nullableInstance: ActionRunner? = null
 
@@ -45,13 +42,18 @@ class ActionRunner private constructor() : DisposableHandle {
                 RRTrajectorySegment(
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!.splineToLinearHeading(Pose2d(Vector2d(0.6097, 0.6097), PI), PI / 2.0).build()
+                    ).trajectoryBuilder!!.splineToLinearHeading(
+                        Pose2d(
+                            Vector2d(0.6097, 0.6097),
+                            PI
+                        ), PI / 2.0
+                    ).build()
                 )
             )
         )
     })
 
-    init {
+    private constructor() {
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
                 _thread.start()

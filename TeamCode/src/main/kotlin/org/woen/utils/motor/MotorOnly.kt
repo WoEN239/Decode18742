@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
-class MotorOnly(private val _motor: DcMotorEx) : DcMotorEx {
+class MotorOnly : DcMotorEx {
     private var _direction = Direction.FORWARD
 
     override fun getManufacturer() = _motor.manufacturer
@@ -166,7 +166,11 @@ class MotorOnly(private val _motor: DcMotorEx) : DcMotorEx {
 
     override fun isOverCurrent() = _motor.isOverCurrent
 
-    init {
+    private val _motor: DcMotorEx
+
+    constructor(motor: DcMotorEx) {
+        _motor = motor
+
         _motor.direction = Direction.FORWARD
         _motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER

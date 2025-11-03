@@ -81,7 +81,7 @@ class OdometersOdometry : IOdometry {
 
     }
 
-    init {
+    constructor() {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometersOdometry, _threeOdometry)
     }
 }

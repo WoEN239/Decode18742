@@ -11,7 +11,7 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.Executors
 
-class ThreadManager private constructor(): DisposableHandle {
+class ThreadManager private constructor() : DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadManager? = null
 
@@ -50,13 +50,15 @@ class ThreadManager private constructor(): DisposableHandle {
 
     fun register(thread: Thread): Thread {
         thread.setUncaughtExceptionHandler { _, exception ->
-            ThreadedTelemetry.LAZY_INSTANCE.log(exception.message!!)
+            if (exception !is InterruptedException) {
+                ThreadedTelemetry.LAZY_INSTANCE.log(exception.message!!)
 
-            for (i in exception.stackTrace)
-                ThreadedTelemetry.LAZY_INSTANCE.log(i.className + ": " + i.methodName)
+                for (i in exception.stackTrace)
+                    ThreadedTelemetry.LAZY_INSTANCE.log(i.className + ": " + i.methodName)
 
-            _mainHandler?.post {
-                throw exception
+                _mainHandler?.post {
+                    throw exception
+                }
             }
         }
 
