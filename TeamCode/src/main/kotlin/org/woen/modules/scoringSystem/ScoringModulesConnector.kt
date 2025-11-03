@@ -5,7 +5,7 @@ package org.woen.modules.scoringSystem
 
 import kotlinx.coroutines.delay
 import org.woen.modules.IModule
-import org.woen.modules.scoringSystem.brush.BrushSoft
+import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrush
 import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
 import org.woen.modules.scoringSystem.storage.BottomOpticPareSeesSomethingEvent
@@ -108,7 +108,7 @@ class ScoringModulesConnector : IModule {
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SwitchBrush(
-                    BrushSoft.AcktBrush.REVERS,
+                    Brush.AcktBrush.REVERS,
                     TIME_FOR_BRUSH_REVERSING
                 )
             )
@@ -123,7 +123,7 @@ class ScoringModulesConnector : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             SwitchBrush(
-                BrushSoft.AcktBrush.REVERS,
+                Brush.AcktBrush.REVERS,
                 reverseTime
             )
         )
@@ -140,13 +140,13 @@ class ScoringModulesConnector : IModule {
 
         if (_canRestartBrushes.get())
             ThreadedEventBus.LAZY_INSTANCE.invoke(
-                SwitchBrush(BrushSoft.AcktBrush.ACKT)
+                SwitchBrush(Brush.AcktBrush.ACKT)
             )
     }
 
     suspend fun currentlyEatingIntakeProcess() {
         ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SwitchBrush(BrushSoft.AcktBrush.ACKT)
+            SwitchBrush(Brush.AcktBrush.ACKT)
         )
 
         awaitSuccessfulBallIntake()
