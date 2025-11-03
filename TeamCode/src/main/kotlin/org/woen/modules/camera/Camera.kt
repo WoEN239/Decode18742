@@ -18,11 +18,14 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.scoringSystem.turret.Pattern
 import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
+import org.woen.threading.ThreadedEventBus
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Vec2
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
+
+data class OnPatternDetectedEvent(val pattern: Pattern)
 
 class Camera : DisposableHandle {
     companion object {
@@ -86,11 +89,16 @@ class Camera : DisposableHandle {
             var sum = Vec2.Companion.ZERO
 
             for (detection in detections) {
-                val pattern = Pattern.patterns.find { it.cameraTagId == detection.id }
+                var pattern: Pattern? = null
 
-                if (pattern != null)
+                if (currentPattern.get() == null)
+                    pattern = Pattern.patterns.find { it.cameraTagId == detection.id }
+
+                if (pattern != null) {
                     currentPattern.set(pattern)
-                else if (detection.rawPose != null &&
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(OnPatternDetectedEvent(pattern))
+                } else if (detection.rawPose != null &&
                     detection.decisionMargin < Configs.CAMERA.CAMERA_ACCURACY
                 ) {
                     val rawTagPose: AprilTagPoseRaw = detection.rawPose
