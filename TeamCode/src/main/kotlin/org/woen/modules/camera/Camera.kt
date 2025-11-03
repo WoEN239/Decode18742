@@ -21,6 +21,7 @@ import org.woen.threading.ThreadManager
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Vec2
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
 class Camera : DisposableHandle {
@@ -62,8 +63,7 @@ class Camera : DisposableHandle {
             )
             .setDrawAxes(true).build()
 
-    var currentPattern: Pattern? = null
-        private set
+    var currentPattern: AtomicReference<Pattern?> = AtomicReference()
 
     val cameraPositionUpdateEvent = SimpleEvent<Vec2>()
 
@@ -89,7 +89,7 @@ class Camera : DisposableHandle {
                 val pattern = Pattern.patterns.find { it.cameraTagId == detection.id }
 
                 if (pattern != null)
-                    currentPattern = pattern
+                    currentPattern.set(pattern)
                 else if (detection.rawPose != null &&
                     detection.decisionMargin < Configs.CAMERA.CAMERA_ACCURACY
                 ) {
@@ -143,9 +143,11 @@ class Camera : DisposableHandle {
                 VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
                     .addProcessors(helpCameraProcessor, _aprilProcessor).build()
 
-            FtcDashboard.getInstance().startCameraStream(helpCameraProcessor, 15.0)
+            HotRun.LAZY_INSTANCE.opModeInitEvent += {
+                FtcDashboard.getInstance().startCameraStream(helpCameraProcessor, 10.0)
+            }
 
-            HotRun.Companion.LAZY_INSTANCE.opModeStopEvent += {
+            HotRun.LAZY_INSTANCE.opModeStopEvent += {
                 FtcDashboard.getInstance().stopCameraStream()
             }
         }
