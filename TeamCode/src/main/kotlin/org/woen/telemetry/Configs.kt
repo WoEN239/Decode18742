@@ -1,15 +1,20 @@
 package org.woen.telemetry
 
 
-import com.acmerobotics.dashboard.config.Config
-import com.qualcomm.robotcore.hardware.DcMotorSimple
-import org.woen.utils.regulator.RegulatorParameters
-import org.woen.utils.units.Orientation
-import org.woen.utils.units.Triangle
+import kotlin.math.PI
+
 import org.woen.utils.units.Vec2
+import org.woen.utils.units.Triangle
+import org.woen.utils.units.Orientation
+import org.woen.utils.regulator.RegulatorParameters
+
 import woen239.enumerators.StorageSlot
 import woen239.enumerators.StorageType
-import kotlin.math.PI
+
+import com.acmerobotics.dashboard.config.Config
+import com.qualcomm.robotcore.hardware.DcMotorSimple
+
+
 
 object Configs {
 
@@ -147,7 +152,7 @@ object Configs {
     }
 
     @Config
-    internal object ROAR_RUNNER {
+    internal object ROAD_RUNNER {
         @JvmField
         var ROAD_RUNNER_POS_X_P = 5.0
 
@@ -306,13 +311,11 @@ object Configs {
     }
 
 
+
     @Config
     internal object STORAGE {
         @JvmField
-        var SLOTS_COUNT = 4
-
-        @JvmField
-        var REAL_SLOT_COUNT = 3
+        var STORAGE_SLOT_COUNT = 4
 
         @JvmField
         var MAX_BALL_COUNT = 3
@@ -337,7 +340,6 @@ object Configs {
 
         @JvmField
         var INTAKE_RACE_CONDITION_DELAY_MS: Long = 10
-
         @JvmField
         var REQUEST_RACE_CONDITION_DELAY_MS: Long = 5
 
@@ -346,58 +348,49 @@ object Configs {
 
         @JvmField
         var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 500
-
         @JvmField
         var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1000
 
 
         @JvmField
         var MAX_WAITING_TIME_FOR_INTAKE_MS = 2000
-
         @JvmField
         var DELAY_FOR_EATING_INTAKE_IN_STREAM_STORAGE_MS: Long = 1500
+
 
 
         @JvmField
         var STREAM_STORAGE_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
 
+
         @JvmField
         var SORTING_STORAGE_BELT_MOTOR_1_DIRECTION = DcMotorSimple.Direction.REVERSE
-
         @JvmField
         var SORTING_STORAGE_BELT_MOTOR_2_DIRECTION = DcMotorSimple.Direction.REVERSE
 
 
         @JvmField
-        var SORTING_GATE_SERVO_OPEN_VALUE = 0.0
-
-        @JvmField
-        var SORTING_PUSH_SERVO_OPEN_VALUE = 0.0
-
-        @JvmField
-        var SORTING_FALL_SERVO_OPEN_VALUE = 0.0
-
-        @JvmField
-        var SORTING_LAUNCH_SERVO_OPEN_VALUE = 0.2
-
+        var SORTING_GATE_SERVO_OPEN_VALUE  = 0.0
         @JvmField
         var SORTING_GATE_SERVO_CLOSE_VALUE = 0.5
 
         @JvmField
+        var SORTING_PUSH_SERVO_OPEN_VALUE  = 0.0
+        @JvmField
         var SORTING_PUSH_SERVO_CLOSE_VALUE = 0.5
 
         @JvmField
+        var SORTING_FALL_SERVO_OPEN_VALUE  = 0.0
+        @JvmField
         var SORTING_FALL_SERVO_CLOSE_VALUE = 0.5
 
-        @JvmField
-        var SORTING_LAUNCH_SERVO_CLOSE_VALUE = 0.65
 
 
         @JvmField
-        var HW_SORTING_SERVO_GATE_OPEN_VALUE = 0.9
-
+        var HW_SORTING_SERVO_GATE_OPEN_VALUE  = 0.9
         @JvmField
         var HW_SORTING_SERVO_GATE_CLOSE_VALUE = 0.6
+
 
 
         @JvmField
@@ -405,24 +398,23 @@ object Configs {
     }
 
 
+    
     @Config
     internal object HARDWARE_DEVICES_NAMES {
         @JvmField
         var INTAKE_COLOR_SENSOR_1 = "intake color sensor 1"
-
         @JvmField
         var INTAKE_COLOR_SENSOR_2 = "intake color sensor 2"
 
 
         @JvmField
         var BOTTOM_OPTIC_PARE_1 = "bottom optic pare sensor 1"
-
         @JvmField
         var BOTTOM_OPTIC_PARE_2 = "bottom optic pare sensor 2"
 
+
         @JvmField
         var MOBILE_OUT_OPTIC_PARE_1 = "mobile out optic pare sensor 1"
-
         @JvmField
         var MOBILE_OUT_OPTIC_PARE_2 = "mobile out optic pare sensor 2"
 
@@ -432,26 +424,21 @@ object Configs {
 
 
         @JvmField
-        var SORTING_STORAGE_BELT_MOTOR_1 = "sorting storage belt motor 1"
+        var STREAM_STORAGE_BELT_MOTOR = "stream storage belt motor"
 
+
+
+        @JvmField
+        var SORTING_STORAGE_BELT_MOTOR_1 = "sorting storage belt motor 1"
         @JvmField
         var SORTING_STORAGE_BELT_MOTOR_2 = "sorting storage belt motor 2"
 
 
         @JvmField
-        var STREAM_STORAGE_BELT_MOTOR = "stream storage belt motor"
-
-
-        @JvmField
         var MOBILE_GATE_SERVO = "mobile gate servo"
-
         @JvmField
         var MOBILE_PUSH_SERVO = "mobile push servo"
-
         @JvmField
         var MOBILE_FALL_SERVO = "mobile fall servo"
-
-        @JvmField
-        var MOBILE_LAUNCH_SERVO = "mobile launch servo"
     }
 }

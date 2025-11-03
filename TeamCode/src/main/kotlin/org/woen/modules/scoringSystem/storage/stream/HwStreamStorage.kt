@@ -15,32 +15,12 @@ import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.STREAM_STORAGE_BELT_MOT
 
 
 
-class HwStreamStorage() : IHardwareDevice
+class HwStreamStorage : IHardwareDevice
 {
     private lateinit var _beltMotor : DcMotorEx
     private var _beltMotorPower = AtomicReference(0.0)
 
 
-
-    fun start()
-    {
-        _beltMotorPower.set(12.0)
-    }
-    fun stop()
-    {
-        _beltMotorPower.set(0.0)
-    }
-
-
-
-    override fun update()
-    {
-        _beltMotor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_beltMotorPower.get())
-    }
-
-
-
-    override fun dispose() { }
 
     override fun init(hardwareMap : HardwareMap)
     {
@@ -53,4 +33,27 @@ class HwStreamStorage() : IHardwareDevice
 
         _beltMotor.direction = STREAM_STORAGE_MOTOR_DIRECTION
     }
+
+    override fun update()
+    {
+        _beltMotor.power = voltageToPowerAlias()
+    }
+
+
+
+    fun start()
+    {
+        _beltMotorPower.set(12.0)
+    }
+    fun stop()
+    {
+        _beltMotorPower.set(0.0)
+    }
+
+    fun voltageToPowerAlias()
+        = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_beltMotorPower.get())
+
+
+
+    override fun dispose() { }
 }

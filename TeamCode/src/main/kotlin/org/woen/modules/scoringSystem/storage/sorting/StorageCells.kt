@@ -2,6 +2,7 @@ package org.woen.modules.scoringSystem.storage.sorting
 
 
 import kotlinx.coroutines.delay
+
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
 
@@ -10,15 +11,17 @@ import woen239.enumerators.RequestResult
 
 import woen239.enumerators.StorageSlot
 
-import org.woen.telemetry.Configs.STORAGE.SLOTS_COUNT
-import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
+import org.woen.telemetry.Configs.STORAGE.STORAGE_SLOT_COUNT
+
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 
-import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_MAX_SERVO_POSITION_CHANGE
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_MAX_SERVO_POSITION_CHANGE
+
+import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
+
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -54,7 +57,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 
 class StorageCells
 {
-    private val _storageCells = Array(SLOTS_COUNT) { Ball() }
+    private val _storageCells = Array(STORAGE_SLOT_COUNT) { Ball() }
     private val _mobileSlot = MobileSlot()
 
     private lateinit var _hwSortingM: HwSortingManager  //  DO NOT JOIN ASSIGNMENT
@@ -70,12 +73,12 @@ class StorageCells
         if (anyBallCount() >= MAX_BALL_COUNT) return result
 
         var curSlotId = 0
-        while (curSlotId < SLOTS_COUNT)
+        while (curSlotId < STORAGE_SLOT_COUNT)
         {
             if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].IsEmpty())
             {
                 result.Set(curSlotId)
-                curSlotId += REAL_SLOT_COUNT  //  Fast break, preferring chosen slot order
+                curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -111,8 +114,7 @@ class StorageCells
         if (anyBallCount() <= 0)
             return RequestResult(
                 RequestResult.FAIL_IS_EMPTY,
-                RequestResult.Name.FAIL_IS_EMPTY
-            )
+                RequestResult.Name.FAIL_IS_EMPTY)
 
 
         val result = RequestResult(
@@ -121,12 +123,12 @@ class StorageCells
         )
 
         var curSlotId = 0
-        while (curSlotId < SLOTS_COUNT)
+        while (curSlotId < STORAGE_SLOT_COUNT)
         {
             if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].Name() == requested)
             {
                 result.Set(curSlotId)
-                curSlotId += SLOTS_COUNT  //  Fast break, preferring chosen slot order
+                curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -144,12 +146,12 @@ class StorageCells
 
 
         var curSlotId = 0
-        while (curSlotId < SLOTS_COUNT)
+        while (curSlotId < STORAGE_SLOT_COUNT)
         {
             if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].HasBall())
             {
                 result.Set(curSlotId)
-                curSlotId += SLOTS_COUNT  //  Fast break, preferring chosen slot order
+                curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -264,11 +266,10 @@ class StorageCells
         }
         return rotationCondition
     }
-    suspend fun autoPartial2RotateCW(): Boolean
-    {
-        return if (partial2RotateCW()) true
+    suspend fun autoPartial2RotateCW()
+        = if (partial2RotateCW()) true
         else partial1RotateCW()
-    }
+
     suspend fun partial3RotateCW(): Boolean
     {
         val rotationCondition = _storageCells[StorageSlot.MOBILE_IN].IsEmpty()
@@ -288,33 +289,14 @@ class StorageCells
 
 
 
-    suspend fun forceSafeStartHwBelt()
-    {
-        _hwSortingM.forceSafeStart()
-    }
-    suspend fun forceSafeStopHwBelt()
-    {
-        _hwSortingM.forceSafeStop()
-    }
-    fun forceStopHwBelt()
-    {
-        _hwSortingM.forceStop()
-    }
-    suspend fun forceSafePauseHwBelt()
-    {
-        _hwSortingM.forceSafePause()
-    }
-    suspend fun forceSafeResumeHwBelt()
-    {
-        _hwSortingM.forceSafeResume()
-    }
+    suspend fun forceSafeStartHwBelt() = _hwSortingM.forceSafeStart()
+
+    suspend fun forceSafeStopHwBelt() = _hwSortingM.forceSafeStop()
+    fun emergencyStopHwBelt() = _hwSortingM.forceStop()
 
 
 
-    fun storageData(): Array<Ball>
-    {
-        return _storageCells
-    }
+    fun storageData() = _storageCells
 
     fun anyBallCount(): Int
     {
@@ -328,6 +310,7 @@ class StorageCells
 
         return count
     }
+
     fun selectedBallCount(ball: Ball.Name): Int
     {
         var count = 0; var curSlotId = StorageSlot.BOTTOM
@@ -360,8 +343,5 @@ class StorageCells
         _hwSortingM = HwSortingManager()
         _hwSortingM.addDevice()
     }
-    fun linkMobileSlotHardware()
-    {
-        _mobileSlot.initHardware()
-    }
+    fun linkMobileSlotHardware() = _mobileSlot.initHardware()
 }

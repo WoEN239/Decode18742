@@ -1,18 +1,26 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
-import woen239.enumerators.RunStatus
-import org.woen.threading.hardware.HardwareThreads
-
 import kotlinx.coroutines.delay
+
+import woen239.enumerators.RunStatus
+
+import org.woen.threading.hardware.HardwareThreads
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 
 
 
-class HwSortingManager()
+class HwSortingManager
 {
     private lateinit var _hwSorting: HwSorting
     private val _runStatus = RunStatus()
+
+
+
+    constructor()
+    {
+        linkHardware()
+    }
 
 
 
@@ -101,16 +109,9 @@ class HwSortingManager()
 
 
 
-    fun addDevice()
-    {
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwSorting)
-    }
+    fun addDevice() = HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwSorting)
     fun linkHardware()
     {
         _hwSorting = HwSorting()
-    }
-    init
-    {
-        linkHardware()
     }
 }

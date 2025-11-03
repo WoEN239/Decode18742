@@ -43,8 +43,20 @@ class HwSwitchStorage : IHardwareDevice
 
 
 
+    override fun init(hardwareMap: HardwareMap)
+    {
+        _intakeColorSensor1 = fixSensor(
+            BlocksOpModeCompanion.hardwareMap.get(INTAKE_COLOR_SENSOR_1)
+                    as AdafruitI2cColorSensor)
+        _intakeColorSensor2 = fixSensor(
+            BlocksOpModeCompanion.hardwareMap.get(INTAKE_COLOR_SENSOR_2)
+                    as AdafruitI2cColorSensor)
 
 
+        _turretGateServo = hardwareMap.get(TURRET_GATE_SERVO) as Servo
+
+        closeGate()
+    }
     override fun update()
     {
         val r1 = _intakeColorSensor1.red()
@@ -67,12 +79,12 @@ class HwSwitchStorage : IHardwareDevice
             ColorSensorsSeeIntakeIncoming(Ball.Name.GREEN)
         }
         else if (r1 > THRESHOLD_PURPLE_MIN_C_RED &&
-            min(r1, b1) - g1 > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
-            b1 > THRESHOLD_PURPLE_MIN_C_BLUE
-            ||
-            r2 > THRESHOLD_PURPLE_MIN_C_RED &&
-            min(r2, b2) - g2 > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
-            b2 > THRESHOLD_PURPLE_MIN_C_BLUE)
+                 min(r1, b1) - g1 > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
+                 b1 > THRESHOLD_PURPLE_MIN_C_BLUE
+                 ||
+                 r2 > THRESHOLD_PURPLE_MIN_C_RED &&
+                 min(r2, b2) - g2 > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
+                 b2 > THRESHOLD_PURPLE_MIN_C_BLUE)
         {
             ColorSensorsSeeIntakeIncoming(Ball.Name.PURPLE)
         }
@@ -80,6 +92,8 @@ class HwSwitchStorage : IHardwareDevice
 
         _turretGateServo.position = _gatePosition.get()
     }
+
+
 
     fun openGate()
     {
@@ -93,21 +107,4 @@ class HwSwitchStorage : IHardwareDevice
 
 
     override fun dispose() { }
-
-    override fun init(hardwareMap: HardwareMap)
-    {
-        _intakeColorSensor1 = fixSensor(
-            BlocksOpModeCompanion.hardwareMap.get(INTAKE_COLOR_SENSOR_1)
-                    as AdafruitI2cColorSensor
-        )
-        _intakeColorSensor2 = fixSensor(
-            BlocksOpModeCompanion.hardwareMap.get(INTAKE_COLOR_SENSOR_2)
-                    as AdafruitI2cColorSensor
-        )
-
-
-        _turretGateServo = hardwareMap.get(TURRET_GATE_SERVO) as Servo
-
-        closeGate()
-    }
 }

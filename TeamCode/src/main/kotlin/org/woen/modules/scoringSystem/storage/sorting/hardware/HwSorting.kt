@@ -1,12 +1,12 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
+import java.util.concurrent.atomic.AtomicReference
+
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.HardwareMap
-
-import java.util.concurrent.atomic.AtomicReference
 
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
@@ -37,8 +37,6 @@ class HwSorting () : IHardwareDevice
     private lateinit var _mobileOutOpticPare2 : AnalogInput
 
 
-
-
     private lateinit var _beltMotor1 : DcMotorEx
     private lateinit var _beltMotor2 : DcMotorEx
 
@@ -46,36 +44,6 @@ class HwSorting () : IHardwareDevice
     private val _motor2Power = AtomicReference(0.0)
 
 
-
-    fun startBeltMotor()
-    {
-        _motor1Power.set(12.0)
-        _motor2Power.set(12.0)
-    }
-    fun stopBeltMotor()
-    {
-        _motor1Power.set(0.0)
-        _motor2Power.set(0.0)
-    }
-
-
-
-    override fun dispose() { }
-
-    override fun update()
-    {
-        _beltMotor1.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motor1Power.get())
-        _beltMotor2.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motor2Power.get())
-
-
-        if (_bottomOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
-            _bottomOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
-            ThreadedEventBus.LAZY_INSTANCE.invoke(BottomOpticPareSeesSomethingEvent())
-
-        if (_mobileOutOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
-            _mobileOutOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
-            ThreadedEventBus.LAZY_INSTANCE.invoke(MobileOutOpticPareSeesSomethingEvent())
-    }
 
     override fun init(hardwareMap : HardwareMap)
     {
@@ -104,4 +72,35 @@ class HwSorting () : IHardwareDevice
         _beltMotor1.direction = SORTING_STORAGE_BELT_MOTOR_1_DIRECTION
         _beltMotor2.direction = SORTING_STORAGE_BELT_MOTOR_2_DIRECTION
     }
+    override fun update()
+    {
+        _beltMotor1.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motor1Power.get())
+        _beltMotor2.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motor2Power.get())
+
+
+        if (_bottomOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
+            _bottomOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
+            ThreadedEventBus.LAZY_INSTANCE.invoke(BottomOpticPareSeesSomethingEvent())
+
+        if (_mobileOutOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
+            _mobileOutOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
+            ThreadedEventBus.LAZY_INSTANCE.invoke(MobileOutOpticPareSeesSomethingEvent())
+    }
+
+
+
+    fun startBeltMotor()
+    {
+        _motor1Power.set(12.0)
+        _motor2Power.set(12.0)
+    }
+    fun stopBeltMotor()
+    {
+        _motor1Power.set(0.0)
+        _motor2Power.set(0.0)
+    }
+
+
+
+    override fun dispose() { }
 }

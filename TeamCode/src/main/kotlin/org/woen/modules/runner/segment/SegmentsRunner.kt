@@ -60,11 +60,11 @@ class SegmentsRunner : IModule {
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SetDriveTargetVelocityEvent(
                     orientationErr.pos * Vec2(
-                        Configs.ROAR_RUNNER.ROAD_RUNNER_POS_X_P,
-                        Configs.ROAR_RUNNER.ROAD_RUNNER_POS_Y_P
+                        Configs.ROAD_RUNNER.ROAD_RUNNER_POS_X_P,
+                        Configs.ROAD_RUNNER.ROAD_RUNNER_POS_Y_P
                     ) +
                             _targetTranslateVelocity,
-                    orientationErr.angl.angle * Configs.ROAR_RUNNER.ROAD_RUNNER_POS_H_P +
+                    orientationErr.angl.angle * Configs.ROAD_RUNNER.ROAD_RUNNER_POS_H_P +
                             _targetRotateVelocity
                 )
             )
@@ -148,13 +148,13 @@ class SegmentsRunner : IModule {
                 Pose2d(startOrientation.x, startOrientation.y, startOrientation.angl.angle), 0.0,
                 MinVelConstraint(
                     listOf(
-                        TranslationalVelConstraint(Configs.ROAR_RUNNER.ROAD_RUNNER_TRANSLATE_VELOCITY),
-                        AngularVelConstraint(Configs.ROAR_RUNNER.ROAD_RUNNER_ROTATE_VELOCITY)
+                        TranslationalVelConstraint(Configs.ROAD_RUNNER.ROAD_RUNNER_TRANSLATE_VELOCITY),
+                        AngularVelConstraint(Configs.ROAD_RUNNER.ROAD_RUNNER_ROTATE_VELOCITY)
                     )
                 ),
                 ProfileAccelConstraint(
-                    Configs.ROAR_RUNNER.ROAD_RUNNER_MIN_TRANSLATION_ACCEL,
-                    Configs.ROAR_RUNNER.ROAD_RUNNER_MAX_TRANSLATION_ACCEL
+                    Configs.ROAD_RUNNER.ROAD_RUNNER_MIN_TRANSLATION_ACCEL,
+                    Configs.ROAD_RUNNER.ROAD_RUNNER_MAX_TRANSLATION_ACCEL
                 )
             )
         })

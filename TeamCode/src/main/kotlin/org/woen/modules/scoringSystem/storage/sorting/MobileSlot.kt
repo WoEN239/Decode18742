@@ -18,6 +18,15 @@ class MobileSlot
 
 
 
+    constructor()
+    {
+        _sortingGateState.Set(ServoGate.UNDEFINED, ServoGate.Name.UNDEFINED)
+        _sortingPushState.Set(ServoGate.UNDEFINED, ServoGate.Name.UNDEFINED)
+        _sortingFallState.Set(ServoGate.UNDEFINED, ServoGate.Name.UNDEFINED)
+    }
+
+
+
     fun openGate()
     {
         _hwMobileSlot.openGate()
@@ -63,14 +72,5 @@ class MobileSlot
     {
         linkHardware()
         calibrateHardware()
-    }
-
-
-
-    init
-    {
-        _sortingGateState.Set(ServoGate.UNDEFINED, ServoGate.Name.UNDEFINED)
-        _sortingPushState.Set(ServoGate.UNDEFINED, ServoGate.Name.UNDEFINED)
-        _sortingFallState.Set(ServoGate.UNDEFINED, ServoGate.Name.UNDEFINED)
     }
 }

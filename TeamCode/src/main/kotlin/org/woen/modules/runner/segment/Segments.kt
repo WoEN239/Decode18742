@@ -16,9 +16,9 @@ class TurnSegment(angle: Double, private val _startOrientation: Orientation) : I
     private val _turn = TimeTurn(
         Pose2d(_startOrientation.x, _startOrientation.y, _startOrientation.angl.angle), angle,
         TurnConstraints(
-            Configs.ROAR_RUNNER.ROAD_RUNNER_ROTATE_VELOCITY,
-            -Configs.ROAR_RUNNER.ROAD_RUNNER_ROTATE_VELOCITY,
-            Configs.ROAR_RUNNER.ROAD_RUNNER_ROTATE_ACCEL
+            Configs.ROAD_RUNNER.ROAD_RUNNER_ROTATE_VELOCITY,
+            -Configs.ROAD_RUNNER.ROAD_RUNNER_ROTATE_VELOCITY,
+            Configs.ROAD_RUNNER.ROAD_RUNNER_ROTATE_ACCEL
         )
     )
 

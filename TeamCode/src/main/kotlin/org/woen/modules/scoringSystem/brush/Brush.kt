@@ -1,18 +1,24 @@
 package org.woen.modules.scoringSystem.brush
 
-import com.qualcomm.robotcore.util.ElapsedTime
+
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicReference
+
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
-import java.util.concurrent.atomic.AtomicReference
 
-class SwitchBrush(var a: Brush.AcktBrush, var time1: Long = 1000)
+import com.qualcomm.robotcore.util.ElapsedTime
+
+
+class SwitchBrush(var brushState: Brush.AcktBrush, var reverseTime: Long = 1000)
+
+
 
 class Brush : IModule {
     enum class AcktBrush {
@@ -98,8 +104,8 @@ class Brush : IModule {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(bruh)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SwitchBrush::class, {
-            turnOn.set(it.a)//1-ack; 2-notack; 3-brake; 4- revers with fixed time
-            timerRevers.set(it.time1)
+            turnOn.set(it.brushState)//1-ack; 2-notack; 3-brake; 4- revers with fixed time
+            timerRevers.set(it.reverseTime)
         })
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {

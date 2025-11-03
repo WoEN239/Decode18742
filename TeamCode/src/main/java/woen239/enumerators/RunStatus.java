@@ -65,6 +65,11 @@ public class RunStatus
     {
         Set(INACTIVE, Name.INACTIVE);
     }
+    public void SetAlreadyUsed()
+    {
+        Set(USED_BY_ANOTHER_PROCESS, Name.USED_BY_ANOTHER_PROCESS);
+    }
+
     public void Set(Name name)
     {
         Set(ToInt(name), name);

@@ -1,19 +1,20 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
-import woen239.enumerators.Ball
-import woen239.enumerators.BallRequest
-
-import woen239.enumerators.ShotType
-import woen239.enumerators.IntakeResult
-import woen239.enumerators.RequestResult
-
-import woen239.enumerators.RunStatus
-
+import kotlin.math.min
 import kotlinx.coroutines.delay
 import java.util.concurrent.atomic.AtomicReference
 
 import android.annotation.SuppressLint
+
+import woen239.enumerators.Ball
+import woen239.enumerators.BallRequest
+
+import woen239.enumerators.IntakeResult
+import woen239.enumerators.RequestResult
+
+import woen239.enumerators.ShotType
+import woen239.enumerators.RunStatus
 
 import org.woen.threading.ThreadedEventBus
 import org.woen.modules.scoringSystem.storage.StorageFinishedIntakeEvent
@@ -22,7 +23,6 @@ import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
-import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
@@ -32,21 +32,20 @@ import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
 
 class SortingStorage
 {
+    private val _storageCells = StorageCells()
+
     private val _intakeRunStatus  = RunStatus()
     private val _requestRunStatus = RunStatus()
-
-    private val _storageCells = StorageCells()
 
     private var _shotWasFired = AtomicReference(false)
     private var _ballWasEaten = AtomicReference(false)
 
 
 
-
-
     suspend fun handleIntake(inputBall: Ball.Name): IntakeResult.Name
     {
-        if (_storageCells.anyBallCount() >= MAX_BALL_COUNT) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
+        if (_storageCells.anyBallCount() >= MAX_BALL_COUNT)
+            return IntakeResult.Name.FAIL_STORAGE_IS_FULL
 
         if (noIntakeRaceConditionProblems())
         {
@@ -65,6 +64,29 @@ class SortingStorage
         fullResumeRequestLogic(intakeFail)
         return intakeFail
     }
+    private suspend fun updateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
+    {
+        if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
+
+
+        when (intakeResult.Name())
+        {
+            IntakeResult.Name.SUCCESS_CENTER     -> _storageCells.partial1RotateCW()
+            IntakeResult.Name.SUCCESS_MOBILE_OUT -> _storageCells.autoPartial2RotateCW()
+            IntakeResult.Name.SUCCESS_MOBILE_IN  -> _storageCells.partial3RotateCW()
+            else -> { }
+        }
+
+
+        if (!fullWaitForIntakeIsFinishedEvent())
+            return terminateIntake()
+
+
+        return if (_storageCells.updateAfterIntake(inputBall))
+             IntakeResult.Name.SUCCESS
+        else IntakeResult.Name.FAIL_UNKNOWN
+    }
+
     private suspend fun intakeRaceConditionIsPresent(): Boolean
     {
         if (_intakeRunStatus.IsActive())
@@ -82,32 +104,7 @@ class SortingStorage
 
         return !intakeRaceConditionIsPresent()
     }
-    private suspend fun updateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
-    {
-        if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
 
-
-        when (intakeResult.Name())
-        {
-            IntakeResult.Name.SUCCESS_CENTER -> _storageCells.partial1RotateCW()
-            IntakeResult.Name.SUCCESS_MOBILE_OUT -> _storageCells.autoPartial2RotateCW()
-            IntakeResult.Name.SUCCESS_MOBILE_IN  -> _storageCells.partial3RotateCW()
-            else -> { }
-        }
-
-
-        if (!fullWaitForIntakeIsFinishedEvent())
-            return terminateIntake()
-
-
-        return if (_storageCells.updateAfterIntake(inputBall))
-             IntakeResult.Name.SUCCESS
-        else IntakeResult.Name.FAIL_UNKNOWN
-    }
-    private fun doTerminateIntake(): Boolean
-    {
-        return _intakeRunStatus.TerminationId() == RunStatus.DO_TERMINATE
-    }
     private fun terminateIntake(): IntakeResult.Name
     {
         _intakeRunStatus.SetTermination(
@@ -120,27 +117,28 @@ class SortingStorage
 
         return intakeFail
     }
-    fun switchTerminateIntake()
-    {
-        _intakeRunStatus.DoTerminate()
-    }
+    private fun doTerminateIntake() = _intakeRunStatus.TerminationId() == RunStatus.DO_TERMINATE
+    fun switchTerminateIntake() = _intakeRunStatus.DoTerminate()
 
 
 
     suspend fun handleRequest(request: BallRequest.Name): RequestResult.Name
     {
-        if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
+        if (_storageCells.anyBallCount() <= 0)
+            return RequestResult.Name.FAIL_IS_EMPTY
 
-        handleRequestRaceCondition()
+        if (cantHandleRequestRaceCondition()) return terminateRequest()
+
+
+        val requestResult = _storageCells.handleRequest(request)
+
+
         if (doTerminateRequest()) return terminateRequest()
+        val shootingResult = shootRequestFinalPhase(requestResult)
 
-        var requestResult = _storageCells.handleRequest(request)
-        if (doTerminateRequest()) return terminateRequest()
 
-        requestResult = shootRequestFinalPhase(requestResult)
-
-        fullResumeIntakeLogic(requestResult.Name())
-        return requestResult.Name()
+        fullResumeIntakeLogic(shootingResult)
+        return shootingResult
     }
     private suspend fun updateAfterRequest(requestResult: RequestResult): RequestResult
     {
@@ -176,39 +174,30 @@ class SortingStorage
             RequestResult.FAIL_HARDWARE_PROBLEM,
             RequestResult.Name.FAIL_HARDWARE_PROBLEM)
     }
-    private suspend fun shootRequestFinalPhase(requestResult: RequestResult) : RequestResult
+    private suspend fun shootRequestFinalPhase(requestResult: RequestResult) : RequestResult.Name
     {
-        if (requestResult.DidFail()) return requestResult
+        if (requestResult.DidFail()) return requestResult.Name()
 
         val updateResult = updateAfterRequest(requestResult)
         if (updateResult.DidSucceed())
         {
             fullWaitForShotFired()
 
-            if (_storageCells.updateAfterRequest())
+            return if (_storageCells.updateAfterRequest())
             {
-                return if (_storageCells.anyBallCount() > 0)
-                     RequestResult(
-                        RequestResult.SUCCESS,
-                        RequestResult.Name.SUCCESS
-                    )
-                else RequestResult(
-                        RequestResult.SUCCESS_IS_NOW_EMPTY,
-                        RequestResult.Name.SUCCESS_IS_NOW_EMPTY
-                    )
+                if (_storageCells.anyBallCount() > 0)
+                     RequestResult.Name.SUCCESS
+                else RequestResult.Name.SUCCESS_IS_NOW_EMPTY
             }
-
             else
             {
                 //!  _storageCells.fixStorageDesync()
-                return RequestResult(
-                        RequestResult.FAIL_SOFTWARE_STORAGE_DESYNC,
-                        RequestResult.Name.FAIL_SOFTWARE_STORAGE_DESYNC
-                    )
+                RequestResult.Name.FAIL_SOFTWARE_STORAGE_DESYNC
             }
         }
-        else return updateResult
+        else return updateResult.Name()
     }
+
     private suspend fun requestRaceConditionIsPresent(): Boolean
     {
         if (_requestRunStatus.IsActive())
@@ -220,16 +209,16 @@ class SortingStorage
         }
         return true
     }
-    private suspend fun handleRequestRaceCondition()
+    private suspend fun cantHandleRequestRaceCondition(): Boolean
     {
         _requestRunStatus.SafeResetTermination()
+
         while (requestRaceConditionIsPresent())
             delay(DELAY_FOR_EVENT_AWAITING_MS)
+
+        return doTerminateRequest()
     }
-    private fun doTerminateRequest(): Boolean
-    {
-        return _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
-    }
+
     private fun terminateRequest(): RequestResult.Name
     {
         _requestRunStatus.SetTermination(
@@ -242,26 +231,20 @@ class SortingStorage
 
         return requestFail
     }
-    fun switchTerminateRequest()
-    {
-        _requestRunStatus.DoTerminate()
-    }
+    private fun doTerminateRequest() = _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
+    fun switchTerminateRequest() = _requestRunStatus.DoTerminate()
 
 
 
     suspend fun pushNextWithoutUpdating(time: Long = DELAY_FOR_ONE_BALL_PUSHING_MS)
-    {
-        _storageCells.hwRotateBeltCW(time)
-    }
+        = _storageCells.hwRotateBeltCW(time)
 
 
 
     suspend fun shootEntireDrumRequest(): RequestResult.Name
     {
         if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
-
-        handleRequestRaceCondition()
-        if (doTerminateRequest()) return terminateRequest()
+        if (cantHandleRequestRaceCondition()) return terminateRequest()
 
         val requestResult = shootEverything()
 
@@ -269,15 +252,13 @@ class SortingStorage
         return requestResult
     }
     suspend fun shootEntireDrumRequest(
+        shotType: ShotType,
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name> = requestOrder,
-        shotType: ShotType = ShotType.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
     ): RequestResult.Name
     {
         if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
-
-        handleRequestRaceCondition()
-        if (doTerminateRequest()) return terminateRequest()
+        if (cantHandleRequestRaceCondition()) return terminateRequest()
 
         val requestResult =
             when (shotType)
@@ -297,10 +278,10 @@ class SortingStorage
     @SuppressLint("SuspiciousIndentation")
     private suspend fun shootEverything(): RequestResult.Name
     {
-        var shootingResult = RequestResult(RequestResult.FAIL_IS_EMPTY, RequestResult.Name.FAIL_IS_EMPTY)
+        var shootingResult = RequestResult.Name.FAIL_IS_EMPTY
 
         var i = 0
-        while (i < REAL_SLOT_COUNT)
+        while (i < MAX_BALL_COUNT)
         {
                 if (doTerminateRequest()) return terminateRequest()
             val requestResult = _storageCells.handleRequest(BallRequest.Name.ANY_CLOSEST)
@@ -310,7 +291,7 @@ class SortingStorage
 
             i++
         }
-        return shootingResult.Name()
+        return shootingResult
     }
 
 
@@ -331,13 +312,13 @@ class SortingStorage
         var shootingResult = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
 
         var i = 0
-        while (i < REAL_SLOT_COUNT)
+        while (i < MAX_BALL_COUNT)
         {
                 if (doTerminateRequest()) return terminateRequest()
             val requestResult = _storageCells.handleRequest(requestOrder[i])
 
                 if (doTerminateRequest()) return terminateRequest()
-            shootingResult = shootRequestFinalPhase(requestResult).Name()
+            shootingResult = shootRequestFinalPhase(requestResult)
 
             i++
         }
@@ -359,17 +340,19 @@ class SortingStorage
     @SuppressLint("SuspiciousIndentation")
     private suspend fun shootEntireUntilBreaksLogic(requestOrder: Array<BallRequest.Name>): RequestResult.Name
     {
-        val shootingResult = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
+        var shootingResult = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
 
         var i = 0
-        while (i < REAL_SLOT_COUNT)
+        while (i < MAX_BALL_COUNT)
         {
                 if (doTerminateRequest()) return terminateRequest()
-            var requestResult = _storageCells.handleRequest(requestOrder[i])
+            val requestResult = _storageCells.handleRequest(requestOrder[i])
 
                 if (doTerminateRequest()) return terminateRequest()
-            requestResult = shootRequestFinalPhase(requestResult)
-            if (requestResult.DidFail()) i += REAL_SLOT_COUNT //  Fast break if storage is empty
+            shootingResult = shootRequestFinalPhase(requestResult)
+
+            if (RequestResult.DidFail(shootingResult))
+                i += MAX_BALL_COUNT  //  Fast break if next ball is not present
 
             i++
         }
@@ -406,8 +389,8 @@ class SortingStorage
     {
         val countPGA = intArrayOf(0, 0, 0)
 
-        var i = 0
-        while (i < REAL_SLOT_COUNT)
+        var i = 0; val ballCountInRequest = min(requestOrder.size, MAX_BALL_COUNT)
+        while (i < ballCountInRequest)
         {
             if      (requestOrder[i] == BallRequest.Name.PURPLE) countPGA[0]++
             else if (requestOrder[i] == BallRequest.Name.GREEN)  countPGA[1]++
@@ -430,35 +413,30 @@ class SortingStorage
     @SuppressLint("SuspiciousIndentation")
     private suspend fun shootEntireValidRequestLogic(requestOrder: Array<BallRequest.Name>): RequestResult.Name
     {
-        var requestResult = RequestResult()
+        var shootingResult = RequestResult.Name.FAIL_UNKNOWN
 
         var i = 0
-        while (i < REAL_SLOT_COUNT)
+        while (i < MAX_BALL_COUNT)
         {
                 if (doTerminateRequest()) return terminateRequest()
-            requestResult = _storageCells.handleRequest(requestOrder[i])
+            val requestResult = _storageCells.handleRequest(requestOrder[i])
 
                 if (doTerminateRequest()) return terminateRequest()
-            requestResult = shootRequestFinalPhase(requestResult)
+            shootingResult = shootRequestFinalPhase(requestResult)
 
-            if (requestResult.DidFail())  return requestResult.Name()  //  Fast break if something went wrong
+            if (RequestResult.DidFail(shootingResult))  return shootingResult
+            //  Fast break if UNEXPECTED ERROR or TERMINATION
 
             i++
         }
-        return requestResult.Name()
+        return shootingResult
     }
 
 
 
 
 
-    fun forceStopIntake()
-    {
-        _intakeRunStatus.Set(
-            RunStatus.USED_BY_ANOTHER_PROCESS,
-            RunStatus.Name.USED_BY_ANOTHER_PROCESS
-        )
-    }
+    fun forceStopIntake() = _intakeRunStatus.SetAlreadyUsed()
     fun safeResumeIntakeLogic()
     {
         if (_intakeRunStatus.IsUsedByAnotherProcess())
@@ -468,30 +446,25 @@ class SortingStorage
     {
         safeResumeIntakeLogic()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedEveryRequestEvent(requestResult))
-    }
-
-    fun forceStopRequest()
-    {
-        _requestRunStatus.Set(
-            RunStatus.USED_BY_ANOTHER_PROCESS,
-            RunStatus.Name.USED_BY_ANOTHER_PROCESS
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            StorageFinishedEveryRequestEvent(requestResult)
         )
     }
+
+    fun forceStopRequest() = _requestRunStatus.SetAlreadyUsed()
     private fun fullResumeRequestLogic(intakeResult: IntakeResult.Name)
     {
         if (_requestRunStatus.IsUsedByAnotherProcess())
             _requestRunStatus.SetActive()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedIntakeEvent(intakeResult))
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            StorageFinishedIntakeEvent(intakeResult)
+        )
     }
 
 
 
-    fun shotWasFired()
-    {
-        _shotWasFired.set(true)
-    }
+    fun shotWasFired() = _shotWasFired.set(true)
     private suspend fun fullWaitForShotFired(): Boolean
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
@@ -508,10 +481,7 @@ class SortingStorage
 
 
 
-    fun ballWasEaten()
-    {
-        _ballWasEaten.set(true)
-    }
+    fun ballWasEaten() = _ballWasEaten.set(true)
     private suspend fun fullWaitForIntakeIsFinishedEvent(): Boolean
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageIsReadyToEatIntakeEvent())
@@ -528,35 +498,11 @@ class SortingStorage
 
 
 
-    fun storageData(): Array<Ball>
-    {
-        return _storageCells.storageData()
-    }
+    fun storageData() = _storageCells.storageData()
+    fun anyBallCount() = _storageCells.anyBallCount()
 
-    fun ballColorCountPG(): IntArray
-    {
-        return _storageCells.ballColorCountPG()
-    }
-
-    fun purpleBallCount(): Int
-    {
-        return _storageCells.selectedBallCount(Ball.Name.PURPLE)
-    }
-    fun greenBallCount(): Int
-    {
-        return _storageCells.selectedBallCount(Ball.Name.GREEN)
-    }
-    fun selectedBallCount(ball: Ball.Name): Int
-    {
-        return _storageCells.selectedBallCount(ball)
-    }
-
-    fun anyBallCount(): Int
-    {
-        return _storageCells.anyBallCount()
-    }
-
-
+    fun ballColorCountPG() = _storageCells.ballColorCountPG()
+    fun selectedBallCount(ball: Ball.Name) = _storageCells.selectedBallCount(ball)
 
 
 
@@ -594,7 +540,7 @@ class SortingStorage
         _requestRunStatus.SetInactive()
         _requestRunStatus.DoTerminate()
 
-        _storageCells.forceStopHwBelt()
+        _storageCells.emergencyStopHwBelt()
     }
 
 

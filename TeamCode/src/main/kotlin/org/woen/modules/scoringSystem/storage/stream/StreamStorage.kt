@@ -17,7 +17,6 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
-import org.woen.telemetry.Configs.STORAGE.REAL_SLOT_COUNT
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
@@ -71,6 +70,7 @@ class StreamStorage
             IntakeResult.Name.FAIL_STORAGE_IS_FULL
         )
     }
+
     private suspend fun intakeRaceConditionIsPresent(): Boolean
     {
         if (_intakeRunStatus.IsActive())
@@ -105,10 +105,7 @@ class StreamStorage
         return IntakeResult.Name.SUCCESS
     }
 
-    private fun doTerminateIntake(): Boolean
-    {
-        return _intakeRunStatus.TerminationId() == RunStatus.DO_TERMINATE
-    }
+
     private fun terminateIntake(): IntakeResult.Name
     {
         _intakeRunStatus.SetTermination(
@@ -121,10 +118,10 @@ class StreamStorage
 
         return intakeFail
     }
-    fun switchTerminateIntake()
-    {
-        _intakeRunStatus.DoTerminate()
-    }
+    private fun doTerminateIntake() = _intakeRunStatus.TerminationId() == RunStatus.DO_TERMINATE
+    fun switchTerminateIntake() = _intakeRunStatus.DoTerminate()
+
+
 
 
 
@@ -148,7 +145,7 @@ class StreamStorage
         )
 
         var i = 0
-        while (i < REAL_SLOT_COUNT)
+        while (i < MAX_BALL_COUNT)
         {
             shootingResult = shootClosest(shootingResult)
 
@@ -182,6 +179,7 @@ class StreamStorage
             return updateAfterRequest()
         }
     }
+
     private suspend fun requestRaceConditionIsPresent(): Boolean
     {
         if (_requestRunStatus.IsActive())
@@ -201,10 +199,7 @@ class StreamStorage
             delay(REQUEST_RACE_CONDITION_DELAY_MS)
     }
 
-    private fun doTerminateRequest(): Boolean
-    {
-        return _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
-    }
+
     private fun terminateRequest(): RequestResult
     {
         _requestRunStatus.SetTermination(
@@ -219,78 +214,12 @@ class StreamStorage
         safeResumeIntakeLogic(requestFail.Name())
         return requestFail
     }
-    fun switchTerminateRequest()
-    {
-        _requestRunStatus.DoTerminate()
-    }
+    private fun doTerminateRequest() = _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
+    fun switchTerminateRequest() = _requestRunStatus.DoTerminate()
 
 
 
-    private fun forceStopIntake()
-    {
-        _intakeRunStatus.Set(
-            RunStatus.USED_BY_ANOTHER_PROCESS,
-            RunStatus.Name.USED_BY_ANOTHER_PROCESS
-        )
-    }
-    private fun safeResumeIntakeLogic(requestResult: RequestResult.Name)
-    {
-        if (_intakeRunStatus.IsUsedByAnotherProcess())
-            _intakeRunStatus.SetActive()
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedEveryRequestEvent(requestResult))
-    }
-
-    private fun forceStopRequest()
-    {
-        _requestRunStatus.Set(
-            RunStatus.USED_BY_ANOTHER_PROCESS,
-            RunStatus.Name.USED_BY_ANOTHER_PROCESS
-        )
-    }
-    private fun safeResumeRequestLogic(intakeResult: IntakeResult.Name)
-    {
-        if (_requestRunStatus.IsUsedByAnotherProcess())
-            _requestRunStatus.SetActive()
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedIntakeEvent(intakeResult))
-    }
-
-
-    fun startHwBelt()
-    {
-        _hwStreamStorage.start()
-    }
-    fun stopHwBelt()
-    {
-        _hwStreamStorage.stop()
-    }
-
-
-
-    fun shotWasFired()
-    {
-        _shotWasFired.set(true)
-    }
-    private suspend fun waitForShotFiredEvent(): Boolean
-    {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
-
-        while (!_shotWasFired.get())
-        {
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
-            if (doTerminateRequest()) return false
-        }
-
-        _shotWasFired.set(false)
-        return true
-    }
-
-
-    fun ballWasEaten()
-    {
-        _ballWasEaten.set(true)
-    }
+    fun ballWasEaten() = _ballWasEaten.set(true)
     private suspend fun fullWaitForIntakeIsFinishedEvent(): Boolean
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageIsReadyToEatIntakeEvent())
@@ -306,11 +235,48 @@ class StreamStorage
     }
 
 
-
-    fun ballCount(): Int
+    fun shotWasFired() = _shotWasFired.set(true)
+    private suspend fun waitForShotFiredEvent(): Boolean
     {
-        return _ballCount.get()
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
+
+        while (!_shotWasFired.get())
+        {
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            if (doTerminateRequest()) return false
+        }
+
+        _shotWasFired.set(false)
+        return true
     }
+
+
+
+    fun ballCount(): Int = _ballCount.get()
+
+
+
+    private fun forceStopIntake() = _intakeRunStatus.SetAlreadyUsed()
+    private fun safeResumeIntakeLogic(requestResult: RequestResult.Name)
+    {
+        if (_intakeRunStatus.IsUsedByAnotherProcess())
+            _intakeRunStatus.SetActive()
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedEveryRequestEvent(requestResult))
+    }
+
+    private fun forceStopRequest() = _requestRunStatus.SetAlreadyUsed()
+    private fun safeResumeRequestLogic(intakeResult: IntakeResult.Name)
+    {
+        if (_requestRunStatus.IsUsedByAnotherProcess())
+            _requestRunStatus.SetActive()
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageFinishedIntakeEvent(intakeResult))
+    }
+
+
+    fun startHwBelt() = _hwStreamStorage.start()
+    fun stopHwBelt() = _hwStreamStorage.stop()
 
 
 
