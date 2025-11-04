@@ -78,6 +78,7 @@ internal object SimpleConfig {
     var SHORT_ANGLE_SERVO_POSITION = 0.5
 }
 
+@Disabled
 @TeleOp
 class SimpleTeleop : LinearOpMode() {
     lateinit var leftForwardDrive: DcMotorEx

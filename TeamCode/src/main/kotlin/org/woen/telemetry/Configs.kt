@@ -95,6 +95,12 @@ object Configs {
 
         @JvmField
         var START_BLUE_ORIENTATION = Orientation.ZERO
+
+        @EventConfig
+        var POSITION_VELOCITY_K = ThreadedTelemetry.EventValueProvider(0.1)
+
+        @EventConfig
+        var HEADING_VELOCITY_K = ThreadedTelemetry.EventValueProvider(0.1)
     }
 
     @Config
