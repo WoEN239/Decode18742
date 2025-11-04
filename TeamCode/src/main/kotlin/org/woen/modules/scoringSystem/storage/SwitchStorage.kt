@@ -170,7 +170,16 @@ class SwitchStorage  //  Schrodinger storage
         failsafeOrder: Array<BallRequest.Name> = requestOrder
     ): RequestResult.Name
     {
-        return if (isSorting) _sortingStorage.shootEntireDrumRequest(requestOrder, failsafeOrder, shotType)
+        return if (isSorting) _sortingStorage.shootEntireDrumRequest(
+            shotType, requestOrder, failsafeOrder)
+        else RequestResult.Name.FAIL_USING_DIFFERENT_STORAGE_TYPE
+    }
+    suspend fun shootEntireDrumRequest(
+        shotType: ShotType,
+        requestOrder:  Array<BallRequest.Name>
+    ): RequestResult.Name
+    {
+        return if (isSorting) _sortingStorage.shootEntireDrumRequest(shotType, requestOrder)
         else RequestResult.Name.FAIL_USING_DIFFERENT_STORAGE_TYPE
     }
 

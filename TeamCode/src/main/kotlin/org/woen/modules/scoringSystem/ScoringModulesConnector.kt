@@ -221,10 +221,10 @@ class ScoringModulesConnector
 
 
 
+
     suspend fun startDrumRequest(
         shootingMode: ShotType,
-        requestPattern: Array<BallRequest.Name>,
-        failsafePattern: Array<BallRequest.Name>
+        requestPattern: Array<BallRequest.Name>
     ): RequestResult.Name
     {
         /*----------  How every request in connector module works:
@@ -240,6 +240,28 @@ class ScoringModulesConnector
          *  8) Exit when entire drum was fired
          */
 
+        while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
+        setBusy()
+
+
+        setTurretToShootMode()
+        val requestResult =
+            if (_isSorting) _storage.shootEntireDrumRequest(
+                shootingMode,
+                requestPattern)
+            else _storage.shootEntireDrumRequest()
+
+
+        setTurretToWaitMode()
+        setIdle()
+        return requestResult
+    }
+    suspend fun startDrumRequest(
+        shootingMode: ShotType,
+        requestPattern: Array<BallRequest.Name>,
+        failsafePattern: Array<BallRequest.Name>
+    ): RequestResult.Name
+    {
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 

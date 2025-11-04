@@ -253,12 +253,36 @@ class SortingStorage
     }
     suspend fun shootEntireDrumRequest(
         shotType: ShotType,
-        requestOrder:  Array<BallRequest.Name>,
-        failsafeOrder: Array<BallRequest.Name> = requestOrder,
+        requestOrder:  Array<BallRequest.Name>
     ): RequestResult.Name
     {
         if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
-        if (cantHandleRequestRaceCondition()) return terminateRequest()
+        if (cantHandleRequestRaceCondition())  return terminateRequest()
+
+        val requestResult =
+            when (shotType)
+            {
+                ShotType.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
+                ShotType.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(requestOrder)
+                ShotType.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(requestOrder)
+                else  -> shootEntireRequestIsValid(requestOrder)
+            }
+
+        fullResumeIntakeLogic(requestResult)
+        return requestResult
+    }
+    suspend fun shootEntireDrumRequest(
+        shotType: ShotType,
+        requestOrder:  Array<BallRequest.Name>,
+        failsafeOrder: Array<BallRequest.Name>? = requestOrder,
+    ): RequestResult.Name
+    {
+        if (failsafeOrder == null || failsafeOrder.isEmpty() ||
+            failsafeOrder.contentEquals(requestOrder))
+            return shootEntireDrumRequest(shotType, requestOrder)
+
+        if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
+        if (cantHandleRequestRaceCondition())  return terminateRequest()
 
         val requestResult =
             when (shotType)
@@ -297,6 +321,9 @@ class SortingStorage
 
 
     private suspend fun shootEntireRequestCanSkip(
+        requestOrder: Array<BallRequest.Name>
+    ): RequestResult.Name = shootEntireCanSkipLogic(requestOrder)
+    private suspend fun shootEntireRequestCanSkip(
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>
     ): RequestResult.Name
@@ -327,6 +354,9 @@ class SortingStorage
 
 
 
+    private suspend fun shootEntireUntilPatternBreaks(
+        requestOrder:  Array<BallRequest.Name>
+    ): RequestResult.Name = shootEntireUntilBreaksLogic(requestOrder)
     private suspend fun shootEntireUntilPatternBreaks(
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>
@@ -361,6 +391,19 @@ class SortingStorage
 
 
 
+    private suspend fun shootEntireRequestIsValid(
+        requestOrder:  Array<BallRequest.Name>
+    ): RequestResult.Name
+    {
+        val countPG = _storageCells.ballColorCountPG()
+        val requestCountPGA = countPGA(requestOrder)
+
+        if (doTerminateRequest()) return terminateRequest()
+        if (validateEntireRequestDidSucceed(countPG, requestCountPGA))
+            return shootEntireValidRequestLogic(requestOrder)
+
+        return RequestResult.Name.FAIL_NOT_ENOUGH_COLORS
+    }
     @SuppressLint("SuspiciousIndentation")
     private suspend fun shootEntireRequestIsValid(
         requestOrder:  Array<BallRequest.Name>,
