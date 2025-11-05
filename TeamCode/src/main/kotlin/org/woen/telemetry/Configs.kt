@@ -376,26 +376,31 @@ object Configs {
 
 
         @JvmField
-        var SORTING_GATE_SERVO_OPEN_VALUE  = 0.0
+        var MOBILE_GATE_SERVO_OPEN_VALUE  = 0.0
         @JvmField
-        var SORTING_GATE_SERVO_CLOSE_VALUE = 0.5
+        var MOBILE_GATE_SERVO_CLOSE_VALUE = 0.5
 
         @JvmField
-        var SORTING_PUSH_SERVO_OPEN_VALUE  = 0.0
+        var MOBILE_PUSH_SERVO_OPEN_VALUE  = 0.0
         @JvmField
-        var SORTING_PUSH_SERVO_CLOSE_VALUE = 0.5
+        var MOBILE_PUSH_SERVO_CLOSE_VALUE = 0.5
 
         @JvmField
-        var SORTING_FALL_SERVO_OPEN_VALUE  = 0.0
+        var MOBILE_FALL_SERVO_OPEN_VALUE  = 0.0
         @JvmField
-        var SORTING_FALL_SERVO_CLOSE_VALUE = 0.5
+        var MOBILE_FALL_SERVO_CLOSE_VALUE = 0.5
+
+        @JvmField
+        var MOBILE_LAUNCH_SERVO_OPEN_VALUE = 0.2
+        @JvmField
+        var MOBILE_LAUNCH_SERVO_CLOSE_VALUE = 0.65
 
 
 
         @JvmField
-        var HW_SORTING_SERVO_GATE_OPEN_VALUE  = 0.9
+        var TURRET_GATE_SERVO_OPEN_VALUE  = 0.9
         @JvmField
-        var HW_SORTING_SERVO_GATE_CLOSE_VALUE = 0.6
+        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.6
 
 
 
@@ -414,37 +419,39 @@ object Configs {
 
 
         @JvmField
-        var BOTTOM_OPTIC_PARE_1 = "bottom optic pare sensor 1"
+        var BOTTOM_OPTIC_PARE_1 = "bottom optic pare 1"
         @JvmField
-        var BOTTOM_OPTIC_PARE_2 = "bottom optic pare sensor 2"
-
-
-        @JvmField
-        var MOBILE_OUT_OPTIC_PARE_1 = "mobile out optic pare sensor 1"
-        @JvmField
-        var MOBILE_OUT_OPTIC_PARE_2 = "mobile out optic pare sensor 2"
+        var BOTTOM_OPTIC_PARE_2 = "bottom optic pare 2"
 
 
         @JvmField
-        var TURRET_GATE_SERVO = "turret gate servo"
+        var MOBILE_OUT_OPTIC_PARE_1 = "mobile_out_optic_pare_1"
+        @JvmField
+        var MOBILE_OUT_OPTIC_PARE_2 = "mobile_out_optic_pare_2"
 
 
         @JvmField
-        var STREAM_STORAGE_BELT_MOTOR = "stream storage belt motor"
+        var TURRET_GATE_SERVO = "turret_gate_servo"
+
+
+        @JvmField
+        var STREAM_STORAGE_BELT_MOTOR = "stream_storage belt motor"
 
 
 
         @JvmField
-        var SORTING_STORAGE_BELT_MOTOR_1 = "sorting storage belt motor 1"
+        var SORTING_STORAGE_BELT_MOTOR_1 = "sorting_storage_belt_motor_1"
         @JvmField
-        var SORTING_STORAGE_BELT_MOTOR_2 = "sorting storage belt motor 2"
+        var SORTING_STORAGE_BELT_MOTOR_2 = "sorting_storage_belt_motor_2"
 
 
         @JvmField
-        var MOBILE_GATE_SERVO = "mobile gate servo"
+        var MOBILE_GATE_SERVO = "mobile_gate_servo"
         @JvmField
-        var MOBILE_PUSH_SERVO = "mobile push servo"
+        var MOBILE_PUSH_SERVO = "mobile_push_servo"
         @JvmField
-        var MOBILE_FALL_SERVO = "mobile fall servo"
+        var MOBILE_FALL_SERVO = "mobile_fall_servo"
+        @JvmField
+        var MOBILE_LAUNCH_SERVO = "mobile_launch_servo"
     }
 }

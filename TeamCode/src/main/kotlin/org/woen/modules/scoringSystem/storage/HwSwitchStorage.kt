@@ -15,8 +15,8 @@ import org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion
 
 import org.woen.threading.hardware.IHardwareDevice
 
-import org.woen.telemetry.Configs.STORAGE.HW_SORTING_SERVO_GATE_OPEN_VALUE
-import org.woen.telemetry.Configs.STORAGE.HW_SORTING_SERVO_GATE_CLOSE_VALUE
+import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
+import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
 
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_1
@@ -35,7 +35,7 @@ import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_
 class HwSwitchStorage : IHardwareDevice
 {
     private lateinit var _turretGateServo : Servo
-    private var _gatePosition = AtomicReference(HW_SORTING_SERVO_GATE_CLOSE_VALUE)
+    private var _gatePosition = AtomicReference(TURRET_GATE_SERVO_CLOSE_VALUE)
 
 
     private lateinit var _intakeColorSensor1 : AdafruitI2cColorSensor
@@ -95,14 +95,8 @@ class HwSwitchStorage : IHardwareDevice
 
 
 
-    fun openGate()
-    {
-        _gatePosition.set(HW_SORTING_SERVO_GATE_OPEN_VALUE)
-    }
-    fun closeGate()
-    {
-        _gatePosition.set(HW_SORTING_SERVO_GATE_CLOSE_VALUE)
-    }
+    fun openGate() = _gatePosition.set(TURRET_GATE_SERVO_OPEN_VALUE)
+    fun closeGate() = _gatePosition.set(TURRET_GATE_SERVO_CLOSE_VALUE)
 
 
 
