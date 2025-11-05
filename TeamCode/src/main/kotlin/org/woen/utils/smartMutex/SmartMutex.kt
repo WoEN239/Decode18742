@@ -14,15 +14,15 @@ class SmartMutex {
         val result: T
 
         runBlocking {
-            if (_lockedThread.get() == null)
+            if (_lockedThread.get() == null || _lockedThread.get() != Thread.currentThread())
                 _mutex.withLock {
                     _lockedThread.set(Thread.currentThread())
                     result = action()
+                    _lockedThread.set(null)
                 }
-            else result = action()
+            else
+                result = action()
         }
-
-        _lockedThread.set(null)
         return result
     }
 }

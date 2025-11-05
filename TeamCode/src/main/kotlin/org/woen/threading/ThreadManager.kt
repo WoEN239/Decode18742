@@ -43,11 +43,15 @@ class ThreadManager private constructor() : DisposableHandle {
     private val _allThreadsMutex = SmartMutex()
 
     fun register(thread: Thread): Thread {
-//        thread.setUncaughtExceptionHandler { _, exception ->
-//            if (exception !is InterruptedException) {
-//
-//            }
-//        }
+        thread.setUncaughtExceptionHandler { _, exception ->
+            if (exception !is InterruptedException) {
+                if (exception.message != null)
+                    ThreadedTelemetry.LAZY_INSTANCE.log(exception.message!!)
+
+                for (i in exception.stackTrace)
+                    ThreadedTelemetry.LAZY_INSTANCE.log(i.className + ": " + i.lineNumber.toString())
+            }
+        }
 
         _allThreadsMutex.smartLock {
             _allThreads.add(thread)

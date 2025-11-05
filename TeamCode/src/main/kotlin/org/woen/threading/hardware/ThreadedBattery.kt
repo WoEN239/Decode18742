@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicReference
 
-class ThreadedBattery : IHardwareDevice {
+class ThreadedBattery private constructor(): IHardwareDevice {
     companion object {
         private var _nullableInstance: ThreadedBattery? = null
 
@@ -14,8 +14,11 @@ class ThreadedBattery : IHardwareDevice {
         @JvmStatic
         val LAZY_INSTANCE: ThreadedBattery
             get() = _instanceMutex.smartLock {
-                if (_nullableInstance == null)
+                if (_nullableInstance == null) {
                     _nullableInstance = ThreadedBattery()
+
+                    _nullableInstance?.init()
+                }
 
                 return@smartLock _nullableInstance!!
             }
@@ -52,7 +55,7 @@ class ThreadedBattery : IHardwareDevice {
 
     }
 
-    private constructor() {
+    private fun init(){
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(this)
     }
 }

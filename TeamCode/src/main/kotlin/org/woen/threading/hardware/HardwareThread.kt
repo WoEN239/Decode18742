@@ -43,7 +43,7 @@ class HardwareThread : DisposableHandle {
         }
     }
 
-    private val _thread = ThreadManager.Companion.LAZY_INSTANCE.register(thread(start = true) {
+    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         var lastJob: Job? = null
 
         while (!Thread.currentThread().isInterrupted) {

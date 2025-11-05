@@ -13,7 +13,7 @@ import org.woen.utils.smartMutex.SmartMutex
 import kotlin.concurrent.thread
 import kotlin.math.PI
 
-class ActionRunner : DisposableHandle {
+class ActionRunner private constructor() : DisposableHandle {
     companion object {
         private var _nullableInstance: ActionRunner? = null
 
@@ -21,11 +21,20 @@ class ActionRunner : DisposableHandle {
 
         @JvmStatic
         val LAZY_INSTANCE: ActionRunner
-            get() = _instanceMutex.smartLock {
-                if (_nullableInstance == null)
-                    _nullableInstance = ActionRunner()
+            get() {
+                var isInited = false
 
-                return@smartLock _nullableInstance!!
+                _instanceMutex.smartLock {
+                    if (_nullableInstance == null) {
+                        _nullableInstance = ActionRunner()
+                        isInited = true
+                    }
+                }
+
+                if (isInited)
+                    _nullableInstance?.init()
+
+                return _nullableInstance!!
             }
 
         fun restart() {
@@ -53,7 +62,7 @@ class ActionRunner : DisposableHandle {
         )
     })
 
-    private constructor() {
+    fun init() {
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
                 _thread.start()

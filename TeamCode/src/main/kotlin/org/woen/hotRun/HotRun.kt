@@ -96,11 +96,14 @@ class HotRun private constructor() {
             HardwareThreads.LAZY_INSTANCE
             ActionRunner.LAZY_INSTANCE
             Camera.LAZY_INSTANCE
-
             opModeInitEvent.invoke(opMode)
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("init complited")
 
             opMode.waitForStart()
             opMode.resetRuntime()
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("start")
 
             currentRunState.set(RunState.RUN)
 
@@ -114,7 +117,7 @@ class HotRun private constructor() {
 
             opModeStopEvent.invoke(opMode)
         } catch (e: Exception) {
-            ThreadedTelemetry.LAZY_INSTANCE.log(e.toString())
+            throw e
         }
     }
 }

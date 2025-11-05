@@ -58,7 +58,7 @@ class Odometry : IModule {
     private val _positionXFilter = ExponentialFilter(Configs.ODOMETRY.ODOMETRY_MERGE_COEF.get())
     private val _positionYFilter = ExponentialFilter(Configs.ODOMETRY.ODOMETRY_MERGE_COEF.get())
 
-    private val _odometryHandler = WheelOdometry()
+    private val _odometryHandler: IOdometry
 
     override suspend fun process() {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -143,7 +143,10 @@ class Odometry : IModule {
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gyro)
+        _odometryHandler = WheelOdometry()
+
+        if(Configs.GYRO.IS_USE_GYRO)
+            HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_gyro)
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             _odometryMutex.smartLock {
@@ -170,15 +173,17 @@ class Odometry : IModule {
                 }
             })
 
-        _gyro.gyroUpdateEvent += {
-            _gyroMutex.smartLock {
-                _odometryMutex.smartLock {
-                    _currentOrientation.angl = Angle(
-                        _gyroFilter.updateRaw(
-                            _currentOrientation.angle,
-                            (it - _currentOrientation.angl).angle
+        if(Configs.GYRO.IS_USE_GYRO) {
+            _gyro.gyroUpdateEvent += {
+                _gyroMutex.smartLock {
+                    _odometryMutex.smartLock {
+                        _currentOrientation.angl = Angle(
+                            _gyroFilter.updateRaw(
+                                _currentOrientation.angle,
+                                (it - _currentOrientation.angl).angle
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

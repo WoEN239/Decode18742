@@ -191,6 +191,9 @@ object Configs {
 
         @EventConfig
         var GYRO_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.1)
+
+        @JvmField
+        var IS_USE_GYRO = true
     }
 
     @Config

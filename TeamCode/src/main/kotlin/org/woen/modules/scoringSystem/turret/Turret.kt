@@ -127,7 +127,7 @@ class Turret : IModule {
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareTurret)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareTurret)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretAtTargetEvent::class, {
             it.atTarget = _hardwareTurret.velocityAtTarget.get()

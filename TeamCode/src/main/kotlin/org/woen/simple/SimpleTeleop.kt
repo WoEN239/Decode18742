@@ -21,7 +21,7 @@ import kotlin.math.sign
 
 
 @Config
-@Disabled
+//@Disabled
 internal object SimpleConfig {
     @JvmField
     var AUTO_PULLEY_SPEED = 9.5
@@ -78,7 +78,7 @@ internal object SimpleConfig {
     var SHORT_ANGLE_SERVO_POSITION = 0.5
 }
 
-@Disabled
+//@Disabled
 @TeleOp
 class SimpleTeleop : LinearOpMode() {
     lateinit var leftForwardDrive: DcMotorEx

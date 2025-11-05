@@ -4,9 +4,10 @@ import kotlinx.coroutines.DisposableHandle
 import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.odometry.Odometry
 import org.woen.modules.scoringSystem.brush.Brush
+import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.utils.smartMutex.SmartMutex
 
-class HardwareThreads : DisposableHandle {
+class HardwareThreads private constructor() : DisposableHandle {
     companion object {
         private var _nullableInstance: HardwareThreads? = null
 
@@ -14,11 +15,21 @@ class HardwareThreads : DisposableHandle {
 
         @JvmStatic
         val LAZY_INSTANCE: HardwareThreads
-            get() = _instanceMutex.smartLock {
-                if (_nullableInstance == null)
-                    _nullableInstance = HardwareThreads()
+            get() {
+                var isInited = false
 
-                return@smartLock _nullableInstance!!
+                _instanceMutex.smartLock {
+                    if (_nullableInstance == null) {
+                        _nullableInstance = HardwareThreads()
+
+                        isInited = true
+                    }
+                }
+
+                if (isInited)
+                    _nullableInstance?.initModules()
+
+                return _nullableInstance!!
             }
 
         fun restart() {
@@ -38,8 +49,8 @@ class HardwareThreads : DisposableHandle {
         EXPANSION.dispose()
     }
 
-    private constructor() {
+    private fun initModules() {
 //        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
-        CONTROL.link.addModules(Odometry(), DriveTrain(), Brush())
+        CONTROL.link.addModules(Odometry(), DriveTrain(), Turret())
     }
 }

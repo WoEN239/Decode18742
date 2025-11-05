@@ -42,10 +42,6 @@ class HardwareTurret(
 
     private val _pulleyRegulator = Regulator(Configs.TURRET.PULLEY_REGULATOR)
 
-    private val _pulleyRegulatorMutex = SmartMutex()
-
-    private val _velocityFilterMutex = SmartMutex()
-
     private val _velocityFilter =
         ExponentialFilter(Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.get())
 
@@ -57,22 +53,15 @@ class HardwareTurret(
 
     private val _deltaTime = ElapsedTime()
 
-    private var _rotationRegulator = Regulator(Configs.TURRET.ROTATION_PID_CONFIG)
-
     override fun update() {
-        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
-            return
-
 //        _angleSevo.position = anglePosition.get()
 
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
         val rawVelocity = (currentMotorPosition - _oldMotorPosition) / _deltaTime.seconds()
 
-        _velocityFilterMutex.smartLock {
-            _motorVelocity =
-                _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
-        }
+        _motorVelocity =
+            _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
 
         _oldMotorPosition = currentMotorPosition
 
@@ -84,14 +73,12 @@ class HardwareTurret(
         else
             velocityAtTarget.set(true)
 
-        _pulleyRegulatorMutex.smartLock {
-            _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
-                _pulleyRegulator.update(
-                    velErr,
-                    target
-                )
+        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
+            _pulleyRegulator.update(
+                velErr,
+                target
             )
-        }
+        )
 
         _deltaTime.reset()
     }
@@ -101,30 +88,18 @@ class HardwareTurret(
         _angleSevo = hardwareMap.get(_servoName) as Servo
 
         Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.onSet += {
-            _velocityFilterMutex.smartLock {
-                _velocityFilter.coef = it
-            }
+            _velocityFilter.coef = it
         }
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            _velocityFilterMutex.smartLock {
-                _velocityFilter.start()
-            }
-
-            _pulleyRegulatorMutex.smartLock {
-                _pulleyRegulator.start()
-            }
-
-            _rotationRegulator.start()
-
+            _velocityFilter.start()
+            _pulleyRegulator.start()
             _deltaTime.reset()
         }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _motor.mode = DcMotor.RunMode.RESET_ENCODERS
             _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-
-            _motor.direction = DcMotorSimple.Direction.REVERSE
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {

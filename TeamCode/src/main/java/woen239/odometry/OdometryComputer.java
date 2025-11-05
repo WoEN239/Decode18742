@@ -22,7 +22,7 @@ import java.util.Arrays;
 @I2cDeviceType
 @DeviceProperties(
         name = "Odometry Computer",
-        xmlTag = "goBILDAPinpoint",
+        xmlTag = "Pinpoint",
         description = "Odometry Computer (IMU Sensor Fusion for 2 Wheel Odometry)"
 )
 
