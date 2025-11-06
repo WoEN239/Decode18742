@@ -1,27 +1,22 @@
 package org.woen.modules.scoringSystem.storage.stream
 
 
-import woen239.enumerators.RunStatus
-import woen239.enumerators.IntakeResult
-import woen239.enumerators.RequestResult
-
 import kotlinx.coroutines.delay
 import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
-import java.util.concurrent.atomic.AtomicReference
-
-import org.woen.threading.hardware.HardwareThreads
-
-import org.woen.threading.ThreadedEventBus
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
-
-import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
-import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
-import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EATING_INTAKE_IN_STREAM_STORAGE_MS
-
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
+import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
+import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
+import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
+import org.woen.threading.ThreadedEventBus
+import org.woen.threading.hardware.HardwareThreads
+import woen239.enumerators.IntakeResult
+import woen239.enumerators.RequestResult
+import woen239.enumerators.RunStatus
+import java.util.concurrent.atomic.AtomicReference
 
 
 class StreamStorage
@@ -323,6 +318,6 @@ class StreamStorage
     fun linkHardware()
     {
         _hwStreamStorage = HwStreamStorage()
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwStreamStorage)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwStreamStorage)
     }
 }

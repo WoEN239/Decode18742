@@ -115,7 +115,6 @@ class ThreadedTelemetry : DisposableHandle {
 
     private val _driveTelemetryMutex = SmartMutex()
 
-    @OptIn(InternalCoroutinesApi::class)
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted) {
             if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.STOP && Configs.TELEMETRY.TELEMETRY_ENABLE) {

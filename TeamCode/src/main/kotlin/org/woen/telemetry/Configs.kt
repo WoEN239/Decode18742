@@ -1,19 +1,16 @@
 package org.woen.telemetry
 
 
-import kotlin.math.PI
-
-import org.woen.utils.units.Vec2
-import org.woen.utils.units.Triangle
-import org.woen.utils.units.Orientation
-import org.woen.utils.regulator.RegulatorParameters
-
-import woen239.enumerators.StorageSlot
-import woen239.enumerators.StorageType
-
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-
+import org.woen.utils.regulator.RegulatorParameters
+import org.woen.utils.units.Angle
+import org.woen.utils.units.Orientation
+import org.woen.utils.units.Triangle
+import org.woen.utils.units.Vec2
+import woen239.enumerators.StorageSlot
+import woen239.enumerators.StorageType
+import kotlin.math.PI
 
 
 object Configs {
@@ -88,13 +85,13 @@ object Configs {
         var ODOMETER_ROTATE_SENS = 1e-8
 
         @EventConfig
-        var ODOMETRY_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.1)
+        var ODOMETRY_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.2)
 
         @JvmField
-        var START_RED_ORIENTATION = Orientation.ZERO
+        var START_RED_ORIENTATION = Orientation(Vec2(1.631, 0.39), Angle(PI * 2.0))
 
         @JvmField
-        var START_BLUE_ORIENTATION = Orientation.ZERO
+        var START_BLUE_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI * 2.0))
 
         @EventConfig
         var POSITION_VELOCITY_K = ThreadedTelemetry.EventValueProvider(0.1)
@@ -142,7 +139,7 @@ object Configs {
         var WHEEL_DIAMETER = 0.096
 
         @JvmField
-        var LAG = Vec2(1.0, 1.0)
+        var LAG = Vec2(1.0203412073490814, 1.1515748031496063)
 
         @JvmField
         var H_LAG = 1.0
@@ -202,13 +199,16 @@ object Configs {
         var CAMERA_ACCURACY = 300
 
         @JvmField
-        var CAMERA_ENABLE = false
+        var CAMERA_ENABLE = true
 
         @JvmField
         var CAMERA_TRIGGER_DISTANCE = 3.0
 
         @JvmField
         var CAMERA_POSITION = Vec2(0.17, 0.1)
+
+        @JvmField
+        var CAMERA_HEIGHT = 0.37
     }
 
     @Config

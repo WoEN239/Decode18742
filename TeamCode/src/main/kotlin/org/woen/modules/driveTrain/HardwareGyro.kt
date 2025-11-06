@@ -19,6 +19,9 @@ class HardwareGyro : IHardwareDevice {
     val gyroUpdateEvent = SimpleEvent<Angle>()
 
     override fun update() {
+        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+            return
+
         if (_gyroUpdateTimer.seconds() > 1.0 / Configs.GYRO.GYRO_UPDATE_HZ) {
             _gyroUpdateTimer.reset()
 

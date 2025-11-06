@@ -47,9 +47,6 @@ class DriveTrain : IModule {
 
     override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
-                return@launch
-
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
             val rotationErr = if (_lookMode.get()) {

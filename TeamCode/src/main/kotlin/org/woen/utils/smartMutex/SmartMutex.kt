@@ -23,6 +23,7 @@ class SmartMutex {
             else
                 result = action()
         }
+
         return result
     }
 }

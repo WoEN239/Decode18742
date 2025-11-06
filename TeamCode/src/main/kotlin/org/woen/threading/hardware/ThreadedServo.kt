@@ -3,7 +3,6 @@ package org.woen.threading.hardware
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
-import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.utils.servoAngle.ServoAngle
 import org.woen.utils.smartMutex.SmartMutex
@@ -71,9 +70,6 @@ class ThreadedServo(
         }
 
     override fun update() {
-        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
-            return
-
         _calcMutex.smartLock {
             if (t3 > t2) {
                 if (_servoTime.seconds() <= t2 + t3) {

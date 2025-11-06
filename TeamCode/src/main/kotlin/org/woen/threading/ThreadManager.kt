@@ -1,7 +1,5 @@
 package org.woen.threading
 
-import android.os.Handler
-import android.os.Looper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
@@ -47,6 +45,10 @@ class ThreadManager private constructor() : DisposableHandle {
             if (exception !is InterruptedException) {
                 if (exception.message != null)
                     ThreadedTelemetry.LAZY_INSTANCE.log(exception.message!!)
+
+                exception.cause?.let { ThreadedTelemetry.LAZY_INSTANCE.log(it.toString()) }
+
+                ThreadedTelemetry.LAZY_INSTANCE.log(exception.toString())
 
                 for (i in exception.stackTrace)
                     ThreadedTelemetry.LAZY_INSTANCE.log(i.className + ": " + i.lineNumber.toString())

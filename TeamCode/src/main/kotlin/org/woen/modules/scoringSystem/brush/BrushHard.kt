@@ -2,6 +2,7 @@ package org.woen.modules.scoringSystem.brush
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.hotRun.HotRun
@@ -15,6 +16,9 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
     private var motor_power = 0.0
 
     override fun update() {
+        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+            return
+
         voltageSafe()
         _motor.power = motor_power
     }
@@ -55,6 +59,8 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
             _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
             _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+
+            _motor.direction = DcMotorSimple.Direction.REVERSE
         }
     }
 

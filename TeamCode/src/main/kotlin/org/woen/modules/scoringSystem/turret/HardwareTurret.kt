@@ -2,7 +2,6 @@ package org.woen.modules.scoringSystem.turret
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
@@ -13,7 +12,6 @@ import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.regulator.Regulator
-import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
@@ -54,6 +52,9 @@ class HardwareTurret(
     private val _deltaTime = ElapsedTime()
 
     override fun update() {
+        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+            return
+
 //        _angleSevo.position = anglePosition.get()
 
         val currentMotorPosition = _motor.currentPosition.toDouble()

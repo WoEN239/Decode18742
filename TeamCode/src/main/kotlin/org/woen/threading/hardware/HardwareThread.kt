@@ -9,17 +9,15 @@ import org.woen.hotRun.HotRun
 import org.woen.hotRun.HotRun.RunState.STOP
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
-import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.updateCounter.UpdateCounter
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.thread
 
 @SuppressLint("DefaultLocale")
 class HardwareThread : DisposableHandle {
-    private val _devices = mutableSetOf<IHardwareDevice>()
+    private val _devices = CopyOnWriteArrayList<IHardwareDevice>()
 
     private val _updateCounter = UpdateCounter()
-
-    private val _devicesMutex = SmartMutex()
 
     private val _hardwareMap =
         OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
@@ -28,18 +26,14 @@ class HardwareThread : DisposableHandle {
         for (i in devices) {
             i.init(_hardwareMap)
 
-            _devicesMutex.smartLock {
-                _devices.add(i)
-            }
+            _devices.add(i)
         }
     }
 
     fun removeDevices(vararg devices: IHardwareDevice) {
         for (i in devices) {
-            _devicesMutex.smartLock {
-                if (_devices.contains(i))
-                    _devices.remove(i)
-            }
+            if (_devices.contains(i))
+                _devices.remove(i)
         }
     }
 
@@ -48,14 +42,12 @@ class HardwareThread : DisposableHandle {
 
         while (!Thread.currentThread().isInterrupted) {
             if (HotRun.LAZY_INSTANCE.currentRunState.get() == STOP) {
-                Thread.sleep(10)
+                Thread.sleep(5)
                 continue
             }
 
-            _devicesMutex.smartLock {
-                for (i in _devices)
-                    i.update()
-            }
+            for (i in _devices)
+                i.update()
 
             _updateCounter.update()
 
@@ -66,10 +58,8 @@ class HardwareThread : DisposableHandle {
     })
 
     override fun dispose() {
-        _devicesMutex.smartLock {
-            for (i in _devices)
-                i.dispose()
-        }
+        for (i in _devices)
+            i.dispose()
 
         link.dispose()
     }

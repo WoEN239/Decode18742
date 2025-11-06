@@ -62,9 +62,6 @@ class Odometry : IModule {
 
     override suspend fun process() {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
-                return@launch
-
             _odometryMutex.smartLock {
                 val odometryTick = _odometryHandler.update(_currentOrientation.angl)
 

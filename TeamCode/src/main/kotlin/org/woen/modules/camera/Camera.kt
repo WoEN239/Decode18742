@@ -59,10 +59,10 @@ class Camera : DisposableHandle {
                     DistanceUnit.METER,
                     Configs.CAMERA.CAMERA_POSITION.x,
                     Configs.CAMERA.CAMERA_POSITION.y,
-                    0.0,
+                    Configs.CAMERA.CAMERA_HEIGHT,
                     0
                 ),
-                YawPitchRollAngles(AngleUnit.DEGREES, 0.0, 0.0, 90.0, 0)
+                YawPitchRollAngles(AngleUnit.DEGREES, 0.0, 0.0, -90.0, 0)
             )
             .setDrawAxes(true).build()
 
@@ -149,7 +149,7 @@ class Camera : DisposableHandle {
 
             _visionPortal =
                 VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
-                    .addProcessors(helpCameraProcessor, _aprilProcessor).build()
+                    .addProcessors(_aprilProcessor, helpCameraProcessor).build()
 
             HotRun.LAZY_INSTANCE.opModeInitEvent += {
                 FtcDashboard.getInstance().startCameraStream(helpCameraProcessor, 10.0)
