@@ -37,7 +37,7 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
     fun setDir(Motor: motor_state) {
         when (Motor) {
             motor_state.ACKT -> {
-                motor_power = 1.0
+                motor_power = 0.5
             }
 
             motor_state.NOT_ACKT -> {
@@ -45,7 +45,7 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
             }
 
             motor_state.REVERS -> {
-                motor_power = -1.0
+                motor_power = -0.5
             }
         }
 

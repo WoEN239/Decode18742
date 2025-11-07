@@ -13,13 +13,14 @@ import woen239.enumerators.StorageType
 import kotlinx.coroutines.delay
 
 import org.woen.threading.ThreadedEventBus
+import org.woen.threading.hardware.HardwareThreads
 
 import org.woen.telemetry.Configs.STORAGE.USED_STORAGE_TYPE
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 
 import org.woen.modules.scoringSystem.storage.stream.StreamStorage
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
-
+import org.woen.telemetry.ThreadedTelemetry
 
 
 class SwitchStorage  //  Schrodinger storage
@@ -43,6 +44,8 @@ class SwitchStorage  //  Schrodinger storage
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     StorageGetReadyForIntake(it.inputBall)
                 )
+                ThreadedTelemetry.LAZY_INSTANCE.log("")
+                ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
                 //  Alias
             } )
 
@@ -62,9 +65,19 @@ class SwitchStorage  //  Schrodinger storage
             ballWasEaten()
         } )
 
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(StorageOpenGateForShot::class, {
+            _hwSwitchStorage.openGate()
+        } )
+
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(StorageCloseGateForShot::class, {
+            _hwSwitchStorage.closeGate()
+        } )
+
 
         if (isStream) _streamStorage.linkHardware()
         else _sortingStorage.linkHardware()
+
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSwitchStorage)
     }
 
 
@@ -78,8 +91,8 @@ class SwitchStorage  //  Schrodinger storage
 
         if (isSorting)
         {
-            _sortingStorage.pushNextWithoutUpdating()
-            closeGate()
+            //_sortingStorage.pushNextWithoutUpdating()
+            //closeGate()
             _sortingStorage.pushNextWithoutUpdating(100)
         }
         else

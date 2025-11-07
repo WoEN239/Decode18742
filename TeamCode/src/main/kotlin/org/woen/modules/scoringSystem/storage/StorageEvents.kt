@@ -53,3 +53,8 @@ class ColorSensorsSeeIntakeIncoming(
 class StorageGetReadyForIntake(
     var inputBall: Ball.Name = Ball.Name.NONE
 )
+
+
+
+class StorageOpenGateForShot()
+class StorageCloseGateForShot()

@@ -29,7 +29,8 @@ import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_M
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MIN_C_RED
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MAX_C_GREEN
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MIN_C_BLUE
-
+import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadedEventBus
 
 
 class HwSwitchStorage : IHardwareDevice
@@ -46,10 +47,10 @@ class HwSwitchStorage : IHardwareDevice
     override fun init(hardwareMap: HardwareMap)
     {
         _intakeColorSensor1 = fixSensor(
-            BlocksOpModeCompanion.hardwareMap.get(INTAKE_COLOR_SENSOR_1)
+            hardwareMap.get(INTAKE_COLOR_SENSOR_1)
                     as AdafruitI2cColorSensor)
         _intakeColorSensor2 = fixSensor(
-            BlocksOpModeCompanion.hardwareMap.get(INTAKE_COLOR_SENSOR_2)
+            hardwareMap.get(INTAKE_COLOR_SENSOR_2)
                     as AdafruitI2cColorSensor)
 
 
@@ -76,7 +77,11 @@ class HwSwitchStorage : IHardwareDevice
             g2 > THRESHOLD_GREEN_MIN_C_GREEN &&
             b2 < THRESHOLD_GREEN_MAX_C_BLUE)
         {
-            ColorSensorsSeeIntakeIncoming(Ball.Name.GREEN)
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                ColorSensorsSeeIntakeIncoming(Ball.Name.GREEN)
+            )
+
+            //ThreadedTelemetry.LAZY_INSTANCE.logWithTag("!!! GREEN BALL DETECTED", "IntakeColorSensors")
         }
         else if (r1 > THRESHOLD_PURPLE_MIN_C_RED &&
                  g1 < THRESHOLD_PURPLE_MAX_C_GREEN &&
@@ -86,16 +91,23 @@ class HwSwitchStorage : IHardwareDevice
                  g2 < THRESHOLD_PURPLE_MAX_C_GREEN &&
                  b2 > THRESHOLD_PURPLE_MIN_C_BLUE)
         {
-            ColorSensorsSeeIntakeIncoming(Ball.Name.PURPLE)
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                ColorSensorsSeeIntakeIncoming(Ball.Name.PURPLE)
+            )
+
+            //ThreadedTelemetry.LAZY_INSTANCE.logWithTag("!!! PURPLE BALL DETECTED", "IntakeColorSensors")
         }
 
+//        ThreadedTelemetry.LAZY_INSTANCE.logWithTag("---  UPDATED COLORS  ---", "IntakeColorSensors")
+//        ThreadedTelemetry.LAZY_INSTANCE.logWithTag("r1 = $r1, g1 = $g1, b1 = $b1", "IntakeColorSensors")
+//        ThreadedTelemetry.LAZY_INSTANCE.logWithTag("r2 = $r2, g2 = $g2, b2 = $b2", "IntakeColorSensors")
 
         _turretGateServo.position = _gatePosition.get()
     }
 
 
 
-    fun openGate() = _gatePosition.set(TURRET_GATE_SERVO_OPEN_VALUE)
+    fun openGate()  = _gatePosition.set(TURRET_GATE_SERVO_OPEN_VALUE)
     fun closeGate() = _gatePosition.set(TURRET_GATE_SERVO_CLOSE_VALUE)
 
 

@@ -226,7 +226,7 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.1)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 50.0
+        var PULLEY_TARGET_SENS = 25.0
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-1.8, -1.8)
@@ -289,7 +289,7 @@ object Configs {
         var PULLEY_U = 0.5
 
         @JvmField
-        var MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS: Long = 300
+        var MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS: Long = 1000
     }
 
 
@@ -303,17 +303,17 @@ object Configs {
         var THRESHOLD_GREEN_MAX_C_RED = 70
 
         @JvmField
-        var THRESHOLD_GREEN_MIN_C_GREEN = 70
+        var THRESHOLD_GREEN_MIN_C_GREEN = 40
 
         @JvmField
         var THRESHOLD_GREEN_MAX_C_BLUE = 70
 
 
         @JvmField
-        var THRESHOLD_PURPLE_MIN_C_RED = 80
+        var THRESHOLD_PURPLE_MIN_C_RED = 40
 
         @JvmField
-        var THRESHOLD_PURPLE_MIN_C_BLUE = 40
+        var THRESHOLD_PURPLE_MIN_C_BLUE = 20
 
         @JvmField
         var THRESHOLD_PURPLE_MAX_C_GREEN = 70
@@ -356,7 +356,9 @@ object Configs {
         var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
 
         @JvmField
-        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 350
+        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 300
+        @JvmField
+        var DELAY_BETWEEN_SHOTS: Long = 200
         @JvmField
         var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1000
 

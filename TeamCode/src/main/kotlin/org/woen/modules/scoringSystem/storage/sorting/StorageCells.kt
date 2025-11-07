@@ -73,7 +73,7 @@ class StorageCells
         if (anyBallCount() >= MAX_BALL_COUNT) return result
 
         var curSlotId = 0
-        while (curSlotId < STORAGE_SLOT_COUNT)
+        while (curSlotId < MAX_BALL_COUNT)
         {
             if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].IsEmpty())
             {
@@ -96,6 +96,7 @@ class StorageCells
                 RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
             )
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("preparing request search")
 
         if (requestBuffer.IsPreferred())
         {
@@ -137,11 +138,14 @@ class StorageCells
     }
     private fun anyBallRequestSearch(): RequestResult
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("START: ANY REQUEST SEARCH")
+
         val result = RequestResult(
             RequestResult.FAIL_IS_EMPTY,
             RequestResult.Name.FAIL_IS_EMPTY
         )
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("current ball count: ${anyBallCount()}")
         if (anyBallCount() <= 0) return result
 
 
@@ -156,6 +160,8 @@ class StorageCells
             curSlotId++
         }
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("SEARCH FINISHED")
+        ThreadedTelemetry.LAZY_INSTANCE.log("Found slot: " + result.Name())
         return result
     }
 
@@ -181,6 +187,8 @@ class StorageCells
         val requestCondition = _storageCells[StorageSlot.MOBILE_OUT].IsFilled()
 
         if (requestCondition)  _storageCells[StorageSlot.MOBILE_OUT].Empty()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("SW STORAGE UPDATED")
         //!  else fixStorageDesync()
         return requestCondition
     }
@@ -225,14 +233,22 @@ class StorageCells
 
     suspend fun fullRotateCW()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("FULL ROTATION - START")
         hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
         if (_storageCells[StorageSlot.MOBILE_IN].IsFilled())
+        {
+            ThreadedTelemetry.LAZY_INSTANCE.log("FR - ROTATING FALL")
             hwRotateFallSlotCW()
+        }
 
         if (_storageCells[StorageSlot.MOBILE_OUT].IsFilled())
+        {
+            ThreadedTelemetry.LAZY_INSTANCE.log("FR - MOVING MOBILE")
             hwRotateMobileSlotsCW()
+        }
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("FR - BELT")
         hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
 

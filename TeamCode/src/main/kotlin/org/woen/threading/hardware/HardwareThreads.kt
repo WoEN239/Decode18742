@@ -43,11 +43,11 @@ class HardwareThreads private constructor() : DisposableHandle {
 
     val CONTROL = HardwareThread(HardwareLink())
 
-//    val EXPANSION = HardwareThread(HardwareLink())
+    //val EXPANSION = HardwareThread(HardwareLink())
 
     override fun dispose() {
         CONTROL.dispose()
-//        EXPANSION.dispose()
+        //EXPANSION.dispose()
     }
 
     private fun initModules() {

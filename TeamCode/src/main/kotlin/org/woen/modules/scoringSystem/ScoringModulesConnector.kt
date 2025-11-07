@@ -9,11 +9,13 @@ import org.woen.modules.scoringSystem.brush.SwitchBrush
 import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
 import org.woen.modules.scoringSystem.storage.BottomOpticPareSeesSomethingEvent
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
+import org.woen.modules.scoringSystem.storage.StorageCloseGateForShot
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntake
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveSimpleDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
 import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageOpenGateForShot
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 import org.woen.modules.scoringSystem.storage.SwitchStorage
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
@@ -22,6 +24,7 @@ import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
 import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
 import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
+import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_SHOTS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
@@ -121,6 +124,8 @@ class ScoringModulesConnector
         ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_up }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntake(Ball.Name.GREEN))
 
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("")
             ThreadedTelemetry.LAZY_INSTANCE.log("START - INTAKE - GAMEPAD")
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
@@ -128,6 +133,7 @@ class ScoringModulesConnector
         ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_down }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
 
+            ThreadedTelemetry.LAZY_INSTANCE.log("")
             ThreadedTelemetry.LAZY_INSTANCE.log("STOP  - INTAKE - GAMEPAD")
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
@@ -135,6 +141,7 @@ class ScoringModulesConnector
         ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_left }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSimpleDrumRequest())
 
+            ThreadedTelemetry.LAZY_INSTANCE.log("")
             ThreadedTelemetry.LAZY_INSTANCE.log("START - REQUEST - GAMEPAD")
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
@@ -143,6 +150,7 @@ class ScoringModulesConnector
             ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
 
 
+            ThreadedTelemetry.LAZY_INSTANCE.log("")
             ThreadedTelemetry.LAZY_INSTANCE.log("STOP  - REQUEST - GAMEPAD")
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
@@ -318,13 +326,21 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
-
+        ThreadedTelemetry.LAZY_INSTANCE.log("all other processes finished")
         setTurretToShootMode()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("turret set to shoot mode")
+        ThreadedTelemetry.LAZY_INSTANCE.log("starting request search")
         val requestResult = _storage.shootEntireDrumRequest()
 
-
         setTurretToWaitMode()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("SIMPLE DRUM - FINISHED")
+
         setIdle()
+        ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageCloseGateForShot())
+
         return requestResult
     }
     suspend fun startSingleRequest(ballRequest: BallRequest.Name): RequestResult.Name
@@ -363,6 +379,7 @@ class ScoringModulesConnector
 
     suspend fun awaitSuccessfulRequestShot()
     {
+        delay(DELAY_BETWEEN_SHOTS)
         while (!shotWasFired()) _storage.pushNextWithoutUpdating()
 
         _shotWasFired.set(false)

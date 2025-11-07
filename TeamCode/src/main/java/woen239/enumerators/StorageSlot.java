@@ -3,8 +3,9 @@ package woen239.enumerators;
 
 public class StorageSlot
 {
-    static public final int BOTTOM = 0, CENTER = 1, OUTSIDE_MOBILE = 2,
-            MOBILE_OUT = 3, MOBILE_IN = 4, UNDEFINED = 5;
+    static public final int BOTTOM = 0, CENTER = 1,
+            MOBILE_OUT = 2, MOBILE_IN = 3, OUTSIDE_MOBILE = 4,
+                UNDEFINED = 5;
 
     private Name _memName;
     private int  _memId;

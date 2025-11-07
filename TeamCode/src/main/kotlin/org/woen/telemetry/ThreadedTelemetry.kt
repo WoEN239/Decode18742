@@ -228,7 +228,7 @@ class ThreadedTelemetry : DisposableHandle {
         }
     }
 
-    private fun logWithTag(str: String, tag: String) =
+    fun logWithTag(str: String, tag: String) =
         RobotLog.dd(tag, "robot[" + Thread.currentThread().name + "]: " + str)
 
     class EventValueProvider<T>(private var _value: T) : ValueProvider<T> {

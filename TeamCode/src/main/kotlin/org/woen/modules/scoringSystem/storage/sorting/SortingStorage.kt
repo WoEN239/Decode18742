@@ -21,6 +21,7 @@ import org.woen.modules.scoringSystem.storage.StorageFinishedIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
+import org.woen.modules.scoringSystem.storage.StorageOpenGateForShot
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
@@ -162,6 +163,7 @@ class SortingStorage
             else -> -1
         }
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("UPDATING: rotating cur slot")
         if (fullRotations >= 0)
         {
             repeat(fullRotations) {
@@ -172,6 +174,7 @@ class SortingStorage
         }
 
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("Waiting for shot")
         if (!fullWaitForShotFired())
             return RequestResult(terminateRequest())
 
@@ -188,6 +191,7 @@ class SortingStorage
     {
         if (requestResult.DidFail()) return requestResult.Name()
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("preparing to update")
         val updateResult = updateAfterRequest(requestResult)
         if (updateResult.DidSucceed())
         {
@@ -254,8 +258,9 @@ class SortingStorage
     suspend fun shootEntireDrumRequest(): RequestResult.Name
     {
         if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
-        if (cantHandleRequestRaceCondition()) return terminateRequest()
+        if (cantHandleRequestRaceCondition())  return terminateRequest()
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("MODE: SHOOT EVERYTHING")
         val requestResult = shootEverything()
 
         fullResumeIntakeLogic(requestResult)
@@ -317,8 +322,11 @@ class SortingStorage
         var i = 0
         while (i < MAX_BALL_COUNT)
         {
+            ThreadedTelemetry.LAZY_INSTANCE.log("shot ${i+1}")
+
                 if (doTerminateRequest()) return terminateRequest()
             val requestResult = _storageCells.handleRequest(BallRequest.Name.ANY_CLOSEST)
+            ThreadedTelemetry.LAZY_INSTANCE.log("shot ${i+1} request finished, updating..")
 
                 if (doTerminateRequest()) return terminateRequest()
             shootingResult = shootRequestFinalPhase(requestResult)
@@ -520,7 +528,9 @@ class SortingStorage
     fun shotWasFired() = _shotWasFired.set(true)
     private suspend fun fullWaitForShotFired(): Boolean
     {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageOpenGateForShot())
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
+        ThreadedTelemetry.LAZY_INSTANCE.log("WAITING FOR SHOT - EVENT SEND")
 
         while (!_shotWasFired.get())
         {
@@ -528,6 +538,7 @@ class SortingStorage
             if (doTerminateRequest()) return false
         }
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("DONE - Shot fired or request terminated")
         _shotWasFired.set(false)
         return true
     }
