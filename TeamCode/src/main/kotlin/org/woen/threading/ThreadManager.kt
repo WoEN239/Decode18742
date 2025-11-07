@@ -8,6 +8,7 @@ import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 
 class ThreadManager private constructor() : DisposableHandle {
     companion object {
@@ -32,8 +33,13 @@ class ThreadManager private constructor() : DisposableHandle {
         }
     }
 
+    val threadFactory = ThreadFactory { runnable ->
+        val thread = register(Thread(runnable))
+        thread
+    }
+
     private val _threadPool =
-        Executors.newFixedThreadPool(Configs.THREAD_POOL.THREAD_POOL_THREADS_COUNT)
+        Executors.newFixedThreadPool(Configs.THREAD_POOL.THREAD_POOL_THREADS_COUNT, threadFactory)
     val globalCoroutineScope = CoroutineScope(_threadPool.asCoroutineDispatcher() + Job())
 
     private val _allThreads = mutableSetOf<Thread>()
