@@ -3,6 +3,7 @@ package org.woen.threading.hardware
 import kotlinx.coroutines.DisposableHandle
 import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.odometry.Odometry
+import org.woen.modules.scoringSystem.ScoringModulesConnector
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.utils.smartMutex.SmartMutex
@@ -42,15 +43,17 @@ class HardwareThreads private constructor() : DisposableHandle {
 
     val CONTROL = HardwareThread(HardwareLink())
 
-    val EXPANSION = HardwareThread(HardwareLink())
+//    val EXPANSION = HardwareThread(HardwareLink())
 
     override fun dispose() {
         CONTROL.dispose()
-        EXPANSION.dispose()
+//        EXPANSION.dispose()
     }
 
     private fun initModules() {
 //        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
         CONTROL.link.addModules(Odometry(), DriveTrain(), Turret(), Brush())
+
+        ScoringModulesConnector()
     }
 }

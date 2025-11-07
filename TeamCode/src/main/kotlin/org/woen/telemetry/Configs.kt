@@ -300,23 +300,23 @@ object Configs {
 
 
         @JvmField
-        var THRESHOLD_GREEN_MAX_C_RED = 75
+        var THRESHOLD_GREEN_MAX_C_RED = 70
 
         @JvmField
-        var THRESHOLD_GREEN_MIN_C_GREEN = 150
+        var THRESHOLD_GREEN_MIN_C_GREEN = 70
 
         @JvmField
-        var THRESHOLD_GREEN_MAX_C_BLUE = 75
+        var THRESHOLD_GREEN_MAX_C_BLUE = 70
 
 
         @JvmField
-        var THRESHOLD_PURPLE_MIN_C_RED = 64
+        var THRESHOLD_PURPLE_MIN_C_RED = 80
 
         @JvmField
-        var THRESHOLD_PURPLE_MIN_C_BLUE = 64
+        var THRESHOLD_PURPLE_MIN_C_BLUE = 40
 
         @JvmField
-        var THRESHOLD_PURPLE_MIN_C_GREEN_DIFF = 50
+        var THRESHOLD_PURPLE_MAX_C_GREEN = 70
     }
 
 
@@ -356,7 +356,7 @@ object Configs {
         var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
 
         @JvmField
-        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 500
+        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 350
         @JvmField
         var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1000
 
@@ -375,26 +375,26 @@ object Configs {
         @JvmField
         var SORTING_STORAGE_BELT_MOTOR_1_DIRECTION = DcMotorSimple.Direction.REVERSE
         @JvmField
-        var SORTING_STORAGE_BELT_MOTOR_2_DIRECTION = DcMotorSimple.Direction.REVERSE
+        var SORTING_STORAGE_BELT_MOTOR_2_DIRECTION = DcMotorSimple.Direction.FORWARD
 
 
         @JvmField
-        var MOBILE_GATE_SERVO_OPEN_VALUE  = 0.0
+        var MOBILE_GATE_SERVO_OPEN_VALUE  = 0.584
         @JvmField
-        var MOBILE_GATE_SERVO_CLOSE_VALUE = 0.5
+        var MOBILE_GATE_SERVO_CLOSE_VALUE = 0.37
 
         @JvmField
-        var MOBILE_PUSH_SERVO_OPEN_VALUE  = 0.0
+        var MOBILE_PUSH_SERVO_OPEN_VALUE  = 0.7
         @JvmField
-        var MOBILE_PUSH_SERVO_CLOSE_VALUE = 0.5
+        var MOBILE_PUSH_SERVO_CLOSE_VALUE = 0.47
 
         @JvmField
-        var MOBILE_FALL_SERVO_OPEN_VALUE  = 0.0
+        var MOBILE_FALL_SERVO_OPEN_VALUE  = 0.14
         @JvmField
-        var MOBILE_FALL_SERVO_CLOSE_VALUE = 0.5
+        var MOBILE_FALL_SERVO_CLOSE_VALUE = 0.005
 
         @JvmField
-        var MOBILE_LAUNCH_SERVO_OPEN_VALUE = 0.2
+        var MOBILE_LAUNCH_SERVO_OPEN_VALUE = 0.225
         @JvmField
         var MOBILE_LAUNCH_SERVO_CLOSE_VALUE = 0.65
 
@@ -408,7 +408,7 @@ object Configs {
 
 
         @JvmField
-        var USED_STORAGE_TYPE = StorageType.STREAM_STORAGE
+        var USED_STORAGE_TYPE = StorageType.SORTING_STORAGE
     }
 
 
@@ -416,15 +416,15 @@ object Configs {
     @Config
     internal object HARDWARE_DEVICES_NAMES {
         @JvmField
-        var INTAKE_COLOR_SENSOR_1 = "intake color sensor 1"
+        var INTAKE_COLOR_SENSOR_1 = "color1"
         @JvmField
-        var INTAKE_COLOR_SENSOR_2 = "intake color sensor 2"
+        var INTAKE_COLOR_SENSOR_2 = "color2"
 
 
         @JvmField
-        var BOTTOM_OPTIC_PARE_1 = "bottom optic pare 1"
+        var BOTTOM_OPTIC_PARE_1 = "bottom_optic_pare_1"
         @JvmField
-        var BOTTOM_OPTIC_PARE_2 = "bottom optic pare 2"
+        var BOTTOM_OPTIC_PARE_2 = "bottom_optic_pare_2"
 
 
         @JvmField

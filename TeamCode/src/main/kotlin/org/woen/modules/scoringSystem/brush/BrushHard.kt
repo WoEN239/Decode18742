@@ -30,8 +30,8 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
     }
 
     fun voltageSafe() {
-        var volt = _motor.getCurrent(CurrentUnit.AMPS)
-        if (volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe.set(false); else IsSafe.set(true)
+//        var volt = _motor.getCurrent(CurrentUnit.AMPS)
+//        if (volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe.set(false); else IsSafe.set(true)
     }
 
     fun setDir(Motor: motor_state) {
@@ -60,7 +60,7 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
 
             _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-            _motor.direction = DcMotorSimple.Direction.REVERSE
+//            _motor.direction = DcMotorSimple.Direction.REVERSE
         }
     }
 

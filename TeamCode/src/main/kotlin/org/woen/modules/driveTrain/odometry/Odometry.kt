@@ -195,7 +195,7 @@ class Odometry : IModule {
                 _positionYFilter.start()
             }
 
-            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
+//            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
                 _currentOrientation = HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
         }
 
