@@ -23,7 +23,7 @@ class StreamStorage
 {
     private var _intakeRunStatus  = RunStatus()
     private var _requestRunStatus = RunStatus()
-    private lateinit var _hwStreamStorage : HwStreamStorage  //  DO NOT JOIN ASSIGNMENT
+    //private lateinit var _hwStreamStorage : HwStreamStorage  //  DO NOT JOIN ASSIGNMENT
 
 
     private var _ballCount = AtomicReference(0)
@@ -93,9 +93,9 @@ class StreamStorage
 
         _ballCount.set(_ballCount.get() + 1)
 
-        _hwStreamStorage.start()
+        //_hwStreamStorage.start()
         delay(DELAY_FOR_EATING_INTAKE_IN_STREAM_STORAGE_MS)
-        _hwStreamStorage.stop()
+        //_hwStreamStorage.stop()
 
         return IntakeResult.Name.SUCCESS
     }
@@ -270,8 +270,8 @@ class StreamStorage
     }
 
 
-    fun startHwBelt() = _hwStreamStorage.start()
-    fun stopHwBelt() = _hwStreamStorage.stop()
+    //fun startHwBelt() = _hwStreamStorage.start()
+    //fun stopHwBelt() = _hwStreamStorage.stop()
 
 
 
@@ -285,7 +285,7 @@ class StreamStorage
             delay(DELAY_FOR_EVENT_AWAITING_MS)
         _requestRunStatus.SetActive()
 
-        _hwStreamStorage.start()
+        //_hwStreamStorage.start()
     }
 
     suspend fun forceSafeStop()
@@ -300,7 +300,7 @@ class StreamStorage
             delay(DELAY_FOR_EVENT_AWAITING_MS)
         _intakeRunStatus.SetInactive()
 
-        _hwStreamStorage.stop()
+        //_hwStreamStorage.stop()
     }
     fun emergencyForceStop()
     {
@@ -310,14 +310,14 @@ class StreamStorage
         _requestRunStatus.SetInactive()
         _requestRunStatus.DoTerminate()
 
-        _hwStreamStorage.stop()
+        //_hwStreamStorage.stop()
     }
 
 
 
     fun linkHardware()
     {
-        _hwStreamStorage = HwStreamStorage()
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwStreamStorage)
+        //_hwStreamStorage = HwStreamStorage()
+        //HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwStreamStorage)
     }
 }

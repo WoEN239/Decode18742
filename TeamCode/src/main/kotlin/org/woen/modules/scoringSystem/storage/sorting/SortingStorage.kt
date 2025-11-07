@@ -27,6 +27,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
+import org.woen.telemetry.ThreadedTelemetry
 
 
 
@@ -34,8 +35,8 @@ class SortingStorage
 {
     private val _storageCells = StorageCells()
 
-    private val _intakeRunStatus  = RunStatus()
-    private val _requestRunStatus = RunStatus()
+    private val _intakeRunStatus  = RunStatus(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
+    private val _requestRunStatus = RunStatus(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
 
     private var _shotWasFired = AtomicReference(false)
     private var _ballWasEaten = AtomicReference(false)
@@ -47,11 +48,17 @@ class SortingStorage
         if (_storageCells.anyBallCount() >= MAX_BALL_COUNT)
             return IntakeResult.Name.FAIL_STORAGE_IS_FULL
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("START SEARCHING INTAKE")
+
         if (noIntakeRaceConditionProblems())
         {
             if (doTerminateIntake()) return terminateIntake()
 
+
             val storageCanHandle = _storageCells.handleIntake()
+            ThreadedTelemetry.LAZY_INSTANCE.log("DONE SEARCHING INTAKE")
+            ThreadedTelemetry.LAZY_INSTANCE.log("SEARCH RESULT: " + storageCanHandle.Name())
+
 
             val intakeResult = updateAfterInput(storageCanHandle, inputBall)
             //  Safe updating storage after intake  - wont update if an error occurs
@@ -68,6 +75,7 @@ class SortingStorage
     {
         if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("SORTING INTAKE")
 
         when (intakeResult.Name())
         {
@@ -77,6 +85,8 @@ class SortingStorage
             else -> { }
         }
 
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("DONE MOVING")
 
         if (!fullWaitForIntakeIsFinishedEvent())
             return terminateIntake()

@@ -84,9 +84,9 @@ class SwitchStorage  //  Schrodinger storage
         }
         else
         {
-            _streamStorage.startHwBelt()
+            //_streamStorage.startHwBelt()
             delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
-            _streamStorage.stopHwBelt()
+            //_streamStorage.stopHwBelt()
             closeGate()
         }
     }

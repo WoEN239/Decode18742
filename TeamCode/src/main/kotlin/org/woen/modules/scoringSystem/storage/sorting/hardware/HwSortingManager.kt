@@ -1,19 +1,21 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
+import android.icu.text.RelativeDateTimeFormatter
 import kotlinx.coroutines.delay
 
 import woen239.enumerators.RunStatus
 
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
-
+import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.hardware.ThreadedBattery
 
 
 class HwSortingManager
 {
     private lateinit var _hwSorting: HwSorting
-    private val _runStatus = RunStatus()
+    private val _runStatus = RunStatus(RunStatus.USED_BY_ANOTHER_PROCESS, RunStatus.Name.USED_BY_ANOTHER_PROCESS)
 
 
 
@@ -86,6 +88,8 @@ class HwSortingManager
     {
         while (!safePause())
             delay(DELAY_FOR_EVENT_AWAITING_MS)
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("HW - STOPPED")
     }
 
     fun safeResume(): Boolean
@@ -105,11 +109,13 @@ class HwSortingManager
     {
         while (!safeResume())
             delay(DELAY_FOR_EVENT_AWAITING_MS)
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("HW - STARTED")
     }
 
 
 
-    fun addDevice() = HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwSorting)
+    fun addDevice() = HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSorting)
     fun linkHardware()
     {
         _hwSorting = HwSorting()

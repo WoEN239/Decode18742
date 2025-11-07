@@ -1,4 +1,4 @@
-package org.woen.modules.scoringSystem.storage.stream
+/*package org.woen.modules.scoringSystem.storage.stream
 
 
 import com.qualcomm.robotcore.hardware.DcMotor
@@ -56,4 +56,4 @@ class HwStreamStorage : IHardwareDevice
 
 
     override fun dispose() { }
-}
+}*/

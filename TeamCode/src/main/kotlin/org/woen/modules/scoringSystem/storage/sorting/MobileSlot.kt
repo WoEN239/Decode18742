@@ -57,7 +57,7 @@ class MobileSlot
     fun linkHardware()
     {
         _hwMobileSlot = HwMobileSlot()
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hwMobileSlot)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwMobileSlot)
     }
     fun calibrateHardware()
     {

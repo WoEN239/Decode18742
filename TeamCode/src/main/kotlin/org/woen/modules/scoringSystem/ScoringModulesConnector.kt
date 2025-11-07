@@ -1,43 +1,41 @@
 package org.woen.modules.scoringSystem
 
 
+//import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
+
 import kotlinx.coroutines.delay
-import java.util.concurrent.atomic.AtomicReference
-
-import woen239.enumerators.Ball
-import woen239.enumerators.BallRequest
-import woen239.enumerators.ShotType
-import woen239.enumerators.IntakeResult
-import woen239.enumerators.RequestResult
-
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrush
-import org.woen.modules.scoringSystem.turret.Turret
-import org.woen.modules.scoringSystem.storage.SwitchStorage
-
-import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
-import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
-import org.woen.telemetry.Configs.TURRET.MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS
-import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-
-import org.woen.threading.ThreadedEventBus
-import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
-import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
-
-import org.woen.modules.scoringSystem.storage.BottomOpticPareSeesSomethingEvent
-
-//import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
-import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
 import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
-
-import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
-import org.woen.modules.scoringSystem.storage.StorageGiveSimpleDrumRequest
-import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
-
-import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
+import org.woen.modules.scoringSystem.storage.BottomOpticPareSeesSomethingEvent
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntake
+import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
+import org.woen.modules.scoringSystem.storage.StorageGiveSimpleDrumRequest
+import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
+import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
+import org.woen.modules.scoringSystem.storage.SwitchStorage
+import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
+import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
+import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
+import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
+import org.woen.modules.scoringSystem.turret.Turret
+import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
+import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
+import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
+import org.woen.telemetry.Configs.TURRET.MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS
+import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadedEventBus
+import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
+import woen239.enumerators.Ball
+import woen239.enumerators.BallRequest
+import woen239.enumerators.IntakeResult
+import woen239.enumerators.RequestResult
+import woen239.enumerators.ShotType
+import java.util.concurrent.atomic.AtomicReference
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -119,6 +117,35 @@ class ScoringModulesConnector
             ReverseAndThenStartBrushesAgain::class, {
                 startBrushesAfterDelay(it.reverseTime)
         }   )
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_up }, {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntake(Ball.Name.GREEN))
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("START - INTAKE - GAMEPAD")
+            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }))
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_down }, {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("STOP  - INTAKE - GAMEPAD")
+            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }))
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_left }, {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSimpleDrumRequest())
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("START - REQUEST - GAMEPAD")
+            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }))
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_right }, {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
+
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("STOP  - REQUEST - GAMEPAD")
+            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }))
     }
 
 
@@ -142,9 +169,11 @@ class ScoringModulesConnector
             return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
         }
 
+        delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
         setAwaitingEating()
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("INPUT BALL: $inputBall")
         val intakeResult = _storage.handleIntake(inputBall)
 
 
@@ -159,7 +188,12 @@ class ScoringModulesConnector
             )   )
         }
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("FINISHED - INTAKE")
+        ThreadedTelemetry.LAZY_INSTANCE.log("RESULT: $intakeResult")
+
+
         setIdle()
+        ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
         return intakeResult
     }
     suspend fun currentlyEatingIntakeProcess()

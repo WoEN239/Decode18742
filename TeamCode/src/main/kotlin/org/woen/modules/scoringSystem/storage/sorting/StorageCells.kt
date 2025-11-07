@@ -21,7 +21,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_MAX_SERVO_POSITION_CHANGE
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
-
+import org.woen.telemetry.ThreadedTelemetry
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -168,6 +168,8 @@ class StorageCells
         if (intakeCondition)
         {
             _storageCells[StorageSlot.BOTTOM].Set(inputBall)
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("AUTO ADJUSTING")
             if (autoPartial2RotateCW()) partial2RotateCW()
         }
         //!  else fixStorageDesync()
@@ -193,6 +195,7 @@ class StorageCells
 
     suspend fun hwRotateBeltCW(time: Long)
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("HARDWARE IS MOVING")
         _hwSortingM.forceSafeResume()
         delay(time)
         _hwSortingM.forceSafePause()
@@ -247,7 +250,9 @@ class StorageCells
 
         if (rotationCondition)
         {
+            ThreadedTelemetry.LAZY_INSTANCE.log("UPDATE - MOVING 1")
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
+            _storageCells[StorageSlot.BOTTOM] = Ball(Ball.NONE, Ball.Name.NONE)
 
             hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
         }
@@ -259,8 +264,10 @@ class StorageCells
 
         if (rotationCondition)
         {
+            ThreadedTelemetry.LAZY_INSTANCE.log("UPDATE - MOVING 2")
             _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
+            _storageCells[StorageSlot.BOTTOM] = Ball(Ball.NONE, Ball.Name.NONE)
 
             hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         }
@@ -279,6 +286,7 @@ class StorageCells
             _storageCells[StorageSlot.MOBILE_IN]  = _storageCells[StorageSlot.MOBILE_OUT]
             _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
+            _storageCells[StorageSlot.BOTTOM] = Ball(Ball.NONE, Ball.Name.NONE)
 
             _hwSortingM.forceSafePause()
             hwRotateMobileSlotsCW()

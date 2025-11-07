@@ -27,7 +27,7 @@ import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_M
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_MAX_C_BLUE
 
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MIN_C_RED
-import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MIN_C_GREEN_DIFF
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MAX_C_GREEN
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_MIN_C_BLUE
 
 
@@ -79,11 +79,11 @@ class HwSwitchStorage : IHardwareDevice
             ColorSensorsSeeIntakeIncoming(Ball.Name.GREEN)
         }
         else if (r1 > THRESHOLD_PURPLE_MIN_C_RED &&
-                 min(r1, b1) - g1 > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
+                 g1 < THRESHOLD_PURPLE_MAX_C_GREEN &&
                  b1 > THRESHOLD_PURPLE_MIN_C_BLUE
                  ||
                  r2 > THRESHOLD_PURPLE_MIN_C_RED &&
-                 min(r2, b2) - g2 > THRESHOLD_PURPLE_MIN_C_GREEN_DIFF &&
+                 g2 < THRESHOLD_PURPLE_MAX_C_GREEN &&
                  b2 > THRESHOLD_PURPLE_MIN_C_BLUE)
         {
             ColorSensorsSeeIntakeIncoming(Ball.Name.PURPLE)
