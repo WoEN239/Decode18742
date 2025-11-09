@@ -41,11 +41,11 @@ class SwitchStorage  //  Schrodinger storage
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
             ColorSensorsSeeIntakeIncoming::class, {
 
-                ThreadedEventBus.LAZY_INSTANCE.invoke(
-                    StorageGetReadyForIntake(it.inputBall)
-                )
-                ThreadedTelemetry.LAZY_INSTANCE.log("")
-                ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
+//                ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                    StorageGetReadyForIntake(it.inputBall)
+//                )
+//                ThreadedTelemetry.LAZY_INSTANCE.log("")
+//                ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
                 //  Alias
             } )
 
@@ -67,6 +67,7 @@ class SwitchStorage  //  Schrodinger storage
 
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(StorageOpenGateForShot::class, {
             _hwSwitchStorage.openGate()
+            ThreadedTelemetry.LAZY_INSTANCE.log("> EVENT: OPEN GATE")
         } )
 
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(StorageCloseGateForShot::class, {
@@ -85,23 +86,20 @@ class SwitchStorage  //  Schrodinger storage
     private fun openGate()  = _hwSwitchStorage.openGate()
     private fun closeGate() = _hwSwitchStorage.closeGate()
 
-    suspend fun pushNextWithoutUpdating()
+    suspend fun pushNextWithoutUpdating(shotNum: Int)
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("> SW: OPEN GATE")
         openGate()
+        delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
 
-        if (isSorting)
-        {
-            //_sortingStorage.pushNextWithoutUpdating()
-            //closeGate()
-            _sortingStorage.pushNextWithoutUpdating(100)
-        }
-        else
-        {
-            //_streamStorage.startHwBelt()
-            delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
-            //_streamStorage.stopHwBelt()
-            closeGate()
-        }
+        //_sortingStorage.pushNextWithoutUpdating()
+        _sortingStorage.pushNextWithoutUpdating(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
+
+        if (shotNum == 3) _sortingStorage.pushLastBallWithLaunch()
+
+        closeGate()
+        delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
     }
 
 
@@ -129,6 +127,9 @@ class SwitchStorage  //  Schrodinger storage
     }
 
 
+
+    suspend fun hwLazyResume() = _sortingStorage.hwLazyResume()
+    suspend fun hwLazyPause()  = _sortingStorage.hwLazyPause()
 
     suspend fun forceSafeStart()
     {
@@ -195,6 +196,7 @@ class SwitchStorage  //  Schrodinger storage
         return if (isSorting) _sortingStorage.shootEntireDrumRequest(shotType, requestOrder)
         else RequestResult.Name.FAIL_USING_DIFFERENT_STORAGE_TYPE
     }
+    suspend fun streamDumbShootEverything() = _sortingStorage.streamDumbShootEverything()
 
 
     fun storageData() = if (isSorting) _sortingStorage.storageData() else null

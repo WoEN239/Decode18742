@@ -7,14 +7,18 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
+import org.woen.utils.regulator.Regulator
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Angle
+import org.woen.utils.units.Color
 import org.woen.utils.units.Vec2
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
@@ -44,17 +48,17 @@ class DriveTrain : IModule {
 
     private var _lookMode = AtomicReference(false)
     private var _lookProcess = AtomicReference(Process())
+    private var _lookRegulator = Regulator(Configs.DRIVE_TRAIN.LOOK_REGULATOR_PARAMETERS)
 
     override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
             val rotationErr = if (_lookMode.get()) {
-                val err = Angle(
-                    (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition
-                            - odometry.odometryOrientation.pos).rot()
-                            - odometry.odometryOrientation.angle
-                ).angle
+                val err = (odometry.odometryOrientation.angl - Angle(
+                    (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition).rot()
+                )
+                        ).angle
 
                 if (abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS)
                     _lookProcess.get().close()
@@ -67,7 +71,7 @@ class DriveTrain : IModule {
                 _hardwareDriveTrain.drive(
                     _targetTranslateVelocity/*.turn(-odometry.odometryOrientation.angle)*/,
                     if (_lookMode.get())
-                        rotationErr * Configs.DRIVE_TRAIN.LOOK_P
+                        _lookRegulator.update(rotationErr)
                     else _targetRotateVelocity
                 )
             }
@@ -127,5 +131,32 @@ class DriveTrain : IModule {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestLookModeEvent::class, {
             it.lookMode = _lookMode.get()
         })
+
+//        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_up }, {
+//            _lookMode.set(!_lookMode.get())
+//        }))
+
+        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            it.drawCircle(
+                HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition,
+                0.05,
+                Color.ORANGE
+            )
+
+            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+
+            it.addData(
+                "targetAngle", Angle(
+                    (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition
+                            - odometry.odometryOrientation.pos).rot()
+                ).angle
+            )
+
+            it.addData("currentAngle", odometry.odometryOrientation.angle)
+        }
+
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+            _lookRegulator.start()
+        }
     }
 }

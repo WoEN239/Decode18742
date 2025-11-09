@@ -17,14 +17,16 @@ object Configs {
 
     @Config
     internal object BRUSH {
-        var BRUSH_SAFE_TIME = 1.0
-        var BRUSH_ERR_TIME = 1.0
+        @JvmField
+        var BRUSH_SAFE_TIME = 0.1
+        @JvmField
+        var BRUSH_ERR_TIME = 0.4
 
         @JvmField
         var BRUSH_DEF_TIME = 1.0
 
         @JvmField
-        var BRUSH_TARGET_CURRENT = 0.3
+        var BRUSH_TARGET_CURRENT = 2.2
 
 
         @JvmField
@@ -145,7 +147,7 @@ object Configs {
         var H_LAG = 1.0
 
         @JvmField
-        var LOOK_P = 0.3
+        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters()
 
         @JvmField
         var LOOK_SENS = 0.1
@@ -229,10 +231,10 @@ object Configs {
         var PULLEY_TARGET_SENS = 25.0
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-1.8, -1.8)
+        var BLUE_BASKET_POSITION = Vec2(-1.55, -1.55)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-1.8, 1.8)
+        var RED_BASKET_POSITION = Vec2(-1.55, 1.55)
 
         @JvmField
         var TURRET_HEIGHT = 1.0
@@ -308,6 +310,10 @@ object Configs {
         @JvmField
         var THRESHOLD_GREEN_MAX_C_BLUE = 70
 
+        @JvmField
+        var THRESHOLD_GREEN_MIN_EXTRA_ALPHA = 55
+
+
 
         @JvmField
         var THRESHOLD_PURPLE_MIN_C_RED = 40
@@ -317,6 +323,9 @@ object Configs {
 
         @JvmField
         var THRESHOLD_PURPLE_MAX_C_GREEN = 70
+
+        @JvmField
+        var THRESHOLD_PURPLE_MIN_EXTRA_ALPHA = 55
     }
 
 
@@ -356,17 +365,19 @@ object Configs {
         var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
 
         @JvmField
-        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 300
+        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 333
         @JvmField
         var DELAY_BETWEEN_SHOTS: Long = 200
         @JvmField
-        var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1000
+        var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1500
 
 
         @JvmField
         var MAX_WAITING_TIME_FOR_INTAKE_MS = 2000
         @JvmField
-        var DELAY_FOR_EATING_INTAKE_IN_STREAM_STORAGE_MS: Long = 1500
+        var DELAY_FOR_EATING_INTAKE_IN_STREAM_STORAGE_MS: Long = 1000
+        @JvmField
+        var DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS: Long = 60
 
 
 

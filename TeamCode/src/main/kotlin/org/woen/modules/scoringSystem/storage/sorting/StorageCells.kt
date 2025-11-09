@@ -2,6 +2,8 @@ package org.woen.modules.scoringSystem.storage.sorting
 
 
 import kotlinx.coroutines.delay
+import org.woen.modules.scoringSystem.brush.Brush
+import org.woen.modules.scoringSystem.brush.SwitchBrush
 
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
@@ -21,7 +23,9 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_MAX_SERVO_POSITION_CHANGE
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadedEventBus
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -134,6 +138,7 @@ class StorageCells
             curSlotId++
         }
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("search finished, result slot: " + result.Name())
         return result
     }
     private fun anyBallRequestSearch(): RequestResult
@@ -196,11 +201,20 @@ class StorageCells
 
     fun fixStorageDesync()
     {
-        TODO("Add storage recalibrations using in robot color sensors")
+        TODO("Add storage recalibrations using in robot optic-pares")
     }
 
 
 
+    suspend fun hwLazyResume() = _hwSortingM.forceSafeResume()
+    suspend fun hwLazyPause()  = _hwSortingM.forceSafePause()
+    suspend fun hwLaunchLastBall()
+    {
+        _mobileSlot.openLaunch()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        _mobileSlot.closeLaunch()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+    }
     suspend fun hwRotateBeltCW(time: Long)
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("HARDWARE IS MOVING")
@@ -210,6 +224,11 @@ class StorageCells
     }
     suspend fun hwRotateMobileSlotsCW()
     {
+        _mobileSlot.closeGate()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        _hwSortingM.forceSafeReverse()
+        delay(DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
+        _hwSortingM.forceSafePause()
         _mobileSlot.openGate()
         delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
         _mobileSlot.openPush()
@@ -233,6 +252,7 @@ class StorageCells
 
     suspend fun fullRotateCW()
     {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.ACKT))
         ThreadedTelemetry.LAZY_INSTANCE.log("FULL ROTATION - START")
         hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
@@ -249,7 +269,10 @@ class StorageCells
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("FR - BELT")
-        hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 3
+        + DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
 
 
 

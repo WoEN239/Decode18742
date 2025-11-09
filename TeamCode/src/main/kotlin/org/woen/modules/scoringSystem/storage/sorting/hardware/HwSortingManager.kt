@@ -112,6 +112,26 @@ class HwSortingManager
 
         ThreadedTelemetry.LAZY_INSTANCE.log("HW - STARTED")
     }
+    fun safeReverse(): Boolean
+    {
+        if (_runStatus.IsActive()) return true  //  Already active
+
+        val resumeCondition = _runStatus.IsUsedByAnotherProcess()  //  NOT INACTIVE
+        if (resumeCondition)
+        {
+            _runStatus.SetActive()
+            _hwSorting.reverseBeltMotor()
+        }
+
+        return resumeCondition
+    }
+    suspend fun forceSafeReverse()
+    {
+        while (!safeReverse())
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("HW - STARTED")
+    }
 
 
 

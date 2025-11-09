@@ -233,7 +233,7 @@ class StreamStorage
     fun shotWasFired() = _shotWasFired.set(true)
     private suspend fun waitForShotFiredEvent(): Boolean
     {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent(1))
 
         while (!_shotWasFired.get())
         {

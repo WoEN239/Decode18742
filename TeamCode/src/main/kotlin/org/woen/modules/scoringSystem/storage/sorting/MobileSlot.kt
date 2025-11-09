@@ -27,30 +27,14 @@ class MobileSlot
 
 
 
-    fun openGate()
-    {
-        _hwMobileSlot.openGate()
-    }
-    fun closeGate()
-    {
-        _hwMobileSlot.closeGate()
-    }
-    fun openPush()
-    {
-        _hwMobileSlot.openPush()
-    }
-    fun closePush()
-    {
-        _hwMobileSlot.closePush()
-    }
-    fun openFall()
-    {
-        _hwMobileSlot.openFall()
-    }
-    fun closeFall()
-    {
-        _hwMobileSlot.closeFall()
-    }
+    fun openGate()  = _hwMobileSlot.openGate()
+    fun closeGate() = _hwMobileSlot.closeGate()
+    fun openPush()  = _hwMobileSlot.openPush()
+    fun closePush() = _hwMobileSlot.closePush()
+    fun openFall()  = _hwMobileSlot.openFall()
+    fun closeFall() = _hwMobileSlot.closeFall()
+    fun openLaunch()  = _hwMobileSlot.openLaunch()
+    fun closeLaunch() = _hwMobileSlot.closeLaunch()
 
 
 

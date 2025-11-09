@@ -89,8 +89,8 @@ class HardwareDriveTrain(
             _rightForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
             _rightBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-            _rightForwardMotor.direction = DcMotorSimple.Direction.REVERSE
-            _rightBackMotor.direction = DcMotorSimple.Direction.REVERSE
+            _leftForwardMotor.direction = DcMotorSimple.Direction.REVERSE
+            _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {

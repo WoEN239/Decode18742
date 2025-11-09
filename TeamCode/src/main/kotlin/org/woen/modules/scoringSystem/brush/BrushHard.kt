@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference
 class BrushHard(private val _deviceName: String) : IHardwareDevice {
     private lateinit var _motor: DcMotorEx
     var IsSafe = AtomicReference(true)
+    var volt=0.0;
     private var motor_power = 0.0
 
     override fun update() {
@@ -30,14 +31,14 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
     }
 
     fun voltageSafe() {
-//        var volt = _motor.getCurrent(CurrentUnit.AMPS)
-//        if (volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe.set(false); else IsSafe.set(true)
+         volt = _motor.getCurrent(CurrentUnit.AMPS)
+        if (volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe.set(false); else IsSafe.set(true)
     }
 
     fun setDir(Motor: motor_state) {
         when (Motor) {
             motor_state.ACKT -> {
-                motor_power = 0.5
+                motor_power = 1.0
             }
 
             motor_state.NOT_ACKT -> {
@@ -45,7 +46,7 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
             }
 
             motor_state.REVERS -> {
-                motor_power = -0.5
+                motor_power = -0.99
             }
         }
 

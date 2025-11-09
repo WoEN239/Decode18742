@@ -31,11 +31,11 @@ import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.OPTIC_PARE_SEES_N
 
 class HwSorting () : IHardwareDevice
 {
-    private lateinit var _bottomOpticPare1 : AnalogInput
-    private lateinit var _bottomOpticPare2 : AnalogInput
-
-    private lateinit var _mobileOutOpticPare1 : AnalogInput
-    private lateinit var _mobileOutOpticPare2 : AnalogInput
+//    private lateinit var _bottomOpticPare1 : AnalogInput
+//    private lateinit var _bottomOpticPare2 : AnalogInput
+//
+//    private lateinit var _mobileOutOpticPare1 : AnalogInput
+//    private lateinit var _mobileOutOpticPare2 : AnalogInput
 
 
     private lateinit var _beltMotor1 : DcMotorEx
@@ -48,11 +48,11 @@ class HwSorting () : IHardwareDevice
 
     override fun init(hardwareMap : HardwareMap)
     {
-        _bottomOpticPare1 = hardwareMap.get(BOTTOM_OPTIC_PARE_1) as AnalogInput
-        _bottomOpticPare2 = hardwareMap.get(BOTTOM_OPTIC_PARE_2) as AnalogInput
-
-        _mobileOutOpticPare1 = hardwareMap.get(MOBILE_OUT_OPTIC_PARE_1) as AnalogInput
-        _mobileOutOpticPare2 = hardwareMap.get(MOBILE_OUT_OPTIC_PARE_2) as AnalogInput
+//        _bottomOpticPare1 = hardwareMap.get(BOTTOM_OPTIC_PARE_1) as AnalogInput
+//        _bottomOpticPare2 = hardwareMap.get(BOTTOM_OPTIC_PARE_2) as AnalogInput
+//
+//        _mobileOutOpticPare1 = hardwareMap.get(MOBILE_OUT_OPTIC_PARE_1) as AnalogInput
+//        _mobileOutOpticPare2 = hardwareMap.get(MOBILE_OUT_OPTIC_PARE_2) as AnalogInput
 
 
 
@@ -81,13 +81,13 @@ class HwSorting () : IHardwareDevice
         _beltMotor2.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motor2Power.get())
 
 
-        if (_bottomOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
-            _bottomOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
-            ThreadedEventBus.LAZY_INSTANCE.invoke(BottomOpticPareSeesSomethingEvent())
-
-        if (_mobileOutOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
-            _mobileOutOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
-            ThreadedEventBus.LAZY_INSTANCE.invoke(MobileOutOpticPareSeesSomethingEvent())
+//        if (_bottomOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
+//            _bottomOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(BottomOpticPareSeesSomethingEvent())
+//
+//        if (_mobileOutOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
+//            _mobileOutOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(MobileOutOpticPareSeesSomethingEvent())
     }
 
 
@@ -96,6 +96,11 @@ class HwSorting () : IHardwareDevice
     {
         _motor1Power.set(12.0)
         _motor2Power.set(12.0)
+    }
+    fun reverseBeltMotor()
+    {
+        _motor1Power.set(-12.0)
+        _motor2Power.set(-12.0)
     }
     fun stopBeltMotor()
     {

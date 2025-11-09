@@ -52,19 +52,7 @@ class Camera : DisposableHandle {
 
     private var _visionPortal: VisionPortal? = null
 
-    private val _aprilProcessor: AprilTagProcessor =
-        AprilTagProcessor.Builder().setOutputUnits(DistanceUnit.METER, AngleUnit.RADIANS)
-            .setCameraPose(
-                Position(
-                    DistanceUnit.METER,
-                    Configs.CAMERA.CAMERA_POSITION.x,
-                    Configs.CAMERA.CAMERA_POSITION.y,
-                    Configs.CAMERA.CAMERA_HEIGHT,
-                    0
-                ),
-                YawPitchRollAngles(AngleUnit.DEGREES, 0.0, 0.0, -90.0, 0)
-            )
-            .setDrawAxes(true).build()
+    private var _aprilProcessor: AprilTagProcessor? = null
 
     var currentPattern: AtomicReference<Pattern?> = AtomicReference()
 
@@ -72,12 +60,12 @@ class Camera : DisposableHandle {
 
     private val _thread = ThreadManager.Companion.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted && Configs.CAMERA.CAMERA_ENABLE) {
-            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN) {
+            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN || _aprilProcessor == null) {
                 Thread.sleep(5)
                 continue
             }
 
-            val detections = _aprilProcessor.freshDetections
+            val detections = _aprilProcessor?.freshDetections
 
             if (detections == null) {
                 Thread.sleep(5)
@@ -137,7 +125,7 @@ class Camera : DisposableHandle {
     })
 
     override fun dispose() {
-        _visionPortal?.close()
+
     }
 
     private constructor() {
@@ -145,18 +133,33 @@ class Camera : DisposableHandle {
             val hardwareMap =
                 OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
 
-            val helpCameraProcessor = HelpCameraProcessor()
-
-            _visionPortal =
-                VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
-                    .addProcessors(_aprilProcessor, helpCameraProcessor).build()
-
             HotRun.LAZY_INSTANCE.opModeInitEvent += {
+                val helpCameraProcessor = HelpCameraProcessor()
+
+                _aprilProcessor =
+                AprilTagProcessor.Builder().setOutputUnits(DistanceUnit.METER, AngleUnit.RADIANS)
+                    .setCameraPose(
+                        Position(
+                            DistanceUnit.METER,
+                            Configs.CAMERA.CAMERA_POSITION.x,
+                            Configs.CAMERA.CAMERA_POSITION.y,
+                            Configs.CAMERA.CAMERA_HEIGHT,
+                            0
+                        ),
+                        YawPitchRollAngles(AngleUnit.DEGREES, 0.0, 0.0, -90.0, 0)
+                    )
+                    .setDrawAxes(true).build()
+
+                _visionPortal =
+                    VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
+                        .addProcessors(_aprilProcessor, helpCameraProcessor).build()
+
                 FtcDashboard.getInstance().startCameraStream(helpCameraProcessor, 10.0)
             }
 
             HotRun.LAZY_INSTANCE.opModeStopEvent += {
                 FtcDashboard.getInstance().stopCameraStream()
+                _visionPortal?.close()
             }
         }
     }

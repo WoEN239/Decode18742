@@ -14,7 +14,10 @@ import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntake
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveSimpleDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
+import org.woen.modules.scoringSystem.storage.StorageGiveStreamDumbDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageLazyPause
+import org.woen.modules.scoringSystem.storage.StorageLazyResume
 import org.woen.modules.scoringSystem.storage.StorageOpenGateForShot
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 import org.woen.modules.scoringSystem.storage.SwitchStorage
@@ -41,6 +44,7 @@ import woen239.enumerators.ShotType
 import java.util.concurrent.atomic.AtomicReference
 
 
+
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
 
 
@@ -65,6 +69,7 @@ class ScoringModulesConnector
     constructor()
     {
         setTurretToShootMode()
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResume())
 
 
         //---  Handling received events  ---//
@@ -107,11 +112,18 @@ class ScoringModulesConnector
                     it.requestPattern,
                     it.failsafePattern
         )   }   )
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+            StorageGiveStreamDumbDrumRequest::class, {
+
+                startDumbStreamDrumRequest()
+        }   )
+
+
 
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
             StorageRequestIsReadyEvent::class, {
 
-                currentlyShootingRequestsProcess()
+                currentlyShootingRequestsProcess(it.shotNum)
         }   )
 
 
@@ -121,12 +133,21 @@ class ScoringModulesConnector
                 startBrushesAfterDelay(it.reverseTime)
         }   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_up }, {
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_left }, {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntake(Ball.Name.PURPLE))
+
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("")
+            ThreadedTelemetry.LAZY_INSTANCE.log("START - PURPLE INTAKE - GAMEPAD")
+            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }))
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_right }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntake(Ball.Name.GREEN))
 
 
             ThreadedTelemetry.LAZY_INSTANCE.log("")
-            ThreadedTelemetry.LAZY_INSTANCE.log("START - INTAKE - GAMEPAD")
+            ThreadedTelemetry.LAZY_INSTANCE.log("START - GREEN INTAKE - GAMEPAD")
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
 
@@ -138,15 +159,44 @@ class ScoringModulesConnector
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_left }, {
+
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.triangle }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSimpleDrumRequest())
 
             ThreadedTelemetry.LAZY_INSTANCE.log("")
-            ThreadedTelemetry.LAZY_INSTANCE.log("START - REQUEST - GAMEPAD")
+            ThreadedTelemetry.LAZY_INSTANCE.log("START - SIMPLE DRUM REQUEST - GAMEPAD")
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_right }, {
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.square }, {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("")
+            ThreadedTelemetry.LAZY_INSTANCE.log("START - PURPLE REQUEST - GAMEPAD")
+            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }))
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.circle }, {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("")
+            ThreadedTelemetry.LAZY_INSTANCE.log("START - GREEN REQUEST - GAMEPAD")
+            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }))
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.right_bumper }, {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDumbDrumRequest())
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("")
+            ThreadedTelemetry.LAZY_INSTANCE.log("START - GREEN REQUEST - GAMEPAD")
+            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }))
+
+
+
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.cross }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
 
 
@@ -154,6 +204,17 @@ class ScoringModulesConnector
             ThreadedTelemetry.LAZY_INSTANCE.log("STOP  - REQUEST - GAMEPAD")
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
+
+
+
+
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(StorageLazyResume::class, {
+            _storage.hwLazyResume()
+        })
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(StorageLazyPause::class, {
+            _storage.hwLazyPause()
+        })
     }
 
 
@@ -296,6 +357,7 @@ class ScoringModulesConnector
 
         setTurretToWaitMode()
         setIdle()
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResume())
         return requestResult
     }
     suspend fun startDrumRequest(
@@ -318,7 +380,11 @@ class ScoringModulesConnector
 
 
         setTurretToWaitMode()
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SwitchBrush(Brush.AcktBrush.ACKT)
+        )
         setIdle()
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResume())
         return requestResult
     }
     suspend fun startSimpleDrumRequest(): RequestResult.Name
@@ -337,9 +403,39 @@ class ScoringModulesConnector
 
         ThreadedTelemetry.LAZY_INSTANCE.log("SIMPLE DRUM - FINISHED")
 
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SwitchBrush(Brush.AcktBrush.ACKT)
+        )
         setIdle()
         ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageCloseGateForShot())
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResume())
+
+        return requestResult
+    }
+    suspend fun startDumbStreamDrumRequest(): RequestResult.Name
+    {
+        while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
+        setBusy()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("all other processes finished")
+        setTurretToShootMode()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("turret set to shoot mode")
+        ThreadedTelemetry.LAZY_INSTANCE.log("starting request search")
+        val requestResult = _storage.streamDumbShootEverything()
+
+        setTurretToWaitMode()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("STREAM DUMB DRUM - FINISHED")
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SwitchBrush(Brush.AcktBrush.ACKT)
+        )
+        setIdle()
+        ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageCloseGateForShot())
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResume())
 
         return requestResult
     }
@@ -350,17 +446,27 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("all other processes finished")
 
         setTurretToShootMode()
+        ThreadedTelemetry.LAZY_INSTANCE.log("turret set to shoot mode")
+        ThreadedTelemetry.LAZY_INSTANCE.log("starting request search")
+
         val requestResult = _storage.handleRequest(ballRequest)
 
 
         setTurretToWaitMode()
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SwitchBrush(Brush.AcktBrush.ACKT)
+        )
         setIdle()
+        ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageCloseGateForShot())
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResume())
         return requestResult
     }
 
-    suspend fun currentlyShootingRequestsProcess()
+    suspend fun currentlyShootingRequestsProcess(shotNum: Int)
     {
         var turretHasAccelerated = ThreadedEventBus.LAZY_INSTANCE.invoke(
             RequestTurretAtTargetEvent() ).atTarget
@@ -373,14 +479,15 @@ class ScoringModulesConnector
                 RequestTurretAtTargetEvent() ).atTarget
         }
 
-        awaitSuccessfulRequestShot()
+        awaitSuccessfulRequestShot(shotNum)
     }
 
 
-    suspend fun awaitSuccessfulRequestShot()
+    suspend fun awaitSuccessfulRequestShot(shotNum: Int)
     {
         delay(DELAY_BETWEEN_SHOTS)
-        while (!shotWasFired()) _storage.pushNextWithoutUpdating()
+        _storage.pushNextWithoutUpdating(shotNum)
+        while (!shotWasFired()) _storage.pushNextWithoutUpdating(shotNum)
 
         _shotWasFired.set(false)
         ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())

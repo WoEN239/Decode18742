@@ -14,6 +14,9 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 
 import com.qualcomm.robotcore.util.ElapsedTime
+import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.woen.telemetry.ThreadedTelemetry
+import org.woen.utils.units.Color
 
 
 class SwitchBrush(var brushState: Brush.AcktBrush, var reverseTime: Long = 1000)
@@ -38,12 +41,13 @@ class Brush : IModule {
     private var f12 = false
     private var f11 = false
     suspend fun AvtoUse() {
+        //ThreadedTelemetry.LAZY_INSTANCE.log("")
         if (!f12) {
             f12 = true; tmr1.reset()
         }
         val difTmr = tmr.time() > Configs.BRUSH.BRUSH_DEF_TIME
         val startTmr = tmr1.time() > Configs.BRUSH.BRUSH_SAFE_TIME
-        val errTime = tmr1.time() > Configs.BRUSH.BRUSH_ERR_TIME
+        val errTime = tmr2.time() > Configs.BRUSH.BRUSH_ERR_TIME
         when (turnOn.get()) {
             AcktBrush.ACKT -> {
                 bruh.setDir(BrushHard.motor_state.ACKT)
@@ -60,12 +64,14 @@ class Brush : IModule {
                 if (bruh.IsSafe.get() && difTmr) {
                     turnOn.set(AcktBrush.ACKT)
                 }
+                tmr2.reset()
                 tmr1.reset()
                 f11 = false
             }
 
             AcktBrush.NOT_ACKT -> {
                 bruh.setDir(BrushHard.motor_state.NOT_ACKT)
+                tmr2.reset()
                 tmr1.reset()
                 f11 = false
             }
@@ -73,6 +79,7 @@ class Brush : IModule {
             AcktBrush.REVERS -> {
                 revers(timerRevers.get())
                 turnOn.set(AcktBrush.NOT_ACKT)
+                tmr2.reset()
                 tmr1.reset()
                 f11 = false
             }
@@ -110,6 +117,11 @@ class Brush : IModule {
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             turnOn.set(AcktBrush.ACKT)
+        }
+
+        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            it.addLine(turnOn.get().toString())
+            it.addLine(bruh.volt.toString())
         }
     }
 }
