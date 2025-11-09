@@ -54,23 +54,21 @@ class Turret : IModule {
     }
 
     private fun calculatePulleySpeed(): Double {
-        return 20.0
-
         val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
         val shootDistance =
-            (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get()
+            (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_SHOOT_POS.turn(odometry.odometryOrientation.angle)
+                    - HotRun.LAZY_INSTANCE.currentRunColor.get()
                 .basketPosition).length()
 
         val shootingAngle = clamp(
-            (1.0 - shootDistance / Configs.TURRET.MAX_SHOOTING_DISTANCE) * PI / 4 + PI / 4,
+            (1.0 - shootDistance / Configs.TURRET.MAX_SHOOTING_DISTANCE) * (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_ANGLE,
             Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE
         )
 
-        _hardwareTurret.anglePosition.set(
-            (shootingAngle - Configs.TURRET.MIN_TURRET_ANGLE) * (Configs.TURRET.MAX_TURRET_SERVO_ANGLE - Configs.TURRET.MIN_TURRET_SERVO_ANGLE) /
-                    (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_SERVO_ANGLE
-        )
+        _hardwareTurret.anglePosition =
+            shootingAngle / (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) *
+                    (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) + Configs.TURRET.MIN_TURRET_ANGLE_SERVO
 
         val robotRotationBasketErr = Angle(
             (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition

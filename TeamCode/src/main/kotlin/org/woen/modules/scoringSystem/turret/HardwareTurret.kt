@@ -13,7 +13,6 @@ import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.regulator.Regulator
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -26,17 +25,18 @@ class HardwareTurret(
     private lateinit var _angleSevo: Servo
 
     var targetVelocity: Double
-        get() = _realTargetVelocity.get() /
-                Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION * (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
+        get() = (_realTargetVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
         set(value) {
-            _realTargetVelocity.set(
+            _realTargetVelocity =
                 (value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
-            )
         }
 
-    var anglePosition = AtomicReference(0.0)
+    val currentVelocity: Double
+        get() = (_motorVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
 
-    private var _realTargetVelocity = AtomicReference(0.0)
+    var anglePosition = 0.0
+
+    private var _realTargetVelocity = 0.0
 
     private val _pulleyRegulator = Regulator(Configs.TURRET.PULLEY_REGULATOR)
 
@@ -66,7 +66,7 @@ class HardwareTurret(
 
         _oldMotorPosition = currentMotorPosition
 
-        val target = _realTargetVelocity.get()
+        val target = _realTargetVelocity
         val velErr = target - _motorVelocity
 
         if (abs(velErr) > Configs.TURRET.PULLEY_TARGET_SENS)
@@ -104,8 +104,8 @@ class HardwareTurret(
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-            it.addData("currentTurretVelocity", _motorVelocity)
-            it.addData("targetTurretVelocity", _realTargetVelocity.get())
+            it.addData("currentTurretVelocity", currentVelocity)
+            it.addData("targetTurretVelocity", targetVelocity)
         }
     }
 

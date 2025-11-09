@@ -12,7 +12,6 @@ import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
-import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
 import org.woen.utils.regulator.Regulator
@@ -49,16 +48,21 @@ class DriveTrain : IModule {
     private var _lookMode = AtomicReference(false)
     private var _lookProcess = AtomicReference(Process())
     private var _lookRegulator = Regulator(Configs.DRIVE_TRAIN.LOOK_REGULATOR_PARAMETERS)
+    private var _targetAngle = Angle.ZERO
 
     override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
             val rotationErr = if (_lookMode.get()) {
-                val err = (odometry.odometryOrientation.angl - Angle(
-                    (odometry.odometryOrientation.pos - HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition).rot()
+                _targetAngle = Angle(
+                    (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition -
+                            (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
+                                odometry.odometryOrientation.angle
+                            ))).rot()
                 )
-                        ).angle
+
+                val err = (_targetAngle - odometry.odometryOrientation.angl).angle
 
                 if (abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS)
                     _lookProcess.get().close()
@@ -145,14 +149,8 @@ class DriveTrain : IModule {
 
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
-            it.addData(
-                "targetAngle", Angle(
-                    (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition
-                            - odometry.odometryOrientation.pos).rot()
-                ).angle
-            )
-
-            it.addData("currentAngle", odometry.odometryOrientation.angle)
+            it.addData("targetAngle", _targetAngle)
+            it.addData("currentAngle", odometry.odometryOrientation.angl)
         }
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {

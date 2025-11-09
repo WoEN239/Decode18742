@@ -1,6 +1,5 @@
 package org.woen.modules.scoringSystem.simple
 
-import com.qualcomm.robotcore.hardware.Servo
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

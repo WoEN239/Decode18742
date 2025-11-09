@@ -267,31 +267,31 @@ object Configs {
         var APPROXIMATION_MAX_ITERATIONS = 100
 
         @JvmField
+        var MIN_TURRET_ANGLE_SERVO = 0.0
+
+        @JvmField
+        var MAX_TURRET_ANGLE_SERVO = 1.0
+
+        @JvmField
         var MIN_TURRET_ANGLE = 0.0
 
         @JvmField
         var MAX_TURRET_ANGLE = PI / 2.0
 
         @JvmField
-        var MIN_TURRET_SERVO_ANGLE = 0.0
-
-        @JvmField
-        var MAX_TURRET_SERVO_ANGLE = 1.0
-
-        @JvmField
         var MAX_SHOOTING_DISTANCE = 5.0
-
-        @JvmField
-        var ROTATION_TICKS_IN_REVOLUTION = 8192.0 * (23.0 / 6.0)
-
-        @JvmField
-        var ROTATION_PID_CONFIG = RegulatorParameters()
 
         @JvmField
         var PULLEY_U = 0.5
 
         @JvmField
         var MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS: Long = 1000
+
+        @JvmField
+        var TURRET_SHOOT_POS = Vec2.ZERO
+
+        @JvmField
+        var TURRET_CENTER_POS = Vec2.ZERO
     }
 
 
