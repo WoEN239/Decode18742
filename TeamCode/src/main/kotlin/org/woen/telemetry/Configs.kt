@@ -459,4 +459,10 @@ object Configs {
         @JvmField
         var MOBILE_LAUNCH_SERVO = "mobile_launch_servo"
     }
+
+    @Config
+    internal object SIMPLE_STORAGE {
+        @JvmField
+        var BELT_PUSH_TIME = 0.2
+    }
 }
