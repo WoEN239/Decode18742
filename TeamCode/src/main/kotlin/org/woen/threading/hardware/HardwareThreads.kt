@@ -5,6 +5,7 @@ import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.odometry.Odometry
 import org.woen.modules.scoringSystem.ScoringModulesConnector
 import org.woen.modules.scoringSystem.brush.Brush
+import org.woen.modules.scoringSystem.simple.SimpleStorage
 import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.utils.smartMutex.SmartMutex
 
@@ -41,9 +42,9 @@ class HardwareThreads private constructor() : DisposableHandle {
         }
     }
 
-    val CONTROL = HardwareThread(HardwareLink())
+    val CONTROL = HardwareThread()
 
-    //val EXPANSION = HardwareThread(HardwareLink())
+    //val EXPANSION = HardwareThread()
 
     override fun dispose() {
         CONTROL.dispose()
@@ -52,8 +53,8 @@ class HardwareThreads private constructor() : DisposableHandle {
 
     private fun initModules() {
 //        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
-        CONTROL.link.addModules(Odometry(), DriveTrain(), Brush(), Turret())
+        CONTROL.link.addModules(Odometry(), DriveTrain(), Brush(), Turret(), SimpleStorage())
 
-        ScoringModulesConnector()
+//        ScoringModulesConnector()
     }
 }

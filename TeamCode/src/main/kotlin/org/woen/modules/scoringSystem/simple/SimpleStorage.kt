@@ -36,7 +36,7 @@ class SimpleStorage : IModule {
 
     private val _launchServo = ThreadedServo(
         Configs.HARDWARE_DEVICES_NAMES.MOBILE_LAUNCH_SERVO,
-        _startAngle = Configs.STORAGE.MOBILE_PUSH_SERVO_CLOSE_VALUE * PI * 1.5
+        _startAngle = Configs.STORAGE.MOBILE_LAUNCH_SERVO_CLOSE_VALUE * PI * 1.5
     )
 
     private var _currentShootCoroutine: Job? = null
@@ -49,7 +49,7 @@ class SimpleStorage : IModule {
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetCurrentTurretStateEvent(Turret.TurretState.WAITING))
 
         _gateServo.targetAngle = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE * PI * 1.5
-        _launchServo.targetAngle = Configs.STORAGE.MOBILE_PUSH_SERVO_CLOSE_VALUE * PI * 1.5
+        _launchServo.targetAngle = Configs.STORAGE.MOBILE_LAUNCH_SERVO_CLOSE_VALUE * PI * 1.5
     }
 
     constructor() {
@@ -96,7 +96,7 @@ class SimpleStorage : IModule {
 
                 delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
 
-                _launchServo.targetAngle = Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE * PI * 1.5
+                _launchServo.targetAngle = Configs.STORAGE.MOBILE_LAUNCH_SERVO_OPEN_VALUE * PI * 1.5
 
                 while (!_launchServo.atTargetAngle)
                     delay(5)

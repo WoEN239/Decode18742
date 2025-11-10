@@ -64,11 +64,9 @@ class HardwareThread : DisposableHandle {
         link.dispose()
     }
 
-    val link: HardwareLink
+    val link = HardwareLink()
 
-    constructor(link: HardwareLink) {
-        this.link = link
-
+    constructor() {
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData(
                 "hardware ups + " + _thread.name,

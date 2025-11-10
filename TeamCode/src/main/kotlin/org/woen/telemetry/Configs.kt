@@ -140,7 +140,7 @@ object Configs {
         var WHEEL_DIAMETER = 0.096
 
         @JvmField
-        var LAG = Vec2(1.0203412073490814, 1.1515748031496063)
+        var LAG = Vec2(1.0, 1.0)
 
         @JvmField
         var H_LAG = 1.0
@@ -227,7 +227,7 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.1)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 25.0
+        var PULLEY_TARGET_SENS = 30.0
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-1.55, -1.55)
@@ -236,13 +236,13 @@ object Configs {
         var RED_BASKET_POSITION = Vec2(-1.55, 1.55)
 
         @JvmField
-        var TURRET_HEIGHT = 1.0
+        var TURRET_HEIGHT = 0.35
 
         @JvmField
         var BALL_MASS = 0.075
 
         @JvmField
-        var BASKET_TARGET_HEIGHT = 1.0
+        var BASKET_TARGET_HEIGHT = 1.1
 
         @JvmField
         var WAIT_PULLEY_SPEED = 5.0
@@ -251,7 +251,7 @@ object Configs {
         var TIME_STEP = 0.1
 
         @JvmField
-        var AIR_FORCE_K = 0.0
+        var AIR_FORCE_K = 0.07
 
         @JvmField
         var CALCULATING_G = 9.78
@@ -269,19 +269,19 @@ object Configs {
         var MIN_TURRET_ANGLE_SERVO = 0.0
 
         @JvmField
-        var MAX_TURRET_ANGLE_SERVO = 1.0
+        var MAX_TURRET_ANGLE_SERVO = 0.9
 
         @JvmField
-        var MIN_TURRET_ANGLE = 0.0
+        var MIN_TURRET_ANGLE = 45.0 / 180 * PI
 
         @JvmField
-        var MAX_TURRET_ANGLE = PI / 2.0
+        var MAX_TURRET_ANGLE = 55.0 / 180 * PI
 
         @JvmField
         var MAX_SHOOTING_DISTANCE = 5.0
 
         @JvmField
-        var PULLEY_U = 0.5
+        var PULLEY_U = 0.7
 
         @JvmField
         var MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS: Long = 1000
