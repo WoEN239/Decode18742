@@ -3,9 +3,9 @@ package org.woen.modules.scoringSystem.storage.sorting
 
 import kotlin.math.min
 import kotlinx.coroutines.delay
+import android.annotation.SuppressLint
 import java.util.concurrent.atomic.AtomicReference
 
-import android.annotation.SuppressLint
 
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
@@ -16,19 +16,28 @@ import woen239.enumerators.RequestResult
 import woen239.enumerators.ShotType
 import woen239.enumerators.RunStatus
 
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadedEventBus
+
+import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
+import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
+
+import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
+import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
+
 import org.woen.modules.scoringSystem.storage.StorageFinishedIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
+
+import org.woen.modules.scoringSystem.storage.StorageOpenTurretGateEvent
 import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
-import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
-import org.woen.modules.scoringSystem.storage.StorageOpenGateForShot
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
+
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
-import org.woen.telemetry.ThreadedTelemetry
 
 
 
@@ -41,6 +50,39 @@ class SortingStorage
 
     private var _shotWasFired = AtomicReference(false)
     private var _ballWasEaten = AtomicReference(false)
+
+
+
+    constructor()
+    {
+//        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+//            ColorSensorsTriggerAutoIntakeEvent::class, {
+//
+//                ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                    StorageGetReadyForIntake(it.inputBall)
+//                )
+//                ThreadedTelemetry.LAZY_INSTANCE.log("")
+//                ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
+//                //  Alias
+//            } )
+
+
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
+            eventTerminateIntake()
+        } )
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
+            eventTerminateRequest()
+        } )
+
+
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(ShotWasFiredEvent::class, {
+            shotWasFired()
+        } )
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(BallWasEatenByTheStorageEvent::class, {
+            ballWasEaten()
+        } )
+    }
+
 
 
 
@@ -129,7 +171,7 @@ class SortingStorage
         return intakeFail
     }
     private fun doTerminateIntake() = _intakeRunStatus.TerminationId() == RunStatus.DO_TERMINATE
-    fun switchTerminateIntake() = _intakeRunStatus.DoTerminate()
+    fun eventTerminateIntake() = _intakeRunStatus.DoTerminate()
 
 
 
@@ -156,7 +198,8 @@ class SortingStorage
         if (requestResult.DidFail()) return requestResult   //  Intake failed
 
 
-        val fullRotations = when (requestResult.Name()) {
+        val fullRotations = when (requestResult.Name())
+        {
             RequestResult.Name.SUCCESS_MOBILE_IN -> 2
             RequestResult.Name.SUCCESS_BOTTOM -> 1
             RequestResult.Name.SUCCESS_CENTER -> 0
@@ -242,12 +285,26 @@ class SortingStorage
         return requestFail
     }
     private fun doTerminateRequest() = _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
-    fun switchTerminateRequest() = _requestRunStatus.DoTerminate()
+    fun eventTerminateRequest() = _requestRunStatus.DoTerminate()
 
 
 
-    suspend fun pushNextWithoutUpdating(time: Long = DELAY_FOR_ONE_BALL_PUSHING_MS)
-        = _storageCells.hwRotateBeltCW(time)
+    suspend fun pushNextWithoutUpdating(shotNum: Int)
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("> SW: OPEN GATE")
+        _storageCells.openTurretGate()
+        delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+
+        //_sortingStorage.pushNextWithoutUpdating()
+
+        _storageCells.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
+
+        if (shotNum == 3) pushLastBallWithLaunch()
+
+        _storageCells.closeTurretGate()
+        delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
+    }
     suspend fun pushLastBallWithLaunch() = _storageCells.hwLaunchLastBall()
 
 
@@ -550,7 +607,7 @@ class SortingStorage
     private suspend fun fullWaitForShotFired(shotNum: Int): Boolean
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("WAITING FOR SHOT - EVENT SEND")
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageOpenGateForShot())
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageOpenTurretGateEvent())
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent(shotNum))
 
         while (!_shotWasFired.get())
@@ -567,6 +624,7 @@ class SortingStorage
 
 
     fun ballWasEaten() = _ballWasEaten.set(true)
+
     private suspend fun fullWaitForIntakeIsFinishedEvent(): Boolean
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageIsReadyToEatIntakeEvent())
@@ -593,49 +651,4 @@ class SortingStorage
 
     suspend fun hwLazyResume() = _storageCells.hwLazyResume()
     suspend fun hwLazyPause()  = _storageCells.hwLazyPause()
-
-    suspend fun forceSafeStart()
-    {
-        while (!_intakeRunStatus.IsInactive())
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
-        _intakeRunStatus.SetActive()
-
-        while (!_requestRunStatus.IsInactive())
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
-        _requestRunStatus.SetActive()
-
-        _storageCells.forceSafeStartHwBelt()
-    }
-    suspend fun forceSafeStop()
-    {
-        _intakeRunStatus.DoTerminate()
-        while (!_intakeRunStatus.IsTerminated())
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
-        _intakeRunStatus.SetInactive()
-
-        _requestRunStatus.DoTerminate()
-        while (!_intakeRunStatus.IsTerminated())
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
-        _intakeRunStatus.SetInactive()
-
-        _storageCells.forceSafeStopHwBelt()
-    }
-    fun emergencyForceStop()
-    {
-        _intakeRunStatus.SetInactive()
-        _intakeRunStatus.DoTerminate()
-
-        _requestRunStatus.SetInactive()
-        _requestRunStatus.DoTerminate()
-
-        _storageCells.emergencyStopHwBelt()
-    }
-
-
-
-    fun linkHardware()
-    {
-        _storageCells.linkBeltHardware()
-        _storageCells.linkMobileSlotHardware()
-    }
 }

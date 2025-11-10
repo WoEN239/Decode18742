@@ -9,7 +9,6 @@ import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
 import woen239.enumerators.StorageSlot
-import woen239.enumerators.StorageType
 import kotlin.math.PI
 
 
@@ -375,14 +374,8 @@ object Configs {
         @JvmField
         var MAX_WAITING_TIME_FOR_INTAKE_MS = 2000
         @JvmField
-        var DELAY_FOR_EATING_INTAKE_IN_STREAM_STORAGE_MS: Long = 1000
-        @JvmField
         var DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS: Long = 60
 
-
-
-        @JvmField
-        var STREAM_STORAGE_MOTOR_DIRECTION = DcMotorSimple.Direction.REVERSE
 
 
         @JvmField
@@ -407,7 +400,7 @@ object Configs {
         var MOBILE_FALL_SERVO_CLOSE_VALUE = 0.005
 
         @JvmField
-        var MOBILE_LAUNCH_SERVO_OPEN_VALUE = 0.225
+        var MOBILE_LAUNCH_SERVO_OPEN_VALUE  = 0.225
         @JvmField
         var MOBILE_LAUNCH_SERVO_CLOSE_VALUE = 0.65
 
@@ -417,11 +410,6 @@ object Configs {
         var TURRET_GATE_SERVO_OPEN_VALUE  = 0.9
         @JvmField
         var TURRET_GATE_SERVO_CLOSE_VALUE = 0.6
-
-
-
-        @JvmField
-        var USED_STORAGE_TYPE = StorageType.SORTING_STORAGE
     }
 
 
@@ -448,10 +436,6 @@ object Configs {
 
         @JvmField
         var TURRET_GATE_SERVO = "turret_gate_servo"
-
-
-        @JvmField
-        var STREAM_STORAGE_BELT_MOTOR = "stream_storage belt motor"
 
 
 

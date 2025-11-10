@@ -24,10 +24,13 @@ import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_PUSH_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_FALL_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_LAUNCH_SERVO
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
+import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
+import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 
 
 
-class HwMobileSlot : IHardwareDevice
+class HwSortingMobile : IHardwareDevice
 {
     private lateinit var _gateServo : Servo
     private var _gatePosition = AtomicReference(MOBILE_GATE_SERVO_CLOSE_VALUE)
@@ -42,6 +45,9 @@ class HwMobileSlot : IHardwareDevice
     private lateinit var _launchServo : Servo
     private var _launchPosition = AtomicReference(MOBILE_FALL_SERVO_CLOSE_VALUE)
 
+    private lateinit var _turretGateServo : Servo
+    private var _turretGatePosition = AtomicReference(TURRET_GATE_SERVO_CLOSE_VALUE)
+
 
 
     override fun init(hardwareMap : HardwareMap)
@@ -49,7 +55,9 @@ class HwMobileSlot : IHardwareDevice
         _gateServo = hardwareMap.get(MOBILE_GATE_SERVO) as Servo
         _pushServo = hardwareMap.get(MOBILE_PUSH_SERVO) as Servo
         _fallServo = hardwareMap.get(MOBILE_FALL_SERVO) as Servo
+
         _launchServo = hardwareMap.get(MOBILE_LAUNCH_SERVO) as Servo
+        _turretGateServo = hardwareMap.get(TURRET_GATE_SERVO) as Servo
 
         fullCalibrate()
     }
@@ -58,7 +66,9 @@ class HwMobileSlot : IHardwareDevice
         _gateServo.position = _gatePosition.get()
         _pushServo.position = _pushPosition.get()
         _fallServo.position = _fallPosition.get()
+
         _launchServo.position = _launchPosition.get()
+        _turretGateServo.position = _turretGatePosition.get()
     }
 
 
@@ -76,13 +86,19 @@ class HwMobileSlot : IHardwareDevice
     fun openLaunch()  = _launchPosition.set(MOBILE_LAUNCH_SERVO_OPEN_VALUE)
     fun closeLaunch() = _launchPosition.set(MOBILE_LAUNCH_SERVO_CLOSE_VALUE)
 
+    fun openTurretGate()  = _turretGatePosition.set(TURRET_GATE_SERVO_OPEN_VALUE)
+    fun closeTurretGate() = _turretGatePosition.set(TURRET_GATE_SERVO_CLOSE_VALUE)
+
+
 
     fun fullCalibrate()
     {
         closeGate()
         closePush()
         closeFall()
+
         closeLaunch()
+        closeTurretGate()
     }
 
 

@@ -43,24 +43,17 @@ data class StorageFinishedEveryRequestEvent(
 class ShotWasFiredEvent()
 
 
-class BottomOpticPareSeesSomethingEvent()
-class MobileOutOpticPareSeesSomethingEvent()
 
-
-
-class ColorSensorsSeeIntakeIncoming(
-    var inputBall: Ball.Name = Ball.Name.NONE
-)
-class StorageGetReadyForIntake(
+class StorageGetReadyForIntakeEvent(
     var inputBall: Ball.Name = Ball.Name.NONE
 )
 
 
 
-class StorageOpenGateForShot()
-class StorageCloseGateForShot()
+class StorageOpenTurretGateEvent()
+class StorageCloseTurretGateEvent()
 
 
 
-class StorageLazyResume()
-class StorageLazyPause()
+class StorageLazyResumeEvent()
+class StorageLazyPauseEvent()

@@ -2,8 +2,8 @@ package org.woen.modules.scoringSystem.storage.sorting
 
 
 import kotlinx.coroutines.delay
-import org.woen.modules.scoringSystem.brush.Brush
-import org.woen.modules.scoringSystem.brush.SwitchBrush
+import org.woen.modules.scoringSystem.storage.StorageCloseTurretGateEvent
+import org.woen.modules.scoringSystem.storage.StorageOpenTurretGateEvent
 
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
@@ -13,6 +13,10 @@ import woen239.enumerators.RequestResult
 
 import woen239.enumerators.StorageSlot
 
+import org.woen.threading.ThreadedEventBus
+import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.hardware.HardwareThreads
+
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.STORAGE_SLOT_COUNT
 
@@ -21,11 +25,11 @@ import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_MAX_SERVO_POSITION_CHANGE
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS
-import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.ThreadedEventBus
+import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingMobile
+
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -62,9 +66,28 @@ import org.woen.threading.ThreadedEventBus
 class StorageCells
 {
     private val _storageCells = Array(STORAGE_SLOT_COUNT) { Ball() }
-    private val _mobileSlot = MobileSlot()
 
-    private lateinit var _hwSortingM: HwSortingManager  //  DO NOT JOIN ASSIGNMENT
+    private val _hwMobile   = HwSortingMobile()
+    private val _hwSortingM = HwSortingManager()
+
+
+
+    constructor()
+    {
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(StorageOpenTurretGateEvent::class, {
+            _hwMobile.openGate()
+            ThreadedTelemetry.LAZY_INSTANCE.log("> EVENT: OPEN GATE")
+        } )
+
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(StorageCloseTurretGateEvent::class, {
+            _hwMobile.closeGate()
+        } )
+
+
+        _hwSortingM.addDevice()
+
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwMobile)
+    }
 
 
 
@@ -210,9 +233,9 @@ class StorageCells
     suspend fun hwLazyPause()  = _hwSortingM.forceSafePause()
     suspend fun hwLaunchLastBall()
     {
-        _mobileSlot.openLaunch()
+        _hwMobile.openLaunch()
         delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-        _mobileSlot.closeLaunch()
+        _hwMobile.closeLaunch()
         delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
     }
     suspend fun hwRotateBeltCW(time: Long)
@@ -224,35 +247,34 @@ class StorageCells
     }
     suspend fun hwRotateMobileSlotsCW()
     {
-        _mobileSlot.closeGate()
+        _hwMobile.closeGate()
         delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
         _hwSortingM.forceSafeReverse()
         delay(DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
         _hwSortingM.forceSafePause()
-        _mobileSlot.openGate()
+        _hwMobile.openGate()
         delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-        _mobileSlot.openPush()
+        _hwMobile.openPush()
         delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
 
 
-        _mobileSlot.closeGate()
+        _hwMobile.closeGate()
         delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-        _mobileSlot.closePush()
+        _hwMobile.closePush()
         delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
     }
     suspend fun hwRotateFallSlotCW()
     {
-        _mobileSlot.openFall()
+        _hwMobile.openFall()
         delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE
                 + DELAY_FOR_ONE_BALL_PUSHING_MS)
 
-        _mobileSlot.closeFall()
+        _hwMobile.closeFall()
         delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
     }
 
     suspend fun fullRotateCW()
     {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.ACKT))
         ThreadedTelemetry.LAZY_INSTANCE.log("FULL ROTATION - START")
         hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
@@ -271,8 +293,6 @@ class StorageCells
         ThreadedTelemetry.LAZY_INSTANCE.log("FR - BELT")
         hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 3
         + DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
 
 
 
@@ -336,12 +356,8 @@ class StorageCells
 
 
 
-    suspend fun forceSafeStartHwBelt() = _hwSortingM.forceSafeStart()
-
-    suspend fun forceSafeStopHwBelt() = _hwSortingM.forceSafeStop()
-    fun emergencyStopHwBelt() = _hwSortingM.forceStop()
-
-
+    fun openTurretGate()  = _hwMobile.openTurretGate()
+    fun closeTurretGate() = _hwMobile.closeTurretGate()
 
     fun storageData() = _storageCells
 
@@ -382,13 +398,4 @@ class StorageCells
 
         return intArrayOf(countPG[Ball.PURPLE], countPG[Ball.GREEN])
     }
-
-
-
-    fun linkBeltHardware()
-    {
-        _hwSortingM = HwSortingManager()
-        _hwSortingM.addDevice()
-    }
-    fun linkMobileSlotHardware() = _mobileSlot.initHardware()
 }
