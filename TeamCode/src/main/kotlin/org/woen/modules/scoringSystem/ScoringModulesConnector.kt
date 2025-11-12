@@ -1,45 +1,54 @@
 package org.woen.modules.scoringSystem
 
 
-//import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 
 import kotlinx.coroutines.delay
-import org.woen.modules.scoringSystem.brush.Brush
-import org.woen.modules.scoringSystem.brush.SwitchBrush
-import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
-import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
-import org.woen.modules.scoringSystem.storage.StorageCloseTurretGateEvent
-import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
-import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
-import org.woen.modules.scoringSystem.storage.StorageGiveSimpleDrumRequest
-import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
-import org.woen.modules.scoringSystem.storage.StorageGiveStreamDumbDrumRequest
-import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
-import org.woen.modules.scoringSystem.storage.StorageLazyPauseEvent
-import org.woen.modules.scoringSystem.storage.StorageLazyResumeEvent
-import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
-import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
-import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
-import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
-import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
-import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
-import org.woen.modules.scoringSystem.turret.Turret
-import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_SHOTS
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
-import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
-import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
-import org.woen.telemetry.Configs.TURRET.MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS
-import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.ThreadedEventBus
-import org.woen.threading.ThreadedGamepad
-import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
+import java.util.concurrent.atomic.AtomicReference
+
+import woen239.enumerators.ShotType
+
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
+
 import woen239.enumerators.IntakeResult
 import woen239.enumerators.RequestResult
-import woen239.enumerators.ShotType
-import java.util.concurrent.atomic.AtomicReference
+
+import org.woen.modules.scoringSystem.turret.Turret
+import org.woen.modules.scoringSystem.brush.Brush
+import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
+
+import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
+import org.woen.threading.ThreadedEventBus
+import org.woen.telemetry.ThreadedTelemetry
+
+import org.woen.modules.scoringSystem.brush.SwitchBrush
+
+import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
+import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
+
+import org.woen.modules.scoringSystem.storage.StorageCloseTurretGateEvent
+
+import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
+import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
+
+import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
+
+import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
+import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
+
+import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
+import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
+import org.woen.modules.scoringSystem.storage.StorageGiveSimpleDrumRequest
+
+import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
+import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
+import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_SHOTS
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
+import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
+import org.woen.telemetry.Configs.TURRET.MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS
 
 
 
@@ -104,11 +113,6 @@ class ScoringModulesConnector
                     it.requestPattern,
                     it.failsafePattern
         )   }   )
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
-            StorageGiveStreamDumbDrumRequest::class, {
-
-                startDumbStreamDrumRequest()
-        }   )
 
 
 
@@ -177,16 +181,6 @@ class ScoringModulesConnector
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.right_bumper }, {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDumbDrumRequest())
-
-            ThreadedTelemetry.LAZY_INSTANCE.log("")
-            ThreadedTelemetry.LAZY_INSTANCE.log("START - GREEN REQUEST - GAMEPAD")
-            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
-        }))
-
-
-
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.cross }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
@@ -199,21 +193,7 @@ class ScoringModulesConnector
 
 
 
-
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(StorageLazyResumeEvent::class, {
-            _storage.hwLazyResume()
-        })
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(StorageLazyPauseEvent::class, {
-            _storage.hwLazyPause()
-        })
-
-
-
-
-
         setTurretToShootMode()
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResumeEvent())
     }
 
 
@@ -261,7 +241,6 @@ class ScoringModulesConnector
 
 
         setIdle()
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResumeEvent())
         ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
         return intakeResult
     }
@@ -355,7 +334,6 @@ class ScoringModulesConnector
 
         setTurretToWaitMode()
         setIdle()
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResumeEvent())
         return requestResult
     }
     suspend fun startDrumRequest(
@@ -380,7 +358,6 @@ class ScoringModulesConnector
             SwitchBrush(Brush.AcktBrush.ACKT)
         )
         setIdle()
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResumeEvent())
         return requestResult
     }
     suspend fun startSimpleDrumRequest(): RequestResult.Name
@@ -405,33 +382,6 @@ class ScoringModulesConnector
         setIdle()
         ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageCloseTurretGateEvent())
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResumeEvent())
-
-        return requestResult
-    }
-    suspend fun startDumbStreamDrumRequest(): RequestResult.Name
-    {
-        while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
-        setBusy()
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("all other processes finished")
-        setTurretToShootMode()
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("turret set to shoot mode")
-        ThreadedTelemetry.LAZY_INSTANCE.log("starting request search")
-        val requestResult = _storage.streamDumbShootEverything()
-
-        setTurretToWaitMode()
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("STREAM DUMB DRUM - FINISHED")
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SwitchBrush(Brush.AcktBrush.ACKT)
-        )
-        setIdle()
-        ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageCloseTurretGateEvent())
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResumeEvent())
 
         return requestResult
     }
@@ -456,7 +406,6 @@ class ScoringModulesConnector
         setIdle()
         ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageCloseTurretGateEvent())
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageLazyResumeEvent())
         return requestResult
     }
 

@@ -37,26 +37,12 @@ public class StorageSlot
     {
         BOTTOM,
         CENTER,
-        OUTSIDE_MOBILE,
         MOBILE_OUT,
         MOBILE_IN,
+        OUTSIDE_MOBILE,
         UNDEFINED
     }
 
-
-
-    public void SetMobileOut()
-    {
-        Set(MOBILE_OUT, Name.MOBILE_OUT);
-    }
-    public void SetMobileIn()
-    {
-        Set(MOBILE_IN, Name.MOBILE_IN);
-    }
-    public void SetOutsideMobile()
-    {
-        Set(OUTSIDE_MOBILE, Name.OUTSIDE_MOBILE);
-    }
 
 
     public void Set(Name name)
@@ -82,97 +68,9 @@ public class StorageSlot
     {
         return _memName;
     }
-    public int Id()
+    public int  Id()
     {
         return _memId;
-    }
-
-    public boolean Is_MOBILE_OUT()
-    {
-        return _memId == MOBILE_OUT;
-    }
-    public boolean Is_MOBILE_IN()
-    {
-        return _memId == MOBILE_IN;
-    }
-    public boolean Is_OUTSIDE_MOBILE()
-    {
-        return _memId == OUTSIDE_MOBILE;
-    }
-
-    public boolean IsNot_MOBILE_FAMILY()
-    {
-        return !Is_MOBILE_FAMILY();
-    }
-    public boolean Is_MOBILE_FAMILY()
-    {
-        return Is_MOBILE_OUT() || Is_MOBILE_IN() || Is_OUTSIDE_MOBILE();
-    }
-
-
-    static public MobileRotationResult MobileCanBeRotated(StorageSlot oldSlot, StorageSlot newSlot)
-    {
-        if (oldSlot.IsNot_MOBILE_FAMILY() || newSlot.IsNot_MOBILE_FAMILY())
-            return new MobileRotationResult
-                (
-                    MobileRotationResult.FAIL_ILLEGAL_ARGUMENTS,
-                    MobileRotationResult.Name.FAIL_ILLEGAL_ARGUMENTS
-                );
-
-        if (oldSlot.Id() == newSlot.Id())
-            new MobileRotationResult
-                (
-                    MobileRotationResult.FAIL_SAME_POSITION,
-                    MobileRotationResult.Name.FAIL_SAME_POSITION
-                );
-
-        switch (oldSlot.Id())
-        {
-            case OUTSIDE_MOBILE:
-                return newSlot.Id() == MOBILE_OUT ?
-                    new MobileRotationResult
-                        (
-                            MobileRotationResult.SUCCESS_IN,
-                            MobileRotationResult.Name.SUCCESS_IN
-                        )
-                    : new MobileRotationResult
-                        (
-                            MobileRotationResult.SUCCESS_IN_DOUBLE,
-                            MobileRotationResult.Name.SUCCESS_IN_DOUBLE
-                        );
-
-            case MOBILE_OUT:
-                return newSlot.Id() == MOBILE_IN ?
-                    new MobileRotationResult
-                        (
-                            MobileRotationResult.SUCCESS,
-                            MobileRotationResult.Name.SUCCESS
-                        )
-                    : new MobileRotationResult
-                        (
-                            MobileRotationResult.SUCCESS_OUT_DOUBLE,
-                            MobileRotationResult.Name.SUCCESS_OUT_DOUBLE
-                        );
-
-            case MOBILE_IN:
-                return newSlot.Id() == OUTSIDE_MOBILE ?
-                    new MobileRotationResult
-                        (
-                            MobileRotationResult.SUCCESS_OUT,
-                            MobileRotationResult.Name.SUCCESS_OUT
-                        )
-                    : new MobileRotationResult
-                        (
-                            MobileRotationResult.FAIL_CANT_ROTATE_BACKWARDS,
-                            MobileRotationResult.Name.FAIL_CANT_ROTATE_BACKWARDS
-                        );
-        }
-
-        return new MobileRotationResult
-            (
-                MobileRotationResult.FAIL_UNKNOWN,
-                MobileRotationResult.Name.FAIL_UNKNOWN
-            );
     }
 
 
@@ -189,7 +87,7 @@ public class StorageSlot
             default:  return Name.UNDEFINED;
         }
     }
-    static public int ToInt (Name name)
+    static public int  ToInt (Name name)
     {
         switch (name)
         {

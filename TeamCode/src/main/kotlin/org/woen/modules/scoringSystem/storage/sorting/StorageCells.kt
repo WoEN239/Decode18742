@@ -229,8 +229,6 @@ class StorageCells
 
 
 
-    suspend fun hwLazyResume() = _hwSortingM.forceSafeResume()
-    suspend fun hwLazyPause()  = _hwSortingM.forceSafePause()
     suspend fun hwLaunchLastBall()
     {
         _hwMobile.openLaunch()

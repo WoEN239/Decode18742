@@ -300,31 +300,36 @@ object Configs {
         var OPTIC_PARE_SEES_NOT_BLACK = 3.4
 
 
-        @JvmField
-        var THRESHOLD_GREEN_MAX_C_RED = 70
 
         @JvmField
-        var THRESHOLD_GREEN_MIN_C_GREEN = 40
+        var THRESHOLD_GREEN_BALL_MAX_R_S1 = 70
+        @JvmField
+        var THRESHOLD_GREEN_BALL_MIN_G_S1 = 40
+        @JvmField
+        var THRESHOLD_GREEN_BALL_MAX_B_S1 = 70
 
         @JvmField
-        var THRESHOLD_GREEN_MAX_C_BLUE = 70
+        var THRESHOLD_GREEN_BALL_MAX_R_S2 = 70
+        @JvmField
+        var THRESHOLD_GREEN_BALL_MIN_G_S2 = 40
+        @JvmField
+        var THRESHOLD_GREEN_BALL_MAX_B_S2 = 70
+
+
 
         @JvmField
-        var THRESHOLD_GREEN_MIN_EXTRA_ALPHA = 55
-
-
+        var THRESHOLD_PURPLE_BALL_MIN_R_S1 = 40
+        @JvmField
+        var THRESHOLD_PURPLE_BALL_MAX_G_S1 = 70
+        @JvmField
+        var THRESHOLD_PURPLE_BALL_MIN_B_S1 = 20
 
         @JvmField
-        var THRESHOLD_PURPLE_MIN_C_RED = 40
-
+        var THRESHOLD_PURPLE_BALL_MIN_R_S2 = 40
         @JvmField
-        var THRESHOLD_PURPLE_MIN_C_BLUE = 20
-
+        var THRESHOLD_PURPLE_BALL_MAX_G_S2 = 70
         @JvmField
-        var THRESHOLD_PURPLE_MAX_C_GREEN = 70
-
-        @JvmField
-        var THRESHOLD_PURPLE_MIN_EXTRA_ALPHA = 55
+        var THRESHOLD_PURPLE_BALL_MIN_B_S2 = 20
     }
 
 
@@ -332,10 +337,10 @@ object Configs {
     @Config
     internal object STORAGE {
         @JvmField
+        var MAX_BALL_COUNT = 3
+        @JvmField
         var STORAGE_SLOT_COUNT = 4
 
-        @JvmField
-        var MAX_BALL_COUNT = 3
 
 
         @JvmField
@@ -362,17 +367,19 @@ object Configs {
 
         @JvmField
         var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
+        @JvmField
+        var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 250
 
         @JvmField
         var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 333
         @JvmField
-        var DELAY_BETWEEN_SHOTS: Long = 200
+        var DELAY_BETWEEN_SHOTS: Long = 100
         @JvmField
-        var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1500
+        var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1333
 
 
         @JvmField
-        var MAX_WAITING_TIME_FOR_INTAKE_MS = 2000
+        var MAX_WAITING_TIME_FOR_INTAKE_MS = 400
         @JvmField
         var DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS: Long = 60
 

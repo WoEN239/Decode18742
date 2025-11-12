@@ -31,7 +31,6 @@ class StorageGiveDrumRequest(
     var requestPattern: Array<BallRequest.Name>,
     var failsafePattern: Array<BallRequest.Name> = arrayOf()
 )
-class StorageGiveStreamDumbDrumRequest()
 
 
 
@@ -52,8 +51,3 @@ class StorageGetReadyForIntakeEvent(
 
 class StorageOpenTurretGateEvent()
 class StorageCloseTurretGateEvent()
-
-
-
-class StorageLazyResumeEvent()
-class StorageLazyPauseEvent()

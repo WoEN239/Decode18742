@@ -1,15 +1,14 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
-import android.icu.text.RelativeDateTimeFormatter
 import kotlinx.coroutines.delay
 
 import woen239.enumerators.RunStatus
 
-import org.woen.threading.hardware.HardwareThreads
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.hardware.ThreadedBattery
+import org.woen.threading.hardware.HardwareThreads
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
+
 
 
 class HwSortingManager
@@ -42,7 +41,7 @@ class HwSortingManager
     suspend fun forceSafeStart()
     {
         while (!safeStart())
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
     fun safeStop(): Boolean
     {
@@ -65,7 +64,7 @@ class HwSortingManager
     suspend fun forceSafeStop()
     {
         while (!safeStop())
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
 
     fun safePause(): Boolean
@@ -87,7 +86,7 @@ class HwSortingManager
     suspend fun forceSafePause()
     {
         while (!safePause())
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("HW - STOPPED")
     }
@@ -108,7 +107,7 @@ class HwSortingManager
     suspend fun forceSafeResume()
     {
         while (!safeResume())
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("HW - STARTED")
     }
@@ -128,7 +127,7 @@ class HwSortingManager
     suspend fun forceSafeReverse()
     {
         while (!safeReverse())
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("HW - STARTED")
     }

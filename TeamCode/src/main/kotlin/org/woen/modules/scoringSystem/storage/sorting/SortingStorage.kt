@@ -546,30 +546,6 @@ class SortingStorage
         }
         return shootingResult
     }
-    @SuppressLint("SuspiciousIndentation")
-    suspend fun streamDumbShootEverything(): RequestResult.Name
-    {
-        var shootingResult = RequestResult.Name.FAIL_UNKNOWN
-
-        var i = 0
-        while (i < MAX_BALL_COUNT)
-        {
-            ThreadedTelemetry.LAZY_INSTANCE.log("shot ${i+1}")
-
-                if (doTerminateRequest()) return terminateRequest()
-            val requestResult = RequestResult(
-                RequestResult.SUCCESS_CENTER,
-                RequestResult.Name.SUCCESS_CENTER)
-
-            ThreadedTelemetry.LAZY_INSTANCE.log("shot ${i+1} request finished, updating..")
-
-                if (doTerminateRequest()) return terminateRequest()
-            shootingResult = shootRequestFinalPhase(requestResult, i + 1)
-
-            i++
-        }
-        return shootingResult
-    }
 
 
 
@@ -646,9 +622,4 @@ class SortingStorage
 
     fun ballColorCountPG() = _storageCells.ballColorCountPG()
     fun selectedBallCount(ball: Ball.Name) = _storageCells.selectedBallCount(ball)
-
-
-
-    suspend fun hwLazyResume() = _storageCells.hwLazyResume()
-    suspend fun hwLazyPause()  = _storageCells.hwLazyPause()
 }
