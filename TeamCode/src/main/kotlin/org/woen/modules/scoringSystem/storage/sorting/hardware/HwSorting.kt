@@ -1,14 +1,16 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
-import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorEx
+import kotlin.math.PI
 import java.util.concurrent.atomic.AtomicReference
 
-import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorEx
+import org.woen.threading.hardware.ThreadedServo
 import com.qualcomm.robotcore.hardware.HardwareMap
 
 import org.woen.hotRun.HotRun
+import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.threading.hardware.IHardwareDevice
 
@@ -50,36 +52,39 @@ class HwSorting : IHardwareDevice
     private val _motor2Power = AtomicReference(0.0)
 
 
-    private lateinit var _gateServo : Servo
-    private var _gatePosition = AtomicReference(MOBILE_GATE_SERVO_CLOSE_VALUE)
+    val gateServo = ThreadedServo(
+        MOBILE_GATE_SERVO,
+        _startAngle = 1.5 * PI * MOBILE_GATE_SERVO_CLOSE_VALUE
+    )
+    val pushServo = ThreadedServo(
+        MOBILE_PUSH_SERVO,
+        _startAngle = 1.5 * PI * MOBILE_PUSH_SERVO_CLOSE_VALUE
+    )
+    val fallServo = ThreadedServo(
+        MOBILE_FALL_SERVO,
+        _startAngle = 1.5 * PI * MOBILE_FALL_SERVO_CLOSE_VALUE
+    )
 
-    private lateinit var _pushServo : Servo
-    private var _pushPosition = AtomicReference(MOBILE_PUSH_SERVO_CLOSE_VALUE)
-
-    private lateinit var _fallServo : Servo
-    private var _fallPosition = AtomicReference(MOBILE_FALL_SERVO_CLOSE_VALUE)
-
-
-    private lateinit var _launchServo : Servo
-    private var _launchPosition = AtomicReference(MOBILE_FALL_SERVO_CLOSE_VALUE)
-
-    private lateinit var _turretGateServo : Servo
-    private var _turretGatePosition = AtomicReference(TURRET_GATE_SERVO_CLOSE_VALUE)
+    
+    val launchServo = ThreadedServo(
+        MOBILE_LAUNCH_SERVO,
+        _startAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_CLOSE_VALUE
+    )
+    val turretGateServo = ThreadedServo(
+        TURRET_GATE_SERVO,
+        _startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE
+    )
 
 
 
     override fun init(hardwareMap : HardwareMap)
     {
-        _gateServo = hardwareMap.get(MOBILE_GATE_SERVO) as Servo
-        _pushServo = hardwareMap.get(MOBILE_PUSH_SERVO) as Servo
-        _fallServo = hardwareMap.get(MOBILE_FALL_SERVO) as Servo
-
-        _launchServo = hardwareMap.get(MOBILE_LAUNCH_SERVO) as Servo
-        _turretGateServo = hardwareMap.get(TURRET_GATE_SERVO) as Servo
-
         _beltMotor1 = hardwareMap.get(SORTING_STORAGE_BELT_MOTOR_1) as DcMotorEx
         _beltMotor2 = hardwareMap.get(SORTING_STORAGE_BELT_MOTOR_2) as DcMotorEx
 
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
+            gateServo, pushServo, fallServo, launchServo, turretGateServo
+        )
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _beltMotor1.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
@@ -100,13 +105,6 @@ class HwSorting : IHardwareDevice
     }
     override fun update()
     {
-        _gateServo.position = _gatePosition.get()
-        _pushServo.position = _pushPosition.get()
-        _fallServo.position = _fallPosition.get()
-
-        _launchServo.position = _launchPosition.get()
-        _turretGateServo.position = _turretGatePosition.get()
-
         _beltMotor1.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motor1Power.get())
         _beltMotor2.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motor2Power.get())
     }
@@ -131,21 +129,51 @@ class HwSorting : IHardwareDevice
 
 
 
-    fun openGate()  = _gatePosition.set(MOBILE_GATE_SERVO_OPEN_VALUE)
-    fun closeGate() = _gatePosition.set(MOBILE_GATE_SERVO_CLOSE_VALUE)
+    fun openGate()
+    {
+        gateServo.targetAngle = 1.5 * PI * MOBILE_GATE_SERVO_OPEN_VALUE
+    }
+    fun closeGate()
+    {
+        gateServo.targetAngle = 1.5 * PI * MOBILE_GATE_SERVO_CLOSE_VALUE
+    }
 
-    fun openPush()  = _pushPosition.set(MOBILE_PUSH_SERVO_OPEN_VALUE)
-    fun closePush() = _pushPosition.set(MOBILE_PUSH_SERVO_CLOSE_VALUE)
+    fun openPush()
+    {
+        pushServo.targetAngle = 1.5 * PI * MOBILE_PUSH_SERVO_OPEN_VALUE
+    }
+    fun closePush()
+    {
+        pushServo.targetAngle = 1.5 * PI * MOBILE_PUSH_SERVO_CLOSE_VALUE
+    }
 
-    fun openFall()  = _fallPosition.set(MOBILE_FALL_SERVO_OPEN_VALUE)
-    fun closeFall() = _fallPosition.set(MOBILE_FALL_SERVO_CLOSE_VALUE)
+    fun openFall()
+    {
+        fallServo.targetAngle = 1.5 * PI * MOBILE_FALL_SERVO_OPEN_VALUE
+    }
+    fun closeFall()
+    {
+        fallServo.targetAngle = 1.5 * PI * MOBILE_FALL_SERVO_CLOSE_VALUE
+    }
 
 
-    fun openLaunch()  = _launchPosition.set(MOBILE_LAUNCH_SERVO_OPEN_VALUE)
-    fun closeLaunch() = _launchPosition.set(MOBILE_LAUNCH_SERVO_CLOSE_VALUE)
+    fun openLaunch()
+    {
+        launchServo.targetAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_OPEN_VALUE
+    }
+    fun closeLaunch()
+    {
+        launchServo.targetAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_CLOSE_VALUE
+    }
 
-    fun openTurretGate()  = _turretGatePosition.set(TURRET_GATE_SERVO_OPEN_VALUE)
-    fun closeTurretGate() = _turretGatePosition.set(TURRET_GATE_SERVO_CLOSE_VALUE)
+    fun openTurretGate()
+    {
+        turretGateServo.targetAngle = 1.5 * PI * TURRET_GATE_SERVO_OPEN_VALUE
+    }
+    fun closeTurretGate()
+    {
+        turretGateServo.targetAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE
+    }
 
 
 

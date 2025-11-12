@@ -16,11 +16,11 @@ import woen239.enumerators.RequestResult
 import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
+import org.woen.threading.ThreadedEventBus
+import org.woen.telemetry.ThreadedTelemetry
 
 import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
-import org.woen.threading.ThreadedEventBus
-import org.woen.telemetry.ThreadedTelemetry
 
 import org.woen.modules.scoringSystem.brush.SwitchBrush
 
@@ -51,7 +51,6 @@ import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
 import org.woen.telemetry.Configs.TURRET.MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS
 
 
-
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
 
 
@@ -71,64 +70,68 @@ class ScoringModulesConnector
 
 
 
+
+
     constructor()
     {
-        //---  Handling received events  ---//
+        subscribeToEvents()
+        subscribeToGamepad()
 
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+        setTurretToShootMode()
+    }
+
+    fun subscribeToEvents()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGetReadyForIntakeEvent::class, {
 
                 startIntakeProcess(it.inputBall)
-        }   )
+            }   )
 
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageIsReadyToEatIntakeEvent::class, {
 
                 currentlyEatingIntakeProcess()
-        }   )
-
-//        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
-//            BottomOpticPareSeesSomethingEvent::class, {
-//
-//                safeBallWasEaten()
-//        }   )
+            }   )
 
 
 
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveSingleRequest::class, {
 
                 startSingleRequest(it.ballRequest)
-        }   )
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+            }   )
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveSimpleDrumRequest::class, {
 
                 startSimpleDrumRequest()
-        }   )
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+            }   )
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveDrumRequest::class, {
 
                 startDrumRequest(
                     it.shotType,
                     it.requestPattern,
                     it.failsafePattern
-        )   }   )
+                )   }   )
 
 
 
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageRequestIsReadyEvent::class, {
 
                 currentlyShootingRequestsProcess(it.shotNum)
-        }   )
+            }   )
 
 
 
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             ReverseAndThenStartBrushesAgain::class, {
                 startBrushesAfterDelay(it.reverseTime)
-        }   )
-
+            }   )
+    }
+    fun subscribeToGamepad()
+    {
         ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_left }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntakeEvent(Ball.Name.PURPLE))
 
@@ -190,10 +193,6 @@ class ScoringModulesConnector
             ThreadedTelemetry.LAZY_INSTANCE.log("STOP  - REQUEST - GAMEPAD")
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
-
-
-
-        setTurretToShootMode()
     }
 
 
@@ -241,7 +240,6 @@ class ScoringModulesConnector
 
 
         setIdle()
-        ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
         return intakeResult
     }
     suspend fun currentlyEatingIntakeProcess()
@@ -365,7 +363,6 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("all other processes finished")
         setTurretToShootMode()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("turret set to shoot mode")
@@ -380,7 +377,6 @@ class ScoringModulesConnector
             SwitchBrush(Brush.AcktBrush.ACKT)
         )
         setIdle()
-        ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageCloseTurretGateEvent())
 
         return requestResult
@@ -389,8 +385,6 @@ class ScoringModulesConnector
     {
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("all other processes finished")
 
         setTurretToShootMode()
         ThreadedTelemetry.LAZY_INSTANCE.log("turret set to shoot mode")
@@ -404,7 +398,6 @@ class ScoringModulesConnector
             SwitchBrush(Brush.AcktBrush.ACKT)
         )
         setIdle()
-        ThreadedTelemetry.LAZY_INSTANCE.log("IDLE, busy: " + isBusy())
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageCloseTurretGateEvent())
         return requestResult
     }
@@ -449,12 +442,7 @@ class ScoringModulesConnector
     fun setAwaitingEating() = _isAwaitingEating.set(true)
     fun setNotAwaitingEating() = _isAwaitingEating.set(false)
 
-
-//    fun safeBallWasEaten()
-//    {
-//        if (_isAwaitingEating.get())
-//            _ballWasEaten.set(true)
-//    }
+    
     suspend fun shotWasFired(): Boolean
     {
         if (_shotWasFired.get()) return true

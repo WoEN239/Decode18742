@@ -340,8 +340,16 @@ object Configs {
         @JvmField
         var ACCUMULATION_INTERVAL_MS = 24
         @JvmField
-        val VAR_MAXIMUM_READING = (65535.coerceAtMost(1024 * (256 - max(0, 256 - ceil((ACCUMULATION_INTERVAL_MS / 2.4f).toDouble()).toInt())))).toDouble()
-
+        var VAR_MAXIMUM_READING = (
+                65535.coerceAtMost(
+                    1024 * (256 - max(
+                        0, 256 - ceil((
+                            ACCUMULATION_INTERVAL_MS
+                            / 2.4f
+                        ).toDouble()
+                    ).toInt()
+                ) ) )
+                ).toDouble()
     }
 
 
@@ -380,18 +388,20 @@ object Configs {
         @JvmField
         var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
         @JvmField
-        var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 250
+        var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 50
 
         @JvmField
         var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 333
         @JvmField
         var DELAY_BETWEEN_SHOTS: Long = 100
         @JvmField
-        var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1333
+        var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1000
 
 
         @JvmField
-        var MAX_WAITING_TIME_FOR_INTAKE_MS = 333
+        var DELAY_BETWEEN_INTAKES_MS: Long = 333
+        @JvmField
+        var MAX_WAITING_TIME_FOR_INTAKE_MS = 111
         @JvmField
         var DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS: Long = 60
 

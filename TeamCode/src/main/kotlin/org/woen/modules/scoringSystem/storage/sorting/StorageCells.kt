@@ -288,8 +288,8 @@ class StorageCells
 
 
 
-    fun openTurretGate()  = _hwSortingM.openTurretGate()
-    fun closeTurretGate() = _hwSortingM.closeTurretGate()
+    suspend fun openTurretGate()  = _hwSortingM.openTurretGate()
+    suspend fun closeTurretGate() = _hwSortingM.closeTurretGate()
 
     fun storageData() = _storageCells
 

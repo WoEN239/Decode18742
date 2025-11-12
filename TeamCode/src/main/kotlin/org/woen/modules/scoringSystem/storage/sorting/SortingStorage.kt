@@ -15,6 +15,7 @@ import woen239.enumerators.RequestResult
 
 import woen239.enumerators.ShotType
 import woen239.enumerators.RunStatus
+import woen239.enumerators.StorageSlot
 
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadedEventBus
@@ -55,18 +56,18 @@ class SortingStorage
 
     constructor()
     {
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
             eventTerminateIntake()
         } )
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
             eventTerminateRequest()
         } )
 
 
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(ShotWasFiredEvent::class, {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(ShotWasFiredEvent::class, {
             shotWasFired()
         } )
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(BallWasEatenByTheStorageEvent::class, {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(BallWasEatenByTheStorageEvent::class, {
             ballWasEaten()
         } )
     }
@@ -175,7 +176,7 @@ class SortingStorage
 
 
         if (doTerminateRequest()) return terminateRequest()
-        val shootingResult = shootRequestFinalPhase(requestResult, 0)
+        val shootingResult = shootRequestFinalPhase(requestResult, 1)
 
 
         fullResumeIntakeLogic(shootingResult)
@@ -283,9 +284,6 @@ class SortingStorage
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("> SW: OPEN GATE")
         _storageCells.openTurretGate()
-        delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
-
-        //_sortingStorage.pushNextWithoutUpdating()
 
         _storageCells.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
         delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
@@ -293,7 +291,6 @@ class SortingStorage
         if (shotNum == 3) pushLastBallWithLaunch()
 
         _storageCells.closeTurretGate()
-        delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
     }
     suspend fun pushLastBallWithLaunch() = _storageCells.hwLaunchLastBall()
 
@@ -363,7 +360,7 @@ class SortingStorage
     {
         var shootingResult = RequestResult.Name.FAIL_IS_EMPTY
 
-        var i = 0
+        var i = StorageSlot.BOTTOM
         while (i < MAX_BALL_COUNT)
         {
             ThreadedTelemetry.LAZY_INSTANCE.log("shot ${i+1}")
@@ -400,7 +397,7 @@ class SortingStorage
     {
         var shootingResult = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
 
-        var i = 0
+        var i = StorageSlot.BOTTOM
         while (i < MAX_BALL_COUNT)
         {
                 if (doTerminateRequest()) return terminateRequest()
@@ -434,7 +431,7 @@ class SortingStorage
     {
         var shootingResult = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
 
-        var i = 0
+        var i = StorageSlot.BOTTOM
         while (i < MAX_BALL_COUNT)
         {
                 if (doTerminateRequest()) return terminateRequest()
@@ -520,7 +517,7 @@ class SortingStorage
     {
         var shootingResult = RequestResult.Name.FAIL_UNKNOWN
 
-        var i = 0
+        var i = StorageSlot.BOTTOM
         while (i < MAX_BALL_COUNT)
         {
                 if (doTerminateRequest()) return terminateRequest()
