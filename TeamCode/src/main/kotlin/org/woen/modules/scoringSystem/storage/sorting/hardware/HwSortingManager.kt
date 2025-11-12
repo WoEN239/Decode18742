@@ -2,25 +2,62 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
 import kotlinx.coroutines.delay
+import org.woen.hotRun.HotRun
+import java.util.concurrent.atomic.AtomicReference
 
 import woen239.enumerators.RunStatus
 
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
+
+import org.woen.modules.scoringSystem.storage.StorageOpenTurretGateEvent
+import org.woen.modules.scoringSystem.storage.StorageCloseTurretGateEvent
+import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
+
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_MAX_SERVO_POSITION_CHANGE
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS
 
 
 
 class HwSortingManager
 {
-    private lateinit var _hwSorting: HwSorting
-    private val _runStatus = RunStatus(RunStatus.USED_BY_ANOTHER_PROCESS, RunStatus.Name.USED_BY_ANOTHER_PROCESS)
+    private val _hwSorting = HwSorting()
+    private val _hwSensors = HwSortingSensors()
+
+    private val _runStatus = RunStatus(RunStatus.USED_BY_ANOTHER_PROCESS,
+                      RunStatus.Name.USED_BY_ANOTHER_PROCESS)
+    val isAwaitingIntake = AtomicReference(false)
 
 
 
     constructor()
     {
-        linkHardware()
+        _hwSensors.colorSensorsTriggerAutoIntakeEvent += {
+            if (isAwaitingIntake.get())
+            {
+                ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntakeEvent(it))
+
+                ThreadedTelemetry.LAZY_INSTANCE.log("")
+                ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
+            }
+        }
+
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(StorageOpenTurretGateEvent::class, {
+            _hwSorting.openGate()
+        } )
+
+        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(StorageCloseTurretGateEvent::class, {
+            _hwSorting.closeGate()
+        } )
+
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSorting)
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            isAwaitingIntake.set(true)
+        }
     }
 
 
@@ -87,8 +124,6 @@ class HwSortingManager
     {
         while (!safePause())
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("HW - STOPPED")
     }
 
     fun safeResume(): Boolean
@@ -108,9 +143,8 @@ class HwSortingManager
     {
         while (!safeResume())
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("HW - STARTED")
     }
+
     fun safeReverse(): Boolean
     {
         if (_runStatus.IsActive()) return true  //  Already active
@@ -128,15 +162,58 @@ class HwSortingManager
     {
         while (!safeReverse())
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("HW - STARTED")
     }
 
 
 
-    fun addDevice() = HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSorting)
-    fun linkHardware()
+    fun openTurretGate()  = _hwSorting.openTurretGate()
+    fun closeTurretGate() = _hwSorting.closeTurretGate()
+
+
+
+    suspend fun hwLaunchLastBall()
     {
-        _hwSorting = HwSorting()
+        _hwSorting.openLaunch()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        _hwSorting.closeLaunch()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+    }
+    suspend fun hwRotateBeltCW(timeMs: Long)
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("HW BELT IS MOVING")
+        forceSafeResume()
+        delay(timeMs)
+        forceSafePause()
+    }
+    suspend fun hwRotateMobileSlotsCW()
+    {
+        _hwSorting.closeGate()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        forceSafeReverse()
+        delay(DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
+        forceSafePause()
+        _hwSorting.openGate()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        _hwSorting.openPush()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+
+
+        _hwSorting.closeGate()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        _hwSorting.closePush()
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+    }
+    suspend fun hwRotateFallSlotCW()
+    {
+        isAwaitingIntake.set(false)
+        _hwSorting.openFall()
+
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE
+                + DELAY_FOR_ONE_BALL_PUSHING_MS)
+
+        _hwSorting.closeFall()
+
+        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        isAwaitingIntake.set(true)
     }
 }

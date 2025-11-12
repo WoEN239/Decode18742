@@ -55,18 +55,6 @@ class SortingStorage
 
     constructor()
     {
-//        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(
-//            ColorSensorsTriggerAutoIntakeEvent::class, {
-//
-//                ThreadedEventBus.LAZY_INSTANCE.invoke(
-//                    StorageGetReadyForIntake(it.inputBall)
-//                )
-//                ThreadedTelemetry.LAZY_INSTANCE.log("")
-//                ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
-//                //  Alias
-//            } )
-
-
         ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
             eventTerminateIntake()
         } )
@@ -244,8 +232,10 @@ class SortingStorage
             }
             else
             {
-                //!  _storageCells.fixStorageDesync()
-                RequestResult.Name.FAIL_SOFTWARE_STORAGE_DESYNC
+                //!  _storageCells.fastFixStorageDesync()
+                if (_storageCells.updateAfterRequest())
+                     RequestResult.Name.SUCCESS
+                else RequestResult.Name.FAIL_SOFTWARE_STORAGE_DESYNC
             }
         }
         else return updateResult.Name()

@@ -1,10 +1,6 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
-import kotlinx.coroutines.delay
-import org.woen.modules.scoringSystem.storage.StorageCloseTurretGateEvent
-import org.woen.modules.scoringSystem.storage.StorageOpenTurretGateEvent
-
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
 
@@ -13,9 +9,7 @@ import woen239.enumerators.RequestResult
 
 import woen239.enumerators.StorageSlot
 
-import org.woen.threading.ThreadedEventBus
 import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.hardware.HardwareThreads
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.STORAGE_SLOT_COUNT
@@ -24,11 +18,9 @@ import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_MAX_SERVO_POSITION_CHANGE
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
-import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingMobile
 
 
 
@@ -66,28 +58,9 @@ import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingMobile
 class StorageCells
 {
     private val _storageCells = Array(STORAGE_SLOT_COUNT) { Ball() }
-
-    private val _hwMobile   = HwSortingMobile()
     private val _hwSortingM = HwSortingManager()
 
 
-
-    constructor()
-    {
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(StorageOpenTurretGateEvent::class, {
-            _hwMobile.openGate()
-            ThreadedTelemetry.LAZY_INSTANCE.log("> EVENT: OPEN GATE")
-        } )
-
-        ThreadedEventBus.Companion.LAZY_INSTANCE.subscribe(StorageCloseTurretGateEvent::class, {
-            _hwMobile.closeGate()
-        } )
-
-
-        _hwSortingM.addDevice()
-
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwMobile)
-    }
 
 
 
@@ -99,7 +72,7 @@ class StorageCells
         )
         if (anyBallCount() >= MAX_BALL_COUNT) return result
 
-        var curSlotId = 0
+        var curSlotId = StorageSlot.BOTTOM
         while (curSlotId < MAX_BALL_COUNT)
         {
             if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].IsEmpty())
@@ -122,8 +95,6 @@ class StorageCells
                 RequestResult.FAIL_ILLEGAL_ARGUMENT,
                 RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
             )
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("preparing request search")
 
         if (requestBuffer.IsPreferred())
         {
@@ -150,7 +121,7 @@ class StorageCells
             RequestResult.Name.FAIL_COLOR_NOT_PRESENT
         )
 
-        var curSlotId = 0
+        var curSlotId = StorageSlot.BOTTOM
         while (curSlotId < STORAGE_SLOT_COUNT)
         {
             if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].Name() == requested)
@@ -161,7 +132,6 @@ class StorageCells
             curSlotId++
         }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("search finished, result slot: " + result.Name())
         return result
     }
     private fun anyBallRequestSearch(): RequestResult
@@ -177,7 +147,7 @@ class StorageCells
         if (anyBallCount() <= 0) return result
 
 
-        var curSlotId = 0
+        var curSlotId = StorageSlot.BOTTOM
         while (curSlotId < STORAGE_SLOT_COUNT)
         {
             if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].HasBall())
@@ -188,8 +158,6 @@ class StorageCells
             curSlotId++
         }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("SEARCH FINISHED")
-        ThreadedTelemetry.LAZY_INSTANCE.log("Found slot: " + result.Name())
         return result
     }
 
@@ -203,93 +171,59 @@ class StorageCells
         {
             _storageCells[StorageSlot.BOTTOM].Set(inputBall)
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("AUTO ADJUSTING")
+            ThreadedTelemetry.LAZY_INSTANCE.log("SW STORAGE UPDATED, auto adjusting..")
             if (autoPartial2RotateCW()) partial2RotateCW()
         }
-        //!  else fixStorageDesync()
+        //!  else fastFixStorageDesync()
 
         return intakeCondition
     }
-    fun updateAfterRequest(): Boolean
+    suspend fun updateAfterRequest(): Boolean
     {
         val requestCondition = _storageCells[StorageSlot.MOBILE_OUT].IsFilled()
+        if (requestCondition)
+        {
+            _storageCells[StorageSlot.MOBILE_OUT].Empty()
+            ThreadedTelemetry.LAZY_INSTANCE.log("SW STORAGE UPDATED auto adjusting..")
+            if (autoPartial2RotateCW()) partial2RotateCW()
+        }
 
-        if (requestCondition)  _storageCells[StorageSlot.MOBILE_OUT].Empty()
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("SW STORAGE UPDATED")
-        //!  else fixStorageDesync()
         return requestCondition
     }
 
 
-    fun fixStorageDesync()
+    fun fastFixStorageDesync()
     {
         TODO("Add storage recalibrations using in robot optic-pares")
     }
-
-
-
-    suspend fun hwLaunchLastBall()
+    fun fullFixStorageDesync()
     {
-        _hwMobile.openLaunch()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-        _hwMobile.closeLaunch()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-    }
-    suspend fun hwRotateBeltCW(time: Long)
-    {
-        ThreadedTelemetry.LAZY_INSTANCE.log("HARDWARE IS MOVING")
-        _hwSortingM.forceSafeResume()
-        delay(time)
-        _hwSortingM.forceSafePause()
-    }
-    suspend fun hwRotateMobileSlotsCW()
-    {
-        _hwMobile.closeGate()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-        _hwSortingM.forceSafeReverse()
-        delay(DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
-        _hwSortingM.forceSafePause()
-        _hwMobile.openGate()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-        _hwMobile.openPush()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-
-
-        _hwMobile.closeGate()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-        _hwMobile.closePush()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-    }
-    suspend fun hwRotateFallSlotCW()
-    {
-        _hwMobile.openFall()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE
-                + DELAY_FOR_ONE_BALL_PUSHING_MS)
-
-        _hwMobile.closeFall()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        TODO("Add full storage recalibration using in robot color sensors")
     }
 
+
+
+    suspend fun hwRotateBeltCW(timeMs: Long) = _hwSortingM.hwRotateBeltCW(timeMs)
+    suspend fun hwLaunchLastBall() = _hwSortingM.hwLaunchLastBall()
     suspend fun fullRotateCW()
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("FULL ROTATION - START")
-        hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        _hwSortingM.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
         if (_storageCells[StorageSlot.MOBILE_IN].IsFilled())
         {
             ThreadedTelemetry.LAZY_INSTANCE.log("FR - ROTATING FALL")
-            hwRotateFallSlotCW()
+            _hwSortingM.hwRotateFallSlotCW()
         }
 
         if (_storageCells[StorageSlot.MOBILE_OUT].IsFilled())
         {
             ThreadedTelemetry.LAZY_INSTANCE.log("FR - MOVING MOBILE")
-            hwRotateMobileSlotsCW()
+            _hwSortingM.hwRotateMobileSlotsCW()
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("FR - BELT")
-        hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 3
+        _hwSortingM.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 3
         + DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
 
 
@@ -311,7 +245,7 @@ class StorageCells
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
             _storageCells[StorageSlot.BOTTOM] = Ball(Ball.NONE, Ball.Name.NONE)
 
-            hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
+            _hwSortingM.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
         }
         return rotationCondition
     }
@@ -326,7 +260,7 @@ class StorageCells
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
             _storageCells[StorageSlot.BOTTOM] = Ball(Ball.NONE, Ball.Name.NONE)
 
-            hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+            _hwSortingM.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         }
         return rotationCondition
     }
@@ -346,16 +280,16 @@ class StorageCells
             _storageCells[StorageSlot.BOTTOM] = Ball(Ball.NONE, Ball.Name.NONE)
 
             _hwSortingM.forceSafePause()
-            hwRotateMobileSlotsCW()
-            hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+            _hwSortingM.hwRotateMobileSlotsCW()
+            _hwSortingM.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         }
         return rotationCondition
     }
 
 
 
-    fun openTurretGate()  = _hwMobile.openTurretGate()
-    fun closeTurretGate() = _hwMobile.closeTurretGate()
+    fun openTurretGate()  = _hwSortingM.openTurretGate()
+    fun closeTurretGate() = _hwSortingM.closeTurretGate()
 
     fun storageData() = _storageCells
 

@@ -1,27 +1,24 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
-/*
-import com.qualcomm.robotcore.hardware.AnalogInput
-import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
-
+//*
 import woen239.enumerators.Ball
 
-import woen239.FixColorSensor.fixSensor
-
 import org.woen.utils.events.SimpleEvent
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
+import com.qualcomm.robotcore.hardware.HardwareMap
+
+import woen239.FixColorSensor.fixSensor
+import com.qualcomm.robotcore.hardware.AnalogInput
+import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
+
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_OPTIC_PARE_1
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_OPTIC_PARE_2
 
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_1
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_2
 
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.BOTTOM_OPTIC_PARE_1
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.BOTTOM_OPTIC_PARE_2
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_OUT_OPTIC_PARE_1
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_OUT_OPTIC_PARE_2
-
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.VAR_MAXIMUM_READING
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.OPTIC_PARE_SEES_NOT_BLACK
 
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_BALL_MAX_R_S1
@@ -47,16 +44,12 @@ class HwSortingSensors(): IHardwareDevice
     private lateinit var _intakeColorSensor1 : AdafruitI2cColorSensor
     private lateinit var _intakeColorSensor2 : AdafruitI2cColorSensor
 
-    private lateinit var _bottomOpticPare1 : AnalogInput
-    private lateinit var _bottomOpticPare2 : AnalogInput
-
-    private lateinit var _mobileOutOpticPare1 : AnalogInput
-    private lateinit var _mobileOutOpticPare2 : AnalogInput
+    private lateinit var _turretOpticPare1 : AnalogInput
+    private lateinit var _turretOpticPare2 : AnalogInput
 
 
-    val colorSensorsTriggerAutoIntakeEvent   = SimpleEvent<Ball.Name>()
-    val bottomOpticPareSeesSomethingEvent    = SimpleEvent<Int>()
-    val mobileOutOpticPareSeesSomethingEvent = SimpleEvent<Int>()
+    val turretOpticPareSeesSomethingEvent  = SimpleEvent<Int>()
+    val colorSensorsTriggerAutoIntakeEvent = SimpleEvent<Ball.Name>()
 
 
 
@@ -70,29 +63,21 @@ class HwSortingSensors(): IHardwareDevice
                     as AdafruitI2cColorSensor)
 
 
-//        _bottomOpticPare1 = hardwareMap.get(BOTTOM_OPTIC_PARE_1) as AnalogInput
-//        _bottomOpticPare2 = hardwareMap.get(BOTTOM_OPTIC_PARE_2) as AnalogInput
-//
-//        _mobileOutOpticPare1 = hardwareMap.get(MOBILE_OUT_OPTIC_PARE_1) as AnalogInput
-//        _mobileOutOpticPare2 = hardwareMap.get(MOBILE_OUT_OPTIC_PARE_2) as AnalogInput
+        _turretOpticPare1 = hardwareMap.get(TURRET_OPTIC_PARE_1) as AnalogInput
+        _turretOpticPare2 = hardwareMap.get(TURRET_OPTIC_PARE_2) as AnalogInput
     }
 
     override fun update()
     {
-//        if (_bottomOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
-//            _bottomOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
-//            bottomOpticPareSeesSomethingEvent.invoke(0)
-//
-//        if (_mobileOutOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
-//            _mobileOutOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
-//            mobileOutOpticPareSeesSomethingEvent.invoke(0)
+        if (_turretOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
+            _turretOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
+            turretOpticPareSeesSomethingEvent.invoke(0)
 
 
-
-        val argb1 = _intakeColorSensor1.argb()
-        val r1 = (argb1 shr 16) and 0xFF
-        val g1 = (argb1 shr  8) and 0xFF
-        val b1 =  argb1         and 0xFF
+        val argb1 = _intakeColorSensor1.normalizedColors
+        val r1 = argb1.red   * VAR_MAXIMUM_READING
+        val g1 = argb1.green * VAR_MAXIMUM_READING
+        val b1 = argb1.blue  * VAR_MAXIMUM_READING
 
         if (r1 < THRESHOLD_GREEN_BALL_MAX_R_S1 &&
             g1 > THRESHOLD_GREEN_BALL_MIN_G_S1 &&
@@ -116,10 +101,10 @@ class HwSortingSensors(): IHardwareDevice
         }
 
 
-        val argb2 = _intakeColorSensor2.argb()
-        val r2 = (argb2 shr 16) and 0xFF
-        val g2 = (argb2 shr 8)  and 0xFF
-        val b2 =  argb2         and 0xFF
+        val argb2 = _intakeColorSensor2.normalizedColors
+        val r2 = argb2.red   * VAR_MAXIMUM_READING
+        val g2 = argb2.green * VAR_MAXIMUM_READING
+        val b2 = argb2.blue  * VAR_MAXIMUM_READING
 
         if (r2 < THRESHOLD_GREEN_BALL_MAX_R_S2 &&
             g2 > THRESHOLD_GREEN_BALL_MIN_G_S2 &&

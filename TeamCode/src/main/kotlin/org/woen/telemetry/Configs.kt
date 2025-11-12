@@ -10,6 +10,8 @@ import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
 import woen239.enumerators.StorageSlot
 import kotlin.math.PI
+import kotlin.math.ceil
+import kotlin.math.max
 
 
 object Configs {
@@ -330,6 +332,16 @@ object Configs {
         var THRESHOLD_PURPLE_BALL_MAX_G_S2 = 70
         @JvmField
         var THRESHOLD_PURPLE_BALL_MIN_B_S2 = 20
+
+
+
+        @JvmField
+        var CONST_MAXIMUM_READING = 10240.0
+        @JvmField
+        var ACCUMULATION_INTERVAL_MS = 24
+        @JvmField
+        val VAR_MAXIMUM_READING = (65535.coerceAtMost(1024 * (256 - max(0, 256 - ceil((ACCUMULATION_INTERVAL_MS / 2.4f).toDouble()).toInt())))).toDouble()
+
     }
 
 
@@ -379,7 +391,7 @@ object Configs {
 
 
         @JvmField
-        var MAX_WAITING_TIME_FOR_INTAKE_MS = 400
+        var MAX_WAITING_TIME_FOR_INTAKE_MS = 333
         @JvmField
         var DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS: Long = 60
 
@@ -430,15 +442,10 @@ object Configs {
 
 
         @JvmField
-        var BOTTOM_OPTIC_PARE_1 = "bottom_optic_pare_1"
+        var TURRET_OPTIC_PARE_1 = "turret_optic_pare_1"
         @JvmField
-        var BOTTOM_OPTIC_PARE_2 = "bottom_optic_pare_2"
+        var TURRET_OPTIC_PARE_2 = "turret_optic_pare_2"
 
-
-        @JvmField
-        var MOBILE_OUT_OPTIC_PARE_1 = "mobile_out_optic_pare_1"
-        @JvmField
-        var MOBILE_OUT_OPTIC_PARE_2 = "mobile_out_optic_pare_2"
 
 
         @JvmField
