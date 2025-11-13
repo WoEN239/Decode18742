@@ -34,11 +34,6 @@ class SimpleStorage : IModule {
         _startAngle = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE * PI * 1.5
     )
 
-    private val _launchServo = ThreadedServo(
-        Configs.HARDWARE_DEVICES_NAMES.MOBILE_LAUNCH_SERVO,
-        _startAngle = Configs.STORAGE.MOBILE_LAUNCH_SERVO_CLOSE_VALUE * PI * 1.5
-    )
-
     private var _currentShootCoroutine: Job? = null
 
     private fun terminateShoot() {
@@ -49,11 +44,10 @@ class SimpleStorage : IModule {
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetCurrentTurretStateEvent(Turret.TurretState.WAITING))
 
         _gateServo.targetAngle = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE * PI * 1.5
-        _launchServo.targetAngle = Configs.STORAGE.MOBILE_LAUNCH_SERVO_CLOSE_VALUE * PI * 1.5
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareStorage, _gateServo, _launchServo)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareStorage, _gateServo)
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
@@ -72,7 +66,7 @@ class SimpleStorage : IModule {
                 while (!_gateServo.atTargetAngle)
                     delay(5)
 
-                repeat(2) {
+                repeat(3) {
                     _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
 
                     delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
@@ -91,17 +85,6 @@ class SimpleStorage : IModule {
                         ).atTarget
                     }
                 }
-
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
-
-                delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
-
-                _launchServo.targetAngle = Configs.STORAGE.MOBILE_LAUNCH_SERVO_OPEN_VALUE * PI * 1.5
-
-                while (!_launchServo.atTargetAngle)
-                    delay(5)
-
-                delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
 
                 terminateShoot()
             }
