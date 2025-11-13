@@ -117,20 +117,20 @@ class HwSortingManager
     }
 
 
-    suspend fun openLaunch()
-    {
-        _hwSorting.openLaunch()
-
-        while (!_hwSorting.launchServo.atTargetAngle)
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
-    suspend fun closeLaunch()
-    {
-        _hwSorting.closeLaunch()
-
-        while (!_hwSorting.launchServo.atTargetAngle)
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
+//    suspend fun openLaunch()
+//    {
+//        _hwSorting.openLaunch()
+//
+//        while (!_hwSorting.launchServo.atTargetAngle)
+//            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+//    }
+//    suspend fun closeLaunch()
+//    {
+//        _hwSorting.closeLaunch()
+//
+//        while (!_hwSorting.launchServo.atTargetAngle)
+//            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+//    }
     suspend fun openTurretGate()
     {
         _hwSorting.openTurretGate()
@@ -251,12 +251,12 @@ class HwSortingManager
 
 
 
-    suspend fun hwLaunchLastBall()
-    {
-        openLaunch()
-        delay(DELAY_FOR_EVENT_AWAITING_MS)
-        closeLaunch()
-    }
+//    suspend fun hwLaunchLastBall()
+//    {
+//        openLaunch()
+//        delay(DELAY_FOR_EVENT_AWAITING_MS)
+//        closeLaunch()
+//    }
     suspend fun hwRotateBeltCW(timeMs: Long)
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("HW BELT IS MOVING")

@@ -66,10 +66,10 @@ class HwSorting : IHardwareDevice
     )
 
     
-    val launchServo = ThreadedServo(
-        MOBILE_LAUNCH_SERVO,
-        _startAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_CLOSE_VALUE
-    )
+//    val launchServo = ThreadedServo(
+//        MOBILE_LAUNCH_SERVO,
+//        _startAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_CLOSE_VALUE
+//    )
     val turretGateServo = ThreadedServo(
         TURRET_GATE_SERVO,
         _startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE
@@ -83,7 +83,7 @@ class HwSorting : IHardwareDevice
         _beltMotor2 = hardwareMap.get(SORTING_STORAGE_BELT_MOTOR_2) as DcMotorEx
 
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
-            gateServo, pushServo, fallServo, launchServo, turretGateServo
+            gateServo, pushServo, fallServo, /*launchServo,*/ turretGateServo
         )
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
@@ -157,14 +157,14 @@ class HwSorting : IHardwareDevice
     }
 
 
-    fun openLaunch()
-    {
-        launchServo.targetAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_OPEN_VALUE
-    }
-    fun closeLaunch()
-    {
-        launchServo.targetAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_CLOSE_VALUE
-    }
+//    fun openLaunch()
+//    {
+//        launchServo.targetAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_OPEN_VALUE
+//    }
+//    fun closeLaunch()
+//    {
+//        launchServo.targetAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_CLOSE_VALUE
+//    }
 
     fun openTurretGate()
     {
@@ -183,7 +183,7 @@ class HwSorting : IHardwareDevice
         closePush()
         closeFall()
 
-        closeLaunch()
+//        closeLaunch()
         closeTurretGate()
 
         stopBeltMotor()

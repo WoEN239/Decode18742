@@ -288,11 +288,11 @@ class SortingStorage
         _storageCells.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
         delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
-        if (shotNum == 3) pushLastBallWithLaunch()
+//        if (shotNum == 3) pushLastBallWithLaunch()
 
         _storageCells.closeTurretGate()
     }
-    suspend fun pushLastBallWithLaunch() = _storageCells.hwLaunchLastBall()
+//    suspend fun pushLastBallWithLaunch() = _storageCells.hwLaunchLastBall()
 
 
 
