@@ -1,24 +1,9 @@
 package org.woen.modules.scoringSystem.storage
 
 
-import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
-import woen239.enumerators.IntakeResult
 import woen239.enumerators.RequestResult
-import woen239.enumerators.ShotType
-
-
-
-class TerminateIntakeEvent()
-class TerminateRequestEvent()
-
-
-
-class StorageIsReadyToEatIntakeEvent()
-class BallWasEatenByTheStorageEvent()
-class StorageFinishedIntakeEvent(
-    var intakeResult: IntakeResult.Name
-)
+import woen239.enumerators.ShootingMode
 
 
 
@@ -27,10 +12,15 @@ class StorageGiveSingleRequest(
 )
 class StorageGiveSimpleDrumRequest()
 class StorageGiveDrumRequest(
-    var shotType: ShotType,
-    var requestPattern: Array<BallRequest.Name>,
+    var shootingMode:    ShootingMode,
+    var requestPattern:  Array<BallRequest.Name>,
     var failsafePattern: Array<BallRequest.Name> = arrayOf()
 )
+
+
+class TerminateRequestEvent()
+
+
 
 
 
@@ -41,11 +31,6 @@ data class StorageFinishedEveryRequestEvent(
 
 class ShotWasFiredEvent()
 
-
-
-class StorageGetReadyForIntakeEvent(
-    var inputBall: Ball.Name = Ball.Name.NONE
-)
 
 
 

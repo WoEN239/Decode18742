@@ -1,7 +1,7 @@
 package woen239.enumerators;
 
 
-public enum ShotType
+public enum ShootingMode
 {
     FIRE_EVERYTHING_YOU_HAVE,
     FIRE_PATTERN_CAN_SKIP,

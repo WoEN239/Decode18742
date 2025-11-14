@@ -3,9 +3,8 @@ package org.woen.modules.scoringSystem.storage.sorting
 
 import kotlin.math.min
 import kotlinx.coroutines.delay
-import android.annotation.SuppressLint
 import java.util.concurrent.atomic.AtomicReference
-
+import android.annotation.SuppressLint
 
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
@@ -13,12 +12,16 @@ import woen239.enumerators.BallRequest
 import woen239.enumerators.IntakeResult
 import woen239.enumerators.RequestResult
 
-import woen239.enumerators.ShotType
 import woen239.enumerators.RunStatus
 import woen239.enumerators.StorageSlot
+import woen239.enumerators.ShootingMode
 
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadedEventBus
+import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
+
+import org.woen.modules.camera.OnPatternDetectedEvent
 
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
@@ -45,12 +48,13 @@ import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
 class SortingStorage
 {
     private val _storageCells = StorageCells()
-
-    private val _intakeRunStatus  = RunStatus(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
-    private val _requestRunStatus = RunStatus(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
+    private val _dynamicMemoryPattern = DynamicPattern()
 
     private var _shotWasFired = AtomicReference(false)
     private var _ballWasEaten = AtomicReference(false)
+
+    private val _intakeRunStatus  = RunStatus(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
+    private val _requestRunStatus = RunStatus(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
 
 
 
@@ -62,6 +66,25 @@ class SortingStorage
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
             eventTerminateRequest()
         } )
+
+
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(OnPatternDetectedEvent::class, {
+            _dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
+        } )
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener({ it.triangle }, {
+                    _dynamicMemoryPattern.resetTemporary()
+        }   )   )
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener({ it.square },   {
+                    _dynamicMemoryPattern.addToTemporary()
+        }   )   )
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener({ it.circle },   {
+                    _dynamicMemoryPattern.removeFromTemporary()
+        }   )   )
+
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(ShotWasFiredEvent::class, {
@@ -308,45 +331,71 @@ class SortingStorage
         return requestResult
     }
     suspend fun shootEntireDrumRequest(
-        shotType: ShotType,
-        requestOrder:  Array<BallRequest.Name>
+        shootingMode: ShootingMode,
+        requestOrder:  Array<BallRequest.Name>,
+        includeLastUnfinishedPattern: Boolean = true
     ): RequestResult.Name
     {
         if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
         if (cantHandleRequestRaceCondition())  return terminateRequest()
 
+        val patternOrder = if (!includeLastUnfinishedPattern) requestOrder
+            else DynamicPattern.trimPattern(
+                _dynamicMemoryPattern.lastUnfinished(),
+                requestOrder)
+
+
         val requestResult =
-            when (shotType)
+            when (shootingMode)
             {
-                ShotType.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
-                ShotType.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(requestOrder)
-                ShotType.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(requestOrder)
-                else  -> shootEntireRequestIsValid(requestOrder)
+                ShootingMode.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
+                ShootingMode.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(patternOrder)
+                ShootingMode.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(patternOrder)
+                else  -> shootEntireRequestIsValid(patternOrder)
             }
 
         fullResumeIntakeLogic(requestResult)
         return requestResult
     }
     suspend fun shootEntireDrumRequest(
-        shotType: ShotType,
+        shootingMode: ShootingMode,
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>? = requestOrder,
+        includeLastUnfinishedPattern: Boolean = true,
+        includeLastUnfinishedPatternToFailSafe: Boolean = true
     ): RequestResult.Name
     {
         if (failsafeOrder == null || failsafeOrder.isEmpty() ||
             failsafeOrder.contentEquals(requestOrder))
-            return shootEntireDrumRequest(shotType, requestOrder)
+            return shootEntireDrumRequest(shootingMode, requestOrder, includeLastUnfinishedPattern)
 
         if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
         if (cantHandleRequestRaceCondition())  return terminateRequest()
 
+        val patternOrder = if (!includeLastUnfinishedPattern) requestOrder
+        else DynamicPattern.trimPattern(
+            _dynamicMemoryPattern.lastUnfinished(),
+            requestOrder)
+
+        val failsafePatternOrder = if (!includeLastUnfinishedPatternToFailSafe) requestOrder
+        else DynamicPattern.trimPattern(
+            _dynamicMemoryPattern.lastUnfinished(),
+            requestOrder)
+
+
         val requestResult =
-            when (shotType)
+            when (shootingMode)
             {
-                ShotType.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
-                ShotType.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(requestOrder, failsafeOrder)
-                ShotType.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(requestOrder, failsafeOrder)
-                else  -> shootEntireRequestIsValid(requestOrder, failsafeOrder)
+                ShootingMode.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
+
+                ShootingMode.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(
+                    patternOrder, failsafePatternOrder)
+
+                ShootingMode.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(
+                    patternOrder, failsafePatternOrder)
+
+                else -> shootEntireRequestIsValid(
+                    patternOrder, failsafePatternOrder)
             }
 
         fullResumeIntakeLogic(requestResult)

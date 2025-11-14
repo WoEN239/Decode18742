@@ -5,17 +5,18 @@ package org.woen.modules.scoringSystem
 import kotlinx.coroutines.delay
 import java.util.concurrent.atomic.AtomicReference
 
-import woen239.enumerators.ShotType
 
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
 
 import woen239.enumerators.IntakeResult
 import woen239.enumerators.RequestResult
+import woen239.enumerators.ShootingMode
 
-import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.modules.scoringSystem.brush.Brush
+import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
+
 import org.woen.threading.ThreadedEventBus
 import org.woen.telemetry.ThreadedTelemetry
 
@@ -44,11 +45,12 @@ import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveSimpleDrumRequest
 
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
+import org.woen.telemetry.Configs.TURRET.MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_SHOTS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
-import org.woen.telemetry.Configs.TURRET.MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS
+
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -110,7 +112,7 @@ class ScoringModulesConnector
             StorageGiveDrumRequest::class, {
 
                 startDrumRequest(
-                    it.shotType,
+                    it.shootingMode,
                     it.requestPattern,
                     it.failsafePattern
                 )   }   )
@@ -132,7 +134,7 @@ class ScoringModulesConnector
     }
     fun subscribeToGamepad()
     {
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_left }, {
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_right }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntakeEvent(Ball.Name.PURPLE))
 
 
@@ -141,7 +143,7 @@ class ScoringModulesConnector
             ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }))
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_right }, {
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_left }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntakeEvent(Ball.Name.GREEN))
 
 
@@ -160,39 +162,43 @@ class ScoringModulesConnector
 
 
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.triangle }, {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSimpleDrumRequest())
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener({ it.right_bumper }, {
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSimpleDrumRequest())
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("")
-            ThreadedTelemetry.LAZY_INSTANCE.log("START - SIMPLE DRUM REQUEST - GAMEPAD")
-            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
-        }))
+                    ThreadedTelemetry.LAZY_INSTANCE.log("")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("START - SIMPLE DRUM REQUEST - GAMEPAD")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.square }, {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener({ it.right_trigger > 0.5 }, {
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("")
-            ThreadedTelemetry.LAZY_INSTANCE.log("START - PURPLE REQUEST - GAMEPAD")
-            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
-        }))
+                    ThreadedTelemetry.LAZY_INSTANCE.log("")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("START - PURPLE REQUEST - GAMEPAD")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.circle }, {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener({ it.left_trigger > 0.5 }, {
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("")
-            ThreadedTelemetry.LAZY_INSTANCE.log("START - GREEN REQUEST - GAMEPAD")
-            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
-        }))
-
-
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.cross }, {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
+                    ThreadedTelemetry.LAZY_INSTANCE.log("")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("START - GREEN REQUEST - GAMEPAD")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }   )   )
 
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("")
-            ThreadedTelemetry.LAZY_INSTANCE.log("STOP  - REQUEST - GAMEPAD")
-            ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
-        }))
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener({ it.left_bumper }, {
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
+
+
+                    ThreadedTelemetry.LAZY_INSTANCE.log("")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("STOP  - REQUEST - GAMEPAD")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+        }   )   )
     }
 
 
@@ -303,7 +309,7 @@ class ScoringModulesConnector
 
 
     suspend fun startDrumRequest(
-        shootingMode: ShotType,
+        shootingMode: ShootingMode,
         requestPattern: Array<BallRequest.Name>
     ): RequestResult.Name
     {
@@ -335,7 +341,7 @@ class ScoringModulesConnector
         return requestResult
     }
     suspend fun startDrumRequest(
-        shootingMode: ShotType,
+        shootingMode: ShootingMode,
         requestPattern: Array<BallRequest.Name>,
         failsafePattern: Array<BallRequest.Name>
     ): RequestResult.Name

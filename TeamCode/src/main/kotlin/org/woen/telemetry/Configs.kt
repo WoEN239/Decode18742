@@ -3,6 +3,7 @@ package org.woen.telemetry
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
+import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.utils.regulator.RegulatorParameters
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
@@ -390,6 +391,7 @@ object Configs {
         @JvmField
         var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 50
 
+
         @JvmField
         var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 333
         @JvmField
@@ -414,24 +416,24 @@ object Configs {
 
 
         @JvmField
-        var MOBILE_GATE_SERVO_OPEN_VALUE  = 0.584
+        var GATE_SERVO_OPEN_VALUE  = 0.584
         @JvmField
-        var MOBILE_GATE_SERVO_CLOSE_VALUE = 0.37
+        var GATE_SERVO_CLOSE_VALUE = 0.37
 
         @JvmField
-        var MOBILE_PUSH_SERVO_OPEN_VALUE  = 0.7
+        var PUSH_SERVO_OPEN_VALUE  = 0.7
         @JvmField
-        var MOBILE_PUSH_SERVO_CLOSE_VALUE = 0.47
+        var PUSH_SERVO_CLOSE_VALUE = 0.47
 
         @JvmField
-        var MOBILE_FALL_SERVO_OPEN_VALUE  = 0.14
+        var FALL_SERVO_OPEN_VALUE  = 0.14
         @JvmField
-        var MOBILE_FALL_SERVO_CLOSE_VALUE = 0.005
+        var FALL_SERVO_CLOSE_VALUE = 0.005
 
         @JvmField
-        var MOBILE_LAUNCH_SERVO_OPEN_VALUE  = 0.225
+        var LAUNCH_SERVO_OPEN_VALUE  = 0.225
         @JvmField
-        var MOBILE_LAUNCH_SERVO_CLOSE_VALUE = 0.65
+        var LAUNCH_SERVO_CLOSE_VALUE = 0.65
 
 
 
@@ -470,13 +472,13 @@ object Configs {
 
 
         @JvmField
-        var MOBILE_GATE_SERVO = "mobile_gate_servo"
+        var GATE_SERVO = "gate_servo"
         @JvmField
-        var MOBILE_PUSH_SERVO = "mobile_push_servo"
+        var PUSH_SERVO = "push_servo"
         @JvmField
-        var MOBILE_FALL_SERVO = "mobile_fall_servo"
+        var FALL_SERVO = "fall_servo"
         @JvmField
-        var MOBILE_LAUNCH_SERVO = "mobile_launch_servo"
+        var LAUNCH_SERVO = "launch_servo"
     }
 
     @Config

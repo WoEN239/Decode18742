@@ -14,25 +14,25 @@ import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.threading.hardware.IHardwareDevice
 
-import org.woen.telemetry.Configs.STORAGE.MOBILE_GATE_SERVO_OPEN_VALUE
-import org.woen.telemetry.Configs.STORAGE.MOBILE_GATE_SERVO_CLOSE_VALUE
+import org.woen.telemetry.Configs.STORAGE.GATE_SERVO_OPEN_VALUE
+import org.woen.telemetry.Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.STORAGE.MOBILE_PUSH_SERVO_OPEN_VALUE
-import org.woen.telemetry.Configs.STORAGE.MOBILE_PUSH_SERVO_CLOSE_VALUE
+import org.woen.telemetry.Configs.STORAGE.PUSH_SERVO_OPEN_VALUE
+import org.woen.telemetry.Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.STORAGE.MOBILE_FALL_SERVO_OPEN_VALUE
-import org.woen.telemetry.Configs.STORAGE.MOBILE_FALL_SERVO_CLOSE_VALUE
+import org.woen.telemetry.Configs.STORAGE.FALL_SERVO_OPEN_VALUE
+import org.woen.telemetry.Configs.STORAGE.FALL_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.STORAGE.MOBILE_LAUNCH_SERVO_CLOSE_VALUE
-import org.woen.telemetry.Configs.STORAGE.MOBILE_LAUNCH_SERVO_OPEN_VALUE
+import org.woen.telemetry.Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
+import org.woen.telemetry.Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
 
 import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_GATE_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_PUSH_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_FALL_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.MOBILE_LAUNCH_SERVO
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.FALL_SERVO
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
 
 import org.woen.telemetry.Configs.STORAGE.SORTING_STORAGE_BELT_MOTOR_1_DIRECTION
@@ -53,16 +53,16 @@ class HwSorting : IHardwareDevice
 
 
     val gateServo = ThreadedServo(
-        MOBILE_GATE_SERVO,
-        _startAngle = 1.5 * PI * MOBILE_GATE_SERVO_CLOSE_VALUE
+        GATE_SERVO,
+        _startAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE
     )
     val pushServo = ThreadedServo(
-        MOBILE_PUSH_SERVO,
-        _startAngle = 1.5 * PI * MOBILE_PUSH_SERVO_CLOSE_VALUE
+        PUSH_SERVO,
+        _startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE
     )
     val fallServo = ThreadedServo(
-        MOBILE_FALL_SERVO,
-        _startAngle = 1.5 * PI * MOBILE_FALL_SERVO_CLOSE_VALUE
+        FALL_SERVO,
+        _startAngle = 1.5 * PI * FALL_SERVO_CLOSE_VALUE
     )
 
     
@@ -131,39 +131,39 @@ class HwSorting : IHardwareDevice
 
     fun openGate()
     {
-        gateServo.targetAngle = 1.5 * PI * MOBILE_GATE_SERVO_OPEN_VALUE
+        gateServo.targetAngle = 1.5 * PI * GATE_SERVO_OPEN_VALUE
     }
     fun closeGate()
     {
-        gateServo.targetAngle = 1.5 * PI * MOBILE_GATE_SERVO_CLOSE_VALUE
+        gateServo.targetAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE
     }
 
     fun openPush()
     {
-        pushServo.targetAngle = 1.5 * PI * MOBILE_PUSH_SERVO_OPEN_VALUE
+        pushServo.targetAngle = 1.5 * PI * PUSH_SERVO_OPEN_VALUE
     }
     fun closePush()
     {
-        pushServo.targetAngle = 1.5 * PI * MOBILE_PUSH_SERVO_CLOSE_VALUE
+        pushServo.targetAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE
     }
 
     fun openFall()
     {
-        fallServo.targetAngle = 1.5 * PI * MOBILE_FALL_SERVO_OPEN_VALUE
+        fallServo.targetAngle = 1.5 * PI * FALL_SERVO_OPEN_VALUE
     }
     fun closeFall()
     {
-        fallServo.targetAngle = 1.5 * PI * MOBILE_FALL_SERVO_CLOSE_VALUE
+        fallServo.targetAngle = 1.5 * PI * FALL_SERVO_CLOSE_VALUE
     }
 
 
 //    fun openLaunch()
 //    {
-//        launchServo.targetAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_OPEN_VALUE
+//        launchServo.targetAngle = 1.5 * PI * LAUNCH_SERVO_OPEN_VALUE
 //    }
 //    fun closeLaunch()
 //    {
-//        launchServo.targetAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_CLOSE_VALUE
+//        launchServo.targetAngle = 1.5 * PI * LAUNCH_SERVO_CLOSE_VALUE
 //    }
 
     fun openTurretGate()
