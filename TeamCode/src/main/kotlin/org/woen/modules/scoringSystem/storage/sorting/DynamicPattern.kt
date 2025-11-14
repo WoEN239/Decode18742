@@ -46,7 +46,7 @@ class DynamicPattern
             : Array<BallRequest.Name>
         {
             val newPatternLength = min(MAX_BALL_COUNT, lastUnfinished.size + pattern.size)
-            var newPattern = arrayOf<BallRequest.Name>()
+            val newPattern = arrayOf<BallRequest.Name>()
 
             var curRequestId = 0
             while (curRequestId < newPatternLength) {

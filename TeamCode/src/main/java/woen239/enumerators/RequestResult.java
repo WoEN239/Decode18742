@@ -103,6 +103,14 @@ public class RequestResult
     {
         return _memId == FAIL_PROCESS_WAS_TERMINATED;
     }
+    static public boolean WasTerminated(int requestResult)
+    {
+        return requestResult == FAIL_PROCESS_WAS_TERMINATED;
+    }
+    static public boolean WasTerminated(Name requestResult)
+    {
+        return WasTerminated(ToInt(requestResult));
+    }
     public boolean DidFail()
     {
         return _memId > SUCCESS_IS_NOW_EMPTY;

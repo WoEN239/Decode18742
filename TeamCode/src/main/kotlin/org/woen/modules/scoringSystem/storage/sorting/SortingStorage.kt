@@ -201,6 +201,8 @@ class SortingStorage
         if (doTerminateRequest()) return terminateRequest()
         val shootingResult = shootRequestFinalPhase(requestResult, 1)
 
+        if (shootingResult == RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
+            return terminateRequest()
 
         fullResumeIntakeLogic(shootingResult)
         return shootingResult
@@ -208,7 +210,9 @@ class SortingStorage
     private suspend fun updateAfterRequest(requestResult: RequestResult): RequestResult
     {
         if (requestResult.DidFail()) return requestResult   //  Intake failed
-
+        if (doTerminateRequest())    return RequestResult(
+            RequestResult.FAIL_PROCESS_WAS_TERMINATED,
+            RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
 
         val fullRotations = when (requestResult.Name())
         {
@@ -246,18 +250,18 @@ class SortingStorage
         if (updateResult.DidSucceed())
         {
             ThreadedTelemetry.LAZY_INSTANCE.log("Waiting for shot")
-            fullWaitForShotFired(shotNum)
+            if (!fullWaitForShotFired(shotNum)) return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
 
             return if (_storageCells.updateAfterRequest())
             {
-                if (_storageCells.anyBallCount() > 0)
+                if  (_storageCells.anyBallCount() > 0)
                      RequestResult.Name.SUCCESS
                 else RequestResult.Name.SUCCESS_IS_NOW_EMPTY
             }
             else
             {
                 //!  _storageCells.fastFixStorageDesync()
-                if (_storageCells.updateAfterRequest())
+                if  (_storageCells.updateAfterRequest())
                      RequestResult.Name.SUCCESS
                 else RequestResult.Name.FAIL_SOFTWARE_STORAGE_DESYNC
             }
@@ -286,8 +290,17 @@ class SortingStorage
         return doTerminateRequest()
     }
 
-    private fun terminateRequest(): RequestResult.Name
+    private suspend fun terminateRequest(): RequestResult.Name
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("[!] Request was terminated, adjusting..")
+
+        if (_requestRunStatus.TerminationId() != RunStatus.IS_TERMINATED)
+        {
+            _storageCells.hwForcePauseBelt()
+            _storageCells.hwReverseBelt(DELAY_FOR_ONE_BALL_PUSHING_MS)
+            _storageCells.fullCalibrate()
+        }
+
         _requestRunStatus.SetTermination(
             RunStatus.IS_TERMINATED,
             RunStatus.TerminationStatus.IS_TERMINATED
@@ -351,7 +364,7 @@ class SortingStorage
                 ShootingMode.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
                 ShootingMode.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(patternOrder)
                 ShootingMode.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(patternOrder)
-                else  -> shootEntireRequestIsValid(patternOrder)
+                else -> shootEntireRequestIsValid(patternOrder)
             }
 
         fullResumeIntakeLogic(requestResult)
@@ -421,6 +434,9 @@ class SortingStorage
                 if (doTerminateRequest()) return terminateRequest()
             shootingResult = shootRequestFinalPhase(requestResult, i + 1)
 
+                if (shootingResult == RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
+                    return terminateRequest()
+
             i++
         }
         return shootingResult
@@ -455,6 +471,9 @@ class SortingStorage
                 if (doTerminateRequest()) return terminateRequest()
             shootingResult = shootRequestFinalPhase(requestResult, i + 1)
 
+                if (shootingResult == RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
+                    return terminateRequest()
+
             i++
         }
         return shootingResult
@@ -472,7 +491,9 @@ class SortingStorage
     {
         val shootingResult = shootEntireUntilBreaksLogic(requestOrder)
 
-        if (RequestResult.DidSucceed(shootingResult)) return shootingResult
+        if (RequestResult.DidSucceed(shootingResult) ||
+            RequestResult.WasTerminated(shootingResult))
+            return shootingResult
         return shootEntireUntilBreaksLogic(failsafeOrder)
     }
     @SuppressLint("SuspiciousIndentation")
@@ -488,6 +509,9 @@ class SortingStorage
 
                 if (doTerminateRequest()) return terminateRequest()
             shootingResult = shootRequestFinalPhase(requestResult, i + 1)
+
+                if (RequestResult.WasTerminated(shootingResult))
+                    return terminateRequest()
 
             if (RequestResult.DidFail(shootingResult))
                 i += MAX_BALL_COUNT  //  Fast break if next ball is not present
@@ -575,7 +599,8 @@ class SortingStorage
                 if (doTerminateRequest()) return terminateRequest()
             shootingResult = shootRequestFinalPhase(requestResult, i + 1)
 
-            if (RequestResult.DidFail(shootingResult))  return shootingResult
+            if (RequestResult.WasTerminated(shootingResult)) return terminateRequest()
+            if (RequestResult.DidFail(shootingResult)) return shootingResult
             //  Fast break if UNEXPECTED ERROR or TERMINATION
 
             i++
@@ -628,7 +653,7 @@ class SortingStorage
             if (doTerminateRequest()) return false
         }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("DONE - Shot fired or request terminated")
+        ThreadedTelemetry.LAZY_INSTANCE.log("DONE - Shot fired")
         _shotWasFired.set(false)
         return true
     }

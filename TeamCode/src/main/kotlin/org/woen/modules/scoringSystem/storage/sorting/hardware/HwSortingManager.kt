@@ -73,6 +73,16 @@ class HwSortingManager
 
 
 
+    suspend fun fullCalibrate()
+    {
+        _hwSorting.fullCalibrate()
+
+        while (!_hwSorting.gateServo.atTargetAngle
+            || !_hwSorting.pushServo.atTargetAngle
+            || !_hwSorting.fallServo.atTargetAngle
+            || !_hwSorting.turretGateServo.atTargetAngle)
+                delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+    }
     suspend fun openGate()
     {
         _hwSorting.openGate()
@@ -259,8 +269,15 @@ class HwSortingManager
 //    }
     suspend fun hwRotateBeltCW(timeMs: Long)
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("HW BELT IS MOVING")
+        ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is moving")
         forceSafeResume()
+        delay(timeMs)
+        forceSafePause()
+    }
+    suspend fun hwReverseBelt(timeMs: Long)
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is reversing")
+        forceSafeReverse()
         delay(timeMs)
         forceSafePause()
     }

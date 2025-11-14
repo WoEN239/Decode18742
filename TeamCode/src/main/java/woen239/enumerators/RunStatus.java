@@ -97,7 +97,10 @@ public class RunStatus
     public void SafeResetTermination()
     {
         if (_terminationId == IS_TERMINATED)
+        {
             SetTermination(IS_ACTIVE, TerminationStatus.IS_ACTIVE);
+            if (_memId == TERMINATED) Set(ACTIVE, Name.ACTIVE);
+        }
     }
     public void SetTermination(TerminationStatus name)
     {
