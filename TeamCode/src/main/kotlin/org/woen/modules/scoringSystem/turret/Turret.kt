@@ -27,7 +27,7 @@ class SetCurrentTurretStateEvent(
 )
 
 class Turret : IModule {
-    private val _hardwareTurret = HardwareTurret("pulleyMotor", "angleServo")
+    private val _hardwareTurret = HardwareTurret("pulleyMotor", "turretAngleServo")
 
     enum class TurretState {
         STOP,
@@ -70,6 +70,8 @@ class Turret : IModule {
     }
 
     private fun calculatePulleySpeed(): Double {
+        return 20.0
+
         val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
         val shootDistance =

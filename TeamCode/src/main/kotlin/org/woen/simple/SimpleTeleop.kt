@@ -78,7 +78,7 @@ internal object SimpleConfig {
     var SHORT_ANGLE_SERVO_POSITION = 0.5
 }
 
-@Disabled
+//@Disabled
 @TeleOp
 class SimpleTeleop : LinearOpMode() {
     lateinit var leftForwardDrive: DcMotorEx
@@ -112,31 +112,31 @@ class SimpleTeleop : LinearOpMode() {
         rightForwardDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         rightBackDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-        rightForwardDrive.direction = DcMotorSimple.Direction.REVERSE
-        rightBackDrive.direction = DcMotorSimple.Direction.REVERSE
+        leftForwardDrive.direction = DcMotorSimple.Direction.REVERSE
+        leftBackDrive.direction = DcMotorSimple.Direction.REVERSE
 
-        brushMotor = hardwareMap.get("brushMotor") as DcMotorEx
-
-        brushMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-        leftBeltMotor = hardwareMap.get("beltLeftMotor") as DcMotorEx
-        rightBeltMotor = hardwareMap.get("beltRightMotor") as DcMotorEx
-
-        leftBeltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        rightBeltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-        startServo = hardwareMap.get("starterServo") as Servo
-        pushServo = hardwareMap.get("pushServo") as Servo
-
-        pulleyMotor = hardwareMap.get("pulleyMotor") as DcMotorEx
+//        brushMotor = hardwareMap.get("brushMotor") as DcMotorEx
+//
+//        brushMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+//
+//        leftBeltMotor = hardwareMap.get("beltLeftMotor") as DcMotorEx
+//        rightBeltMotor = hardwareMap.get("beltRightMotor") as DcMotorEx
+//
+//        leftBeltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+//        rightBeltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+//
+//        startServo = hardwareMap.get("starterServo") as Servo
+//        pushServo = hardwareMap.get("pushServo") as Servo
+//
+//        pulleyMotor = hardwareMap.get("pulleyMotor") as DcMotorEx
 
 //        pulleyMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
 //        pulleyMotor.direction = DcMotorSimple.Direction.REVERSE
 
-        battery = hardwareMap.get(VoltageSensor::class.java, "Control Hub")
+//        battery = hardwareMap.get(VoltageSensor::class.java, "Control Hub")
 
-        angleServo = hardwareMap.get("angleServo") as Servo
+//        angleServo = hardwareMap.get("angleServo") as Servo
 
         while (!isStarted()) {
             if (gamepad1.left_bumper || gamepad1.square || gamepad1.right_bumper || gamepad1.circle ||
@@ -149,17 +149,17 @@ class SimpleTeleop : LinearOpMode() {
 
         resetRuntime()
 
-        pulleyMotor.power = SimpleConfig.IDLE_PULLEY_SPEED
-
-        leftBeltMotor.power = 1.0
-        rightBeltMotor.power = -1.0
+//        pulleyMotor.power = SimpleConfig.IDLE_PULLEY_SPEED
+//
+//        leftBeltMotor.power = 1.0
+//        rightBeltMotor.power = -1.0
 
         while (opModeIsActive()) {
             updateDriveTrain()
-            updateBrush()
-            updateCannon()
+//            updateBrush()
+//            updateCannon()
 
-            telemetry.update()
+//            telemetry.update()
         }
     }
 

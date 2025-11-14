@@ -19,15 +19,15 @@ object Configs {
     @Config
     internal object BRUSH {
         @JvmField
-        var BRUSH_SAFE_TIME = 0.1
+        var BRUSH_SAFE_TIME = 0.5
         @JvmField
-        var BRUSH_ERR_TIME = 0.4
+        var BRUSH_ERR_TIME = 1.0
 
         @JvmField
         var BRUSH_DEF_TIME = 1.0
 
         @JvmField
-        var BRUSH_TARGET_CURRENT = 2.2
+        var BRUSH_TARGET_CURRENT = 3.2
 
 
         @JvmField
@@ -49,10 +49,10 @@ object Configs {
         var DEFAULT_SERVO_ANGLE = PI * 1.5
 
         @JvmField
-        var DEFAULT_SERVO_V_MAX = PI * 1.5 * 12.0
+        var DEFAULT_SERVO_V_MAX = PI * 1.5 * 15.0
 
         @JvmField
-        var DEFAULT_SERVO_A = PI * 1.5 * 12.0
+        var DEFAULT_SERVO_A = PI * 1.5 * 15.0
 
         @JvmField
         var DEFAULT_SERVO_OFFSET = 0.1
@@ -154,7 +154,7 @@ object Configs {
         var LOOK_SENS = 0.1
 
         @JvmField
-        var WHEEL_CENTER_POS = Vec2(0.267 / 2.0, 0.28 / 2.0)
+        var WHEEL_CENTER_POS = Vec2(0.3 / 2.0, 0.27 / 2.0)
     }
 
     @Config
@@ -202,7 +202,7 @@ object Configs {
         var CAMERA_ACCURACY = 300
 
         @JvmField
-        var CAMERA_ENABLE = true
+        var CAMERA_ENABLE = false
 
         @JvmField
         var CAMERA_TRIGGER_DISTANCE = 3.0
@@ -229,7 +229,7 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.1)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 30.0
+        var PULLEY_TARGET_SENS = 100.0
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-1.55, -1.55)
@@ -415,9 +415,9 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO_OPEN_VALUE  = 0.584
+        var GATE_SERVO_OPEN_VALUE  = 0.575
         @JvmField
-        var GATE_SERVO_CLOSE_VALUE = 0.37
+        var GATE_SERVO_CLOSE_VALUE = 0.41
 
         @JvmField
         var PUSH_SERVO_OPEN_VALUE  = 0.7
@@ -437,7 +437,7 @@ object Configs {
 
 
         @JvmField
-        var TURRET_GATE_SERVO_OPEN_VALUE  = 0.9
+        var TURRET_GATE_SERVO_OPEN_VALUE  = 0.38
         @JvmField
         var TURRET_GATE_SERVO_CLOSE_VALUE = 0.6
     }
@@ -483,6 +483,9 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 0.2
+        var BELT_PUSH_TIME = 0.45
+
+        @JvmField
+        var END_TIME = 0.2
     }
 }

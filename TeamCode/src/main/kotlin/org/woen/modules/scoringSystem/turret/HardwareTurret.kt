@@ -55,7 +55,7 @@ class HardwareTurret(
         if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
             return
 
-        _angleSevo.position = anglePosition
+//        _angleSevo.position = anglePosition
 
         val currentMotorPosition = _motor.currentPosition.toDouble()
 

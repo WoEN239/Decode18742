@@ -86,6 +86,10 @@ class SimpleStorage : IModule {
                     }
                 }
 
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+
+                delay((Configs.SIMPLE_STORAGE.END_TIME * 1000.0).toLong())
+
                 terminateShoot()
             }
         })
