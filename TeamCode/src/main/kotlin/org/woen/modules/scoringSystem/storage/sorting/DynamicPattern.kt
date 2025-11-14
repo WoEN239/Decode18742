@@ -18,10 +18,18 @@ class DynamicPattern
 
     fun setPermanent(permanent: Array<BallRequest.Name>)
     {
-        _permanentPattern = permanent.clone()
+        _permanentPattern = permanent.copyOf()
     }
 
     fun resetTemporary() = _temporaryPattern.clear()
+    fun setTemporary(temporary: ArrayList<BallRequest.Name>)
+    {
+        _temporaryPattern = ArrayList(temporary)
+    }
+    fun setTemporary(temporary: Array<BallRequest.Name>)
+    {
+        _temporaryPattern = ArrayList(temporary.toList())
+    }
     fun removeFromTemporary()
     {
         if (_temporaryPattern.isNotEmpty())

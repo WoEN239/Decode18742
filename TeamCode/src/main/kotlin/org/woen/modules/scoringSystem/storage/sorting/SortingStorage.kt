@@ -152,7 +152,7 @@ class SortingStorage
         else IntakeResult.Name.FAIL_UNKNOWN
     }
 
-    private suspend fun intakeRaceConditionIsPresent(): Boolean
+    private suspend fun intakeRaceConditionIsPresent():  Boolean
     {
         if (_intakeRunStatus.IsActive())
         {
@@ -269,7 +269,7 @@ class SortingStorage
         else return updateResult.Name()
     }
 
-    private suspend fun requestRaceConditionIsPresent(): Boolean
+    private suspend fun requestRaceConditionIsPresent():  Boolean
     {
         if (_requestRunStatus.IsActive())
         {
@@ -346,7 +346,8 @@ class SortingStorage
     suspend fun shootEntireDrumRequest(
         shootingMode: ShootingMode,
         requestOrder:  Array<BallRequest.Name>,
-        includeLastUnfinishedPattern: Boolean = true
+        includeLastUnfinishedPattern: Boolean = true,
+        autoUpdateUnfinishedForNextPattern: Boolean = true
     ): RequestResult.Name
     {
         if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
@@ -356,6 +357,9 @@ class SortingStorage
             else DynamicPattern.trimPattern(
                 _dynamicMemoryPattern.lastUnfinished(),
                 requestOrder)
+
+        if (autoUpdateUnfinishedForNextPattern)
+            _dynamicMemoryPattern.setTemporary(patternOrder)
 
 
         val requestResult =
@@ -375,7 +379,9 @@ class SortingStorage
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>? = requestOrder,
         includeLastUnfinishedPattern: Boolean = true,
-        includeLastUnfinishedPatternToFailSafe: Boolean = true
+        includeLastUnfinishedPatternToFailSafe: Boolean = true,
+        autoUpdateUnfinishedForNextPattern: Boolean = true,
+        whenFailedAndSavingLastKeepFailsafeOrder: Boolean = true
     ): RequestResult.Name
     {
         if (failsafeOrder == null || failsafeOrder.isEmpty() ||
@@ -384,6 +390,8 @@ class SortingStorage
 
         if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
         if (cantHandleRequestRaceCondition())  return terminateRequest()
+
+
 
         val patternOrder = if (!includeLastUnfinishedPattern) requestOrder
         else DynamicPattern.trimPattern(
@@ -396,19 +404,30 @@ class SortingStorage
             requestOrder)
 
 
+
+        val saveLastUnfinishedFailsafeOrder = autoUpdateUnfinishedForNextPattern
+                && whenFailedAndSavingLastKeepFailsafeOrder
+        if (autoUpdateUnfinishedForNextPattern)
+            _dynamicMemoryPattern.setTemporary(patternOrder)
+
+
+
         val requestResult =
             when (shootingMode)
             {
                 ShootingMode.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
 
                 ShootingMode.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(
-                    patternOrder, failsafePatternOrder)
+                    patternOrder, failsafePatternOrder,
+                    saveLastUnfinishedFailsafeOrder)
 
                 ShootingMode.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(
-                    patternOrder, failsafePatternOrder)
+                    patternOrder, failsafePatternOrder,
+                    saveLastUnfinishedFailsafeOrder)
 
                 else -> shootEntireRequestIsValid(
-                    patternOrder, failsafePatternOrder)
+                    patternOrder, failsafePatternOrder,
+                    saveLastUnfinishedFailsafeOrder)
             }
 
         fullResumeIntakeLogic(requestResult)
@@ -449,12 +468,15 @@ class SortingStorage
     ): RequestResult.Name = shootEntireCanSkipLogic(requestOrder)
     private suspend fun shootEntireRequestCanSkip(
         requestOrder:  Array<BallRequest.Name>,
-        failsafeOrder: Array<BallRequest.Name>
+        failsafeOrder: Array<BallRequest.Name>,
+        autoUpdateUnfinishedForNextPattern: Boolean = true
     ): RequestResult.Name
     {
         val shootingResult = shootEntireCanSkipLogic(requestOrder)
 
         if (RequestResult.DidSucceed(shootingResult)) return shootingResult
+        else if (autoUpdateUnfinishedForNextPattern)
+            _dynamicMemoryPattern.setTemporary(failsafeOrder)
         return shootEntireCanSkipLogic(failsafeOrder)
     }
     @SuppressLint("SuspiciousIndentation")
@@ -486,7 +508,8 @@ class SortingStorage
     ): RequestResult.Name = shootEntireUntilBreaksLogic(requestOrder)
     private suspend fun shootEntireUntilPatternBreaks(
         requestOrder:  Array<BallRequest.Name>,
-        failsafeOrder: Array<BallRequest.Name>
+        failsafeOrder: Array<BallRequest.Name>,
+        autoUpdateUnfinishedForNextPattern: Boolean = true
     ): RequestResult.Name
     {
         val shootingResult = shootEntireUntilBreaksLogic(requestOrder)
@@ -494,6 +517,8 @@ class SortingStorage
         if (RequestResult.DidSucceed(shootingResult) ||
             RequestResult.WasTerminated(shootingResult))
             return shootingResult
+        else if (autoUpdateUnfinishedForNextPattern)
+            _dynamicMemoryPattern.setTemporary(failsafeOrder)
         return shootEntireUntilBreaksLogic(failsafeOrder)
     }
     @SuppressLint("SuspiciousIndentation")
@@ -539,7 +564,8 @@ class SortingStorage
     @SuppressLint("SuspiciousIndentation")
     private suspend fun shootEntireRequestIsValid(
         requestOrder:  Array<BallRequest.Name>,
-        failsafeOrder: Array<BallRequest.Name>
+        failsafeOrder: Array<BallRequest.Name>,
+        autoUpdateUnfinishedForNextPattern: Boolean = true
     ): RequestResult.Name
     {
         val countPG = _storageCells.ballColorCountPG()
@@ -549,6 +575,8 @@ class SortingStorage
         if (validateEntireRequestDidSucceed(countPG, requestCountPGA))  //  All good
             return shootEntireValidRequestLogic(requestOrder)
 
+        if (autoUpdateUnfinishedForNextPattern)
+            _dynamicMemoryPattern.setTemporary(failsafeOrder)
 
         requestCountPGA = countPGA(failsafeOrder)
 
@@ -654,6 +682,7 @@ class SortingStorage
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("DONE - Shot fired")
+        _dynamicMemoryPattern.removeFromTemporary()
         _shotWasFired.set(false)
         return true
     }
