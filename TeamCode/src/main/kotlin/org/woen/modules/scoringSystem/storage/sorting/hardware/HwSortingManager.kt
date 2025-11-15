@@ -18,7 +18,6 @@ import org.woen.modules.scoringSystem.storage.StorageCloseTurretGateEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 
 import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_INTAKES_MS
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
 
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
@@ -127,20 +126,6 @@ class HwSortingManager
     }
 
 
-//    suspend fun openLaunch()
-//    {
-//        _hwSorting.openLaunch()
-//
-//        while (!_hwSorting.launchServo.atTargetAngle)
-//            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-//    }
-//    suspend fun closeLaunch()
-//    {
-//        _hwSorting.closeLaunch()
-//
-//        while (!_hwSorting.launchServo.atTargetAngle)
-//            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-//    }
     suspend fun openTurretGate()
     {
         _hwSorting.openTurretGate()
@@ -165,7 +150,7 @@ class HwSortingManager
         if (startCondition)
         {
             _runStatus.SetActive()
-            _hwSorting.startBeltMotor()
+            _hwSorting.startBeltMotors()
         }
 
         return startCondition
@@ -183,7 +168,7 @@ class HwSortingManager
         if (stopCondition)
         {
             _runStatus.SetInactive()
-            _hwSorting.stopBeltMotor()
+            _hwSorting.stopBeltMotors()
         }
 
         return stopCondition
@@ -191,7 +176,7 @@ class HwSortingManager
     fun forceStop()
     {
         _runStatus.SetInactive()
-        _hwSorting.stopBeltMotor()
+        _hwSorting.stopBeltMotors()
     }
     suspend fun forceSafeStop()
     {
@@ -210,7 +195,7 @@ class HwSortingManager
                 RunStatus.USED_BY_ANOTHER_PROCESS,
                 RunStatus.Name.USED_BY_ANOTHER_PROCESS
             )
-            _hwSorting.stopBeltMotor()
+            _hwSorting.stopBeltMotors()
         }
 
         return pauseCondition
@@ -229,7 +214,7 @@ class HwSortingManager
         if (resumeCondition)
         {
             _runStatus.SetActive()
-            _hwSorting.startBeltMotor()
+            _hwSorting.startBeltMotors()
         }
 
         return resumeCondition
@@ -248,7 +233,7 @@ class HwSortingManager
         if (resumeCondition)
         {
             _runStatus.SetActive()
-            _hwSorting.reverseBeltMotor()
+            _hwSorting.reverseBeltMotors()
         }
 
         return resumeCondition
@@ -261,12 +246,6 @@ class HwSortingManager
 
 
 
-//    suspend fun hwLaunchLastBall()
-//    {
-//        openLaunch()
-//        delay(DELAY_FOR_EVENT_AWAITING_MS)
-//        closeLaunch()
-//    }
     suspend fun hwRotateBeltCW(timeMs: Long)
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is moving")

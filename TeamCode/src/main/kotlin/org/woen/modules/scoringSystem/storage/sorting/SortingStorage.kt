@@ -199,7 +199,7 @@ class SortingStorage
 
 
         if (doTerminateRequest()) return terminateRequest()
-        val shootingResult = shootRequestFinalPhase(requestResult, 1)
+        val shootingResult = shootRequestFinalPhase(requestResult)
 
         if (shootingResult == RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
             return terminateRequest()
@@ -241,7 +241,7 @@ class SortingStorage
             RequestResult.FAIL_HARDWARE_PROBLEM,
             RequestResult.Name.FAIL_HARDWARE_PROBLEM)
     }
-    private suspend fun shootRequestFinalPhase(requestResult: RequestResult, shotNum: Int) : RequestResult.Name
+    private suspend fun shootRequestFinalPhase(requestResult: RequestResult) : RequestResult.Name
     {
         if (requestResult.DidFail()) return requestResult.Name()
 
@@ -250,7 +250,7 @@ class SortingStorage
         if (updateResult.DidSucceed())
         {
             ThreadedTelemetry.LAZY_INSTANCE.log("Waiting for shot")
-            if (!fullWaitForShotFired(shotNum)) return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
+            if (!fullWaitForShotFired()) return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
 
             return if (_storageCells.updateAfterRequest())
             {
@@ -316,7 +316,7 @@ class SortingStorage
 
 
 
-    suspend fun pushNextWithoutUpdating(shotNum: Int)
+    suspend fun pushNextWithoutUpdating()
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("> SW: OPEN GATE")
         _storageCells.openTurretGate()
@@ -324,11 +324,8 @@ class SortingStorage
         _storageCells.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
         delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
-//        if (shotNum == 3) pushLastBallWithLaunch()
-
         _storageCells.closeTurretGate()
     }
-//    suspend fun pushLastBallWithLaunch() = _storageCells.hwLaunchLastBall()
 
 
 
@@ -451,7 +448,7 @@ class SortingStorage
             ThreadedTelemetry.LAZY_INSTANCE.log("shot ${i+1} request finished, updating..")
 
                 if (doTerminateRequest()) return terminateRequest()
-            shootingResult = shootRequestFinalPhase(requestResult, i + 1)
+            shootingResult = shootRequestFinalPhase(requestResult)
 
                 if (shootingResult == RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
                     return terminateRequest()
@@ -491,7 +488,7 @@ class SortingStorage
             val requestResult = _storageCells.handleRequest(requestOrder[i])
 
                 if (doTerminateRequest()) return terminateRequest()
-            shootingResult = shootRequestFinalPhase(requestResult, i + 1)
+            shootingResult = shootRequestFinalPhase(requestResult)
 
                 if (shootingResult == RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
                     return terminateRequest()
@@ -533,7 +530,7 @@ class SortingStorage
             val requestResult = _storageCells.handleRequest(requestOrder[i])
 
                 if (doTerminateRequest()) return terminateRequest()
-            shootingResult = shootRequestFinalPhase(requestResult, i + 1)
+            shootingResult = shootRequestFinalPhase(requestResult)
 
                 if (RequestResult.WasTerminated(shootingResult))
                     return terminateRequest()
@@ -625,7 +622,7 @@ class SortingStorage
             val requestResult = _storageCells.handleRequest(requestOrder[i])
 
                 if (doTerminateRequest()) return terminateRequest()
-            shootingResult = shootRequestFinalPhase(requestResult, i + 1)
+            shootingResult = shootRequestFinalPhase(requestResult)
 
             if (RequestResult.WasTerminated(shootingResult)) return terminateRequest()
             if (RequestResult.DidFail(shootingResult)) return shootingResult
@@ -669,11 +666,11 @@ class SortingStorage
 
 
     fun shotWasFired() = _shotWasFired.set(true)
-    private suspend fun fullWaitForShotFired(shotNum: Int): Boolean
+    private suspend fun fullWaitForShotFired(): Boolean
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("WAITING FOR SHOT - EVENT SEND")
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageOpenTurretGateEvent())
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent(shotNum))
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
 
         while (!_shotWasFired.get())
         {

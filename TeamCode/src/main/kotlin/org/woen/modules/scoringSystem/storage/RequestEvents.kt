@@ -24,7 +24,7 @@ class TerminateRequestEvent()
 
 
 
-class StorageRequestIsReadyEvent(var shotNum: Int = 1)
+class StorageRequestIsReadyEvent()
 data class StorageFinishedEveryRequestEvent(
     var requestResult: RequestResult.Name
 )

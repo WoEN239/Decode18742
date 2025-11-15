@@ -10,9 +10,8 @@ import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 
 class DynamicPattern
 {
-    private var _temporaryPattern = arrayListOf<BallRequest.Name>()
-
     private var _permanentPattern = arrayOf<BallRequest.Name>()
+    private var _temporaryPattern = arrayListOf<BallRequest.Name>()
 
 
 
@@ -33,7 +32,7 @@ class DynamicPattern
     fun removeFromTemporary()
     {
         if (_temporaryPattern.isNotEmpty())
-            _temporaryPattern.removeAt(_temporaryPattern.size - 1)
+            _temporaryPattern.removeAt(0)
     }
     fun addToTemporary()
     {

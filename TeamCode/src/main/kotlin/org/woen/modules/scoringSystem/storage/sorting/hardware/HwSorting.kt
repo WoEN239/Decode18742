@@ -10,6 +10,8 @@ import org.woen.threading.hardware.ThreadedServo
 import com.qualcomm.robotcore.hardware.HardwareMap
 
 import org.woen.hotRun.HotRun
+import org.woen.utils.motor.MotorOnly
+
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.threading.hardware.IHardwareDevice
@@ -23,33 +25,24 @@ import org.woen.telemetry.Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
 import org.woen.telemetry.Configs.STORAGE.FALL_SERVO_OPEN_VALUE
 import org.woen.telemetry.Configs.STORAGE.FALL_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
-import org.woen.telemetry.Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
-
 import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
 
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.FALL_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
 
-import org.woen.telemetry.Configs.STORAGE.SORTING_STORAGE_BELT_MOTOR_1_DIRECTION
-import org.woen.telemetry.Configs.STORAGE.SORTING_STORAGE_BELT_MOTOR_2_DIRECTION
-
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTOR_1
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTOR_2
+import org.woen.telemetry.Configs.STORAGE.SORTING_STORAGE_BELT_MOTORS_DIRECTION
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTORS
 
 
 
 class HwSorting : IHardwareDevice
 {
-    private lateinit var _beltMotor1 : DcMotorEx
-    private lateinit var _beltMotor2 : DcMotorEx
+    private lateinit var _beltMotors : MotorOnly
 
-    private val _motor1Power = AtomicReference(0.0)
-    private val _motor2Power = AtomicReference(0.0)
+    private val _beltMotorsPower = AtomicReference(0.0)
 
 
     val gateServo = ThreadedServo(
@@ -65,11 +58,6 @@ class HwSorting : IHardwareDevice
         _startAngle = 1.5 * PI * FALL_SERVO_CLOSE_VALUE
     )
 
-    
-//    val launchServo = ThreadedServo(
-//        MOBILE_LAUNCH_SERVO,
-//        _startAngle = 1.5 * PI * MOBILE_LAUNCH_SERVO_CLOSE_VALUE
-//    )
     val turretGateServo = ThreadedServo(
         TURRET_GATE_SERVO,
         _startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE
@@ -79,53 +67,30 @@ class HwSorting : IHardwareDevice
 
     override fun init(hardwareMap : HardwareMap)
     {
-        _beltMotor1 = hardwareMap.get(SORTING_STORAGE_BELT_MOTOR_1) as DcMotorEx
-        _beltMotor2 = hardwareMap.get(SORTING_STORAGE_BELT_MOTOR_2) as DcMotorEx
+        _beltMotors = MotorOnly(hardwareMap.get(SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
 
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
-            gateServo, pushServo, fallServo, /*launchServo,*/ turretGateServo
+            gateServo, pushServo, fallServo, turretGateServo
         )
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _beltMotor1.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-            _beltMotor1.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
-            _beltMotor2.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-            _beltMotor2.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-
-
-            _beltMotor1.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            _beltMotor2.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-            _beltMotor1.direction = SORTING_STORAGE_BELT_MOTOR_1_DIRECTION
-            _beltMotor2.direction = SORTING_STORAGE_BELT_MOTOR_2_DIRECTION
+            _beltMotors.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            _beltMotors.direction = SORTING_STORAGE_BELT_MOTORS_DIRECTION
 
             fullCalibrate()
         }
     }
     override fun update()
     {
-        _beltMotor1.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motor1Power.get())
-        _beltMotor2.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_motor2Power.get())
+        _beltMotors.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_beltMotorsPower.get())
     }
 
 
 
-    fun startBeltMotor()
-    {
-        _motor1Power.set(12.0)
-        _motor2Power.set(12.0)
-    }
-    fun reverseBeltMotor()
-    {
-        _motor1Power.set(-12.0)
-        _motor2Power.set(-12.0)
-    }
-    fun stopBeltMotor()
-    {
-        _motor1Power.set(0.0)
-        _motor2Power.set(0.0)
-    }
+    fun startBeltMotors()   = _beltMotorsPower.set(12.0)
+    fun reverseBeltMotors() = _beltMotorsPower.set(-12.0)
+    fun stopBeltMotors()    = _beltMotorsPower.set(0.0)
 
 
 
@@ -157,14 +122,6 @@ class HwSorting : IHardwareDevice
     }
 
 
-//    fun openLaunch()
-//    {
-//        launchServo.targetAngle = 1.5 * PI * LAUNCH_SERVO_OPEN_VALUE
-//    }
-//    fun closeLaunch()
-//    {
-//        launchServo.targetAngle = 1.5 * PI * LAUNCH_SERVO_CLOSE_VALUE
-//    }
 
     fun openTurretGate()
     {
@@ -183,10 +140,9 @@ class HwSorting : IHardwareDevice
         closePush()
         closeFall()
 
-//        closeLaunch()
         closeTurretGate()
 
-        stopBeltMotor()
+        stopBeltMotors()
     }
 
 

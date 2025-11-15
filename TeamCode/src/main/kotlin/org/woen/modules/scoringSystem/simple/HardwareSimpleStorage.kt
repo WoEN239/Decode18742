@@ -10,10 +10,8 @@ import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.motor.MotorOnly
 
-class HardwareSimpleStorage(
-    private val _beltMotor1Name: String,
-    private val _beltMotor2Name: String
-) : IHardwareDevice {
+class HardwareSimpleStorage() : IHardwareDevice
+{
     enum class BeltState{
         STOP,
         RUN_REVERS,
@@ -52,7 +50,7 @@ class HardwareSimpleStorage(
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-            _beltMotor.direction = Configs.STORAGE.SORTING_STORAGE_BELT_MOTOR_1_DIRECTION
+            _beltMotor.direction = Configs.STORAGE.SORTING_STORAGE_BELT_MOTORS_DIRECTION
         }
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {

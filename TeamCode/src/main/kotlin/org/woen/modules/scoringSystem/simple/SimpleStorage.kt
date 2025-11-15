@@ -24,10 +24,7 @@ data class SimpleShootEvent(val process: Process = Process())
 class TerminateSimpleShootEvent()
 
 class SimpleStorage : IModule {
-    private val _hardwareStorage = HardwareSimpleStorage(
-        Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTOR_1,
-        Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTOR_2
-    )
+    private val _hardwareStorage = HardwareSimpleStorage()
 
     private val _gateServo = ThreadedServo(
         Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO,

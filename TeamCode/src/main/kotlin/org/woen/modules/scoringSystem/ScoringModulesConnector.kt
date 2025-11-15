@@ -122,7 +122,7 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageRequestIsReadyEvent::class, {
 
-                currentlyShootingRequestsProcess(it.shotNum)
+                currentlyShootingRequestsProcess()
             }   )
 
 
@@ -408,7 +408,7 @@ class ScoringModulesConnector
         return requestResult
     }
 
-    suspend fun currentlyShootingRequestsProcess(shotNum: Int)
+    suspend fun currentlyShootingRequestsProcess()
     {
         var turretHasAccelerated = ThreadedEventBus.LAZY_INSTANCE.invoke(
             RequestTurretAtTargetEvent() ).atTarget
@@ -421,15 +421,15 @@ class ScoringModulesConnector
                 RequestTurretAtTargetEvent() ).atTarget
         }
 
-        awaitSuccessfulRequestShot(shotNum)
+        awaitSuccessfulRequestShot()
     }
 
 
-    suspend fun awaitSuccessfulRequestShot(shotNum: Int)
+    suspend fun awaitSuccessfulRequestShot()
     {
         delay(DELAY_BETWEEN_SHOTS)
-        _storage.pushNextWithoutUpdating(shotNum)
-        while (!shotWasFired()) _storage.pushNextWithoutUpdating(shotNum)
+        _storage.pushNextWithoutUpdating()
+        while (!shotWasFired()) _storage.pushNextWithoutUpdating()
 
         _shotWasFired.set(false)
         ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())

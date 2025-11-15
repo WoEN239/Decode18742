@@ -207,7 +207,6 @@ class StorageCells
     suspend fun hwRotateBeltCW(timeMs: Long) = _hwSortingM.hwRotateBeltCW(timeMs)
     suspend fun hwReverseBelt (timeMs: Long) = _hwSortingM.hwReverseBelt(timeMs)
     suspend fun hwForcePauseBelt() = _hwSortingM.forceSafePause()
-//    suspend fun hwLaunchLastBall() = _hwSortingM.hwLaunchLastBall()
     suspend fun fullRotateCW()
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("FULL ROTATION - START")
