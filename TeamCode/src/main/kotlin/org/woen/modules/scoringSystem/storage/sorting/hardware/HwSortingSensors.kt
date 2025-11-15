@@ -36,7 +36,7 @@ import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_BALL_MIN_R_S2
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_BALL_MAX_G_S2
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_BALL_MIN_B_S2
-
+import org.woen.telemetry.ThreadedTelemetry
 
 
 class HwSortingSensors(): IHardwareDevice
@@ -83,21 +83,21 @@ class HwSortingSensors(): IHardwareDevice
             g1 > THRESHOLD_GREEN_BALL_MIN_G_S1 &&
             b1 < THRESHOLD_GREEN_BALL_MAX_B_S1)
         {
-            colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.GREEN)
+            //colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.GREEN)
 
-//            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
-//                "[!!] - GREEN BALL DETECTED",
-//                "ColorSensors")
+            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
+                "[!!] - GREEN BALL DETECTED",
+                "ColorSensors")
         }
         else if (r1 > THRESHOLD_PURPLE_BALL_MIN_R_S1 &&
                  g1 < THRESHOLD_PURPLE_BALL_MAX_G_S1 &&
                  b1 > THRESHOLD_PURPLE_BALL_MIN_B_S1)
         {
-            colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.PURPLE)
+            //colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.PURPLE)
 
-//            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
-//                "[!!] - PURPLE BALL DETECTED",
-//                "ColorSensors")
+            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
+                "[!!] - PURPLE BALL DETECTED",
+                "ColorSensors")
         }
 
 

@@ -270,6 +270,7 @@ class SortingStorage
         if (_requestRunStatus.IsActive())
         {
             forceStopIntake()
+            _storageCells.pauseIntakeStatus()
 
             delay(REQUEST_RACE_CONDITION_DELAY_MS)
             return _requestRunStatus.IsUsedByAnotherProcess()
@@ -639,9 +640,11 @@ class SortingStorage
         if (_intakeRunStatus.IsUsedByAnotherProcess())
             _intakeRunStatus.SetActive()
     }
-    private fun fullResumeIntakeLogic(requestResult: RequestResult.Name)
+    private suspend fun fullResumeIntakeLogic(requestResult: RequestResult.Name)
     {
         safeResumeIntakeLogic()
+
+        _storageCells.resumeIntakeStatus()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             StorageFinishedEveryRequestEvent(requestResult)
@@ -675,6 +678,7 @@ class SortingStorage
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("DONE - Shot fired")
+        ThreadedTelemetry.LAZY_INSTANCE.log("ball count - " + anyBallCount())
         _dynamicMemoryPattern.removeFromTemporary()
         _shotWasFired.set(false)
         return true

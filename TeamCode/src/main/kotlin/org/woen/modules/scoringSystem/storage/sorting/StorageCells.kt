@@ -165,7 +165,7 @@ class StorageCells
 
     suspend fun updateAfterIntake(inputBall: Ball.Name): Boolean
     {
-        _hwSortingM.isAwaitingIntake.set(false)
+        _hwSortingM.stopAwaitingEating()
         val intakeCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
 
         if (intakeCondition)
@@ -177,22 +177,23 @@ class StorageCells
         }
         //!  else fastFixStorageDesync()
 
-        _hwSortingM.isAwaitingIntake.set(true)
+        _hwSortingM.resumeAwaitingEating()
         return intakeCondition
     }
     suspend fun updateAfterRequest(): Boolean
     {
-        _hwSortingM.isAwaitingIntake.set(false)
+        _hwSortingM.stopAwaitingEating()
         val requestCondition = _storageCells[StorageSlot.MOBILE_OUT].IsFilled()
 
         if (requestCondition)
         {
+            ThreadedTelemetry.LAZY_INSTANCE.log("SW storage updating 1 - " + anyBallCount())
             _storageCells[StorageSlot.MOBILE_OUT].Empty()
+            ThreadedTelemetry.LAZY_INSTANCE.log("SW storage updating 2 - " + anyBallCount())
             ThreadedTelemetry.LAZY_INSTANCE.log("SW STORAGE UPDATED auto adjusting..")
             hwReAdJustStorage()
         }
 
-        _hwSortingM.isAwaitingIntake.set(true)
         return requestCondition
     }
 
@@ -215,7 +216,7 @@ class StorageCells
 
     suspend fun fullRotateCW()
     {
-        _hwSortingM.isAwaitingIntake.set(false)
+        _hwSortingM.stopAwaitingEating()
         ThreadedTelemetry.LAZY_INSTANCE.log("FR - hw readjusting")
         hwReAdJustStorage()
 
@@ -228,30 +229,39 @@ class StorageCells
 
         ThreadedTelemetry.LAZY_INSTANCE.log("FR - hw readjusting")
         hwReAdJustStorage()
-
-        _hwSortingM.isAwaitingIntake.set(true)
     }
     fun swReAdjustStorage(): Boolean
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("SW READJUST START - " + anyBallCount())
         if (_storageCells[StorageSlot.MOBILE_OUT].IsEmpty() &&
             anyBallCount() > 0)
         {
             _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
             _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
             _storageCells[StorageSlot.BOTTOM] = _storageCells[StorageSlot.MOBILE_IN]
+            _storageCells[StorageSlot.MOBILE_IN].Empty()
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("SW READJUST END - " + anyBallCount())
             return true
         }
         else if (_storageCells[StorageSlot.BOTTOM].IsEmpty()
               && _storageCells[StorageSlot.MOBILE_IN].IsFilled())
         {
-            _storageCells[StorageSlot.BOTTOM] = _storageCells[StorageSlot.MOBILE_OUT]
+            _storageCells[StorageSlot.BOTTOM] = _storageCells[StorageSlot.MOBILE_IN]
+            _storageCells[StorageSlot.MOBILE_IN].Empty()
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("SW READJUST END - " + anyBallCount())
             return true
         }
-        else return false
+        else
+        {
+            ThreadedTelemetry.LAZY_INSTANCE.log("SW READJUST END - " + anyBallCount())
+            return false
+        }
     }
     suspend fun hwReAdJustStorage()
     {
-        _hwSortingM.isAwaitingIntake.set(false)
+        _hwSortingM.stopAwaitingEating()
         while (swReAdjustStorage())
             _hwSortingM.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
     }
@@ -286,7 +296,7 @@ class StorageCells
     }
     suspend fun partial3RotateCw(): Boolean
     {
-        _hwSortingM.isAwaitingIntake.set(false)
+        _hwSortingM.stopAwaitingEating()
         val rotationCondition = _storageCells[StorageSlot.MOBILE_OUT].IsEmpty()
 
         if (rotationCondition)
@@ -309,6 +319,11 @@ class StorageCells
 
     suspend fun openTurretGate()  = _hwSortingM.openTurretGate()
     suspend fun closeTurretGate() = _hwSortingM.closeTurretGate()
+
+    suspend fun pauseIntakeStatus()  = _hwSortingM.stopAwaitingEating()
+    suspend fun resumeIntakeStatus() = _hwSortingM.resumeAwaitingEating()
+    
+    
 
     fun storageData() = _storageCells
 

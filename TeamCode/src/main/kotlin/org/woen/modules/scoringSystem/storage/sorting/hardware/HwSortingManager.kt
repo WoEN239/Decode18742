@@ -4,7 +4,6 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
-import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import java.util.concurrent.atomic.AtomicReference
 
 import woen239.enumerators.RunStatus
@@ -20,11 +19,7 @@ import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 
 import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_INTAKES_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
-
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_MAX_SERVO_POSITION_CHANGE
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS
-import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 
 
 class HwSortingManager
@@ -34,7 +29,7 @@ class HwSortingManager
 
     private val _runStatus = RunStatus(RunStatus.USED_BY_ANOTHER_PROCESS,
                                        RunStatus.Name.USED_BY_ANOTHER_PROCESS)
-    val isAwaitingIntake = AtomicReference(false)
+    val isAwaitingIntake   = AtomicReference(false)
 
 
 
@@ -43,36 +38,51 @@ class HwSortingManager
         _hwSensors.colorSensorsTriggerAutoIntakeEvent += {
             if (isAwaitingIntake.get())
             {
-                isAwaitingIntake.set(false)
-                ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntakeEvent(it))
-
-                ThreadedTelemetry.LAZY_INSTANCE.log("")
-                ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
-
                 ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+
+                    stopAwaitingEating()
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntakeEvent(it))
+
+                    ThreadedTelemetry.LAZY_INSTANCE.log("")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
+
                     delay(DELAY_BETWEEN_INTAKES_MS)
+
+                    resumeAwaitingEating()
                 }
-                isAwaitingIntake.set(true)
             }
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(StorageOpenTurretGateEvent::class, {
-            openGate()
+            openTurretGate()
         } )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(StorageCloseTurretGateEvent::class, {
-            closeGate()
+            closeTurretGate()
         } )
 
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSorting)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSensors)
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            isAwaitingIntake.set(true)
+            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                resumeAwaitingEating()
+            }
         }
     }
 
 
 
+    suspend fun resumeAwaitingEating()
+    {
+        isAwaitingIntake.set(true)
+        forceSafeResume()
+    }
+    suspend fun stopAwaitingEating()
+    {
+        isAwaitingIntake.set(false)
+        forceSafePause()
+    }
     suspend fun fullCalibrate()
     {
         _hwSorting.fullCalibrate()
@@ -254,7 +264,7 @@ class HwSortingManager
         delay(DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
         forceSafePause()
 
-        isAwaitingIntake.set(false)
+        stopAwaitingEating()
         openGate()
         openPush()
 

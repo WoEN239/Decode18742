@@ -312,7 +312,7 @@ object Configs {
         @JvmField
         var THRESHOLD_GREEN_BALL_MAX_R_S1 = 100
         @JvmField
-        var THRESHOLD_GREEN_BALL_MIN_G_S1 = 100
+        var THRESHOLD_GREEN_BALL_MIN_G_S1 = 50
         @JvmField
         var THRESHOLD_GREEN_BALL_MAX_B_S1 = 220
 
@@ -326,11 +326,11 @@ object Configs {
 
 
         @JvmField
-        var THRESHOLD_PURPLE_BALL_MIN_R_S1 = 100
+        var THRESHOLD_PURPLE_BALL_MIN_R_S1 = 80
         @JvmField
         var THRESHOLD_PURPLE_BALL_MAX_G_S1 = 150
         @JvmField
-        var THRESHOLD_PURPLE_BALL_MIN_B_S1 = 100
+        var THRESHOLD_PURPLE_BALL_MIN_B_S1 = 80
 
         @JvmField
         var THRESHOLD_PURPLE_BALL_MIN_R_S2 = 40
@@ -400,13 +400,13 @@ object Configs {
         @JvmField
         var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 333
         @JvmField
-        var DELAY_BETWEEN_SHOTS: Long = 100
+        var DELAY_BETWEEN_SHOTS: Long = 1000
         @JvmField
         var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1000
 
 
         @JvmField
-        var DELAY_BETWEEN_INTAKES_MS: Long = 333
+        var DELAY_BETWEEN_INTAKES_MS: Long = 666
         @JvmField
         var MAX_WAITING_TIME_FOR_INTAKE_MS = 111
         @JvmField

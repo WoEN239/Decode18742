@@ -122,6 +122,7 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageRequestIsReadyEvent::class, {
 
+                delay(DELAY_BETWEEN_SHOTS)
                 currentlyShootingRequestsProcess()
             }   )
 
@@ -421,7 +422,9 @@ class ScoringModulesConnector
                 RequestTurretAtTargetEvent() ).atTarget
         }
 
+        delay(DELAY_BETWEEN_SHOTS)
         awaitSuccessfulRequestShot()
+        delay(DELAY_BETWEEN_SHOTS)
     }
 
 
@@ -433,6 +436,7 @@ class ScoringModulesConnector
 
         _shotWasFired.set(false)
         ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
+        delay(DELAY_BETWEEN_SHOTS)
     }
 
 
