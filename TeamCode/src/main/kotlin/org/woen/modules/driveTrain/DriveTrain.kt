@@ -1,6 +1,7 @@
 package org.woen.modules.driveTrain
 
 import com.qualcomm.robotcore.hardware.Gamepad
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
@@ -12,6 +13,7 @@ import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
 import org.woen.utils.regulator.Regulator
@@ -49,6 +51,7 @@ class DriveTrain : IModule {
     private var _lookProcess = AtomicReference(Process())
     private var _lookRegulator = Regulator(Configs.DRIVE_TRAIN.LOOK_REGULATOR_PARAMETERS)
     private var _targetAngle = Angle.ZERO
+    private var _lookTimer = ElapsedTime()
 
     override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -67,8 +70,12 @@ class DriveTrain : IModule {
 
                 val err = (_targetAngle - odometry.odometryOrientation.angl).angle
 
-                if (abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS)
-                    _lookProcess.get().close()
+                if (abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS) {
+                    if(_lookTimer.seconds() > Configs.DRIVE_TRAIN.LOOK_TARGET_TIMER)
+                        _lookProcess.get().close()
+                }
+                else
+                    _lookTimer.reset()
 
                 err
             } else

@@ -7,6 +7,6 @@ import org.woen.hotRun.HotRun
 @TeleOp
 class TeleOpMode : LinearOpMode() {
     override fun runOpMode() {
-        HotRun.LAZY_INSTANCE.run(this, HotRun.RunMode.MANUAL)
+        HotRun.LAZY_INSTANCE.run(this, HotRun.RunMode.MANUAL, true)
     }
 }

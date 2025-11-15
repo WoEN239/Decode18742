@@ -91,10 +91,10 @@ object Configs {
         var ODOMETRY_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.2)
 
         @JvmField
-        var START_RED_ORIENTATION = Orientation(Vec2(1.631, 0.39), Angle(PI * 2.0))
+        var START_RED_ORIENTATION = Orientation(Vec2(1.631, 0.39), Angle(PI))
 
         @JvmField
-        var START_BLUE_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI * 2.0))
+        var START_BLUE_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI))
 
         @EventConfig
         var POSITION_VELOCITY_K = ThreadedTelemetry.EventValueProvider(0.1)
@@ -148,13 +148,16 @@ object Configs {
         var H_LAG = 1.0
 
         @JvmField
-        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 3.5, kI = 0.5, kPow = 1.0)
+        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 3.8, kI = 0.1, kPow = 0.1, kD = 0.1)
 
         @JvmField
-        var LOOK_SENS = 0.4
+        var LOOK_SENS = 0.3
 
         @JvmField
         var WHEEL_CENTER_POS = Vec2(0.3 / 2.0, 0.27 / 2.0)
+
+        @JvmField
+        var LOOK_TARGET_TIMER = 0.5
     }
 
     @Config
@@ -295,7 +298,7 @@ object Configs {
         var TURRET_CENTER_POS = Vec2.ZERO
 
         @JvmField
-        var SHOOT_LONG_DRIVE_ANGLE = Angle.ofDeg(153.0 - 180)
+        var SHOOT_LONG_DRIVE_ANGLE = Angle.ofDeg(153.0)
     }
 
 

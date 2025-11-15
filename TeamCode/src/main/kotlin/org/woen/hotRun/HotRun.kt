@@ -1,6 +1,8 @@
 package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.modules.camera.Camera
 import org.woen.modules.runner.actions.ActionRunner
 import org.woen.telemetry.Configs
@@ -16,6 +18,7 @@ import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.abs
 
 class HotRun private constructor() {
     companion object {
@@ -85,7 +88,7 @@ class HotRun private constructor() {
     val opModeUpdateEvent = SimpleEvent<LinearOpMode>()
     val opModeStopEvent = SimpleEvent<LinearOpMode>()
 
-    fun run(opMode: LinearOpMode, runMode: RunMode) {
+    fun run(opMode: LinearOpMode, runMode: RunMode, isGamepadStart: Boolean = false) {
         try {
             currentRunMode.set(runMode)
             currentRunState.set(RunState.INIT)
@@ -101,7 +104,14 @@ class HotRun private constructor() {
 
             ThreadedTelemetry.LAZY_INSTANCE.log("init complited")
 
-            opMode.waitForStart()
+            while (!opMode.isStarted()) {
+                if (isGamepadStart && (opMode.gamepad1.left_bumper || opMode.gamepad1.right_bumper ||
+                    abs(opMode.gamepad1.left_stick_y.toDouble()) > 0.01 || abs(opMode.gamepad1.left_stick_x.toDouble()) > 0.01
+                    || abs(opMode.gamepad1.right_stick_x.toDouble()) > 0.01
+                ))
+                    OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity)
+                        .startActiveOpMode()
+            }
             opMode.resetRuntime()
 
             ThreadedTelemetry.LAZY_INSTANCE.log("start")
