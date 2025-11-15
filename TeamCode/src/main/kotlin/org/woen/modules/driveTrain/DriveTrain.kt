@@ -28,7 +28,7 @@ data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotation
 
 data class RequestLookModeEvent(var lookMode: Boolean = false) : StoppingEvent
 
-data class SetLookModeEvent(val lookMode: Boolean, val process: Process)
+data class SetLookModeEvent(val lookMode: Boolean, val process: Process = Process())
 
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain(
@@ -55,12 +55,15 @@ class DriveTrain : IModule {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
             val rotationErr = if (_lookMode.get()) {
-                _targetAngle = Angle(
-                    (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition -
-                            (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
-                                odometry.odometryOrientation.angle
-                            ))).rot()
-                )
+//                _targetAngle = Angle(
+//                    (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition -
+//                            (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
+//                                odometry.odometryOrientation.angle
+//                            ))).rot()
+//                )
+
+                _targetAngle = if(HotRun.LAZY_INSTANCE.currentRunColor.get() == HotRun.RunColor.RED) Configs.TURRET.SHOOT_LONG_DRIVE_ANGLE
+                else (Configs.TURRET.SHOOT_LONG_DRIVE_ANGLE * -1.0)
 
                 val err = (_targetAngle - odometry.odometryOrientation.angl).angle
 
@@ -130,6 +133,9 @@ class DriveTrain : IModule {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetLookModeEvent::class, {
             _lookMode.set(it.lookMode)
             _lookProcess.set(it.process)
+
+            if(it.lookMode)
+                _lookRegulator.start()
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestLookModeEvent::class, {
@@ -138,6 +144,7 @@ class DriveTrain : IModule {
 
 //        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_up }, {
 //            _lookMode.set(!_lookMode.get())
+//            _lookRegulator.start()
 //        }))
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {

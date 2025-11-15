@@ -117,7 +117,9 @@ class ThreadedServo(
     override fun init(hardwareMap: HardwareMap) {
         _device = ServoAngle(hardwareMap.get(_name) as Servo, maxAngle)
 
-        _device.angle = _startAngle
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+            _device.angle = currentAngle
+        }
     }
 
     override fun dispose() {

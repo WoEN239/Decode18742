@@ -40,7 +40,7 @@ class HardwareGyro : IHardwareDevice {
         _imu.initialize(
             IMU.Parameters(
                 RevHubOrientationOnRobot(
-                    RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                    RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
                     RevHubOrientationOnRobot.UsbFacingDirection.UP
                 )
             )

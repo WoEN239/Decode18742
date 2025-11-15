@@ -40,6 +40,8 @@ class HardwareThread : DisposableHandle {
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         var lastJob: Job? = null
 
+        Thread.sleep(2)
+
         while (!Thread.currentThread().isInterrupted) {
             if (HotRun.LAZY_INSTANCE.currentRunState.get() == STOP) {
                 Thread.sleep(5)

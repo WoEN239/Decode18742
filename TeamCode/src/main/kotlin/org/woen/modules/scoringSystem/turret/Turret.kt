@@ -70,7 +70,7 @@ class Turret : IModule {
     }
 
     private fun calculatePulleySpeed(): Double {
-        return 20.0
+        return 23.0
 
         val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 

@@ -21,13 +21,13 @@ object Configs {
         @JvmField
         var BRUSH_SAFE_TIME = 0.5
         @JvmField
-        var BRUSH_ERR_TIME = 1.0
+        var BRUSH_ERR_TIME = 0.5
 
         @JvmField
         var BRUSH_DEF_TIME = 1.0
 
         @JvmField
-        var BRUSH_TARGET_CURRENT = 3.2
+        var BRUSH_TARGET_CURRENT = 4.0
 
 
         @JvmField
@@ -148,10 +148,10 @@ object Configs {
         var H_LAG = 1.0
 
         @JvmField
-        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters()
+        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 3.5, kI = 0.5, kPow = 1.0)
 
         @JvmField
-        var LOOK_SENS = 0.1
+        var LOOK_SENS = 0.4
 
         @JvmField
         var WHEEL_CENTER_POS = Vec2(0.3 / 2.0, 0.27 / 2.0)
@@ -223,13 +223,13 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kD = 0.0001, kI = 0.004, kP = 0.04)
+        var PULLEY_REGULATOR = RegulatorParameters(kD = 0.0001, kI = 0.0045, kP = 0.045, limitU = Configs.DRIVE_TRAIN.DRIVE_ANGLE_MULTIPLIER)
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.1)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 100.0
+        var PULLEY_TARGET_SENS = 50.0
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-1.55, -1.55)
@@ -293,6 +293,9 @@ object Configs {
 
         @JvmField
         var TURRET_CENTER_POS = Vec2.ZERO
+
+        @JvmField
+        var SHOOT_LONG_DRIVE_ANGLE = Angle.ofDeg(153.0 - 180)
     }
 
 
@@ -418,9 +421,9 @@ object Configs {
         var GATE_SERVO_CLOSE_VALUE = 0.41
 
         @JvmField
-        var PUSH_SERVO_OPEN_VALUE  = 0.7
+        var PUSH_SERVO_OPEN_VALUE  = 0.63
         @JvmField
-        var PUSH_SERVO_CLOSE_VALUE = 0.47
+        var PUSH_SERVO_CLOSE_VALUE = 0.4
 
         @JvmField
         var FALL_SERVO_OPEN_VALUE  = 0.14
@@ -479,9 +482,9 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 0.45
+        var BELT_PUSH_TIME = 0.3
 
         @JvmField
-        var END_TIME = 0.2
+        var END_TIME = 0.5
     }
 }

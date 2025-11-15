@@ -88,6 +88,8 @@ class HardwareTurret(
         _motor = hardwareMap.get(_motorName) as DcMotorEx
         _angleSevo = hardwareMap.get(_servoName) as Servo
 
+        val rotateServo = hardwareMap.get("turretRotateServo") as Servo
+
         Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.onSet += {
             _velocityFilter.coef = it
         }
@@ -96,6 +98,8 @@ class HardwareTurret(
             _velocityFilter.start()
             _pulleyRegulator.start()
             _deltaTime.reset()
+
+            rotateServo.position = 0.55
         }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {

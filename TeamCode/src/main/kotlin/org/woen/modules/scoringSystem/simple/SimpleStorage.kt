@@ -5,6 +5,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrush
 import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
@@ -34,6 +35,8 @@ class SimpleStorage : IModule {
     private var _currentShootCoroutine: Job? = null
 
     private fun terminateShoot() {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false))
+
         _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.ACKT))
@@ -52,6 +55,8 @@ class SimpleStorage : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
             _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                val process = ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(true)).process
+
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
@@ -59,6 +64,8 @@ class SimpleStorage : IModule {
                 _gateServo.targetAngle = Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE * PI * 1.5
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SetCurrentTurretStateEvent(Turret.TurretState.SHOOT)).targetProcess.wait()
+
+                process.wait()
 
                 while (!_gateServo.atTargetAngle)
                     delay(5)
