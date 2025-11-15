@@ -27,6 +27,7 @@ import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
+import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
 
 import org.woen.modules.scoringSystem.storage.StorageFinishedIntakeEvent
@@ -66,6 +67,11 @@ class SortingStorage
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
             eventTerminateRequest()
         } )
+
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(BallCountInStorageEvent::class, {
+            it.count = anyBallCount()
+        })
 
 
 
@@ -130,22 +136,13 @@ class SortingStorage
     {
         if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
 
+
         ThreadedTelemetry.LAZY_INSTANCE.log("SORTING INTAKE")
-
-        when (intakeResult.Name())
-        {
-            IntakeResult.Name.SUCCESS_CENTER     -> _storageCells.partial1RotateCW()
-            IntakeResult.Name.SUCCESS_MOBILE_OUT -> _storageCells.autoPartial2RotateCW()
-            IntakeResult.Name.SUCCESS_MOBILE_IN  -> _storageCells.partial3RotateCW()
-            else -> { }
-        }
-
-
+        _storageCells.hwReAdJustStorage()
         ThreadedTelemetry.LAZY_INSTANCE.log("DONE MOVING")
 
-        if (!fullWaitForIntakeIsFinishedEvent())
-            return terminateIntake()
 
+        if (!fullWaitForIntakeIsFinishedEvent()) return terminateIntake()
 
         return if (_storageCells.updateAfterIntake(inputBall))
              IntakeResult.Name.SUCCESS
@@ -217,8 +214,8 @@ class SortingStorage
         val fullRotations = when (requestResult.Name())
         {
             RequestResult.Name.SUCCESS_MOBILE_IN -> 2
-            RequestResult.Name.SUCCESS_BOTTOM -> 1
-            RequestResult.Name.SUCCESS_CENTER -> 0
+            RequestResult.Name.SUCCESS_BOTTOM -> 2
+            RequestResult.Name.SUCCESS_CENTER -> 1
             else -> -1
         }
 
@@ -228,9 +225,8 @@ class SortingStorage
             repeat(fullRotations) {
                 _storageCells.fullRotateCW()
             }
-
-            _storageCells.partial2RotateCW()
         }
+        _storageCells.hwReAdJustStorage()
 
 
         return if (_storageCells.updateAfterRequest())

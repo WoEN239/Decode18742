@@ -4,6 +4,7 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
+import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import java.util.concurrent.atomic.AtomicReference
 
 import woen239.enumerators.RunStatus
@@ -23,7 +24,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_MAX_SERVO_POSITION_CHANGE
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS
-
+import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 
 
 class HwSortingManager
@@ -78,7 +79,6 @@ class HwSortingManager
 
         while (!_hwSorting.gateServo.atTargetAngle
             || !_hwSorting.pushServo.atTargetAngle
-            || !_hwSorting.fallServo.atTargetAngle
             || !_hwSorting.turretGateServo.atTargetAngle)
                 delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
@@ -108,20 +108,6 @@ class HwSortingManager
         _hwSorting.closePush()
 
         while (!_hwSorting.pushServo.atTargetAngle)
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
-    suspend fun openFall()
-    {
-        _hwSorting.openFall()
-
-        while (!_hwSorting.fallServo.atTargetAngle)
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
-    suspend fun closeFall()
-    {
-        _hwSorting.closeFall()
-
-        while (!_hwSorting.fallServo.atTargetAngle)
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
 
@@ -262,33 +248,17 @@ class HwSortingManager
     }
     suspend fun hwRotateMobileSlotsCW()
     {
-        closeGate()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
+        closeTurretGate()
+
         forceSafeReverse()
         delay(DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
         forceSafePause()
-        openGate()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-        openPush()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
 
+        isAwaitingIntake.set(false)
+        openGate()
+        openPush()
 
         closeGate()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
         closePush()
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-    }
-    suspend fun hwRotateFallSlotCW()
-    {
-        isAwaitingIntake.set(false)
-        openFall()
-
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE
-                + DELAY_FOR_ONE_BALL_PUSHING_MS)
-
-        closeFall()
-
-        delay(DELAY_FOR_MAX_SERVO_POSITION_CHANGE)
-        isAwaitingIntake.set(true)
     }
 }

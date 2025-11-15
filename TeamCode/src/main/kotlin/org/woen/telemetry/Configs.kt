@@ -310,11 +310,11 @@ object Configs {
 
 
         @JvmField
-        var THRESHOLD_GREEN_BALL_MAX_R_S1 = 70
+        var THRESHOLD_GREEN_BALL_MAX_R_S1 = 100
         @JvmField
-        var THRESHOLD_GREEN_BALL_MIN_G_S1 = 40
+        var THRESHOLD_GREEN_BALL_MIN_G_S1 = 100
         @JvmField
-        var THRESHOLD_GREEN_BALL_MAX_B_S1 = 70
+        var THRESHOLD_GREEN_BALL_MAX_B_S1 = 220
 
         @JvmField
         var THRESHOLD_GREEN_BALL_MAX_R_S2 = 70
@@ -326,11 +326,11 @@ object Configs {
 
 
         @JvmField
-        var THRESHOLD_PURPLE_BALL_MIN_R_S1 = 40
+        var THRESHOLD_PURPLE_BALL_MIN_R_S1 = 100
         @JvmField
-        var THRESHOLD_PURPLE_BALL_MAX_G_S1 = 70
+        var THRESHOLD_PURPLE_BALL_MAX_G_S1 = 150
         @JvmField
-        var THRESHOLD_PURPLE_BALL_MIN_B_S1 = 20
+        var THRESHOLD_PURPLE_BALL_MIN_B_S1 = 100
 
         @JvmField
         var THRESHOLD_PURPLE_BALL_MIN_R_S2 = 40
@@ -428,16 +428,6 @@ object Configs {
         @JvmField
         var PUSH_SERVO_CLOSE_VALUE = 0.4
 
-        @JvmField
-        var FALL_SERVO_OPEN_VALUE  = 0.14
-        @JvmField
-        var FALL_SERVO_CLOSE_VALUE = 0.005
-
-        @JvmField
-        var LAUNCH_SERVO_OPEN_VALUE  = 0.225
-        @JvmField
-        var LAUNCH_SERVO_CLOSE_VALUE = 0.65
-
 
 
         @JvmField
@@ -476,10 +466,6 @@ object Configs {
         var GATE_SERVO = "gate_servo"
         @JvmField
         var PUSH_SERVO = "push_servo"
-        @JvmField
-        var FALL_SERVO = "fall_servo"
-        @JvmField
-        var LAUNCH_SERVO = "launch_servo"
     }
 
     @Config

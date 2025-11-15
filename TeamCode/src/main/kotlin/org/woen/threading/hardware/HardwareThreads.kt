@@ -1,14 +1,19 @@
 package org.woen.threading.hardware
 
+
+import org.woen.utils.smartMutex.SmartMutex
 import kotlinx.coroutines.DisposableHandle
+
 import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.odometry.Odometry
-import org.woen.modules.scoringSystem.ScoringModulesConnector
+
 import org.woen.modules.scoringSystem.brush.Brush
-import org.woen.modules.scoringSystem.simple.SimpleStorage
-//import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingSensors
 import org.woen.modules.scoringSystem.turret.Turret
-import org.woen.utils.smartMutex.SmartMutex
+
+import org.woen.modules.scoringSystem.simple.SimpleStorage
+import org.woen.modules.scoringSystem.ScoringModulesConnector
+
+
 
 class HardwareThreads private constructor() : DisposableHandle {
     companion object {
@@ -55,10 +60,8 @@ class HardwareThreads private constructor() : DisposableHandle {
 
     private fun initModules() {
 //        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
-        CONTROL.link.addModules(Odometry(), DriveTrain(), Brush(), Turret(), SimpleStorage())
+        CONTROL.link.addModules(Odometry(), DriveTrain(), Brush(), Turret(), /*SimpleStorage()*/)
 
-//        COLOR_SENSORS.addDevices(HwSortingSensors())
-
-//        ScoringModulesConnector()
+        ScoringModulesConnector()
     }
 }

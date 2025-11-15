@@ -23,15 +23,11 @@ import org.woen.telemetry.Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
 import org.woen.telemetry.Configs.STORAGE.PUSH_SERVO_OPEN_VALUE
 import org.woen.telemetry.Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.STORAGE.FALL_SERVO_OPEN_VALUE
-import org.woen.telemetry.Configs.STORAGE.FALL_SERVO_CLOSE_VALUE
-
 import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
 
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.FALL_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
 
 import org.woen.telemetry.Configs.STORAGE.SORTING_STORAGE_BELT_MOTORS_DIRECTION
@@ -54,10 +50,6 @@ class HwSorting : IHardwareDevice
         PUSH_SERVO,
         _startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE
     )
-    val fallServo = ThreadedServo(
-        FALL_SERVO,
-        _startAngle = 1.5 * PI * FALL_SERVO_CLOSE_VALUE
-    )
 
     val turretGateServo = ThreadedServo(
         TURRET_GATE_SERVO,
@@ -71,7 +63,7 @@ class HwSorting : IHardwareDevice
         _beltMotors = MotorOnly(hardwareMap.get(SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
 
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
-            gateServo, pushServo, fallServo, turretGateServo
+            gateServo, pushServo, turretGateServo
         )
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
@@ -115,15 +107,6 @@ class HwSorting : IHardwareDevice
         pushServo.targetAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE
     }
 
-    fun openFall()
-    {
-        fallServo.targetAngle = 1.5 * PI * FALL_SERVO_OPEN_VALUE
-    }
-    fun closeFall()
-    {
-        fallServo.targetAngle = 1.5 * PI * FALL_SERVO_CLOSE_VALUE
-    }
-
 
 
     fun openTurretGate()
@@ -141,7 +124,6 @@ class HwSorting : IHardwareDevice
     {
         closeGate()
         closePush()
-        closeFall()
 
         closeTurretGate()
 
