@@ -1,14 +1,16 @@
 package org.woen.modules.scoringSystem.simple
 
-import android.graphics.Bitmap
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTORS
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.motor.MotorOnly
+
+
 
 class HardwareSimpleStorage : IHardwareDevice
 {
@@ -42,7 +44,7 @@ class HardwareSimpleStorage : IHardwareDevice
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _beltMotor = MotorOnly(hardwareMap.get("belt_motor") as DcMotorEx)
+        _beltMotor = MotorOnly(hardwareMap.get(SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
 
         val pushServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO) as Servo
         val gateServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO) as Servo

@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import org.woen.threading.hardware.ThreadedServo
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.Servo
 
 import org.woen.hotRun.HotRun
 import org.woen.utils.motor.MotorOnly
@@ -73,7 +74,9 @@ class HwSorting : IHardwareDevice
             gateServo, pushServo, fallServo, turretGateServo
         )
 
-        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+            val rotateServo = hardwareMap.get("turretRotateServo") as Servo
+            rotateServo.position = 0.55
 
             _beltMotors.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
             _beltMotors.direction = SORTING_STORAGE_BELT_MOTORS_DIRECTION

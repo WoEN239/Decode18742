@@ -42,7 +42,7 @@ import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_
 class HwSortingSensors(): IHardwareDevice
 {
     private lateinit var _intakeColorSensor1 : AdafruitI2cColorSensor
-    private lateinit var _intakeColorSensor2 : AdafruitI2cColorSensor
+//    private lateinit var _intakeColorSensor2 : AdafruitI2cColorSensor
 
     private lateinit var _turretOpticPare1 : AnalogInput
     private lateinit var _turretOpticPare2 : AnalogInput
@@ -58,9 +58,9 @@ class HwSortingSensors(): IHardwareDevice
         _intakeColorSensor1 = fixSensor(
             hardwareMap.get(INTAKE_COLOR_SENSOR_1)
                     as AdafruitI2cColorSensor)
-        _intakeColorSensor2 = fixSensor(
-            hardwareMap.get(INTAKE_COLOR_SENSOR_2)
-                    as AdafruitI2cColorSensor)
+//        _intakeColorSensor2 = fixSensor(
+//            hardwareMap.get(INTAKE_COLOR_SENSOR_2)
+//                    as AdafruitI2cColorSensor)
 
 
         _turretOpticPare1 = hardwareMap.get(TURRET_OPTIC_PARE_1) as AnalogInput
@@ -101,31 +101,31 @@ class HwSortingSensors(): IHardwareDevice
         }
 
 
-        val argb2 = _intakeColorSensor2.normalizedColors
-        val r2 = argb2.red   * VAR_MAXIMUM_READING
-        val g2 = argb2.green * VAR_MAXIMUM_READING
-        val b2 = argb2.blue  * VAR_MAXIMUM_READING
-
-        if (r2 < THRESHOLD_GREEN_BALL_MAX_R_S2 &&
-            g2 > THRESHOLD_GREEN_BALL_MIN_G_S2 &&
-            b2 < THRESHOLD_GREEN_BALL_MAX_B_S2)
-        {
-            colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.GREEN)
-
+//        val argb2 = _intakeColorSensor2.normalizedColors
+//        val r2 = argb2.red   * VAR_MAXIMUM_READING
+//        val g2 = argb2.green * VAR_MAXIMUM_READING
+//        val b2 = argb2.blue  * VAR_MAXIMUM_READING
+//
+//        if (r2 < THRESHOLD_GREEN_BALL_MAX_R_S2 &&
+//            g2 > THRESHOLD_GREEN_BALL_MIN_G_S2 &&
+//            b2 < THRESHOLD_GREEN_BALL_MAX_B_S2)
+//        {
+//            colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.GREEN)
+//
 //            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
 //                "[!!] - GREEN BALL DETECTED",
 //                "ColorSensors")
-        }
-        else if (r2 > THRESHOLD_PURPLE_BALL_MIN_R_S2 &&
-                 g2 < THRESHOLD_PURPLE_BALL_MAX_G_S2 &&
-                 b2 > THRESHOLD_PURPLE_BALL_MIN_B_S2)
-        {
-            colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.PURPLE)
-
+//        }
+//        else if (r2 > THRESHOLD_PURPLE_BALL_MIN_R_S2 &&
+//                 g2 < THRESHOLD_PURPLE_BALL_MAX_G_S2 &&
+//                 b2 > THRESHOLD_PURPLE_BALL_MIN_B_S2)
+//        {
+//            colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.PURPLE)
+//
 //            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
 //                "[!!] - PURPLE BALL DETECTED",
 //                "ColorSensors")
-        }
+//        }
 
 
 //        ThreadedTelemetry.LAZY_INSTANCE.logWithTag("---  UPDATED COLORS  ---", "ColorSensors")
