@@ -13,13 +13,14 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.HardwareThreads
 
+import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.StorageOpenTurretGateEvent
 import org.woen.modules.scoringSystem.storage.StorageCloseTurretGateEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 
+import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_INTAKES_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS
 
 
 class HwSortingManager
@@ -40,15 +41,26 @@ class HwSortingManager
             {
                 ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
 
-                    stopAwaitingEating()
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGetReadyForIntakeEvent(it))
+                    val storageCanHandleInput = ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        BallCountInStorageEvent()).count < MAX_BALL_COUNT
 
-                    ThreadedTelemetry.LAZY_INSTANCE.log("")
-                    ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
+                    if (storageCanHandleInput)
+                    {
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                            StorageGetReadyForIntakeEvent(it))
 
-                    delay(DELAY_BETWEEN_INTAKES_MS)
+                        ThreadedTelemetry.LAZY_INSTANCE.log("")
+                        ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
 
-                    resumeAwaitingEating()
+                        delay(DELAY_BETWEEN_INTAKES_MS)
+
+                        resumeAwaitingEating(true)
+                    }
+                    else
+                    {
+                        stopAwaitingEating(true)
+                        delay(DELAY_BETWEEN_INTAKES_MS)
+                    }
                 }
             }
         }
@@ -66,22 +78,22 @@ class HwSortingManager
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                resumeAwaitingEating()
+                resumeAwaitingEating(true)
             }
         }
     }
 
 
 
-    suspend fun resumeAwaitingEating()
+    suspend fun resumeAwaitingEating(resumeBelts: Boolean)
     {
         isAwaitingIntake.set(true)
-        forceSafeResume()
+        if (resumeBelts) forceSafeResumeBelts()
     }
-    suspend fun stopAwaitingEating()
+    suspend fun stopAwaitingEating(stopBelts: Boolean)
     {
         isAwaitingIntake.set(false)
-        forceSafePause()
+        if (stopBelts) forceSafePauseBelts()
     }
     suspend fun fullCalibrate()
     {
@@ -138,7 +150,7 @@ class HwSortingManager
     }
 
 
-    fun safeStart(): Boolean
+    fun safeStartBelts(): Boolean
     {
         if (_runStatus.IsActive()) return true
 
@@ -151,12 +163,12 @@ class HwSortingManager
 
         return startCondition
     }
-    suspend fun forceSafeStart()
+    suspend fun forceSafeStartBelts()
     {
-        while (!safeStart())
+        while (!safeStartBelts())
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
-    fun safeStop(): Boolean
+    fun safeStopBelts(): Boolean
     {
         if (_runStatus.IsInactive()) return true  //  Already stopped
 
@@ -169,18 +181,18 @@ class HwSortingManager
 
         return stopCondition
     }
-    fun forceStop()
+    fun forceStopBelts()
     {
         _runStatus.SetInactive()
         _hwSorting.stopBeltMotors()
     }
-    suspend fun forceSafeStop()
+    suspend fun forceSafeStopBelts()
     {
-        while (!safeStop())
+        while (!safeStopBelts())
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
 
-    fun safePause(): Boolean
+    fun safePauseBelts(): Boolean
     {
         if (_runStatus.IsUsedByAnotherProcess()) return true  //  Already paused
 
@@ -196,13 +208,13 @@ class HwSortingManager
 
         return pauseCondition
     }
-    suspend fun forceSafePause()
+    suspend fun forceSafePauseBelts()
     {
-        while (!safePause())
+        while (!safePauseBelts())
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
 
-    fun safeResume(): Boolean
+    fun safeResumeBelts(): Boolean
     {
         if (_runStatus.IsActive()) return true  //  Already active
 
@@ -215,13 +227,13 @@ class HwSortingManager
 
         return resumeCondition
     }
-    suspend fun forceSafeResume()
+    suspend fun forceSafeResumeBelts()
     {
-        while (!safeResume())
+        while (!safeResumeBelts())
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
 
-    fun safeReverse(): Boolean
+    fun safeReverseBelts(): Boolean
     {
         if (_runStatus.IsActive()) return true  //  Already active
 
@@ -234,9 +246,9 @@ class HwSortingManager
 
         return resumeCondition
     }
-    suspend fun forceSafeReverse()
+    suspend fun forceSafeReverseBelts()
     {
-        while (!safeReverse())
+        while (!safeReverseBelts())
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
 
@@ -245,26 +257,29 @@ class HwSortingManager
     suspend fun hwRotateBeltCW(timeMs: Long)
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is moving")
-        forceSafeResume()
+        stopAwaitingEating(false)
+        forceSafeResumeBelts()
         delay(timeMs)
-        forceSafePause()
+        forceSafePauseBelts()
     }
     suspend fun hwReverseBelt(timeMs: Long)
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is reversing")
-        forceSafeReverse()
+
+        stopAwaitingEating(false)
+        forceSafeReverseBelts()
         delay(timeMs)
-        forceSafePause()
+        forceSafePauseBelts()
     }
     suspend fun hwRotateMobileSlotsCW()
     {
+        stopAwaitingEating(true)
         closeTurretGate()
 
-        forceSafeReverse()
-        delay(DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
-        forceSafePause()
+//        forceSafeReverse()
+//        delay(DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
+//        forceSafePause()
 
-        stopAwaitingEating()
         openGate()
         openPush()
 

@@ -18,7 +18,6 @@ import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 
@@ -165,7 +164,7 @@ class StorageCells
 
     suspend fun updateAfterIntake(inputBall: Ball.Name): Boolean
     {
-        _hwSortingM.stopAwaitingEating()
+        _hwSortingM.stopAwaitingEating(true)
         val intakeCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
 
         if (intakeCondition)
@@ -173,16 +172,16 @@ class StorageCells
             _storageCells[StorageSlot.BOTTOM].Set(inputBall)
 
             ThreadedTelemetry.LAZY_INSTANCE.log("SW STORAGE UPDATED, auto adjusting..")
-            hwReAdJustStorage()
+            hwReAdjustStorage()
         }
         //!  else fastFixStorageDesync()
 
-        _hwSortingM.resumeAwaitingEating()
+        _hwSortingM.resumeAwaitingEating(anyBallCount() < MAX_BALL_COUNT)
         return intakeCondition
     }
     suspend fun updateAfterRequest(): Boolean
     {
-        _hwSortingM.stopAwaitingEating()
+        _hwSortingM.stopAwaitingEating(true)
         val requestCondition = _storageCells[StorageSlot.MOBILE_OUT].IsFilled()
 
         if (requestCondition)
@@ -191,7 +190,7 @@ class StorageCells
             _storageCells[StorageSlot.MOBILE_OUT].Empty()
             ThreadedTelemetry.LAZY_INSTANCE.log("SW storage updating 2 - " + anyBallCount())
             ThreadedTelemetry.LAZY_INSTANCE.log("SW STORAGE UPDATED auto adjusting..")
-            hwReAdJustStorage()
+            hwReAdjustStorage()
         }
 
         return requestCondition
@@ -212,23 +211,29 @@ class StorageCells
     suspend fun fullCalibrate() = _hwSortingM.fullCalibrate()
     suspend fun hwRotateBeltCW(timeMs: Long) = _hwSortingM.hwRotateBeltCW(timeMs)
     suspend fun hwReverseBelt (timeMs: Long) = _hwSortingM.hwReverseBelt(timeMs)
-    suspend fun hwForcePauseBelt() = _hwSortingM.forceSafePause()
+    suspend fun hwForcePauseBelt() = _hwSortingM.forceSafePauseBelts()
 
     suspend fun fullRotateCW()
     {
-        _hwSortingM.stopAwaitingEating()
+        _hwSortingM.stopAwaitingEating(true)
         ThreadedTelemetry.LAZY_INSTANCE.log("FR - hw readjusting")
-        hwReAdJustStorage()
+        hwReAdjustStorage()
 
 
         ThreadedTelemetry.LAZY_INSTANCE.log("FR - MOVING MOBILE")
 
         _hwSortingM.hwRotateMobileSlotsCW()
-        _storageCells[StorageSlot.MOBILE_IN] = _storageCells[StorageSlot.MOBILE_OUT]
+        _storageCells[StorageSlot.MOBILE_IN].Set(
+            _storageCells[StorageSlot.MOBILE_OUT].Id(),
+            _storageCells[StorageSlot.MOBILE_OUT].Name())
+
+        _storageCells[StorageSlot.MOBILE_OUT].Set(
+            _storageCells[StorageSlot.CENTER].Id(),
+                _storageCells[StorageSlot.CENTER].Name())
 
 
         ThreadedTelemetry.LAZY_INSTANCE.log("FR - hw readjusting")
-        hwReAdJustStorage()
+        hwReAdjustStorage()
     }
     fun swReAdjustStorage(): Boolean
     {
@@ -236,92 +241,75 @@ class StorageCells
         if (_storageCells[StorageSlot.MOBILE_OUT].IsEmpty() &&
             anyBallCount() > 0)
         {
-            _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
-            _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
-            _storageCells[StorageSlot.BOTTOM] = _storageCells[StorageSlot.MOBILE_IN]
+            ThreadedTelemetry.LAZY_INSTANCE.log("case 1: mobile_out is empty")
+            _storageCells[StorageSlot.MOBILE_OUT].Set(
+                _storageCells[StorageSlot.CENTER].Id(),
+                _storageCells[StorageSlot.CENTER].Name())
+
+            _storageCells[StorageSlot.CENTER].Set(
+                _storageCells[StorageSlot.BOTTOM].Id(),
+                _storageCells[StorageSlot.BOTTOM].Name())
+
+            _storageCells[StorageSlot.BOTTOM].Set(
+                _storageCells[StorageSlot.MOBILE_IN].Id(),
+                _storageCells[StorageSlot.MOBILE_IN].Name())
+
             _storageCells[StorageSlot.MOBILE_IN].Empty()
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("SW READJUST END - " + anyBallCount())
+            ThreadedTelemetry.LAZY_INSTANCE.log("case 1 end, ball count: " + anyBallCount())
+            return true
+        }
+        else if (_storageCells[StorageSlot.CENTER].IsEmpty()
+            && anyBallCount() > 1)
+        {
+            ThreadedTelemetry.LAZY_INSTANCE.log("case 2: center is empty")
+            _storageCells[StorageSlot.CENTER].Set(
+                _storageCells[StorageSlot.BOTTOM].Id(),
+                _storageCells[StorageSlot.BOTTOM].Name())
+
+            _storageCells[StorageSlot.BOTTOM].Set(
+                _storageCells[StorageSlot.MOBILE_IN].Id(),
+                _storageCells[StorageSlot.MOBILE_IN].Name())
+
+            _storageCells[StorageSlot.MOBILE_IN].Empty()
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("case 2 end, ball count: " + anyBallCount())
             return true
         }
         else if (_storageCells[StorageSlot.BOTTOM].IsEmpty()
               && _storageCells[StorageSlot.MOBILE_IN].IsFilled())
         {
-            _storageCells[StorageSlot.BOTTOM] = _storageCells[StorageSlot.MOBILE_IN]
+            ThreadedTelemetry.LAZY_INSTANCE.log("case 3: bottom is empty")
+
+            _storageCells[StorageSlot.BOTTOM].Set(
+                _storageCells[StorageSlot.MOBILE_IN].Id(),
+                _storageCells[StorageSlot.MOBILE_IN].Name())
+
             _storageCells[StorageSlot.MOBILE_IN].Empty()
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("SW READJUST END - " + anyBallCount())
+            ThreadedTelemetry.LAZY_INSTANCE.log("case 3 end, ball count: " + anyBallCount())
             return true
         }
         else
         {
-            ThreadedTelemetry.LAZY_INSTANCE.log("SW READJUST END - " + anyBallCount())
+            ThreadedTelemetry.LAZY_INSTANCE.log("case 4: already adjusted, ball count: " + anyBallCount())
             return false
         }
     }
-    suspend fun hwReAdJustStorage()
+    suspend fun hwReAdjustStorage()
     {
-        _hwSortingM.stopAwaitingEating()
+        _hwSortingM.stopAwaitingEating(true)
         while (swReAdjustStorage())
             _hwSortingM.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
     }
-    suspend fun partial1RotateCW(): Boolean
-    {
-        val rotationCondition = _storageCells[StorageSlot.CENTER].IsEmpty()
-
-        if (rotationCondition)
-        {
-            ThreadedTelemetry.LAZY_INSTANCE.log("UPDATE - MOVING 1")
-            _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
-            _storageCells[StorageSlot.BOTTOM] = Ball(Ball.NONE, Ball.Name.NONE)
-
-            _hwSortingM.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
-        }
-        return rotationCondition
-    }
-    suspend fun partial2RotateCW(): Boolean
-    {
-        val rotationCondition = _storageCells[StorageSlot.MOBILE_OUT].IsEmpty()
-
-        if (rotationCondition)
-        {
-            ThreadedTelemetry.LAZY_INSTANCE.log("UPDATE - MOVING 2")
-            _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
-            _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
-            _storageCells[StorageSlot.BOTTOM] = Ball(Ball.NONE, Ball.Name.NONE)
-
-            _hwSortingM.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
-        }
-        return rotationCondition
-    }
-    suspend fun partial3RotateCw(): Boolean
-    {
-        _hwSortingM.stopAwaitingEating()
-        val rotationCondition = _storageCells[StorageSlot.MOBILE_OUT].IsEmpty()
-
-        if (rotationCondition)
-        {
-            ThreadedTelemetry.LAZY_INSTANCE.log("UPDATE - MOVING 3")
-
-            _storageCells[StorageSlot.MOBILE_OUT] = _storageCells[StorageSlot.CENTER]
-            _storageCells[StorageSlot.CENTER] = _storageCells[StorageSlot.BOTTOM]
-            _storageCells[StorageSlot.BOTTOM] = _storageCells[StorageSlot.MOBILE_IN]
-
-            _hwSortingM.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
-        }
-        return rotationCondition
-    }
-    suspend fun autoPartial2RotateCW()
-        = if (partial2RotateCW()) true
-        else partial1RotateCW()
 
 
 
     suspend fun openTurretGate()  = _hwSortingM.openTurretGate()
     suspend fun closeTurretGate() = _hwSortingM.closeTurretGate()
 
-    suspend fun pauseIntakeStatus()  = _hwSortingM.stopAwaitingEating()
-    suspend fun resumeIntakeStatus() = _hwSortingM.resumeAwaitingEating()
+    suspend fun pauseAnyIntake()  = _hwSortingM.stopAwaitingEating(true)
+    suspend fun resumeIntakes(resumeBelts: Boolean) = _hwSortingM.resumeAwaitingEating(resumeBelts)
     
     
 

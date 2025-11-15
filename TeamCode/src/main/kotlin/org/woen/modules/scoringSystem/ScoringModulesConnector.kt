@@ -88,13 +88,13 @@ class ScoringModulesConnector
             StorageGetReadyForIntakeEvent::class, {
 
                 startIntakeProcess(it.inputBall)
-            }   )
+        }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageIsReadyToEatIntakeEvent::class, {
 
                 currentlyEatingIntakeProcess()
-            }   )
+        }   )
 
 
 
@@ -102,12 +102,12 @@ class ScoringModulesConnector
             StorageGiveSingleRequest::class, {
 
                 startSingleRequest(it.ballRequest)
-            }   )
+        }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveSimpleDrumRequest::class, {
 
                 startSimpleDrumRequest()
-            }   )
+        }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveDrumRequest::class, {
 
@@ -115,7 +115,7 @@ class ScoringModulesConnector
                     it.shootingMode,
                     it.requestPattern,
                     it.failsafePattern
-                )   }   )
+        )   }   )
 
 
 
@@ -124,14 +124,14 @@ class ScoringModulesConnector
 
                 delay(DELAY_BETWEEN_SHOTS)
                 currentlyShootingRequestsProcess()
-            }   )
+        }   )
 
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             ReverseAndThenStartBrushesAgain::class, {
                 startBrushesAfterDelay(it.reverseTime)
-            }   )
+        }   )
     }
     fun subscribeToGamepad()
     {

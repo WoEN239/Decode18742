@@ -122,18 +122,18 @@ class DriveTrain : IModule {
                     rx = sign(rx) * (4.0 * (abs(rx) - 0.5).pow(3.0) + 0.5)
                 }
 
-                ThreadedEventBus.LAZY_INSTANCE.invoke(
-                    SetDriveTargetVelocityEvent(
-                        Vec2(
-                            ly,
-                            lx
-                        ) * Vec2(
-                            Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
-                            Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER
-                        ),
-                        rx * Configs.DRIVE_TRAIN.DRIVE_ANGLE_MULTIPLIER
-                    )
-                )
+//                ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                    SetDriveTargetVelocityEvent(
+//                        Vec2(
+//                            ly,
+//                            lx
+//                        ) * Vec2(
+//                            Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
+//                            Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER
+//                        ),
+//                        rx * Configs.DRIVE_TRAIN.DRIVE_ANGLE_MULTIPLIER
+//                    )
+//                )
             }
         })
 

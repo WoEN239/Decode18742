@@ -138,7 +138,7 @@ class SortingStorage
 
 
         ThreadedTelemetry.LAZY_INSTANCE.log("SORTING INTAKE")
-        _storageCells.hwReAdJustStorage()
+        _storageCells.hwReAdjustStorage()
         ThreadedTelemetry.LAZY_INSTANCE.log("DONE MOVING")
 
 
@@ -226,7 +226,7 @@ class SortingStorage
                 _storageCells.fullRotateCW()
             }
         }
-        _storageCells.hwReAdJustStorage()
+        _storageCells.hwReAdjustStorage()
 
 
         return if (_storageCells.updateAfterRequest())
@@ -270,7 +270,7 @@ class SortingStorage
         if (_requestRunStatus.IsActive())
         {
             forceStopIntake()
-            _storageCells.pauseIntakeStatus()
+            _storageCells.pauseAnyIntake()
 
             delay(REQUEST_RACE_CONDITION_DELAY_MS)
             return _requestRunStatus.IsUsedByAnotherProcess()
@@ -644,7 +644,7 @@ class SortingStorage
     {
         safeResumeIntakeLogic()
 
-        _storageCells.resumeIntakeStatus()
+        _storageCells.resumeIntakes(anyBallCount() < MAX_BALL_COUNT)
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             StorageFinishedEveryRequestEvent(requestResult)

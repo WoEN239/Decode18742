@@ -398,19 +398,17 @@ object Configs {
 
 
         @JvmField
-        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 333
-        @JvmField
         var DELAY_BETWEEN_SHOTS: Long = 1000
         @JvmField
-        var DELAY_FOR_MAX_SERVO_POSITION_CHANGE: Long = 1000
+        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 333
 
 
         @JvmField
-        var DELAY_BETWEEN_INTAKES_MS: Long = 666
+        var DELAY_BETWEEN_INTAKES_MS: Long = 777
         @JvmField
         var MAX_WAITING_TIME_FOR_INTAKE_MS = 111
         @JvmField
-        var DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS: Long = 60
+        var DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS: Long = 11
 
 
 
