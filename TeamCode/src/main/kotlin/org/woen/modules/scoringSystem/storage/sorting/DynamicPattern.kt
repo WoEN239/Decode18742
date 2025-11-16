@@ -38,7 +38,9 @@ class DynamicPattern
     {
         if (_temporaryPattern.size >= MAX_BALL_COUNT) _temporaryPattern.clear()
 
-        _temporaryPattern.add(_permanentPattern[_temporaryPattern.size])
+        val tempCount = _temporaryPattern.size
+        if (_permanentPattern.size > tempCount)
+            _temporaryPattern.add(_permanentPattern[_temporaryPattern.size])
     }
 
 

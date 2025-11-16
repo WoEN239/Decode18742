@@ -291,13 +291,6 @@ class SortingStorage
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("[!] Request was terminated, adjusting..")
 
-        if (_requestRunStatus.TerminationId() != RunStatus.IS_TERMINATED)
-        {
-            _storageCells.hwForcePauseBelt()
-            _storageCells.hwReverseBelt(DELAY_FOR_ONE_BALL_PUSHING_MS)
-            _storageCells.fullCalibrate()
-        }
-
         _requestRunStatus.SetTermination(
             RunStatus.IS_TERMINATED,
             RunStatus.TerminationStatus.IS_TERMINATED
@@ -642,6 +635,11 @@ class SortingStorage
     }
     private suspend fun fullResumeIntakeLogic(requestResult: RequestResult.Name)
     {
+        _storageCells.hwForcePauseBelt()
+        _storageCells.hwReverseBelt(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        _storageCells.fullCalibrate()
+        _storageCells.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
+
         safeResumeIntakeLogic()
 
         _storageCells.resumeIntakes(anyBallCount() < MAX_BALL_COUNT)

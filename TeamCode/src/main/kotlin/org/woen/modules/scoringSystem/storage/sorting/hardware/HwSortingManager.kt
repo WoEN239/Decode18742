@@ -88,7 +88,7 @@ class HwSortingManager
     suspend fun resumeAwaitingEating(resumeBelts: Boolean)
     {
         isAwaitingIntake.set(true)
-        if (resumeBelts) forceSafeResumeBelts()
+        if (resumeBelts) forceSafeSlowResumeBelts()
     }
     suspend fun stopAwaitingEating(stopBelts: Boolean)
     {
@@ -230,6 +230,25 @@ class HwSortingManager
     suspend fun forceSafeResumeBelts()
     {
         while (!safeResumeBelts())
+            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+    }
+
+    fun safeSlowResumeBelts(): Boolean
+    {
+        if (_runStatus.IsActive()) return true  //  Already active
+
+        val resumeCondition = _runStatus.IsUsedByAnotherProcess()  //  NOT INACTIVE
+        if (resumeCondition)
+        {
+            _runStatus.SetActive()
+            _hwSorting.slowStartBeltMotors()
+        }
+
+        return resumeCondition
+    }
+    suspend fun forceSafeSlowResumeBelts()
+    {
+        while (!safeSlowResumeBelts())
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
 
