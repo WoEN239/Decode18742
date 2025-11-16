@@ -13,7 +13,6 @@ import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
-import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
 import org.woen.utils.regulator.Regulator
@@ -65,8 +64,8 @@ class DriveTrain : IModule {
 //                            ))).rot()
 //                )
 
-                _targetAngle = if(HotRun.LAZY_INSTANCE.currentRunColor.get() == HotRun.RunColor.RED) Configs.TURRET.SHOOT_LONG_DRIVE_ANGLE
-                else (Configs.TURRET.SHOOT_LONG_DRIVE_ANGLE * -1.0)
+                _targetAngle = if(HotRun.LAZY_INSTANCE.currentRunColor.get() == HotRun.RunColor.RED) Configs.TURRET.SHOOT_DRIVE_ANGLE
+                else (Configs.TURRET.SHOOT_DRIVE_ANGLE * -1.0)
 
                 val err = (_targetAngle - odometry.odometryOrientation.angl).angle
 

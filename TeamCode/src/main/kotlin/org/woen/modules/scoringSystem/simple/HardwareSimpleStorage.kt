@@ -1,14 +1,25 @@
 package org.woen.modules.scoringSystem.simple
 
-import android.graphics.Bitmap
+import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
+import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_BALL_MAX_B_S1
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_BALL_MAX_R_S1
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_BALL_MIN_G_S1
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_BALL_MAX_G_S1
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_BALL_MIN_B_S1
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_BALL_MIN_R_S1
+import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.VAR_MAXIMUM_READING
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_1
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.motor.MotorOnly
+import woen239.FixColorSensor.fixSensor
+import woen239.enumerators.Ball
 
 class HardwareSimpleStorage : IHardwareDevice
 {
@@ -19,8 +30,13 @@ class HardwareSimpleStorage : IHardwareDevice
     }
 
     private lateinit var _beltMotor: MotorOnly
-
+//    private lateinit var _intakeColorSensor1: AdafruitI2cColorSensor
+//    private lateinit var _optopar1: AnalogInput
+//    private lateinit var _optopar2: AnalogInput
+//
     var beltState = BeltState.STOP
+//    var ballColor = Ball.Name.NONE
+//    var isBallOnTurret = false
 
     override fun update() {
         if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)

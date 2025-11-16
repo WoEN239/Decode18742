@@ -2,6 +2,7 @@ package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
+import com.qualcomm.robotcore.hardware.Gamepad
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.modules.camera.Camera
 import org.woen.modules.runner.actions.ActionRunner
@@ -87,9 +88,12 @@ class HotRun private constructor() {
     val opModeStartEvent = SimpleEvent<LinearOpMode>()
     val opModeUpdateEvent = SimpleEvent<LinearOpMode>()
     val opModeStopEvent = SimpleEvent<LinearOpMode>()
+    lateinit var _gamepad: Gamepad
 
     fun run(opMode: LinearOpMode, runMode: RunMode, isGamepadStart: Boolean = false) {
         try {
+            _gamepad = opMode.gamepad1
+
             currentRunMode.set(runMode)
             currentRunState.set(RunState.INIT)
 
@@ -130,5 +134,9 @@ class HotRun private constructor() {
         } catch (e: Exception) {
             throw e
         }
+    }
+
+    fun gamepadRumble(duration: Double){
+        _gamepad.rumble((duration * 1000.0).toInt())
     }
 }

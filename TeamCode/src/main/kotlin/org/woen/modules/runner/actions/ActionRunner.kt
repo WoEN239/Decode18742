@@ -1,17 +1,21 @@
 package org.woen.modules.runner.actions
 
-import com.acmerobotics.roadrunner.Pose2d
-import com.acmerobotics.roadrunner.Vector2d
 import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.runBlocking
 import org.woen.hotRun.HotRun
-import org.woen.modules.runner.segment.RRTrajectorySegment
-import org.woen.modules.runner.segment.RequireRRBuilderEvent
-import org.woen.modules.runner.segment.RunSegmentEvent
+import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
+import org.woen.modules.scoringSystem.brush.Brush
+import org.woen.modules.scoringSystem.brush.SwitchBrush
+import org.woen.modules.scoringSystem.simple.HardwareSimpleStorage
+import org.woen.modules.scoringSystem.simple.SimpleShootEvent
+import org.woen.modules.scoringSystem.simple.StopBeltEvent
+import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
+import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.smartMutex.SmartMutex
+import org.woen.utils.units.Vec2
 import kotlin.concurrent.thread
-import kotlin.math.PI
 
 class ActionRunner private constructor() : DisposableHandle {
     companion object {
@@ -46,20 +50,27 @@ class ActionRunner private constructor() : DisposableHandle {
     }
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            RunSegmentEvent(
-                RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!.splineToLinearHeading(
-                        Pose2d(
-                            Vector2d(0.6097, 0.6097),
-                            PI
-                        ), PI / 2.0
-                    ).build()
+        runBlocking {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StopBeltEvent())
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                SetCurrentTurretStateEvent(
+                    Turret.TurretState.SHOOT,
+                    pulleyState = Turret.PulleyState.LONG
                 )
-            )
-        )
+            ).targetProcess.wait()
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent(Turret.PulleyState.LONG))
+
+            Thread.sleep(15000)
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2(12.0), 0.0))
+
+            Thread.sleep(1000)
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
+        }
     })
 
     fun init() {

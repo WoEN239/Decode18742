@@ -46,7 +46,7 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
             }
 
             motor_state.REVERS -> {
-                motor_power = -0.99
+                motor_power = -1.0
             }
         }
 
@@ -61,7 +61,7 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
 
             _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-//            _motor.direction = DcMotorSimple.Direction.REVERSE
+            _motor.direction = DcMotorSimple.Direction.REVERSE
         }
     }
 

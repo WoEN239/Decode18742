@@ -27,7 +27,7 @@ object Configs {
         var BRUSH_DEF_TIME = 1.0
 
         @JvmField
-        var BRUSH_TARGET_CURRENT = 4.0
+        var BRUSH_TARGET_CURRENT = 1.9
 
 
         @JvmField
@@ -148,7 +148,7 @@ object Configs {
         var H_LAG = 1.0
 
         @JvmField
-        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 3.8, kI = 0.1, kPow = 0.1, kD = 0.1)
+        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 3.3, kI = 0.4, kPow = 0.15, kD = 0.1)
 
         @JvmField
         var LOOK_SENS = 0.3
@@ -226,13 +226,13 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kD = 0.0001, kI = 0.0045, kP = 0.045, limitU = Configs.DRIVE_TRAIN.DRIVE_ANGLE_MULTIPLIER)
+        var PULLEY_REGULATOR = RegulatorParameters(kD = 0.0001, kI = 0.008, kP = 0.055, limitU = Configs.DRIVE_TRAIN.DRIVE_ANGLE_MULTIPLIER)
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.1)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 50.0
+        var PULLEY_TARGET_SENS = 15.0
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-1.55, -1.55)
@@ -298,14 +298,26 @@ object Configs {
         var TURRET_CENTER_POS = Vec2.ZERO
 
         @JvmField
-        var SHOOT_LONG_DRIVE_ANGLE = Angle.ofDeg(153.0)
+        var SHOOT_DRIVE_ANGLE = Angle.ofDeg(153.0)
+
+        @JvmField
+        var LONG_PULLEY_SPEED = 23.0
+
+        @JvmField
+        var SHORT_PULLEY_SPEED = 18.0
+
+        @JvmField
+        var LONG_ANGLE = 0.6
+
+        @JvmField
+        var SHORT_ANGLE = 0.1
     }
 
 
     @Config
     internal object COLOR_SENSORS_AND_OPTIC_PARE {
         @JvmField
-        var OPTIC_PARE_SEES_NOT_BLACK = 3.4
+        var OPTIC_PARE_SEES_NOT_BLACK = 0.4
 
 
 
@@ -472,6 +484,9 @@ object Configs {
         var BELT_PUSH_TIME = 0.3
 
         @JvmField
-        var END_TIME = 0.5
+        var REVERS_TIME = 0.2
+
+        @JvmField
+        var FULL_TRIGGER_TIMER = 0.5
     }
 }

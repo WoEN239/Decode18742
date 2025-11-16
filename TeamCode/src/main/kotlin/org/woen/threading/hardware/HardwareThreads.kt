@@ -1,19 +1,15 @@
 package org.woen.threading.hardware
 
-
-import org.woen.utils.smartMutex.SmartMutex
 import kotlinx.coroutines.DisposableHandle
-
 import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.odometry.Odometry
-
-import org.woen.modules.scoringSystem.brush.Brush
-import org.woen.modules.scoringSystem.turret.Turret
-
-import org.woen.modules.scoringSystem.simple.SimpleStorage
+import org.woen.modules.runner.actions.ActionRunner
 import org.woen.modules.scoringSystem.ScoringModulesConnector
-
-
+import org.woen.modules.scoringSystem.brush.Brush
+import org.woen.modules.scoringSystem.simple.SimpleStorage
+//import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingSensors
+import org.woen.modules.scoringSystem.turret.Turret
+import org.woen.utils.smartMutex.SmartMutex
 
 class HardwareThreads private constructor() : DisposableHandle {
     companion object {
@@ -56,12 +52,16 @@ class HardwareThreads private constructor() : DisposableHandle {
         CONTROL.dispose()
 //        EXPANSION.dispose()
 //        COLOR_SENSORS.dispose()
+        ActionRunner.restart()
     }
 
     private fun initModules() {
 //        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
-        CONTROL.link.addModules(Odometry(), DriveTrain(), Brush(), Turret(), /*SimpleStorage()*/)
+        CONTROL.link.addModules(Odometry(), DriveTrain(), Brush(), Turret(), SimpleStorage())
+        ActionRunner.LAZY_INSTANCE
 
-        ScoringModulesConnector()
+//        COLOR_SENSORS.addDevices(HwSortingSensors())
+
+//        ScoringModulesConnector()
     }
 }
