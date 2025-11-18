@@ -14,7 +14,6 @@ import woen239.enumerators.RequestResult
 
 import woen239.enumerators.RunStatus
 import woen239.enumerators.StorageSlot
-import woen239.enumerators.ShootingMode
 
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadedEventBus
@@ -43,7 +42,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
-
+import woen239.enumerators.Shooting
 
 
 class SortingStorage
@@ -211,9 +210,10 @@ class SortingStorage
             RequestResult.FAIL_PROCESS_WAS_TERMINATED,
             RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("before updating, result: ${requestResult.Name()}")
         val fullRotations = when (requestResult.Name())
         {
-            RequestResult.Name.SUCCESS_MOBILE_IN -> 2
+            RequestResult.Name.SUCCESS_MOBILE_IN -> 3
             RequestResult.Name.SUCCESS_BOTTOM -> 2
             RequestResult.Name.SUCCESS_CENTER -> 1
             else -> -1
@@ -223,19 +223,17 @@ class SortingStorage
         if (fullRotations >= 0)
         {
             repeat(fullRotations) {
-                _storageCells.fullRotateCW()
+                _storageCells.fullRotate()
+                delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
             }
         }
         _storageCells.hwReAdjustStorage()
 
 
-        return if (_storageCells.updateAfterRequest())
-            RequestResult(
+        ThreadedTelemetry.LAZY_INSTANCE.log("sorting finished - success\nGetting ready to shoot")
+        return RequestResult(
                 RequestResult.SUCCESS,
                 RequestResult.Name.SUCCESS)
-        else RequestResult(
-            RequestResult.FAIL_HARDWARE_PROBLEM,
-            RequestResult.Name.FAIL_HARDWARE_PROBLEM)
     }
     private suspend fun shootRequestFinalPhase(requestResult: RequestResult) : RequestResult.Name
     {
@@ -311,10 +309,10 @@ class SortingStorage
         ThreadedTelemetry.LAZY_INSTANCE.log("> SW: OPEN GATE")
         _storageCells.openTurretGate()
 
-        _storageCells.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        _storageCells.hwRotateBeltForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
         delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
-        _storageCells.closeTurretGate()
+        //_storageCells.closeTurretGate()
     }
 
 
@@ -331,7 +329,7 @@ class SortingStorage
         return requestResult
     }
     suspend fun shootEntireDrumRequest(
-        shootingMode: ShootingMode,
+        shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,
         includeLastUnfinishedPattern: Boolean = true,
         autoUpdateUnfinishedForNextPattern: Boolean = true
@@ -352,9 +350,9 @@ class SortingStorage
         val requestResult =
             when (shootingMode)
             {
-                ShootingMode.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
-                ShootingMode.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(patternOrder)
-                ShootingMode.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(patternOrder)
+                Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
+                Shooting.Mode.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(patternOrder)
+                Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(patternOrder)
                 else -> shootEntireRequestIsValid(patternOrder)
             }
 
@@ -362,7 +360,7 @@ class SortingStorage
         return requestResult
     }
     suspend fun shootEntireDrumRequest(
-        shootingMode: ShootingMode,
+        shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>? = requestOrder,
         includeLastUnfinishedPattern: Boolean = true,
@@ -402,13 +400,13 @@ class SortingStorage
         val requestResult =
             when (shootingMode)
             {
-                ShootingMode.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
+                Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
 
-                ShootingMode.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(
+                Shooting.Mode.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(
                     patternOrder, failsafePatternOrder,
                     saveLastUnfinishedFailsafeOrder)
 
-                ShootingMode.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(
+                Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(
                     patternOrder, failsafePatternOrder,
                     saveLastUnfinishedFailsafeOrder)
 
@@ -636,9 +634,9 @@ class SortingStorage
     private suspend fun fullResumeIntakeLogic(requestResult: RequestResult.Name)
     {
         _storageCells.hwForcePauseBelt()
-        _storageCells.hwReverseBelt(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        _storageCells.hwReverseBelt(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         _storageCells.fullCalibrate()
-        _storageCells.hwRotateBeltCW(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        _storageCells.hwRotateBeltForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
         safeResumeIntakeLogic()
 

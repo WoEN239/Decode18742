@@ -23,6 +23,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_INTAKES_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
 
 
+
 class HwSortingManager
 {
     private val _hwSorting = HwSorting()
@@ -88,7 +89,7 @@ class HwSortingManager
     suspend fun resumeAwaitingEating(resumeBelts: Boolean)
     {
         isAwaitingIntake.set(true)
-        if (resumeBelts) forceSafeSlowResumeBelts()
+        //if (resumeBelts) forceSafeSlowResumeBelts()
     }
     suspend fun stopAwaitingEating(stopBelts: Boolean)
     {
@@ -273,7 +274,7 @@ class HwSortingManager
 
 
 
-    suspend fun hwRotateBeltCW(timeMs: Long)
+    suspend fun hwRotateBeltForward(timeMs: Long)
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is moving")
         stopAwaitingEating(false)
@@ -290,14 +291,11 @@ class HwSortingManager
         delay(timeMs)
         forceSafePauseBelts()
     }
-    suspend fun hwRotateMobileSlotsCW()
+    suspend fun hwRotateMobileSlots()
     {
         stopAwaitingEating(true)
         closeTurretGate()
-
-//        forceSafeReverse()
-//        delay(DELAY_FOR_BALL_TO_PUSHER_ALIGNMENT_MS)
-//        forceSafePause()
+        forceSafePauseBelts()
 
         openGate()
         openPush()

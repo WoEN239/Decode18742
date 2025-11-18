@@ -11,7 +11,7 @@ import woen239.enumerators.BallRequest
 
 import woen239.enumerators.IntakeResult
 import woen239.enumerators.RequestResult
-import woen239.enumerators.ShootingMode
+import woen239.enumerators.Shooting
 
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.turret.Turret
@@ -50,7 +50,6 @@ import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_SHOTS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
-
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -310,7 +309,7 @@ class ScoringModulesConnector
 
 
     suspend fun startDrumRequest(
-        shootingMode: ShootingMode,
+        shootingMode: Shooting.Mode,
         requestPattern: Array<BallRequest.Name>
     ): RequestResult.Name
     {
@@ -342,7 +341,7 @@ class ScoringModulesConnector
         return requestResult
     }
     suspend fun startDrumRequest(
-        shootingMode: ShootingMode,
+        shootingMode: Shooting.Mode,
         requestPattern: Array<BallRequest.Name>,
         failsafePattern: Array<BallRequest.Name>
     ): RequestResult.Name
@@ -371,9 +370,6 @@ class ScoringModulesConnector
         setBusy()
 
         setTurretToShootMode()
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("turret set to shoot mode")
-        ThreadedTelemetry.LAZY_INSTANCE.log("starting request search")
         val requestResult = _storage.shootEntireDrumRequest()
 
         setTurretToWaitMode()
@@ -394,9 +390,6 @@ class ScoringModulesConnector
         setBusy()
 
         setTurretToShootMode()
-        ThreadedTelemetry.LAZY_INSTANCE.log("turret set to shoot mode")
-        ThreadedTelemetry.LAZY_INSTANCE.log("starting request search")
-
         val requestResult = _storage.handleRequest(ballRequest)
 
 

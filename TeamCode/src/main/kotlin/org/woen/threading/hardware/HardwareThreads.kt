@@ -1,5 +1,6 @@
 package org.woen.threading.hardware
 
+
 import kotlinx.coroutines.DisposableHandle
 import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.odometry.Odometry
@@ -7,9 +8,11 @@ import org.woen.modules.runner.actions.ActionRunner
 import org.woen.modules.scoringSystem.ScoringModulesConnector
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.simple.SimpleStorage
-//import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingSensors
 import org.woen.modules.scoringSystem.turret.Turret
+//import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingSensors
 import org.woen.utils.smartMutex.SmartMutex
+
+
 
 class HardwareThreads private constructor() : DisposableHandle {
     companion object {
@@ -20,17 +23,17 @@ class HardwareThreads private constructor() : DisposableHandle {
         @JvmStatic
         val LAZY_INSTANCE: HardwareThreads
             get() {
-                var isInited = false
+                var isInitialised = false
 
                 _instanceMutex.smartLock {
                     if (_nullableInstance == null) {
                         _nullableInstance = HardwareThreads()
 
-                        isInited = true
+                        isInitialised = true
                     }
                 }
 
-                if (isInited)
+                if (isInitialised)
                     _nullableInstance?.initModules()
 
                 return _nullableInstance!!
@@ -46,22 +49,18 @@ class HardwareThreads private constructor() : DisposableHandle {
 
     val CONTROL = HardwareThread()
 //    val EXPANSION = HardwareThread()
-//    val COLOR_SENSORS = HardwareThread()
 
     override fun dispose() {
         CONTROL.dispose()
 //        EXPANSION.dispose()
-//        COLOR_SENSORS.dispose()
         ActionRunner.restart()
     }
 
     private fun initModules() {
 //        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
-        CONTROL.link.addModules(Odometry(), DriveTrain(), Brush(), Turret(), SimpleStorage())
+        CONTROL.link.addModules(Odometry(), DriveTrain(), Brush(), Turret(), /*SimpleStorage()*/)
         ActionRunner.LAZY_INSTANCE
 
-//        COLOR_SENSORS.addDevices(HwSortingSensors())
-
-//        ScoringModulesConnector()
+        ScoringModulesConnector()
     }
 }

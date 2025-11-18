@@ -3,17 +3,18 @@ package woen239.enumerators;
 
 public class RequestResult
 {
-    static public final int SUCCESS = 0, SUCCESS_BOTTOM = 1, SUCCESS_CENTER = 2,
-            SUCCESS_MOBILE_OUT = 3, SUCCESS_MOBILE_IN = 4, SUCCESS_IS_NOW_EMPTY = 5,
+    static public final int SUCCESS_BOTTOM = 0, SUCCESS_CENTER = 1,
+            SUCCESS_MOBILE_OUT = 2, SUCCESS_MOBILE_IN = 3,
+            SUCCESS = 4, SUCCESS_IS_NOW_EMPTY = 5,
 
-                FAIL_UNKNOWN = 6, FAIL_IS_EMPTY = 7, FAIL_ILLEGAL_ARGUMENT = 8,
+                    FAIL_UNKNOWN = 6, FAIL_IS_EMPTY = 7, FAIL_ILLEGAL_ARGUMENT = 8,
 
-                    FAIL_COLOR_NOT_PRESENT = 9, FAIL_NOT_ENOUGH_COLORS = 10,
+                        FAIL_COLOR_NOT_PRESENT = 9, FAIL_NOT_ENOUGH_COLORS = 10,
 
-                        FAIL_HARDWARE_PROBLEM = 11, FAIL_SOFTWARE_STORAGE_DESYNC = 12,
-                        FAIL_USING_DIFFERENT_STORAGE_TYPE = 13,
+                            FAIL_HARDWARE_PROBLEM = 11, FAIL_SOFTWARE_STORAGE_DESYNC = 12,
+                            FAIL_USING_DIFFERENT_STORAGE_TYPE = 13,
 
-                            FAIL_IS_CURRENTLY_BUSY = 14, FAIL_PROCESS_WAS_TERMINATED = 15;
+                                FAIL_IS_CURRENTLY_BUSY = 14, FAIL_PROCESS_WAS_TERMINATED = 15;
 
 
     private Name _memName;
@@ -142,13 +143,12 @@ public class RequestResult
     {
         switch (value)
         {
-            case SUCCESS: return Name.SUCCESS;
-
             case SUCCESS_BOTTOM: return Name.SUCCESS_BOTTOM;
             case SUCCESS_CENTER: return Name.SUCCESS_CENTER;
             case SUCCESS_MOBILE_OUT:    return Name.SUCCESS_MOBILE_OUT;
             case SUCCESS_MOBILE_IN:     return Name.SUCCESS_MOBILE_IN;
 
+            case SUCCESS: return Name.SUCCESS;
             case SUCCESS_IS_NOW_EMPTY:  return Name.SUCCESS_IS_NOW_EMPTY;
 
 
@@ -172,13 +172,12 @@ public class RequestResult
     {
         switch (name)
         {
-            case SUCCESS: return SUCCESS;
-
             case SUCCESS_BOTTOM: return SUCCESS_BOTTOM;
             case SUCCESS_CENTER: return SUCCESS_CENTER;
             case SUCCESS_MOBILE_OUT:   return SUCCESS_MOBILE_OUT;
             case SUCCESS_MOBILE_IN:    return SUCCESS_MOBILE_IN;
 
+            case SUCCESS: return SUCCESS;
             case SUCCESS_IS_NOW_EMPTY: return SUCCESS_IS_NOW_EMPTY;
 
 

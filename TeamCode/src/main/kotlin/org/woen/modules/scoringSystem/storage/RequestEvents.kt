@@ -3,7 +3,7 @@ package org.woen.modules.scoringSystem.storage
 
 import woen239.enumerators.BallRequest
 import woen239.enumerators.RequestResult
-import woen239.enumerators.ShootingMode
+import woen239.enumerators.Shooting
 
 
 
@@ -12,7 +12,7 @@ class StorageGiveSingleRequest(
 )
 class StorageGiveSimpleDrumRequest()
 class StorageGiveDrumRequest(
-    var shootingMode:    ShootingMode,
+    var shootingMode:    Shooting.Mode,
     var requestPattern:  Array<BallRequest.Name>,
     var failsafePattern: Array<BallRequest.Name> = arrayOf()
 )

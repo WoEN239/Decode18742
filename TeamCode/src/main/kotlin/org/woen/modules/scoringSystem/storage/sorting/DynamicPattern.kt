@@ -45,7 +45,10 @@ class DynamicPattern
 
 
 
-    fun lastUnfinished(): ArrayList<BallRequest.Name> = _temporaryPattern
+    fun lastUnfinished() = _temporaryPattern
+    fun permanent() = _permanentPattern
+
+
 
     companion object
     {

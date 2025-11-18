@@ -41,11 +41,11 @@ import org.woen.telemetry.ThreadedTelemetry
 
 class HwSortingSensors(): IHardwareDevice
 {
-    private lateinit var _intakeColorSensor1 : AdafruitI2cColorSensor
+//    private lateinit var _intakeColorSensor1 : AdafruitI2cColorSensor
 //    private lateinit var _intakeColorSensor2 : AdafruitI2cColorSensor
 
-    private lateinit var _turretOpticPare1 : AnalogInput
-    private lateinit var _turretOpticPare2 : AnalogInput
+//    private lateinit var _turretOpticPare1 : AnalogInput
+//    private lateinit var _turretOpticPare2 : AnalogInput
 
 
     val turretOpticPareSeesSomethingEvent  = SimpleEvent<Int>()
@@ -55,50 +55,50 @@ class HwSortingSensors(): IHardwareDevice
 
     override fun init(hardwareMap : HardwareMap)
     {
-        _intakeColorSensor1 = fixSensor(
-            hardwareMap.get(INTAKE_COLOR_SENSOR_1)
-                    as AdafruitI2cColorSensor)
+//        _intakeColorSensor1 = fixSensor(
+//            hardwareMap.get(INTAKE_COLOR_SENSOR_1)
+//                    as AdafruitI2cColorSensor)
 //        _intakeColorSensor2 = fixSensor(
 //            hardwareMap.get(INTAKE_COLOR_SENSOR_2)
 //                    as AdafruitI2cColorSensor)
 
 
-        _turretOpticPare1 = hardwareMap.get(TURRET_OPTIC_PARE_1) as AnalogInput
-        _turretOpticPare2 = hardwareMap.get(TURRET_OPTIC_PARE_2) as AnalogInput
+//        _turretOpticPare1 = hardwareMap.get(TURRET_OPTIC_PARE_1) as AnalogInput
+//        _turretOpticPare2 = hardwareMap.get(TURRET_OPTIC_PARE_2) as AnalogInput
     }
 
     override fun update()
     {
-        if (_turretOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
-            _turretOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
-            turretOpticPareSeesSomethingEvent.invoke(0)
-
-
-        val argb1 = _intakeColorSensor1.normalizedColors
-        val r1 = argb1.red   * VAR_MAXIMUM_READING
-        val g1 = argb1.green * VAR_MAXIMUM_READING
-        val b1 = argb1.blue  * VAR_MAXIMUM_READING
-
-        if (r1 < THRESHOLD_GREEN_BALL_MAX_R_S1 &&
-            g1 > THRESHOLD_GREEN_BALL_MIN_G_S1 &&
-            b1 < THRESHOLD_GREEN_BALL_MAX_B_S1)
-        {
+//        if (_turretOpticPare1.voltage > OPTIC_PARE_SEES_NOT_BLACK ||
+//            _turretOpticPare2.voltage > OPTIC_PARE_SEES_NOT_BLACK)
+//            turretOpticPareSeesSomethingEvent.invoke(0)
+//
+//
+//        val argb1 = _intakeColorSensor1.normalizedColors
+//        val r1 = argb1.red   * VAR_MAXIMUM_READING
+//        val g1 = argb1.green * VAR_MAXIMUM_READING
+//        val b1 = argb1.blue  * VAR_MAXIMUM_READING
+//
+//        if (r1 < THRESHOLD_GREEN_BALL_MAX_R_S1 &&
+//            g1 > THRESHOLD_GREEN_BALL_MIN_G_S1 &&
+//            b1 < THRESHOLD_GREEN_BALL_MAX_B_S1)
+//        {
             //colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.GREEN)
 
-            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
-                "[!!] - GREEN BALL DETECTED",
-                "ColorSensors")
-        }
-        else if (r1 > THRESHOLD_PURPLE_BALL_MIN_R_S1 &&
-                 g1 < THRESHOLD_PURPLE_BALL_MAX_G_S1 &&
-                 b1 > THRESHOLD_PURPLE_BALL_MIN_B_S1)
-        {
-            //colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.PURPLE)
-
-            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
-                "[!!] - PURPLE BALL DETECTED",
-                "ColorSensors")
-        }
+//            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
+//                "[!!] - GREEN BALL DETECTED",
+//                "ColorSensors")
+//        }
+//        else if (r1 > THRESHOLD_PURPLE_BALL_MIN_R_S1 &&
+//                 g1 < THRESHOLD_PURPLE_BALL_MAX_G_S1 &&
+//                 b1 > THRESHOLD_PURPLE_BALL_MIN_B_S1)
+//        {
+//            //colorSensorsTriggerAutoIntakeEvent.invoke(Ball.Name.PURPLE)
+//
+//            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
+//                "[!!] - PURPLE BALL DETECTED",
+//                "ColorSensors")
+//        }
 
 
 //        val argb2 = _intakeColorSensor2.normalizedColors
