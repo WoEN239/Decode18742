@@ -414,7 +414,7 @@ object Configs {
         @JvmField
         var DELAY_BETWEEN_SHOTS: Long = 1000
         @JvmField
-        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 465
+        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 450
 
 
         @JvmField
@@ -441,6 +441,11 @@ object Configs {
         var PUSH_SERVO_CLOSE_VALUE = 0.4
 
 
+
+        @JvmField
+        var POWER_FOR_FAST_BELT_ROTATING = 12.0
+        @JvmField
+        var POWER_FOR_SLOW_BELT_ROTATING = 9.0
 
         @JvmField
         var TURRET_GATE_SERVO_OPEN_VALUE  = 0.38

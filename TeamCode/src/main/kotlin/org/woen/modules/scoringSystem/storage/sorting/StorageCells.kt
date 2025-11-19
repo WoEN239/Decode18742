@@ -308,7 +308,6 @@ class StorageCells
 
 
     suspend fun openTurretGate()  = _hwSortingM.openTurretGate()
-    suspend fun closeTurretGate() = _hwSortingM.closeTurretGate()
 
     suspend fun pauseAnyIntake()  = _hwSortingM.stopAwaitingEating(true)
     suspend fun resumeIntakes(resumeBelts: Boolean) = _hwSortingM.resumeAwaitingEating(resumeBelts)
@@ -319,7 +318,8 @@ class StorageCells
 
     fun anyBallCount(): Int
     {
-        var count = 0; var curSlotId = StorageSlot.BOTTOM
+        var count = 0
+        var curSlotId = StorageSlot.BOTTOM
 
         while (curSlotId < StorageSlot.MOBILE_IN)
         {
@@ -332,7 +332,8 @@ class StorageCells
 
     fun selectedBallCount(ball: Ball.Name): Int
     {
-        var count = 0; var curSlotId = StorageSlot.BOTTOM
+        var count = 0
+        var curSlotId = StorageSlot.BOTTOM
 
         while (curSlotId < StorageSlot.MOBILE_IN)
         {
@@ -344,7 +345,8 @@ class StorageCells
     }
     fun ballColorCountPG(): IntArray
     {
-        val countPG = intArrayOf(0, 0, 0); var curSlotId = StorageSlot.BOTTOM
+        val countPG = intArrayOf(0, 0, 0)
+        var curSlotId = StorageSlot.BOTTOM
 
         while (curSlotId < StorageSlot.MOBILE_IN)
         {

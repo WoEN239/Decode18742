@@ -295,12 +295,13 @@ class HwSortingManager
     {
         stopAwaitingEating(true)
         closeTurretGate()
-        forceSafePauseBelts()
+        forceSafeSlowResumeBelts()
 
         openGate()
         openPush()
 
         closeGate()
         closePush()
+        forceSafePauseBelts()
     }
 }
