@@ -139,7 +139,7 @@ class SortingStorage
         ThreadedTelemetry.LAZY_INSTANCE.log("SORTING INTAKE")
         _storageCells.hwReAdjustStorage()
         ThreadedTelemetry.LAZY_INSTANCE.log("final eating")
-        _storageCells.hwRotateBeltForward(DELAY_FOR_ONE_BALL_PUSHING_MS / 2)
+        _storageCells.hwRotateBeltForward(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         ThreadedTelemetry.LAZY_INSTANCE.log("DONE MOVING")
 
 

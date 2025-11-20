@@ -21,7 +21,7 @@ import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_INTAKES_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
-
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 
 
 class HwSortingManager
@@ -295,13 +295,16 @@ class HwSortingManager
     {
         stopAwaitingEating(true)
         closeTurretGate()
-        forceSafeSlowResumeBelts()
+        forceSafeResumeBelts()
+        delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
         openGate()
+        delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
         openPush()
 
         closeGate()
         closePush()
+        delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         forceSafePauseBelts()
     }
 }
