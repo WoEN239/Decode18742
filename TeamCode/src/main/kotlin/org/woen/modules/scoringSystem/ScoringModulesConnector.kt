@@ -21,29 +21,27 @@ import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.modules.scoringSystem.brush.SwitchBrush
+
+import org.woen.modules.scoringSystem.turret.CurrentlyShooting
+import org.woen.modules.scoringSystem.turret.TurretVoltageDropped
 import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
 
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 
-import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
-import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
 
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
-import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
+import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
-import org.woen.modules.scoringSystem.turret.CurrentlyShooting
 
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-import org.woen.telemetry.Configs.TURRET.MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
-import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
 
 
 
@@ -58,11 +56,11 @@ class ScoringModulesConnector
 
     private var _isBusy = AtomicReference(false)
     private var _canRestartBrushes = AtomicReference(false)
-
-    private var _ballWasEaten = AtomicReference(false)
     private var _isAwaitingEating = AtomicReference(false)
+    private var _intakeWasTerminated = AtomicReference(false)
 
     private var _shotWasFired = AtomicReference(false)
+    private var _requestWasTerminated = AtomicReference(false)
 
 
 
@@ -80,12 +78,6 @@ class ScoringModulesConnector
             StorageGetReadyForIntakeEvent::class, {
 
                 startIntakeProcess(it.inputBall)
-        }   )
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageIsReadyToEatIntakeEvent::class, {
-
-                currentlyEatingIntakeProcess()
         }   )
 
 
@@ -109,6 +101,13 @@ class ScoringModulesConnector
                     it.failsafePattern
         )   }   )
 
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            TurretVoltageDropped::class, {
+
+                _shotWasFired.set(true)
+            }
+        )
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
@@ -152,6 +151,7 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.dpad_down }, {
 
+                    _intakeWasTerminated.set(true)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
 
                     ThreadedTelemetry.LAZY_INSTANCE.log("\nSTOP  - INTAKE - GAMEPAD")
@@ -195,6 +195,7 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.left_bumper }, {
 
+                    _requestWasTerminated.set(true)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
 
                     ThreadedTelemetry.LAZY_INSTANCE.log("\nSTOP  - ANY Request - GAMEPAD")
@@ -247,38 +248,6 @@ class ScoringModulesConnector
         setIdle()
         return intakeResult
     }
-    suspend fun currentlyEatingIntakeProcess()
-    {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SwitchBrush(
-                Brush.AcktBrush.ACKT
-        )   )
-
-        awaitSuccessfulBallIntake()
-    }
-
-    suspend fun awaitSuccessfulBallIntake()
-    {
-        var maxWaitForIntakeMS: Long = 0
-
-        while (!_ballWasEaten.get() && maxWaitForIntakeMS < MAX_WAITING_TIME_FOR_INTAKE_MS)
-        {
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
-            maxWaitForIntakeMS += DELAY_FOR_EVENT_AWAITING_MS
-        }
-
-        setNotAwaitingEating()
-
-        //  Bring back when fully finished
-//        ThreadedEventBus.LAZY_INSTANCE.invoke(
-//            if (maxWaitForIntakeMS > MAX_WAITING_TIME_FOR_INTAKE_MS)
-//                         TerminateIntakeEvent()
-//                    else BallWasEatenByTheStorageEvent()
-//        )
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke((BallWasEatenByTheStorageEvent()))
-    }
-
 
     fun reverseAndThenStartBrushesAfterTimePeriod(reverseTime: Long)
     {
@@ -386,11 +355,16 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
 
         _storage.hwForceResumeBelts()
-        while (!shotWasFired()) delay(DELAY_FOR_EVENT_AWAITING_MS)
+        while (!_shotWasFired.get() && !_requestWasTerminated.get())
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
+
         _storage.hwForcePauseBelts()
 
+        if (_shotWasFired.get())
+            ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
+
         _shotWasFired.set(false)
-        ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
+        _requestWasTerminated.set(false)
     }
 
 
@@ -402,14 +376,6 @@ class ScoringModulesConnector
 
     fun isBusy(): Boolean = _isBusy.get()
 
-    suspend fun shotWasFired(): Boolean
-    {
-        if (_shotWasFired.get()) return true
-
-        delay(MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS)
-        return true  //!  Temporary dumb always-succeed approach
-    }
-
 
     fun tryRestartBrushes()
     {
@@ -419,6 +385,6 @@ class ScoringModulesConnector
     }
 
 
-    fun setAwaitingEating() = _isAwaitingEating.set(true)
+    fun setAwaitingEating()    = _isAwaitingEating.set(true)
     fun setNotAwaitingEating() = _isAwaitingEating.set(false)
 }

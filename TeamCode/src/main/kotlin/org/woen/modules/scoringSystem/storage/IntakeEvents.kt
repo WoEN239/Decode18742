@@ -14,7 +14,6 @@ class TerminateIntakeEvent()
 
 
 
-class StorageIsReadyToEatIntakeEvent()
 class BallWasEatenByTheStorageEvent()
 class StorageFinishedIntakeEvent(
     var intakeResult: IntakeResult.Name

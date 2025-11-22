@@ -33,7 +33,6 @@ import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
 
-import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
@@ -113,11 +112,9 @@ class SortingStorage
         {
             if (doTerminateIntake()) return terminateIntake()
 
-
             val storageCanHandle = _storageCells.handleIntake()
             ThreadedTelemetry.LAZY_INSTANCE.log("DONE SEARCHING INTAKE")
             ThreadedTelemetry.LAZY_INSTANCE.log("SEARCH RESULT: " + storageCanHandle.Name())
-
 
             val intakeResult = updateAfterInput(storageCanHandle, inputBall)
             //  Safe updating storage after intake  - wont update if an error occurs
@@ -134,14 +131,9 @@ class SortingStorage
     {
         if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
 
-
         ThreadedTelemetry.LAZY_INSTANCE.log("SORTING INTAKE")
         _storageCells.hwReAdjustStorage()
         _storageCells.hwRotateBeltsForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
-        ThreadedTelemetry.LAZY_INSTANCE.log("DONE MOVING")
-
-
-        if (!fullWaitForIntakeIsFinishedEvent()) return terminateIntake()
 
         return if (_storageCells.updateAfterIntake(inputBall))
              IntakeResult.Name.SUCCESS
@@ -661,20 +653,6 @@ class SortingStorage
 
 
     fun ballWasEaten() = _ballWasEaten.set(true)
-
-    private suspend fun fullWaitForIntakeIsFinishedEvent(): Boolean
-    {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageIsReadyToEatIntakeEvent())
-
-        while (!_ballWasEaten.get())
-        {
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
-            if (doTerminateIntake()) return false
-        }
-
-        _ballWasEaten.set(false)
-        return true
-    }
 
 
 

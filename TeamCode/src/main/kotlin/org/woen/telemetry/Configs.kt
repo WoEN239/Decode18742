@@ -228,7 +228,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kD = 0.0001, kI = 0.008, kP = 0.055, limitU = Configs.DRIVE_TRAIN.DRIVE_ANGLE_MULTIPLIER)
+        var PULLEY_REGULATOR = RegulatorParameters(kD = 0.0001, kI = 0.008, kP = 0.055, limitU = DRIVE_TRAIN.DRIVE_ANGLE_MULTIPLIER)
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.1)
@@ -288,12 +288,7 @@ object Configs {
         var PULLEY_U = 0.7
 
         @JvmField
-        var MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS: Long = 1000
-
-        @JvmField
         var TURRET_SHOOT_POS = Vec2.ZERO
-        @JvmField
-        var TURRET_START_DCET_TIMME = 0.5
         @JvmField
         var TURRET_SHOOT_DETECT_CURRENT = 0.5
 
@@ -413,13 +408,11 @@ object Configs {
 
 
         @JvmField
-        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 450
+        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 444
 
 
         @JvmField
         var DELAY_BETWEEN_INTAKES_MS: Long = 777
-        @JvmField
-        var MAX_WAITING_TIME_FOR_INTAKE_MS = 111
 
 
 

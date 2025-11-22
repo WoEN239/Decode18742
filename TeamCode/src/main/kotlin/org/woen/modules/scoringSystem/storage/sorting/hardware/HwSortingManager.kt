@@ -277,10 +277,13 @@ class HwSortingManager
     suspend fun hwRotateBeltForward(timeMs: Long)
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is moving")
+
         stopAwaitingEating(false)
         forceSafeResumeBelts()
         delay(timeMs)
         forceSafePauseBelts()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log(("HW belt stopped"))
     }
     suspend fun hwReverseBelt(timeMs: Long)
     {
@@ -290,6 +293,8 @@ class HwSortingManager
         forceSafeReverseBelts()
         delay(timeMs)
         forceSafePauseBelts()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log(("HW belt stopped"))
     }
     suspend fun hwRotateMobileSlots()
     {
