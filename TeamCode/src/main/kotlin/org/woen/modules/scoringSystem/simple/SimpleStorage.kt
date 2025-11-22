@@ -1,12 +1,10 @@
 package org.woen.modules.scoringSystem.simple
 
-import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
-import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrush
 import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
@@ -20,7 +18,6 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedServo
 import org.woen.utils.process.Process
-import woen239.enumerators.Ball
 import kotlin.math.PI
 
 data class SimpleShootEvent(val pulleyState: Turret.PulleyState, val process: Process = Process())
@@ -32,7 +29,7 @@ class SimpleStorage : IModule {
 
     private val _gateServo = ThreadedServo(
         Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO,
-        _startAngle = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE * PI * 1.5
+        startAngle = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE * PI * 1.5
     )
 
     private var _currentShootCoroutine: Job? = null

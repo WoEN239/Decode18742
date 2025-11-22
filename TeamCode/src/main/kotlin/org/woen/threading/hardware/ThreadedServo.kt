@@ -18,12 +18,16 @@ class ThreadedServo(
     var a: Double = Configs.SERVO_ANGLE.DEFAULT_SERVO_A,
     val maxAngle: Double = Configs.SERVO_ANGLE.DEFAULT_SERVO_ANGLE,
     private val _angleOffset: Double = Configs.SERVO_ANGLE.DEFAULT_SERVO_OFFSET,
-    private val _startAngle: Double = 0.0
+    startPosition: Double = 0.0,
+    startAngle: Double = startPosition * maxAngle
 ) : IHardwareDevice {
     private lateinit var _device: ServoAngle
 
-    var currentAngle = _startAngle
+    var currentAngle = startAngle
         private set
+
+    val currentPosition
+        get() = currentAngle / _device.maxAngle
 
     private val _servoTime = ElapsedTime()
 
@@ -38,7 +42,15 @@ class ThreadedServo(
 
     private val _calcMutex = SmartMutex()
 
-    var targetAngle = _startAngle
+    var targetPosition: Double
+        set(value) {
+            targetAngle = value * _device.maxAngle
+        }
+        get() = targetAngle / _device.maxAngle
+
+
+    var targetAngle = startAngle
+        get() = field
         set(value) {
             if (value < 0)
                 return

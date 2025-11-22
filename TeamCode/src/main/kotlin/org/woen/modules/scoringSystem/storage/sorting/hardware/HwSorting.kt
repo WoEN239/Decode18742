@@ -47,16 +47,16 @@ class HwSorting : IHardwareDevice
 
     val gateServo = ThreadedServo(
         GATE_SERVO,
-        _startAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE
+        startAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE
     )
     val pushServo = ThreadedServo(
         PUSH_SERVO,
-        _startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE
+        startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE
     )
 
     val turretGateServo = ThreadedServo(
         TURRET_GATE_SERVO,
-        _startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE
+        startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE
     )
 
 
