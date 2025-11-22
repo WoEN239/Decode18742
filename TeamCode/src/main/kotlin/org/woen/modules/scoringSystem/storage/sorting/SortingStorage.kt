@@ -3,7 +3,7 @@ package org.woen.modules.scoringSystem.storage.sorting
 
 import kotlin.math.min
 import kotlinx.coroutines.delay
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicBoolean
 import android.annotation.SuppressLint
 
 import woen239.enumerators.Ball
@@ -28,10 +28,6 @@ import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
-import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
-
-import org.woen.modules.scoringSystem.storage.StorageFinishedIntakeEvent
-import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
 
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
@@ -49,8 +45,7 @@ class SortingStorage
     private val _storageCells = StorageCells()
     private val _dynamicMemoryPattern = DynamicPattern()
 
-    private var _shotWasFired = AtomicReference(false)
-    private var _ballWasEaten = AtomicReference(false)
+    private var _shotWasFired = AtomicBoolean(false)
 
     private val _intakeRunStatus  = RunStatus(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
     private val _requestRunStatus = RunStatus(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
@@ -59,44 +54,53 @@ class SortingStorage
 
     constructor()
     {
+        subscribeToTerminateEvents()
+        subscribeToInfoEvents()
+        subscribeToGamepadEvents()
+    }
+
+    private fun subscribeToTerminateEvents()
+    {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
-                eventTerminateIntake()
-        }   )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
-                eventTerminateRequest()
+            _intakeRunStatus.DoTerminate()
         }   )
 
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
+            _requestRunStatus.DoTerminate()
+        }   )
+    }
+    private fun subscribeToInfoEvents()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(ShotWasFiredEvent::class, {
+            shotWasFired()
+        }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(BallCountInStorageEvent::class, {
-                it.count = anyBallCount()
+            it.count = anyBallCount()
         }   )
-
-
-
+    }
+    private fun subscribeToGamepadEvents()
+    {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(OnPatternDetectedEvent::class, {
-                _dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
+                        _dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
         }   )
+
+
+
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener({ it.triangle }, {
-                    _dynamicMemoryPattern.resetTemporary()
-        }   )   )
+                        _dynamicMemoryPattern.resetTemporary()
+            }   )   )
+
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener({ it.square },   {
-                    _dynamicMemoryPattern.addToTemporary()
-        }   )   )
+                        _dynamicMemoryPattern.addToTemporary()
+            }   )   )
+
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener({ it.circle },   {
-                    _dynamicMemoryPattern.removeFromTemporary()
-        }   )   )
-
-
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(ShotWasFiredEvent::class, {
-                shotWasFired()
-        }   )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(BallWasEatenByTheStorageEvent::class, {
-                ballWasEaten()
-        }   )
+                        _dynamicMemoryPattern.removeFromTemporary()
+            }   )   )
     }
 
 
@@ -119,13 +123,12 @@ class SortingStorage
             val intakeResult = updateAfterInput(storageCanHandle, inputBall)
             //  Safe updating storage after intake  - wont update if an error occurs
 
-            fullResumeRequestLogic(intakeResult)
+            resumeLogicAfterIntake()
             return intakeResult
         }
 
-        val intakeFail = IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
-        fullResumeRequestLogic(intakeFail)
-        return intakeFail
+        resumeLogicAfterIntake()
+        return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
     private suspend fun updateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
     {
@@ -165,19 +168,16 @@ class SortingStorage
             RunStatus.TerminationStatus.IS_TERMINATED
         )
 
-        val intakeFail = IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
-        fullResumeRequestLogic(intakeFail)
-
-        return intakeFail
+        resumeLogicAfterIntake()
+        return IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
     }
     private fun doTerminateIntake() = _intakeRunStatus.TerminationId() == RunStatus.DO_TERMINATE
-    fun eventTerminateIntake() = _intakeRunStatus.DoTerminate()
 
 
 
     suspend fun handleRequest(request: BallRequest.Name): RequestResult.Name
     {
-        if (_storageCells.anyBallCount() <= 0)
+        if (_storageCells.isEmpty())
             return RequestResult.Name.FAIL_IS_EMPTY
 
         if (cantHandleRequestRaceCondition()) return terminateRequest()
@@ -192,7 +192,7 @@ class SortingStorage
         if (shootingResult == RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
             return terminateRequest()
 
-        fullResumeIntakeLogic(shootingResult)
+        resumeLogicAfterRequest()
         return shootingResult
     }
     private suspend fun updateAfterRequest(requestResult: RequestResult): RequestResult
@@ -240,7 +240,7 @@ class SortingStorage
 
             return if (_storageCells.updateAfterRequest())
             {
-                if  (_storageCells.anyBallCount() > 0)
+                if  (_storageCells.isNotEmpty())
                      RequestResult.Name.SUCCESS
                 else RequestResult.Name.SUCCESS_IS_NOW_EMPTY
             }
@@ -287,24 +287,23 @@ class SortingStorage
         )
 
         val requestFail = RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
-        fullResumeIntakeLogic(requestFail)
+        resumeLogicAfterRequest()
 
         return requestFail
     }
     private fun doTerminateRequest() = _requestRunStatus.TerminationId() == RunStatus.DO_TERMINATE
-    fun eventTerminateRequest() = _requestRunStatus.DoTerminate()
 
 
 
     suspend fun shootEntireDrumRequest(): RequestResult.Name
     {
-        if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
+        if (_storageCells.isEmpty()) return RequestResult.Name.FAIL_IS_EMPTY
         if (cantHandleRequestRaceCondition())  return terminateRequest()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("MODE: SHOOT EVERYTHING")
         val requestResult = shootEverything()
 
-        fullResumeIntakeLogic(requestResult)
+        resumeLogicAfterRequest()
         return requestResult
     }
     suspend fun shootEntireDrumRequest(
@@ -314,7 +313,7 @@ class SortingStorage
         autoUpdateUnfinishedForNextPattern: Boolean = true
     ): RequestResult.Name
     {
-        if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
+        if (_storageCells.isEmpty()) return RequestResult.Name.FAIL_IS_EMPTY
         if (cantHandleRequestRaceCondition())  return terminateRequest()
 
         val patternOrder = if (!includeLastUnfinishedPattern) requestOrder
@@ -335,7 +334,7 @@ class SortingStorage
                 else -> shootEntireRequestIsValid(patternOrder)
             }
 
-        fullResumeIntakeLogic(requestResult)
+        resumeLogicAfterRequest()
         return requestResult
     }
     suspend fun shootEntireDrumRequest(
@@ -352,7 +351,7 @@ class SortingStorage
             failsafeOrder.contentEquals(requestOrder))
             return shootEntireDrumRequest(shootingMode, requestOrder, includeLastUnfinishedPattern)
 
-        if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
+        if (_storageCells.isEmpty()) return RequestResult.Name.FAIL_IS_EMPTY
         if (cantHandleRequestRaceCondition())  return terminateRequest()
 
 
@@ -394,7 +393,7 @@ class SortingStorage
                     saveLastUnfinishedFailsafeOrder)
             }
 
-        fullResumeIntakeLogic(requestResult)
+        resumeLogicAfterRequest()
         return requestResult
     }
 
@@ -596,13 +595,13 @@ class SortingStorage
 
 
 
-    fun forceStopIntake() = _intakeRunStatus.SetAlreadyUsed()
-    fun safeResumeIntakeLogic()
+    private fun forceStopIntake() = _intakeRunStatus.SetAlreadyUsed()
+    private fun safeResumeIntakeLogic()
     {
         if (_intakeRunStatus.IsUsedByAnotherProcess())
             _intakeRunStatus.SetActive()
     }
-    private suspend fun fullResumeIntakeLogic(requestResult: RequestResult.Name)
+    private suspend fun resumeLogicAfterRequest()
     {
         _storageCells.hwForcePauseBelts()
         _storageCells.hwReverseBelts(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
@@ -610,28 +609,19 @@ class SortingStorage
         _storageCells.hwRotateBeltsForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
         safeResumeIntakeLogic()
-
-        _storageCells.resumeIntakes(anyBallCount() < MAX_BALL_COUNT)
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            StorageFinishedEveryRequestEvent(requestResult)
-        )
+        _storageCells.resumeIntakes()
     }
 
-    fun forceStopRequest() = _requestRunStatus.SetAlreadyUsed()
-    private fun fullResumeRequestLogic(intakeResult: IntakeResult.Name)
+    private fun forceStopRequest() = _requestRunStatus.SetAlreadyUsed()
+    private fun resumeLogicAfterIntake()
     {
         if (_requestRunStatus.IsUsedByAnotherProcess())
             _requestRunStatus.SetActive()
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            StorageFinishedIntakeEvent(intakeResult)
-        )
     }
 
 
 
-    fun shotWasFired() = _shotWasFired.set(true)
+    private fun shotWasFired() = _shotWasFired.set(true)
     private suspend fun fullWaitForShotFired(): Boolean
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("Waiting for shot - event send")
@@ -652,16 +642,12 @@ class SortingStorage
 
 
 
-    fun ballWasEaten() = _ballWasEaten.set(true)
-
-
-
     suspend fun hwForceResumeBelts() = _storageCells.hwForceResumeBelts()
     suspend fun hwForcePauseBelts()  = _storageCells.hwForcePauseBelts()
 
 
 
-    fun storageData() = _storageCells.storageData()
+    fun storageData()  = _storageCells.storageData()
     fun anyBallCount() = _storageCells.anyBallCount()
 
     fun ballColorCountPG() = _storageCells.ballColorCountPG()

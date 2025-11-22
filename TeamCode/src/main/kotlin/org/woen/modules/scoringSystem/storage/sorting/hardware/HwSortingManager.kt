@@ -3,11 +3,11 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.woen.hotRun.HotRun
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicBoolean
 
 import woen239.enumerators.RunStatus
 
+import org.woen.hotRun.HotRun
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.telemetry.ThreadedTelemetry
@@ -24,6 +24,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 
 
+
 class HwSortingManager
 {
     private val _hwSorting = HwSorting()
@@ -31,7 +32,7 @@ class HwSortingManager
 
     private val _runStatus = RunStatus(RunStatus.USED_BY_ANOTHER_PROCESS,
                                        RunStatus.Name.USED_BY_ANOTHER_PROCESS)
-    val isAwaitingIntake   = AtomicReference(false)
+    val isAwaitingIntake   = AtomicBoolean(false)
 
 
 
@@ -43,19 +44,17 @@ class HwSortingManager
                 ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
 
                     val storageCanHandleInput = ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        BallCountInStorageEvent()).count < MAX_BALL_COUNT
+                        BallCountInStorageEvent()).count + 1 < MAX_BALL_COUNT
 
                     if (storageCanHandleInput)
                     {
                         ThreadedEventBus.LAZY_INSTANCE.invoke(
                             StorageGetReadyForIntakeEvent(it))
 
-                        ThreadedTelemetry.LAZY_INSTANCE.log("")
-                        ThreadedTelemetry.LAZY_INSTANCE.log("COLOR SENSORS - START INTAKE")
-
+                        ThreadedTelemetry.LAZY_INSTANCE.log("\nCOLOR SENSORS - START INTAKE")
                         delay(DELAY_BETWEEN_INTAKES_MS)
 
-                        resumeAwaitingEating(true)
+                        resumeAwaitingEating()
                     }
                     else
                     {
@@ -79,18 +78,14 @@ class HwSortingManager
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                resumeAwaitingEating(true)
+                resumeAwaitingEating()
             }
         }
     }
 
 
 
-    suspend fun resumeAwaitingEating(resumeBelts: Boolean)
-    {
-        isAwaitingIntake.set(true)
-        //if (resumeBelts) forceSafeSlowResumeBelts()
-    }
+    fun resumeAwaitingEating() = isAwaitingIntake.set(true)
     suspend fun stopAwaitingEating(stopBelts: Boolean)
     {
         isAwaitingIntake.set(false)
@@ -231,25 +226,6 @@ class HwSortingManager
     suspend fun forceSafeResumeBelts()
     {
         while (!safeResumeBelts())
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
-
-    fun safeSlowResumeBelts(): Boolean
-    {
-        if (_runStatus.IsActive()) return true  //  Already active
-
-        val resumeCondition = _runStatus.IsUsedByAnotherProcess()  //  NOT INACTIVE
-        if (resumeCondition)
-        {
-            _runStatus.SetActive()
-            _hwSorting.slowStartBeltMotors()
-        }
-
-        return resumeCondition
-    }
-    suspend fun forceSafeSlowResumeBelts()
-    {
-        while (!safeSlowResumeBelts())
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
     }
 

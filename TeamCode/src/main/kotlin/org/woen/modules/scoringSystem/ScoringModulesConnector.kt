@@ -2,7 +2,7 @@ package org.woen.modules.scoringSystem
 
 
 import kotlinx.coroutines.delay
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicBoolean
 
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
@@ -54,13 +54,12 @@ class ScoringModulesConnector
     private val _storage = SortingStorage()
 
 
-    private var _isBusy = AtomicReference(false)
-    private var _canRestartBrushes = AtomicReference(false)
-    private var _isAwaitingEating = AtomicReference(false)
-    private var _intakeWasTerminated = AtomicReference(false)
+    private var _isBusy = AtomicBoolean(false)
+    private var _canRestartBrushes = AtomicBoolean(false)
+    private var _intakeWasTerminated = AtomicBoolean(false)
 
-    private var _shotWasFired = AtomicReference(false)
-    private var _requestWasTerminated = AtomicReference(false)
+    private var _shotWasFired = AtomicBoolean(false)
+    private var _requestWasTerminated = AtomicBoolean(false)
 
 
 
@@ -207,16 +206,6 @@ class ScoringModulesConnector
 
     suspend fun startIntakeProcess(inputBall: Ball.Name): IntakeResult.Name
     {
-        /*----------  How intake in connector module works:
-         *  0) = Wait while every request is finished (if is busy)
-         *
-         *  1) If something fails, exit immediately
-         *  2) > If all is good - sends event StorageIsReadyToEatIntakeEvent
-         *  3) > Awaits BallWasEatenEvent from BOTTOM hardware color sensor
-         *  4) > return intake result when fully finished
-         */
-
-
         if (isBusy())
         {
             reverseAndThenStartBrushesAfterTimePeriod(
@@ -226,7 +215,6 @@ class ScoringModulesConnector
         }
 
         setBusy()
-        setAwaitingEating()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("INPUT BALL: $inputBall")
         val intakeResult = _storage.handleIntake(inputBall)
@@ -244,7 +232,6 @@ class ScoringModulesConnector
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("FINISHED - INTAKE, result: $intakeResult")
-
         setIdle()
         return intakeResult
     }
@@ -371,11 +358,9 @@ class ScoringModulesConnector
 
 
 
+    fun isBusy(): Boolean = _isBusy.get()
     fun setBusy() = _isBusy.set(true)
     fun setIdle() = _isBusy.set(false)
-
-    fun isBusy(): Boolean = _isBusy.get()
-
 
     fun tryRestartBrushes()
     {
@@ -383,8 +368,4 @@ class ScoringModulesConnector
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SwitchBrush(Brush.AcktBrush.ACKT))
     }
-
-
-    fun setAwaitingEating()    = _isAwaitingEating.set(true)
-    fun setNotAwaitingEating() = _isAwaitingEating.set(false)
 }

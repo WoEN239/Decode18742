@@ -61,8 +61,6 @@ class StorageCells
 
 
 
-
-
     fun handleIntake(): IntakeResult
     {
         val result = IntakeResult(
@@ -111,7 +109,7 @@ class StorageCells
     }
     private fun requestSearch(requested: Ball.Name): RequestResult
     {
-        if (anyBallCount() <= 0)
+        if (isEmpty())
             return RequestResult(
                 RequestResult.FAIL_IS_EMPTY,
                 RequestResult.Name.FAIL_IS_EMPTY)
@@ -156,7 +154,7 @@ class StorageCells
         ThreadedTelemetry.LAZY_INSTANCE.log("CENTER :${_storageCells[StorageSlot.CENTER].Name()}")
         ThreadedTelemetry.LAZY_INSTANCE.log("MB_OUT :${_storageCells[StorageSlot.MOBILE_OUT].Name()}")
         ThreadedTelemetry.LAZY_INSTANCE.log("MOB_IN :${_storageCells[StorageSlot.MOBILE_IN].Name()}")
-        if (anyBallCount() <= 0) return result
+        if (isEmpty()) return result
 
 
         var curSlotId = StorageSlot.BOTTOM
@@ -195,7 +193,7 @@ class StorageCells
         else ThreadedTelemetry.LAZY_INSTANCE.log("INTAKE: UNKNOWN ERROR whilst cells intake")
         //!  else fastFixStorageDesync()
 
-        _hwSortingM.resumeAwaitingEating(anyBallCount() < MAX_BALL_COUNT)
+        _hwSortingM.resumeAwaitingEating()
         return intakeCondition
     }
     suspend fun updateAfterRequest(): Boolean
@@ -238,7 +236,6 @@ class StorageCells
 
 
         ThreadedTelemetry.LAZY_INSTANCE.log("FR - MOVING MOBILE")
-
         _hwSortingM.hwRotateMobileSlots()
 
         _storageCells[StorageSlot.MOBILE_IN].Set(
@@ -250,11 +247,11 @@ class StorageCells
         ThreadedTelemetry.LAZY_INSTANCE.log("FR - hw readjusting")
         hwReAdjustStorage()
     }
-    fun swReAdjustStorage(): Boolean
+    private fun swReAdjustStorage(): Boolean
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("SW READJUST START - " + anyBallCount())
         if (_storageCells[StorageSlot.MOBILE_OUT].IsEmpty() &&
-            anyBallCount() > 0)
+            isNotEmpty())
         {
             _storageCells[StorageSlot.MOBILE_OUT].Set(
                 _storageCells[StorageSlot.CENTER].Id(),
@@ -309,10 +306,10 @@ class StorageCells
             _hwSortingM.hwRotateBeltForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
     }
 
-    
 
-    suspend fun pauseAnyIntake()  = _hwSortingM.stopAwaitingEating(true)
-    suspend fun resumeIntakes(resumeBelts: Boolean) = _hwSortingM.resumeAwaitingEating(resumeBelts)
+
+    suspend fun pauseAnyIntake() = _hwSortingM.stopAwaitingEating(true)
+    fun resumeIntakes() = _hwSortingM.resumeAwaitingEating()
     
     
 
@@ -331,18 +328,21 @@ class StorageCells
 
         return count
     }
+    fun isEmpty(): Boolean
+    {
+        return _storageCells[StorageSlot.BOTTOM].IsEmpty()
+            && _storageCells[StorageSlot.CENTER].IsEmpty()
+            && _storageCells[StorageSlot.MOBILE_OUT].IsEmpty()
+            && _storageCells[StorageSlot.MOBILE_IN].IsEmpty()
+    }
     fun isNotEmpty(): Boolean
     {
-        var curSlotId = StorageSlot.BOTTOM
-
-        while (curSlotId < StorageSlot.MOBILE_IN)
-        {
-            if (_storageCells[curSlotId].HasBall()) return true
-            curSlotId++
-        }
-
-        return false
+        return _storageCells[StorageSlot.BOTTOM].IsFilled()
+            || _storageCells[StorageSlot.CENTER].IsFilled()
+            || _storageCells[StorageSlot.MOBILE_OUT].IsFilled()
+            || _storageCells[StorageSlot.MOBILE_IN].IsFilled()
     }
+
 
     fun selectedBallCount(ball: Ball.Name): Int
     {
