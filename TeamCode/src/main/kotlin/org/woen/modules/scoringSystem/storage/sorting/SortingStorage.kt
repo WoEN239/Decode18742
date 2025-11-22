@@ -12,6 +12,7 @@ import woen239.enumerators.BallRequest
 import woen239.enumerators.IntakeResult
 import woen239.enumerators.RequestResult
 
+import woen239.enumerators.Shooting
 import woen239.enumerators.RunStatus
 import woen239.enumerators.StorageSlot
 
@@ -32,7 +33,6 @@ import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageFinishedEveryRequestEvent
 
-import org.woen.modules.scoringSystem.storage.StorageOpenTurretGateEvent
 import org.woen.modules.scoringSystem.storage.StorageIsReadyToEatIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
@@ -42,7 +42,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
-import woen239.enumerators.Shooting
+
 
 
 class SortingStorage
@@ -61,22 +61,22 @@ class SortingStorage
     constructor()
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
-            eventTerminateIntake()
-        } )
+                eventTerminateIntake()
+        }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
-            eventTerminateRequest()
-        } )
+                eventTerminateRequest()
+        }   )
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(BallCountInStorageEvent::class, {
-            it.count = anyBallCount()
-        })
+                it.count = anyBallCount()
+        }   )
 
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(OnPatternDetectedEvent::class, {
-            _dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
-        } )
+                _dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
+        }   )
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener({ it.triangle }, {
                     _dynamicMemoryPattern.resetTemporary()
@@ -93,13 +93,12 @@ class SortingStorage
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(ShotWasFiredEvent::class, {
-            shotWasFired()
-        } )
+                shotWasFired()
+        }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(BallWasEatenByTheStorageEvent::class, {
-            ballWasEaten()
-        } )
+                ballWasEaten()
+        }   )
     }
-
 
 
 
@@ -138,8 +137,7 @@ class SortingStorage
 
         ThreadedTelemetry.LAZY_INSTANCE.log("SORTING INTAKE")
         _storageCells.hwReAdjustStorage()
-        ThreadedTelemetry.LAZY_INSTANCE.log("final eating")
-        _storageCells.hwRotateBeltsForward(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+        _storageCells.hwRotateBeltsForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
         ThreadedTelemetry.LAZY_INSTANCE.log("DONE MOVING")
 
 

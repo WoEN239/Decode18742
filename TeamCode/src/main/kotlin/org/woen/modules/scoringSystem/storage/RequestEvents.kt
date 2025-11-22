@@ -7,7 +7,7 @@ import woen239.enumerators.Shooting
 
 
 
-class StorageGiveStreamRequest(
+class StorageGiveSingleRequest(
     var ballRequest: BallRequest.Name
 )
 class StorageGiveStreamDrumRequest()

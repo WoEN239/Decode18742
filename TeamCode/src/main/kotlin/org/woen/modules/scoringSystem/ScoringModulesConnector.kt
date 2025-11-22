@@ -35,7 +35,7 @@ import org.woen.modules.scoringSystem.storage.BallWasEatenByTheStorageEvent
 
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
-import org.woen.modules.scoringSystem.storage.StorageGiveStreamRequest
+import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 import org.woen.modules.scoringSystem.turret.CurrentlyShooting
 
@@ -44,7 +44,7 @@ import org.woen.telemetry.Configs.TURRET.MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
-import java.util.TreeMap
+
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -91,9 +91,9 @@ class ScoringModulesConnector
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageGiveStreamRequest::class, {
+            StorageGiveSingleRequest::class, {
 
-                startStreamRequest(it.ballRequest)
+                startSingleRequest(it.ballRequest)
         }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveStreamDrumRequest::class, {
@@ -174,7 +174,7 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.right_trigger > 0.75 }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamRequest(BallRequest.Name.PURPLE))
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 
                     ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - PURPLE Request - GAMEPAD")
                     ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
@@ -184,7 +184,7 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.left_trigger > 0.75 }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamRequest(BallRequest.Name.GREEN))
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 
                     ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - GREEN Request - GAMEPAD")
                     ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
@@ -352,13 +352,13 @@ class ScoringModulesConnector
         setIdle()
         return requestResult
     }
-    suspend fun startStreamRequest(ballRequest: BallRequest.Name): RequestResult.Name
+    suspend fun startSingleRequest(ballRequest: BallRequest.Name): RequestResult.Name
     {
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
         val requestResult = _storage.handleRequest(ballRequest)
-        ThreadedTelemetry.LAZY_INSTANCE.log("STREAM request - FINISHED")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SINGLE request - FINISHED")
 
         tryRestartBrushes()
         setIdle()
