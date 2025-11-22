@@ -14,7 +14,6 @@ import woen239.enumerators.RequestResult
 import woen239.enumerators.Shooting
 
 import org.woen.modules.scoringSystem.brush.Brush
-import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
 
 import org.woen.threading.ThreadedEventBus
@@ -25,7 +24,6 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.modules.scoringSystem.brush.SwitchBrush
 
-import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
 import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
 
 import org.woen.modules.scoringSystem.storage.StorageCloseTurretGateEvent
@@ -77,8 +75,6 @@ class ScoringModulesConnector
     {
         subscribeToEvents()
         subscribeToGamepad()
-
-        setTurretToShootMode()
     }
 
     fun subscribeToEvents()
@@ -330,13 +326,11 @@ class ScoringModulesConnector
         setBusy()
 
 
-        setTurretToShootMode()
         val requestResult = _storage.shootEntireDrumRequest(
                 shootingMode,
                 requestPattern)
 
 
-        setTurretToWaitMode()
         setIdle()
         return requestResult
     }
@@ -350,14 +344,12 @@ class ScoringModulesConnector
         setBusy()
 
 
-        setTurretToShootMode()
         val requestResult = _storage.shootEntireDrumRequest(
                 shootingMode,
                 requestPattern,
                 failsafePattern)
 
 
-        setTurretToWaitMode()
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             SwitchBrush(Brush.AcktBrush.ACKT)
         )
@@ -369,10 +361,7 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
-        setTurretToShootMode()
         val requestResult = _storage.shootEntireDrumRequest()
-
-        setTurretToWaitMode()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("SIMPLE DRUM - FINISHED")
 
@@ -389,11 +378,8 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
-        setTurretToShootMode()
         val requestResult = _storage.handleRequest(ballRequest)
 
-
-        setTurretToWaitMode()
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             SwitchBrush(Brush.AcktBrush.ACKT)
         )
@@ -452,21 +438,5 @@ class ScoringModulesConnector
 
         delay(MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS)
         return true  //!  Temporary dumb always-succeed approach
-    }
-
-
-    fun setTurretToWaitMode()
-    {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SetCurrentTurretStateEvent(
-                Turret.TurretState.WAITING
-            )   )
-    }
-    fun setTurretToShootMode()
-    {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SetCurrentTurretStateEvent(
-                Turret.TurretState.SHOOT
-            )   )
     }
 }

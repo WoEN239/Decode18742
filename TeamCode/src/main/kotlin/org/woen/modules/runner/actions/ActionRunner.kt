@@ -6,11 +6,8 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrush
-import org.woen.modules.scoringSystem.simple.HardwareSimpleStorage
-import org.woen.modules.scoringSystem.simple.SimpleShootEvent
 import org.woen.modules.scoringSystem.simple.StopBeltEvent
-import org.woen.modules.scoringSystem.turret.SetCurrentTurretStateEvent
-import org.woen.modules.scoringSystem.turret.Turret
+import org.woen.modules.scoringSystem.turret.WaitTurretAtTargetEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.smartMutex.SmartMutex
@@ -54,14 +51,7 @@ class ActionRunner private constructor() : DisposableHandle {
             ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
             ThreadedEventBus.LAZY_INSTANCE.invoke(StopBeltEvent())
 
-            ThreadedEventBus.LAZY_INSTANCE.invoke(
-                SetCurrentTurretStateEvent(
-                    Turret.TurretState.SHOOT,
-                    pulleyState = Turret.PulleyState.LONG
-                )
-            ).targetProcess.wait()
-
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent(Turret.PulleyState.LONG))
+            ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTargetEvent()).targetProcess.wait()
 
             Thread.sleep(15000)
 

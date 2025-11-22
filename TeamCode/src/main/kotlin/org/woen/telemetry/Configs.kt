@@ -252,9 +252,6 @@ object Configs {
         var BASKET_TARGET_HEIGHT = 1.1
 
         @JvmField
-        var WAIT_PULLEY_SPEED = 5.0
-
-        @JvmField
         var TIME_STEP = 0.1
 
         @JvmField
