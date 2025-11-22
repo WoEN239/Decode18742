@@ -398,18 +398,16 @@ object Configs {
 
 
         @JvmField
-        var INTAKE_RACE_CONDITION_DELAY_MS: Long = 10
+        var INTAKE_RACE_CONDITION_DELAY_MS: Long = 15
         @JvmField
-        var REQUEST_RACE_CONDITION_DELAY_MS: Long = 5
+        var REQUEST_RACE_CONDITION_DELAY_MS: Long = 10
 
         @JvmField
-        var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
+        var DELAY_FOR_EVENT_AWAITING_MS: Long = 10
         @JvmField
         var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 50
 
 
-        @JvmField
-        var DELAY_BETWEEN_SHOTS: Long = 1000
         @JvmField
         var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 450
 

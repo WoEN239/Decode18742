@@ -139,7 +139,7 @@ class SortingStorage
         ThreadedTelemetry.LAZY_INSTANCE.log("SORTING INTAKE")
         _storageCells.hwReAdjustStorage()
         ThreadedTelemetry.LAZY_INSTANCE.log("final eating")
-        _storageCells.hwRotateBeltForward(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+        _storageCells.hwRotateBeltsForward(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         ThreadedTelemetry.LAZY_INSTANCE.log("DONE MOVING")
 
 
@@ -306,17 +306,6 @@ class SortingStorage
 
 
 
-    suspend fun pushNextWithoutUpdating()
-    {
-        ThreadedTelemetry.LAZY_INSTANCE.log("> SW: OPEN GATE")
-        _storageCells.openTurretGate()
-
-        _storageCells.hwRotateBeltForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
-        delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
-    }
-
-
-
     suspend fun shootEntireDrumRequest(): RequestResult.Name
     {
         if (_storageCells.anyBallCount() <= 0) return RequestResult.Name.FAIL_IS_EMPTY
@@ -424,26 +413,18 @@ class SortingStorage
     @SuppressLint("SuspiciousIndentation")
     private suspend fun shootEverything(): RequestResult.Name
     {
-        var shootingResult = RequestResult.Name.FAIL_IS_EMPTY
+        var ballCount = _storageCells.anyBallCount()
+        if (ballCount == 0) return RequestResult.Name.FAIL_IS_EMPTY
 
-        var i = StorageSlot.BOTTOM
-        while (i < MAX_BALL_COUNT)
+        while (ballCount > 0)
         {
-            ThreadedTelemetry.LAZY_INSTANCE.log("shot ${i+1}")
+            if (!fullWaitForShotFired())
+                return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
 
-                if (doTerminateRequest()) return terminateRequest()
-            val requestResult = _storageCells.handleRequest(BallRequest.Name.ANY_CLOSEST)
-            ThreadedTelemetry.LAZY_INSTANCE.log("shot ${i+1} request finished, updating..")
-
-                if (doTerminateRequest()) return terminateRequest()
-            shootingResult = shootRequestFinalPhase(requestResult)
-
-                if (shootingResult == RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
-                    return terminateRequest()
-
-            i++
+            ThreadedTelemetry.LAZY_INSTANCE.log("shot finished, updating..")
+            ballCount--
         }
-        return shootingResult
+        return RequestResult.Name.SUCCESS_IS_NOW_EMPTY
     }
 
 
@@ -633,10 +614,10 @@ class SortingStorage
     }
     private suspend fun fullResumeIntakeLogic(requestResult: RequestResult.Name)
     {
-        _storageCells.hwForcePauseBelt()
-        _storageCells.hwReverseBelt(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+        _storageCells.hwForcePauseBelts()
+        _storageCells.hwReverseBelts(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         _storageCells.fullCalibrate()
-        _storageCells.hwRotateBeltForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        _storageCells.hwRotateBeltsForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
 
         safeResumeIntakeLogic()
 
@@ -663,9 +644,9 @@ class SortingStorage
     fun shotWasFired() = _shotWasFired.set(true)
     private suspend fun fullWaitForShotFired(): Boolean
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("WAITING FOR SHOT - EVENT SEND")
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageOpenTurretGateEvent())
+        ThreadedTelemetry.LAZY_INSTANCE.log("Waiting for shot - event send")
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
+        _storageCells.hwOpenTurretGate()
 
         while (!_shotWasFired.get())
         {
@@ -674,7 +655,6 @@ class SortingStorage
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("DONE - Shot fired")
-        ThreadedTelemetry.LAZY_INSTANCE.log("ball count - " + anyBallCount())
         _dynamicMemoryPattern.removeFromTemporary()
         _shotWasFired.set(false)
         return true
@@ -697,6 +677,11 @@ class SortingStorage
         _ballWasEaten.set(false)
         return true
     }
+
+
+
+    suspend fun hwForceResumeBelts() = _storageCells.hwForceResumeBelts()
+    suspend fun hwForcePauseBelts()  = _storageCells.hwForcePauseBelts()
 
 
 

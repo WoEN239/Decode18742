@@ -7,10 +7,10 @@ import woen239.enumerators.Shooting
 
 
 
-class StorageGiveSingleRequest(
+class StorageGiveStreamRequest(
     var ballRequest: BallRequest.Name
 )
-class StorageGiveSimpleDrumRequest()
+class StorageGiveStreamDrumRequest()
 class StorageGiveDrumRequest(
     var shootingMode:    Shooting.Mode,
     var requestPattern:  Array<BallRequest.Name>,

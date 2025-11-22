@@ -221,11 +221,15 @@ class StorageCells
 
 
 
-    suspend fun fullCalibrate() = _hwSortingM.fullCalibrate()
-    suspend fun hwRotateBeltForward(timeMs: Long) = _hwSortingM.hwRotateBeltForward(timeMs)
-    suspend fun hwReverseBelt (timeMs: Long) = _hwSortingM.hwReverseBelt(timeMs)
-    suspend fun hwForcePauseBelt() = _hwSortingM.forceSafePauseBelts()
+    suspend fun hwRotateBeltsForward(timeMs: Long) = _hwSortingM.hwRotateBeltForward(timeMs)
+    suspend fun hwReverseBelts (timeMs: Long) = _hwSortingM.hwReverseBelt(timeMs)
+    suspend fun hwForceResumeBelts() = _hwSortingM.forceSafeResumeBelts()
+    suspend fun hwForcePauseBelts()  = _hwSortingM.forceSafePauseBelts()
+    suspend fun hwOpenTurretGate()   = _hwSortingM.openTurretGate()
 
+
+
+    suspend fun fullCalibrate() = _hwSortingM.fullCalibrate()
     suspend fun fullRotate()
     {
         _hwSortingM.stopAwaitingEating(true)
@@ -305,9 +309,7 @@ class StorageCells
             _hwSortingM.hwRotateBeltForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
     }
 
-
-
-    suspend fun openTurretGate()  = _hwSortingM.openTurretGate()
+    
 
     suspend fun pauseAnyIntake()  = _hwSortingM.stopAwaitingEating(true)
     suspend fun resumeIntakes(resumeBelts: Boolean) = _hwSortingM.resumeAwaitingEating(resumeBelts)
@@ -328,6 +330,18 @@ class StorageCells
         }
 
         return count
+    }
+    fun isNotEmpty(): Boolean
+    {
+        var curSlotId = StorageSlot.BOTTOM
+
+        while (curSlotId < StorageSlot.MOBILE_IN)
+        {
+            if (_storageCells[curSlotId].HasBall()) return true
+            curSlotId++
+        }
+
+        return false
     }
 
     fun selectedBallCount(ball: Ball.Name): Int
