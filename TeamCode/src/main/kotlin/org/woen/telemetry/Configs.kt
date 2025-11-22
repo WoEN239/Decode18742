@@ -292,6 +292,10 @@ object Configs {
 
         @JvmField
         var TURRET_SHOOT_POS = Vec2.ZERO
+        @JvmField
+        var TURRET_START_DCET_TIMME = 0.5
+        @JvmField
+        var TURRET_SHOOT_DETECT_CURRENT = 0.5
 
         @JvmField
         var TURRET_CENTER_POS = Vec2.ZERO

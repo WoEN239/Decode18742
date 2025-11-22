@@ -14,12 +14,16 @@ import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
 
 data class RequestTurretAtTargetEvent(var atTarget: Boolean = false) : StoppingEvent
-
 data class WaitTurretAtTargetEvent(val targetProcess: Process = Process()) : StoppingEvent
+
+class CurrentlyShooting()
+class TurretVoltageDropped()
+
 
 class Turret : IModule {
     private val _hardwareTurret = HardwareTurret("pulleyMotor", "turretAngleServo")
@@ -34,6 +38,9 @@ class Turret : IModule {
     private var _currentTurretState = AtomicReference(TurretState.STOP)
 
     private var _currentTargetProcess = Process()
+    private var _isShooting = AtomicBoolean(false)
+
+
 
     override suspend fun process() {
         _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -44,6 +51,12 @@ class Turret : IModule {
                 return@launch
 
             _hardwareTurret.targetVelocity = calculatePulleySpeed()
+
+
+            if (_isShooting.get() && _hardwareTurret.detShoot) {
+                ThreadedEventBus.LAZY_INSTANCE.invoke(TurretVoltageDropped())
+                _isShooting.set(false)
+            }
         }
     }
 
@@ -131,6 +144,10 @@ class Turret : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitTurretAtTargetEvent::class, {
             _currentTargetProcess = it.targetProcess
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(CurrentlyShooting::class, {
+            _isShooting.set(true)
         })
 
         fun setTurretState(state: TurretState) {

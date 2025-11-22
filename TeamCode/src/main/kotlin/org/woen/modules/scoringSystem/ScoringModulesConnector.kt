@@ -37,13 +37,14 @@ import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
+import org.woen.modules.scoringSystem.turret.CurrentlyShooting
 
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
 import org.woen.telemetry.Configs.TURRET.MAX_POSSIBLE_DELAY_FOR_BALL_SHOOTING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_WAITING_TIME_FOR_INTAKE_MS
-
+import java.util.TreeMap
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -382,6 +383,8 @@ class ScoringModulesConnector
     }
     suspend fun awaitSuccessfulRequestShot()
     {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
+
         _storage.hwForceResumeBelts()
         while (!shotWasFired()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         _storage.hwForcePauseBelts()

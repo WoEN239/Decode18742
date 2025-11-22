@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
@@ -16,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.PI
 import kotlin.math.abs
 
+var prosad=false;
 class HardwareTurret(
     private val _motorName: String,
     private var _servoName: String
@@ -23,6 +25,7 @@ class HardwareTurret(
     IHardwareDevice {
     private lateinit var _motor: DcMotorEx
     private lateinit var _angleSevo: Servo
+    private var tmr = ElapsedTime()
 
     var targetVelocity: Double
         get() = (_realTargetVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
@@ -46,12 +49,17 @@ class HardwareTurret(
     private var _oldMotorPosition = 0.0
 
     private var _motorVelocity = 0.0
-
+    var detShoot = false
     var velocityAtTarget = AtomicBoolean(false)
 
     private val _deltaTime = ElapsedTime()
 
     override fun update() {
+
+            if(_motor.getCurrent(CurrentUnit.AMPS)> Configs.TURRET.TURRET_SHOOT_DETECT_CURRENT){
+                detShoot=true
+            }else {detShoot=false}
+
         if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
             return
 
