@@ -328,10 +328,14 @@ class SortingStorage
         val requestResult =
             when (shootingMode)
             {
-                Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
-                Shooting.Mode.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(patternOrder)
-                Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(patternOrder)
-                else -> shootEntireRequestIsValid(patternOrder)
+                Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
+                    -> shootEverything()
+                Shooting.Mode.FIRE_PATTERN_CAN_SKIP
+                    -> shootEntireRequestCanSkip(patternOrder)
+                Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
+                    -> shootEntireUntilPatternBreaks(patternOrder)
+                Shooting.Mode.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
+                    -> shootEntireRequestIsValid(patternOrder)
             }
 
         resumeLogicAfterRequest()
@@ -378,19 +382,26 @@ class SortingStorage
         val requestResult =
             when (shootingMode)
             {
-                Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE -> shootEverything()
+                Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
+                    -> shootEverything()
 
-                Shooting.Mode.FIRE_PATTERN_CAN_SKIP -> shootEntireRequestCanSkip(
-                    patternOrder, failsafePatternOrder,
-                    saveLastUnfinishedFailsafeOrder)
+                Shooting.Mode.FIRE_PATTERN_CAN_SKIP
+                    -> shootEntireRequestCanSkip(
+                            patternOrder,
+                            failsafePatternOrder,
+                            saveLastUnfinishedFailsafeOrder)
 
-                Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN -> shootEntireUntilPatternBreaks(
-                    patternOrder, failsafePatternOrder,
-                    saveLastUnfinishedFailsafeOrder)
+                Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
+                    -> shootEntireUntilPatternBreaks(
+                            patternOrder,
+                            failsafePatternOrder,
+                            saveLastUnfinishedFailsafeOrder)
 
-                else -> shootEntireRequestIsValid(
-                    patternOrder, failsafePatternOrder,
-                    saveLastUnfinishedFailsafeOrder)
+                Shooting.Mode.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
+                    -> shootEntireRequestIsValid(
+                            patternOrder,
+                            failsafePatternOrder,
+                            saveLastUnfinishedFailsafeOrder)
             }
 
         resumeLogicAfterRequest()

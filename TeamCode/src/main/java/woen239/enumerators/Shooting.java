@@ -14,7 +14,7 @@ public class Shooting
 
     static public class StockPattern
     {
-        private final BallRequest.Name[][] _patternSequence =
+        static private final BallRequest.Name[][] _patternSequence =
             {
                 {
                     BallRequest.Name.ANY_CLOSEST,
@@ -34,7 +34,7 @@ public class Shooting
                     BallRequest.Name.PURPLE
                 },
             };
-        private final int ANY = 0, ALL_GREEN = 1, ALL_PURPLE = 2,
+        static public final int ANY = 0, ALL_GREEN = 1, ALL_PURPLE = 2,
                 ANY_THREE_IDENTICAL_COLORS = 3, USE_DETECTED_PATTERN = 4;
 
 
@@ -50,7 +50,7 @@ public class Shooting
 
 
 
-        public BallRequest.Name[] TryConvertToPatternSequence(Name patternName)
+        static public BallRequest.Name[] TryConvertToPatternSequence(Name patternName)
         {
             int patternId = ToInt(patternName);
             if (patternId < ANY_THREE_IDENTICAL_COLORS)
@@ -61,7 +61,7 @@ public class Shooting
 
 
 
-        private int ToInt(Name patternName)
+        static public int ToInt(Name patternName)
         {
             switch (patternName)
             {
@@ -72,25 +72,5 @@ public class Shooting
                 default: return USE_DETECTED_PATTERN;
             }
         }
-    }
-
-    public enum Behaviour
-    {
-        FIRE_PATTERN,
-        FIRE_EVERYTHING,
-
-        MOVE_TO_LONG_DISTANCE_POSITION,
-        MOVE_TO_SHORT_DISTANCE_POSITION,
-        CHANGE_CURRENT_POSITION_TO_OPPOSITE,
-
-        STORAGE_TRY_RECALIBRATE,
-
-        STOP_SHOOTING_AND_GO_EATING,
-
-        EAT_PURPLE,
-        EAT_DOUBLE_PURPLE,
-        EAT_TRIPLE_PURPLE,
-        EAT_GREEN,
-        EAT_ANYTHING_CLOSEST
     }
 }

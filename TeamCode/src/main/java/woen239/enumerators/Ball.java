@@ -119,4 +119,14 @@ public class Ball
             default:     return GREEN;
         }
     }
+    static public BallRequest.Name ToBallRequestName(Name name)
+    {
+        switch (name)
+        {
+            case NONE:   return BallRequest.Name.NONE;
+            case PURPLE: return BallRequest.Name.PURPLE;
+            case GREEN:  return BallRequest.Name.GREEN;
+            default:     return BallRequest.Name.ANY_CLOSEST;
+        }
+    }
 }

@@ -2,15 +2,18 @@ package org.woen.threading.hardware
 
 
 import kotlinx.coroutines.DisposableHandle
+import org.woen.utils.smartMutex.SmartMutex
+
 import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.odometry.Odometry
 import org.woen.modules.runner.actions.ActionRunner
-import org.woen.modules.scoringSystem.ScoringModulesConnector
+
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.simple.SimpleStorage
 import org.woen.modules.scoringSystem.turret.Turret
-//import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingSensors
-import org.woen.utils.smartMutex.SmartMutex
+
+import org.woen.modules.scoringSystem.SortingAutoLogic
+import org.woen.modules.scoringSystem.ScoringModulesConnector
 
 
 
@@ -61,6 +64,7 @@ class HardwareThreads private constructor() : DisposableHandle {
         CONTROL.link.addModules(Odometry(), DriveTrain(), Brush(), Turret(), /*SimpleStorage()*/)
         ActionRunner.LAZY_INSTANCE
 
-        ScoringModulesConnector()
+        //ScoringModulesConnector()
+        //SortingAutoLogic()
     }
 }

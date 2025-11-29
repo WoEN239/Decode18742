@@ -3,7 +3,7 @@ package org.woen.modules.scoringSystem.storage
 
 import woen239.enumerators.Shooting
 import woen239.enumerators.BallRequest
-
+import woen239.enumerators.RequestResult
 
 
 class StorageGiveSingleRequest(
@@ -21,3 +21,6 @@ class TerminateRequestEvent()
 
 
 class StorageRequestIsReadyEvent()
+class FullFinishedFiringEvent(
+    var requestResult: RequestResult.Name
+)

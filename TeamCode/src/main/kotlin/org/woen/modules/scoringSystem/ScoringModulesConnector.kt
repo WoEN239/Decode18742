@@ -33,6 +33,7 @@ import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
+import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
@@ -294,6 +295,7 @@ class ScoringModulesConnector
 
         tryRestartBrushes()
         setIdle()
+        sendFinishedFiringEvent(requestResult)
         return requestResult
     }
     suspend fun startStreamDrumRequest(): RequestResult.Name
@@ -306,6 +308,7 @@ class ScoringModulesConnector
 
         tryRestartBrushes()
         setIdle()
+        sendFinishedFiringEvent(requestResult)
         return requestResult
     }
     suspend fun startSingleRequest(ballRequest: BallRequest.Name): RequestResult.Name
@@ -318,6 +321,7 @@ class ScoringModulesConnector
 
         tryRestartBrushes()
         setIdle()
+        sendFinishedFiringEvent(requestResult)
         return requestResult
     }
 
@@ -353,6 +357,12 @@ class ScoringModulesConnector
         _shotWasFired.set(false)
         _requestWasTerminated.set(false)
     }
+
+    fun sendFinishedFiringEvent(requestResult: RequestResult.Name)
+        = ThreadedEventBus.LAZY_INSTANCE.invoke(
+            FullFinishedFiringEvent(
+                requestResult
+        )   )
 
 
 

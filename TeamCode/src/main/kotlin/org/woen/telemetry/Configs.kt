@@ -8,7 +8,6 @@ import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
-import woen239.enumerators.BallRequest
 import woen239.enumerators.Shooting
 import woen239.enumerators.StorageSlot
 import kotlin.math.PI
@@ -450,20 +449,22 @@ object Configs {
         @JvmField
         var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 2000
 
-
         @JvmField
-        var DEFAULT_BEHAVIOUR = Shooting.Behaviour.FIRE_EVERYTHING
+        var MAX_ATTEMPTS_FOR_PATTERN_DETECTION = 2
+        @JvmField
+        var TRY_RECALIBRATE_IF_SOMETHING_FAILS = true
+
+
+
         @JvmField
         var DEFAULT_SHOOTING_MODE = Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
         @JvmField
         var DEFAULT_PATTERN = Shooting.StockPattern.Name.USE_DETECTED_PATTERN
 
         @JvmField
-        var FAILSAFE_BEHAVIOUR = Shooting.Behaviour.FIRE_EVERYTHING
-        @JvmField
         var FAILSAFE_SHOOTING_MODE = Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
         @JvmField
-        var FAILSAFE_PATTERN = arrayOf(BallRequest.Name.ANY_CLOSEST)
+        var FAILSAFE_PATTERN = Shooting.StockPattern.Name.ANY
     }
 
 

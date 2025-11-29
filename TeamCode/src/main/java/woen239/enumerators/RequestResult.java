@@ -12,7 +12,7 @@ public class RequestResult
                         FAIL_COLOR_NOT_PRESENT = 9, FAIL_NOT_ENOUGH_COLORS = 10,
 
                             FAIL_HARDWARE_PROBLEM = 11, FAIL_SOFTWARE_STORAGE_DESYNC = 12,
-                            FAIL_USING_DIFFERENT_STORAGE_TYPE = 13,
+                                FAIL_COULD_NOT_DETECT_PATTERN = 13,
 
                                 FAIL_IS_CURRENTLY_BUSY = 14, FAIL_PROCESS_WAS_TERMINATED = 15;
 
@@ -62,7 +62,7 @@ public class RequestResult
 
         FAIL_HARDWARE_PROBLEM,
         FAIL_SOFTWARE_STORAGE_DESYNC,
-        FAIL_USING_DIFFERENT_STORAGE_TYPE,
+        FAIL_COULD_NOT_DETECT_PATTERN,
 
         FAIL_IS_CURRENTLY_BUSY,
         FAIL_PROCESS_WAS_TERMINATED
@@ -160,9 +160,9 @@ public class RequestResult
             case FAIL_COLOR_NOT_PRESENT: return Name.FAIL_COLOR_NOT_PRESENT;
             case FAIL_NOT_ENOUGH_COLORS: return Name.FAIL_NOT_ENOUGH_COLORS;
 
-            case FAIL_HARDWARE_PROBLEM:             return Name.FAIL_HARDWARE_PROBLEM;
-            case FAIL_SOFTWARE_STORAGE_DESYNC:      return Name.FAIL_SOFTWARE_STORAGE_DESYNC;
-            case FAIL_USING_DIFFERENT_STORAGE_TYPE: return Name.FAIL_USING_DIFFERENT_STORAGE_TYPE;
+            case FAIL_HARDWARE_PROBLEM:         return Name.FAIL_HARDWARE_PROBLEM;
+            case FAIL_SOFTWARE_STORAGE_DESYNC:  return Name.FAIL_SOFTWARE_STORAGE_DESYNC;
+            case FAIL_COULD_NOT_DETECT_PATTERN: return Name.FAIL_COULD_NOT_DETECT_PATTERN;
 
             case FAIL_IS_CURRENTLY_BUSY: return Name.FAIL_IS_CURRENTLY_BUSY;
             default:                     return Name.FAIL_PROCESS_WAS_TERMINATED;
@@ -189,9 +189,9 @@ public class RequestResult
             case FAIL_COLOR_NOT_PRESENT: return FAIL_COLOR_NOT_PRESENT;
             case FAIL_NOT_ENOUGH_COLORS: return FAIL_NOT_ENOUGH_COLORS;
 
-            case FAIL_HARDWARE_PROBLEM:             return FAIL_HARDWARE_PROBLEM;
-            case FAIL_SOFTWARE_STORAGE_DESYNC:      return FAIL_SOFTWARE_STORAGE_DESYNC;
-            case FAIL_USING_DIFFERENT_STORAGE_TYPE: return FAIL_USING_DIFFERENT_STORAGE_TYPE;
+            case FAIL_HARDWARE_PROBLEM:         return FAIL_HARDWARE_PROBLEM;
+            case FAIL_SOFTWARE_STORAGE_DESYNC:  return FAIL_SOFTWARE_STORAGE_DESYNC;
+            case FAIL_COULD_NOT_DETECT_PATTERN: return FAIL_COULD_NOT_DETECT_PATTERN;
 
             case FAIL_IS_CURRENTLY_BUSY: return FAIL_IS_CURRENTLY_BUSY;
             default:                     return FAIL_PROCESS_WAS_TERMINATED;
