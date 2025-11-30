@@ -34,6 +34,7 @@ import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.MAX_ATTEMPTS_FOR_PATTERN_D
 import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS
 
 
+
 class DefaultFireEvent()
 
 
@@ -41,7 +42,6 @@ class DefaultFireEvent()
 class SortingAutoLogic
 {
     private val _patternWasDetected = AtomicBoolean(false)
-    private val _finishedFiring = AtomicBoolean(true)
     private val _patternDetectionAttempts = AtomicInteger(0)
     private val _pattern = DynamicPattern()
 
@@ -60,12 +60,7 @@ class SortingAutoLogic
             OnPatternDetectedEvent::class, {
                 _pattern.setPermanent(it.pattern.subsequence)
                 _patternWasDetected.set(true)
-            }   )
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            FullFinishedFiringEvent::class, {
-                _finishedFiring.set(true)
-            }   )
+        }   )
     }
     private fun subscribeToDefaultFiringEvent()
     {
@@ -95,15 +90,17 @@ class SortingAutoLogic
 
 
 
-    private fun firePattern()
+    private suspend fun firePattern()
     {
         if (DEFAULT_SHOOTING_MODE == Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE)
             fireEverything()
 
         when (DEFAULT_PATTERN)
         {
-            Shooting.StockPattern.Name.USE_DETECTED_PATTERN -> {
-                if (_patternWasDetected.get())
+            Shooting.StockPattern.Name.USE_DETECTED_PATTERN ->
+            {
+                if (_patternWasDetected.get()
+                    || canTryDetectPattern() && tryGetPattern())
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             DEFAULT_SHOOTING_MODE,
@@ -112,17 +109,22 @@ class SortingAutoLogic
                 else fireFailsafe()
             }
 
-            Shooting.StockPattern.Name.ANY_THREE_IDENTICAL_COLORS -> {
-                var storageBalls = ThreadedEventBus.LAZY_INSTANCE.invoke(
+            Shooting.StockPattern.Name.ANY_TWO_IDENTICAL_COLORS,
+            Shooting.StockPattern.Name.ANY_THREE_IDENTICAL_COLORS ->
+            {
+                val ballCount = Shooting.StockPattern.RequestedBallCount(
+                    DEFAULT_PATTERN
+                )
+                val storageBalls = ThreadedEventBus.LAZY_INSTANCE.invoke(
                     StorageHasThreeBallsWithIdenticalColorsEvent(
-                        0, Ball.Name.NONE
+                        ballCount, Ball.Name.NONE
                 )   )
 
-                if (storageBalls.maxIdenticalColorCount == MAX_BALL_COUNT)
+                if (storageBalls.maxIdenticalColorCount == ballCount)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             DEFAULT_SHOOTING_MODE,
-                            Array(3)
+                            Array(ballCount)
                             {
                                 Ball.ToBallRequestName(storageBalls.identicalColor)
                             }
@@ -130,8 +132,9 @@ class SortingAutoLogic
                 else fireFailsafe()
             }
 
-            else -> {
-                var convertedPattern = Shooting.StockPattern.
+            else ->
+            {
+                val convertedPattern = Shooting.StockPattern.
                     TryConvertToPatternSequence(
                         DEFAULT_PATTERN
                     )
@@ -146,15 +149,17 @@ class SortingAutoLogic
             }
         }
     }
-    private fun fireFailsafe()
+    private suspend fun fireFailsafe()
     {
         if (FAILSAFE_SHOOTING_MODE == Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE)
             fireEverything()
 
         when (FAILSAFE_PATTERN)
         {
-            Shooting.StockPattern.Name.USE_DETECTED_PATTERN -> {
-                if (_patternWasDetected.get())
+            Shooting.StockPattern.Name.USE_DETECTED_PATTERN ->
+            {
+                if (_patternWasDetected.get()
+                    || canTryDetectPattern() && tryGetPattern())
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             FAILSAFE_SHOOTING_MODE,
@@ -163,17 +168,22 @@ class SortingAutoLogic
                 else sendFinishedFiringEvent(RequestResult.Name.FAIL_COULD_NOT_DETECT_PATTERN)
             }
 
-            Shooting.StockPattern.Name.ANY_THREE_IDENTICAL_COLORS -> {
-                var storageBalls = ThreadedEventBus.LAZY_INSTANCE.invoke(
+            Shooting.StockPattern.Name.ANY_TWO_IDENTICAL_COLORS,
+            Shooting.StockPattern.Name.ANY_THREE_IDENTICAL_COLORS ->
+            {
+                val ballCount = Shooting.StockPattern.RequestedBallCount(
+                    DEFAULT_PATTERN
+                )
+                val storageBalls = ThreadedEventBus.LAZY_INSTANCE.invoke(
                     StorageHasThreeBallsWithIdenticalColorsEvent(
                         0, Ball.Name.NONE
                 )   )
 
-                if (storageBalls.maxIdenticalColorCount == MAX_BALL_COUNT)
+                if (storageBalls.maxIdenticalColorCount == ballCount)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             FAILSAFE_SHOOTING_MODE,
-                            Array(3)
+                            Array(ballCount)
                             {
                                 Ball.ToBallRequestName(storageBalls.identicalColor)
                             }
@@ -181,8 +191,9 @@ class SortingAutoLogic
                 else sendFinishedFiringEvent(RequestResult.Name.FAIL_NOT_ENOUGH_COLORS)
             }
 
-            else -> {
-                var convertedPattern = Shooting.StockPattern.
+            else ->
+            {
+                val convertedPattern = Shooting.StockPattern.
                 TryConvertToPatternSequence(
                     FAILSAFE_PATTERN
                 )
@@ -202,7 +213,7 @@ class SortingAutoLogic
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             StorageGiveDrumRequest(
                 Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE,
-                Array(3) {
+                Array(MAX_BALL_COUNT) {
                     BallRequest.Name.ANY_CLOSEST
                 }
         )   )

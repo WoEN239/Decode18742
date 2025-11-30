@@ -28,6 +28,7 @@ import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
+import org.woen.modules.scoringSystem.storage.StorageHasThreeBallsWithIdenticalColorsEvent
 
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
@@ -71,12 +72,22 @@ class SortingStorage
     }
     private fun subscribeToInfoEvents()
     {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(ShotWasFiredEvent::class, {
-            shotWasFired()
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            ShotWasFiredEvent::class, {
+                shotWasFired()
         }   )
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(BallCountInStorageEvent::class, {
-            it.count = anyBallCount()
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            BallCountInStorageEvent::class, {
+                it.count = anyBallCount()
+        }   )
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            StorageHasThreeBallsWithIdenticalColorsEvent::class, {
+                val result = _storageCells.handleThreeIdenticalBallRequest()
+
+                it.maxIdenticalColorCount = result.maxIdenticalColorCount
+                it.identicalColor = result.identicalColor
         }   )
     }
     private fun subscribeToGamepadEvents()

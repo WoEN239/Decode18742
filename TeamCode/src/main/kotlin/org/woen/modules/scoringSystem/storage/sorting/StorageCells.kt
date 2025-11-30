@@ -1,6 +1,7 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
+import org.woen.modules.scoringSystem.storage.StorageHasThreeBallsWithIdenticalColorsEvent
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
 
@@ -369,5 +370,22 @@ class StorageCells
         }
 
         return intArrayOf(countPG[Ball.PURPLE], countPG[Ball.GREEN])
+    }
+
+
+    fun handleThreeIdenticalBallRequest(): StorageHasThreeBallsWithIdenticalColorsEvent
+    {
+        //  -1 used because were are not using the "empty" count
+        val currentStorage = ballColorCountPG()
+        val purpleCount = currentStorage[Ball.PURPLE - 1]
+        val greenCount  = currentStorage[Ball.GREEN  - 1]
+
+        return if (greenCount > purpleCount)
+             StorageHasThreeBallsWithIdenticalColorsEvent(
+                 greenCount,
+                 Ball.Name.GREEN)
+        else StorageHasThreeBallsWithIdenticalColorsEvent(
+                 purpleCount,
+                 Ball.Name.PURPLE)
     }
 }
