@@ -416,18 +416,18 @@ object Configs {
 
 
         @JvmField
-        var SORTING_STORAGE_BELT_MOTORS_DIRECTION = DcMotorSimple.Direction.REVERSE
+        var SORTING_STORAGE_BELT_MOTORS_DIRECTION = DcMotorSimple.Direction.FORWARD
 
 
         @JvmField
-        var GATE_SERVO_OPEN_VALUE  = 0.575
+        var GATE_SERVO_OPEN_VALUE  = 0.1
         @JvmField
-        var GATE_SERVO_CLOSE_VALUE = 0.41
+        var GATE_SERVO_CLOSE_VALUE = 1.0
 
         @JvmField
-        var PUSH_SERVO_OPEN_VALUE  = 0.63
+        var PUSH_SERVO_OPEN_VALUE  = 0.67
         @JvmField
-        var PUSH_SERVO_CLOSE_VALUE = 0.4
+        var PUSH_SERVO_CLOSE_VALUE = 0.45
 
 
 
@@ -437,7 +437,7 @@ object Configs {
         var POWER_FOR_SLOW_BELT_ROTATING = 9.0
 
         @JvmField
-        var TURRET_GATE_SERVO_OPEN_VALUE  = 0.38
+        var TURRET_GATE_SERVO_OPEN_VALUE  = 0.4
         @JvmField
         var TURRET_GATE_SERVO_CLOSE_VALUE = 0.6
     }
@@ -496,13 +496,13 @@ object Configs {
         @JvmField
         var GATE_SERVO = "gate_servo"
         @JvmField
-        var PUSH_SERVO = "push_servo"
+        var PUSH_SERVO = "pushServo"
     }
 
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 0.3
+        var BELT_PUSH_TIME = 0.4
 
         @JvmField
         var REVERS_TIME = 0.2

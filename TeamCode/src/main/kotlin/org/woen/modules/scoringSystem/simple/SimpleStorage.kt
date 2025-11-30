@@ -68,16 +68,20 @@ class SimpleStorage : IModule {
                     delay(5)
 
                 repeat(3) {
+                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS
+
+                    delay(100)
+
                     _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
 
-                    delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
+                    delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0 + 100).toLong())
 
                     _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTargetEvent()).targetProcess.wait()
                 }
 
-                HotRun.LAZY_INSTANCE.gamepadRumble(0.5)
+//                HotRun.LAZY_INSTANCE.gamepadRumble(0.5)
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS
 
@@ -90,6 +94,11 @@ class SimpleStorage : IModule {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateSimpleShootEvent::class, {
             if (_currentShootCoroutine != null) {
                 _currentShootCoroutine?.cancel()
+
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS
+
+                delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
+
                 terminateShoot()
             }
         })

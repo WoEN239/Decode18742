@@ -107,7 +107,7 @@ class HardwareTurret(
             _pulleyRegulator.start()
             _deltaTime.reset()
 
-            rotateServo.position = 0.55
+            rotateServo.position = 0.5
         }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {

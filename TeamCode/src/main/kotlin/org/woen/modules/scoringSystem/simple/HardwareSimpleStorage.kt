@@ -58,11 +58,10 @@ class HardwareSimpleStorage : IHardwareDevice
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _beltMotor = MotorOnly(hardwareMap.get("belt_motors") as DcMotorEx)
+        _beltMotor = MotorOnly(hardwareMap.get("beltMotors") as DcMotorEx)
 
         val pushServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO) as Servo
         val gateServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO) as Servo
-        val rotateServo = hardwareMap.get("turretRotateServo") as Servo
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
@@ -73,7 +72,6 @@ class HardwareSimpleStorage : IHardwareDevice
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             pushServo.position = Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
             gateServo.position = Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
-            rotateServo.position = 0.55
         }
     }
 
