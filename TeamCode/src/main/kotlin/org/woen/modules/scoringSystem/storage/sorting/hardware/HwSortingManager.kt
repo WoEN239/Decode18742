@@ -14,14 +14,12 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.HardwareThreads
 
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
-import org.woen.modules.scoringSystem.storage.StorageOpenTurretGateEvent
-import org.woen.modules.scoringSystem.storage.StorageCloseTurretGateEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_INTAKES_MS
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
 
 
 
@@ -38,7 +36,18 @@ class HwSortingManager
 
     constructor()
     {
-        _hwSensors.colorSensorsTriggerAutoIntakeEvent += {
+        subscribeAndHandleColorSensorsEvent()
+        addDevices()
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            resetParametersAndLogicToDefault()
+        }
+    }
+
+    private fun subscribeAndHandleColorSensorsEvent()
+    {
+        _hwSensors.colorSensorsTriggerAutoIntakeEvent +=
+        {
             if (isAwaitingIntake.get())
             {
                 ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -64,22 +73,20 @@ class HwSortingManager
                 }
             }
         }
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(StorageOpenTurretGateEvent::class, {
-            openTurretGate()
-        } )
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(StorageCloseTurretGateEvent::class, {
-            closeTurretGate()
-        } )
-
+    }
+    private fun addDevices()
+    {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSorting)
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSensors)
+    }
+    fun resetParametersAndLogicToDefault()
+    {
+        isAwaitingIntake.set(false)
+        _runStatus.SetAlreadyUsed()
 
-        HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                resumeAwaitingEating()
-            }
+        ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            fullCalibrate()
+            resumeAwaitingEating()
         }
     }
 

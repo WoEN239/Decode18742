@@ -1,7 +1,6 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
-import org.woen.modules.scoringSystem.storage.StorageHasThreeBallsWithIdenticalColorsEvent
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
 
@@ -21,6 +20,7 @@ import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
+import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
 
 
@@ -59,6 +59,21 @@ class StorageCells
 {
     private val _storageCells = Array(STORAGE_SLOT_COUNT) { Ball() }
     private val _hwSortingM = HwSortingManager()
+
+
+
+    fun resetParametersToDefault()
+    {
+        fullEmptyStorageCells()
+        _hwSortingM.resetParametersAndLogicToDefault()
+    }
+    private fun fullEmptyStorageCells()
+    {
+        _storageCells[StorageSlot.BOTTOM].Empty()
+        _storageCells[StorageSlot.CENTER].Empty()
+        _storageCells[StorageSlot.MOBILE_OUT].Empty()
+        _storageCells[StorageSlot.MOBILE_IN].Empty()
+    }
 
 
 
@@ -373,7 +388,7 @@ class StorageCells
     }
 
 
-    fun handleThreeIdenticalBallRequest(): StorageHasThreeBallsWithIdenticalColorsEvent
+    fun handleIdenticalColorRequest(): StorageHandleIdenticalColorsEvent
     {
         //  -1 used because were are not using the "empty" count
         val currentStorage = ballColorCountPG()
@@ -381,10 +396,10 @@ class StorageCells
         val greenCount  = currentStorage[Ball.GREEN  - 1]
 
         return if (greenCount > purpleCount)
-             StorageHasThreeBallsWithIdenticalColorsEvent(
+             StorageHandleIdenticalColorsEvent(
                  greenCount,
                  Ball.Name.GREEN)
-        else StorageHasThreeBallsWithIdenticalColorsEvent(
+        else StorageHandleIdenticalColorsEvent(
                  purpleCount,
                  Ball.Name.PURPLE)
     }

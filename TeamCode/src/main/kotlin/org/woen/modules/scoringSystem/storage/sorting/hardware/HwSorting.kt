@@ -85,9 +85,9 @@ class HwSorting : IHardwareDevice
 
 
 
-    fun startBeltMotors()     = _beltMotorsPower.set(  POWER_FOR_FAST_BELT_ROTATING)
-    fun reverseBeltMotors()   = _beltMotorsPower.set( -POWER_FOR_FAST_BELT_ROTATING)
-    fun stopBeltMotors()      = _beltMotorsPower.set(0.0)
+    fun startBeltMotors()   = _beltMotorsPower.set(  POWER_FOR_FAST_BELT_ROTATING)
+    fun reverseBeltMotors() = _beltMotorsPower.set( -POWER_FOR_FAST_BELT_ROTATING)
+    fun stopBeltMotors()    = _beltMotorsPower.set(0.0)
 
 
 

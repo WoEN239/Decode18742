@@ -12,14 +12,15 @@ import woen239.enumerators.BallRequest
 import woen239.enumerators.RequestResult
 import woen239.enumerators.Shooting
 
-import org.woen.modules.scoringSystem.storage.sorting.DynamicPattern
-
+import org.woen.hotRun.HotRun
 import org.woen.threading.ThreadedEventBus
+
+import org.woen.modules.scoringSystem.storage.sorting.DynamicPattern
 
 import org.woen.modules.camera.OnPatternDetectedEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
-import org.woen.modules.scoringSystem.storage.StorageHasThreeBallsWithIdenticalColorsEvent
+import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
@@ -52,6 +53,10 @@ class SortingAutoLogic
         subscribeToPatternDetectionEvents()
 
         subscribeToDefaultFiringEvent()
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            resetParametersToDefault()
+        }
     }
 
     private fun subscribeToPatternDetectionEvents()
@@ -68,6 +73,13 @@ class SortingAutoLogic
             DefaultFireEvent::class, {
                 firePattern()
         }   )
+    }
+    private fun resetParametersToDefault()
+    {
+        _patternWasDetected.set(false)
+        _patternDetectionAttempts.set(0)
+
+        _pattern.fullReset()
     }
 
 
@@ -116,7 +128,7 @@ class SortingAutoLogic
                     DEFAULT_PATTERN
                 )
                 val storageBalls = ThreadedEventBus.LAZY_INSTANCE.invoke(
-                    StorageHasThreeBallsWithIdenticalColorsEvent(
+                    StorageHandleIdenticalColorsEvent(
                         ballCount, Ball.Name.NONE
                 )   )
 
@@ -175,7 +187,7 @@ class SortingAutoLogic
                     DEFAULT_PATTERN
                 )
                 val storageBalls = ThreadedEventBus.LAZY_INSTANCE.invoke(
-                    StorageHasThreeBallsWithIdenticalColorsEvent(
+                    StorageHandleIdenticalColorsEvent(
                         0, Ball.Name.NONE
                 )   )
 

@@ -5,6 +5,7 @@ import kotlin.math.min
 import kotlinx.coroutines.delay
 import java.util.concurrent.atomic.AtomicBoolean
 import android.annotation.SuppressLint
+import org.woen.hotRun.HotRun
 
 import woen239.enumerators.Ball
 import woen239.enumerators.BallRequest
@@ -28,7 +29,7 @@ import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
-import org.woen.modules.scoringSystem.storage.StorageHasThreeBallsWithIdenticalColorsEvent
+import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
@@ -46,7 +47,7 @@ class SortingStorage
     private val _storageCells = StorageCells()
     private val _dynamicMemoryPattern = DynamicPattern()
 
-    private var _shotWasFired = AtomicBoolean(false)
+    private val _shotWasFired = AtomicBoolean(false)
 
     private val _intakeRunStatus  = RunStatus(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
     private val _requestRunStatus = RunStatus(RunStatus.ACTIVE, RunStatus.Name.ACTIVE)
@@ -58,6 +59,11 @@ class SortingStorage
         subscribeToTerminateEvents()
         subscribeToInfoEvents()
         subscribeToGamepadEvents()
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            resetParametersToDefault()
+            _storageCells.resetParametersToDefault()
+        }
     }
 
     private fun subscribeToTerminateEvents()
@@ -83,8 +89,8 @@ class SortingStorage
         }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageHasThreeBallsWithIdenticalColorsEvent::class, {
-                val result = _storageCells.handleThreeIdenticalBallRequest()
+            StorageHandleIdenticalColorsEvent::class, {
+                val result = _storageCells.handleIdenticalColorRequest()
 
                 it.maxIdenticalColorCount = result.maxIdenticalColorCount
                 it.identicalColor = result.identicalColor
@@ -112,6 +118,14 @@ class SortingStorage
             createClickDownListener({ it.circle },   {
                         _dynamicMemoryPattern.removeFromTemporary()
             }   )   )
+    }
+    private fun resetParametersToDefault()
+    {
+        _dynamicMemoryPattern.fullReset()
+        _shotWasFired.set(false)
+
+        _intakeRunStatus.SetActive()
+        _requestRunStatus.SetActive()
     }
 
 

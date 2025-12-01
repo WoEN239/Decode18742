@@ -15,6 +15,11 @@ class DynamicPattern
 
 
 
+    fun fullReset()
+    {
+        _permanentPattern = arrayOf()
+        _temporaryPattern = arrayListOf()
+    }
     fun setPermanent(permanent: Array<BallRequest.Name>)
     {
         _permanentPattern = permanent.copyOf()

@@ -2,6 +2,7 @@ package org.woen.modules.scoringSystem
 
 
 import kotlinx.coroutines.delay
+import org.woen.hotRun.HotRun
 import java.util.concurrent.atomic.AtomicBoolean
 
 import woen239.enumerators.Ball
@@ -55,14 +56,13 @@ class ScoringModulesConnector
     private val _storage = SortingStorage()
 
 
-    private var _isBusy = AtomicBoolean(false)
-    private var _canRestartBrushes = AtomicBoolean(false)
-    private var _intakeWasTerminated = AtomicBoolean(false)
+    private val _isBusy               = AtomicBoolean(false)
 
-    private var _shotWasFired = AtomicBoolean(false)
-    private var _requestWasTerminated = AtomicBoolean(false)
+    private val _shotWasFired         = AtomicBoolean(false)
+    private val _canRestartBrushes    = AtomicBoolean(false)
 
-
+    private val _intakeWasTerminated  = AtomicBoolean(false)
+    private val _requestWasTerminated = AtomicBoolean(false)
 
 
 
@@ -70,9 +70,14 @@ class ScoringModulesConnector
     {
         subscribeToEvents()
         subscribeToGamepad()
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            resetParametersToDefault()
+            //  SortingStorage resets automatically
+        }
     }
 
-    fun subscribeToEvents()
+    private fun subscribeToEvents()
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGetReadyForIntakeEvent::class, {
@@ -123,7 +128,7 @@ class ScoringModulesConnector
                 startBrushesAfterDelay(it.reverseTime)
         }   )
     }
-    fun subscribeToGamepad()
+    private fun subscribeToGamepad()
     {
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
@@ -202,10 +207,20 @@ class ScoringModulesConnector
                     ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
         }   )   )
     }
+    private fun resetParametersToDefault()
+    {
+        _isBusy.set(false)
+
+        _shotWasFired.set(false)
+        _canRestartBrushes.set(false)
+
+        _intakeWasTerminated .set(false)
+        _requestWasTerminated.set(false)
+    }
 
 
 
-    suspend fun startIntakeProcess(inputBall: Ball.Name): IntakeResult.Name
+    private suspend fun startIntakeProcess(inputBall: Ball.Name): IntakeResult.Name
     {
         if (isBusy())
         {
@@ -237,7 +252,7 @@ class ScoringModulesConnector
         return intakeResult
     }
 
-    fun reverseAndThenStartBrushesAfterTimePeriod(reverseTime: Long)
+    private fun reverseAndThenStartBrushesAfterTimePeriod(reverseTime: Long)
     {
         _canRestartBrushes.set(true)
 
@@ -252,7 +267,7 @@ class ScoringModulesConnector
                 reverseTime
         )   )
     }
-    suspend fun startBrushesAfterDelay(delay: Long)
+    private suspend fun startBrushesAfterDelay(delay: Long)
     {
         delay(delay)
 
@@ -264,7 +279,7 @@ class ScoringModulesConnector
 
 
 
-    suspend fun startDrumRequest(
+    private suspend fun startDrumRequest(
         shootingMode: Shooting.Mode,
         requestPattern: Array<BallRequest.Name>,
         failsafePattern: Array<BallRequest.Name>
@@ -298,7 +313,7 @@ class ScoringModulesConnector
         sendFinishedFiringEvent(requestResult)
         return requestResult
     }
-    suspend fun startStreamDrumRequest(): RequestResult.Name
+    private suspend fun startStreamDrumRequest(): RequestResult.Name
     {
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
@@ -311,7 +326,7 @@ class ScoringModulesConnector
         sendFinishedFiringEvent(requestResult)
         return requestResult
     }
-    suspend fun startSingleRequest(ballRequest: BallRequest.Name): RequestResult.Name
+    private suspend fun startSingleRequest(ballRequest: BallRequest.Name): RequestResult.Name
     {
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
@@ -326,7 +341,7 @@ class ScoringModulesConnector
     }
 
 
-    suspend fun currentlyShootingRequestsProcess()
+    private suspend fun currentlyShootingRequestsProcess()
     {
         var turretHasAccelerated = ThreadedEventBus.LAZY_INSTANCE.invoke(
             RequestTurretAtTargetEvent() ).atTarget
@@ -341,7 +356,7 @@ class ScoringModulesConnector
 
         awaitSuccessfulRequestShot()
     }
-    suspend fun awaitSuccessfulRequestShot()
+    private suspend fun awaitSuccessfulRequestShot()
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
 
@@ -358,7 +373,7 @@ class ScoringModulesConnector
         _requestWasTerminated.set(false)
     }
 
-    fun sendFinishedFiringEvent(requestResult: RequestResult.Name)
+    private fun sendFinishedFiringEvent(requestResult: RequestResult.Name)
         = ThreadedEventBus.LAZY_INSTANCE.invoke(
             FullFinishedFiringEvent(
                 requestResult
@@ -369,10 +384,10 @@ class ScoringModulesConnector
 
 
     fun isBusy(): Boolean = _isBusy.get()
-    fun setBusy() = _isBusy.set(true)
-    fun setIdle() = _isBusy.set(false)
+    private fun setBusy() = _isBusy.set(true)
+    private fun setIdle() = _isBusy.set(false)
 
-    fun tryRestartBrushes()
+    private fun tryRestartBrushes()
     {
         if (BallCountInStorageEvent(0).count < MAX_BALL_COUNT)
             ThreadedEventBus.LAZY_INSTANCE.invoke(
