@@ -18,6 +18,7 @@ import org.woen.utils.units.Vec2
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.PI
+import kotlin.math.pow
 
 data class RequestTurretAtTargetEvent(var atTarget: Boolean = false) : StoppingEvent
 data class WaitTurretAtTargetEvent(val targetProcess: Process = Process()) : StoppingEvent
@@ -95,11 +96,10 @@ class Turret : IModule {
 
             while (pos.x < shootDistance) {
                 vecVel -= (Vec2(
-                    vecVel.x * vecVel.x,
-                    vecVel.y * vecVel.y
-                ) * Vec2(
-                    Configs.TURRET.AIR_FORCE_K / Configs.TURRET.BALL_MASS
-                ) + Vec2(0.0, Configs.TURRET.CALCULATING_G)) * Configs.TURRET.TIME_STEP
+                    vecVel.length()
+                        .pow(2.0) * Configs.TURRET.AIR_FORCE_K / Configs.TURRET.BALL_MASS, 0.0
+                ).setRot(vecVel.rot()) + Vec2(0.0, Configs.TURRET.CALCULATING_G
+                )) * Configs.TURRET.TIME_STEP
 
                 pos += vecVel * Vec2(Configs.TURRET.TIME_STEP)
 

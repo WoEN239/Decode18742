@@ -200,7 +200,7 @@ object Configs {
         var TIME_STEP = 0.1
 
         @JvmField
-        var AIR_FORCE_K = 0.07
+        var AIR_FORCE_K = 0.4
 
         @JvmField
         var CALCULATING_G = 9.78

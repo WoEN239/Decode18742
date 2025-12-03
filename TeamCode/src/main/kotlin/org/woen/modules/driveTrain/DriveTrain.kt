@@ -79,7 +79,7 @@ class DriveTrain : IModule {
 
             _driveMutex.smartLock {
                 _hardwareDriveTrain.drive(
-                    _targetTranslateVelocity/*.turn(-odometry.odometryOrientation.angle)*/,
+                    _targetTranslateVelocity,
                     if (_lookMode.get())
                         _lookRegulator.update(rotationErr)
                     else _targetRotateVelocity
@@ -118,12 +118,16 @@ class DriveTrain : IModule {
                     rx = sign(rx) * (4.0 * (abs(rx) - 0.5).pow(3.0) + 0.5)
                 }
 
+                val odometryOrientation = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent()).odometryOrientation
+                val currentRunColor = HotRun.LAZY_INSTANCE.currentRunColor.get()
+
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     SetDriveTargetVelocityEvent(
                         Vec2(
                             ly,
                             lx
-                        ) * Vec2(
+                        ).turn(if(currentRunColor == HotRun.RunColor.RED) (odometryOrientation.angl - Angle.ofDeg(90.0)).angle else
+                            (odometryOrientation.angl * -1.0 + Angle.ofDeg(90.0)).angle) * Vec2(
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER
                         ),
