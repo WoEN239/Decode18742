@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
-import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
+import org.woen.modules.driveTrain.RequireOdometryEvent
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent

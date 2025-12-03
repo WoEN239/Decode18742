@@ -6,13 +6,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
-import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
 import org.woen.utils.regulator.Regulator
@@ -57,15 +57,12 @@ class DriveTrain : IModule {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
             val rotationErr = if (_lookMode.get()) {
-//                _targetAngle = Angle(
-//                    (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition -
-//                            (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
-//                                odometry.odometryOrientation.angle
-//                            ))).rot()
-//                )
-
-                _targetAngle = if(HotRun.LAZY_INSTANCE.currentRunColor.get() == HotRun.RunColor.RED) Configs.TURRET.SHOOT_DRIVE_ANGLE
-                else (Configs.TURRET.SHOOT_DRIVE_ANGLE * -1.0)
+                _targetAngle = Angle(
+                    (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition -
+                            (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
+                                odometry.odometryOrientation.angle
+                            ))).rot()
+                )
 
                 val err = (_targetAngle - odometry.odometryOrientation.angl).angle
 
@@ -148,10 +145,10 @@ class DriveTrain : IModule {
             it.lookMode = _lookMode.get()
         })
 
-//        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_up }, {
-//            _lookMode.set(!_lookMode.get())
-//            _lookRegulator.start()
-//        }))
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_left }, {
+            _lookMode.set(!_lookMode.get())
+            _lookRegulator.start()
+        }))
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.drawCircle(

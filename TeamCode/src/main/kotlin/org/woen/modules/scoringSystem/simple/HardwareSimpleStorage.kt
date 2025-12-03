@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_BALL_MAX_B_S1
@@ -16,6 +17,7 @@ import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_BALL_MIN_R_S1
 import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.VAR_MAXIMUM_READING
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_1
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.motor.MotorOnly
 import woen239.FixColorSensor.fixSensor
@@ -35,6 +37,7 @@ class HardwareSimpleStorage : IHardwareDevice
 //    private lateinit var _optopar2: AnalogInput
 //
     var beltState = BeltState.STOP
+    var beltsCurrent = 0.0
 //    var ballColor = Ball.Name.NONE
 //    var isBallOnTurret = false
 
@@ -55,6 +58,8 @@ class HardwareSimpleStorage : IHardwareDevice
                 _beltMotor.power = 1.0
             }
         }
+
+        beltsCurrent = _beltMotor.getCurrent(CurrentUnit.AMPS)
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -72,6 +77,10 @@ class HardwareSimpleStorage : IHardwareDevice
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             pushServo.position = Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
             gateServo.position = Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
+        }
+
+        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            it.addData("beltsCurrent", beltsCurrent)
         }
     }
 

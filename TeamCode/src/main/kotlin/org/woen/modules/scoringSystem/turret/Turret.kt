@@ -5,8 +5,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
-import org.woen.modules.driveTrain.odometry.RequireOdometryEvent
+import org.woen.modules.driveTrain.RequireOdometryEvent
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -61,10 +62,6 @@ class Turret : IModule {
     }
 
     private fun calculatePulleySpeed(): Double {
-        _hardwareTurret.anglePosition = 0.6
-
-        return 23.0
-
         val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
         val shootDistance =
@@ -105,6 +102,8 @@ class Turret : IModule {
                 ) + Vec2(0.0, Configs.TURRET.CALCULATING_G)) * Configs.TURRET.TIME_STEP
 
                 pos += vecVel * Vec2(Configs.TURRET.TIME_STEP)
+
+                ThreadedTelemetry.LAZY_INSTANCE.log(pos.x.toString())
             }
 
             return pos.y
@@ -113,21 +112,23 @@ class Turret : IModule {
         var left = Configs.TURRET.MIN_APPROXIMATION
         var right = Configs.TURRET.MAX_MOTOR_RPS * (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
 
-        var iterations = 0
+//        var iterations = 0
+//
+//        while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS) {
+//            iterations++
+//
+//            val middle = (left + right) / 2.0
+//
+//            val dif =
+//                getHitHeight(middle) - (Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT)
+//
+//            if (dif > 0.0)
+//                right = middle
+//            else
+//                left = middle
+//        }
 
-        while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS) {
-            iterations++
-
-            val middle = (left + right) / 2.0
-
-            val dif =
-                getHitHeight(middle) - (Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT)
-
-            if (dif > 0.0)
-                right = middle
-            else
-                left = middle
-        }
+        ThreadedTelemetry.LAZY_INSTANCE.log(getHitHeight((left + right) / 2.0).toString()) //infinity
 
         return (left + right) / 2.0
     }
@@ -140,7 +141,7 @@ class Turret : IModule {
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareTurret)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareTurret)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretAtTargetEvent::class, {
             it.atTarget = _hardwareTurret.velocityAtTarget.get()

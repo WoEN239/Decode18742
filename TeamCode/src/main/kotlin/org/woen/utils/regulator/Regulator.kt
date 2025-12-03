@@ -3,6 +3,7 @@ package org.woen.utils.regulator
 import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.threading.hardware.ThreadedBattery
+import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sign
 
@@ -23,6 +24,7 @@ class Regulator(val parameters: RegulatorParameters) {
 
     private var _integral = 0.0
     private var _errOld = 0.0
+    private var _oldKi = parameters.kI
 
     @Synchronized
     fun start() {
@@ -61,6 +63,11 @@ class Regulator(val parameters: RegulatorParameters) {
             (err * u < 0.0f)
         )
             _integral += err * _deltaTime.seconds()
+
+        if(abs(_oldKi - parameters.kI) > 0.00001)
+            _integral = 0.0
+
+        _oldKi = parameters.kI
 
         _deltaTime.reset()
         _errOld = err

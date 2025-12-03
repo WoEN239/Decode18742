@@ -108,7 +108,7 @@ class Brush : IModule {
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(bruh)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(bruh)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SwitchBrush::class, {
             turnOn.set(it.brushState)//1-ack; 2-notack; 3-brake; 4- revers with fixed time

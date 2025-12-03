@@ -31,7 +31,7 @@ class HardwareTurret(
         get() = (_realTargetVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
         set(value) {
             _realTargetVelocity =
-                (value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
+                ((value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS))
         }
 
     val currentVelocity: Double
@@ -69,6 +69,8 @@ class HardwareTurret(
 
         val rawVelocity = (currentMotorPosition - _oldMotorPosition) / _deltaTime.seconds()
 
+        _deltaTime.reset()
+
         _motorVelocity =
             _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
 
@@ -88,8 +90,6 @@ class HardwareTurret(
                 target
             )
         )
-
-        _deltaTime.reset()
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -107,7 +107,7 @@ class HardwareTurret(
             _pulleyRegulator.start()
             _deltaTime.reset()
 
-            rotateServo.position = 0.5
+            rotateServo.position = 0.51
         }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
@@ -118,6 +118,8 @@ class HardwareTurret(
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData("currentTurretVelocity", currentVelocity)
             it.addData("targetTurretVelocity", targetVelocity)
+            it.addData("current ticks velocity", _motorVelocity)
+            it.addData("angle pos", anglePosition)
         }
     }
 

@@ -67,41 +67,17 @@ object Configs {
 
     @Config
     internal object ODOMETRY {
-        @EventConfig
-        var VELOCITY_FILTER_K = ThreadedTelemetry.EventValueProvider(0.1)
-
-        @JvmField
-        var ODOMETRY_TICKS = 8192
-
-        @JvmField
-        var ODOMETRY_DIAMETER = 0.048
-
-        @JvmField
-        var ODOMETER_LEFT_RADIUS = 0.04
-
-        @JvmField
-        var ODOMETER_RIGHT_RADIUS = 0.04
-
-        @JvmField
-        var ODOMETER_SIDE_RADIUS = 0.0
-
-        @JvmField
-        var ODOMETER_ROTATE_SENS = 1e-8
-
-        @EventConfig
-        var ODOMETRY_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.2)
-
         @JvmField
         var START_RED_ORIENTATION = Orientation(Vec2(1.631, 0.39), Angle(PI))
 
         @JvmField
         var START_BLUE_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI))
 
-        @EventConfig
-        var POSITION_VELOCITY_K = ThreadedTelemetry.EventValueProvider(0.1)
+        @JvmField
+        var X_ODOMETER_POSITION = -0.09
 
-        @EventConfig
-        var HEADING_VELOCITY_K = ThreadedTelemetry.EventValueProvider(0.1)
+        @JvmField
+        var Y_ODOMETER_POSITION = 0.15
     }
 
     @Config
@@ -133,29 +109,11 @@ object Configs {
             Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
         )
 
-        @EventConfig
-        var ENCODER_VELOCITY_FILTER_K = ThreadedTelemetry.EventValueProvider(0.1)
-
         @JvmField
-        var ENCODER_TICKS = (1.0 + (46.0 / 17.0)) * (1.0 + (46.0 / 17.0)) * 28.0
-
-        @JvmField
-        var WHEEL_DIAMETER = 0.096
-
-        @JvmField
-        var LAG = Vec2(1.0, 1.0)
-
-        @JvmField
-        var H_LAG = 1.0
-
-        @JvmField
-        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 3.3, kI = 0.4, kPow = 0.15, kD = 0.1)
+        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 22.0, kD = 1.0,  limitU = 12.0)
 
         @JvmField
         var LOOK_SENS = 0.3
-
-        @JvmField
-        var WHEEL_CENTER_POS = Vec2(0.3 / 2.0, 0.27 / 2.0)
 
         @JvmField
         var LOOK_TARGET_TIMER = 0.5
@@ -189,18 +147,6 @@ object Configs {
     }
 
     @Config
-    internal object GYRO {
-        @JvmField
-        var GYRO_UPDATE_HZ = 5
-
-        @EventConfig
-        var GYRO_MERGE_COEF = ThreadedTelemetry.EventValueProvider(0.1)
-
-        @JvmField
-        var IS_USE_GYRO = true
-    }
-
-    @Config
     internal object CAMERA {
         @JvmField
         var CAMERA_ACCURACY = 300
@@ -212,7 +158,7 @@ object Configs {
         var CAMERA_TRIGGER_DISTANCE = 3.0
 
         @JvmField
-        var CAMERA_POSITION = Vec2(0.17, 0.1)
+        var CAMERA_POSITION = Vec2(-0.3, -0.1025)
 
         @JvmField
         var CAMERA_HEIGHT = 0.37
@@ -227,13 +173,13 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kD = 0.0001, kI = 0.008, kP = 0.055, limitU = DRIVE_TRAIN.DRIVE_ANGLE_MULTIPLIER)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.22, kI = 0.00001, kF = 0.00505)
 
         @EventConfig
-        var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.1)
+        var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 15.0
+        var PULLEY_TARGET_SENS = 3.0
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-1.55, -1.55)
@@ -272,7 +218,7 @@ object Configs {
         var MIN_TURRET_ANGLE_SERVO = 0.0
 
         @JvmField
-        var MAX_TURRET_ANGLE_SERVO = 0.9
+        var MAX_TURRET_ANGLE_SERVO = 0.6
 
         @JvmField
         var MIN_TURRET_ANGLE = 45.0 / 180 * PI
@@ -281,33 +227,18 @@ object Configs {
         var MAX_TURRET_ANGLE = 55.0 / 180 * PI
 
         @JvmField
-        var MAX_SHOOTING_DISTANCE = 5.0
+        var MAX_SHOOTING_DISTANCE = 3.5
 
         @JvmField
         var PULLEY_U = 0.7
 
         @JvmField
-        var TURRET_SHOOT_POS = Vec2.ZERO
+        var TURRET_SHOOT_POS = Vec2(0.0, -0.05)
         @JvmField
         var TURRET_SHOOT_DETECT_CURRENT = 0.5
 
         @JvmField
-        var TURRET_CENTER_POS = Vec2.ZERO
-
-        @JvmField
-        var SHOOT_DRIVE_ANGLE = Angle.ofDeg(153.0)
-
-        @JvmField
-        var LONG_PULLEY_SPEED = 18.0
-
-        @JvmField
-        var SHORT_PULLEY_SPEED = 18.0
-
-        @JvmField
-        var LONG_ANGLE = 0.6
-
-        @JvmField
-        var SHORT_ANGLE = 0.1
+        var TURRET_CENTER_POS = Vec2(0.0, -0.115)
     }
 
 
@@ -416,7 +347,7 @@ object Configs {
 
 
         @JvmField
-        var SORTING_STORAGE_BELT_MOTORS_DIRECTION = DcMotorSimple.Direction.FORWARD
+        var SORTING_STORAGE_BELT_MOTORS_DIRECTION = DcMotorSimple.Direction.REVERSE
 
 
         @JvmField
@@ -496,18 +427,21 @@ object Configs {
         @JvmField
         var GATE_SERVO = "gate_servo"
         @JvmField
-        var PUSH_SERVO = "pushServo"
+        var PUSH_SERVO = "push_servo"
     }
 
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 0.4
+        var BELT_PUSH_TIME = 0.2
 
         @JvmField
         var REVERS_TIME = 0.2
 
         @JvmField
-        var FULL_TRIGGER_TIMER = 0.5
+        var BELTS_FULL_CURRENT = 8.0
+
+        @JvmField
+        var BELTS_FULL_TIMER = 0.3
     }
 }

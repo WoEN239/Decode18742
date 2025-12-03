@@ -5,16 +5,12 @@ import kotlinx.coroutines.DisposableHandle
 import org.woen.utils.smartMutex.SmartMutex
 
 import org.woen.modules.driveTrain.DriveTrain
-import org.woen.modules.driveTrain.odometry.Odometry
+import org.woen.modules.driveTrain.Odometry
 import org.woen.modules.runner.actions.ActionRunner
 
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.simple.SimpleStorage
 import org.woen.modules.scoringSystem.turret.Turret
-
-import org.woen.modules.scoringSystem.SortingAutoLogic
-import org.woen.modules.scoringSystem.ScoringModulesConnector
-
 
 
 class HardwareThreads private constructor() : DisposableHandle {
@@ -51,17 +47,17 @@ class HardwareThreads private constructor() : DisposableHandle {
     }
 
     val CONTROL = HardwareThread()
-//    val EXPANSION = HardwareThread()
+    val EXPANSION = HardwareThread()
 
     override fun dispose() {
         CONTROL.dispose()
-//        EXPANSION.dispose()
+        EXPANSION.dispose()
         ActionRunner.restart()
     }
 
     private fun initModules() {
-//        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
-        CONTROL.link.addModules(Odometry(), DriveTrain(), Brush(), Turret(), /*SimpleStorage()*/)
+        CONTROL.link.addModules(Odometry(), DriveTrain())
+        EXPANSION.link.addModules(Turret(), Brush(), SimpleStorage())
         ActionRunner.LAZY_INSTANCE
 
         //ScoringModulesConnector()
