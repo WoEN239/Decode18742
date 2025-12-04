@@ -55,9 +55,12 @@ class Turret : IModule {
             _hardwareTurret.targetVelocity = calculatePulleySpeed()
 
 
-            if (_isShooting.get() && _hardwareTurret.detShoot) {
-                ThreadedEventBus.LAZY_INSTANCE.invoke(TurretVoltageDropped())
+            if (_isShooting.get() && _hardwareTurret.shotWasFired) {
+
                 _isShooting.set(false)
+                ThreadedEventBus.LAZY_INSTANCE.invoke(TurretVoltageDropped())
+
+                ThreadedTelemetry.LAZY_INSTANCE.log("\t!!!")
             }
         }
     }

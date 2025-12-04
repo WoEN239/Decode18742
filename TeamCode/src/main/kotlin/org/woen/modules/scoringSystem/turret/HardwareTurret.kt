@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.PI
 import kotlin.math.abs
 
-var prosad=false;
 class HardwareTurret(
     private val _motorName: String,
     private var _servoName: String
@@ -25,11 +24,11 @@ class HardwareTurret(
     IHardwareDevice {
     private lateinit var _motor: DcMotorEx
     private lateinit var _angleSevo: Servo
-    private var tmr = ElapsedTime()
 
     var targetVelocity: Double
         get() = (_realTargetVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
-        set(value) {
+        set(value)
+        {
             _realTargetVelocity =
                 ((value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS))
         }
@@ -49,16 +48,26 @@ class HardwareTurret(
     private var _oldMotorPosition = 0.0
 
     private var _motorVelocity = 0.0
-    var detShoot = false
+    var shotWasFired = false
     var velocityAtTarget = AtomicBoolean(false)
 
-    private val _deltaTime = ElapsedTime()
+    private val _deltaTime  = ElapsedTime()
+    private val _delayTimer = ElapsedTime()
+
+    private var _motorAmps = 0.0
 
     override fun update() {
 
-            if(_motor.getCurrent(CurrentUnit.AMPS)> Configs.TURRET.TURRET_SHOOT_DETECT_CURRENT){
-                detShoot=true
-            }else {detShoot=false}
+        _motorAmps = _motor.getCurrent(CurrentUnit.AMPS)
+        //ThreadedTelemetry.LAZY_INSTANCE.log("tamps: ${_motorAmps}")
+
+        if (_motorAmps > Configs.TURRET.TURRET_SHOOT_DETECT_CURRENT)
+            shotWasFired = _delayTimer.seconds() > Configs.TURRET.SHOOT_DELAY
+        else
+        {
+            _delayTimer.reset()
+            shotWasFired = false
+        }
 
         if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
             return
@@ -120,6 +129,7 @@ class HardwareTurret(
             it.addData("targetTurretVelocity", targetVelocity)
             it.addData("current ticks velocity", _motorVelocity)
             it.addData("angle pos", anglePosition)
+            it.addData("pulley amps", _motorAmps)
         }
     }
 

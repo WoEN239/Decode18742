@@ -57,6 +57,7 @@ class ScoringModulesConnector
 
 
     private val _isBusy               = AtomicBoolean(false)
+    private val _isAlreadyShooting    = AtomicBoolean(false)
 
     private val _shotWasFired         = AtomicBoolean(false)
     private val _canRestartBrushes    = AtomicBoolean(false)
@@ -358,11 +359,14 @@ class ScoringModulesConnector
     }
     private suspend fun awaitSuccessfulRequestShot()
     {
+        _storage.hwForceResumeBelts()
+        ThreadedTelemetry.LAZY_INSTANCE.log("SEND - AWAITING SHOT")
         ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
 
-        _storage.hwForceResumeBelts()
         while (!_shotWasFired.get() && !_requestWasTerminated.get())
             delay(DELAY_FOR_EVENT_AWAITING_MS)
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("\n\n\nRECEIVED - SHOT FIRED")
 
         _storage.hwForcePauseBelts()
 
@@ -370,6 +374,7 @@ class ScoringModulesConnector
             ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
 
         _shotWasFired.set(false)
+        _isAlreadyShooting.set(false)
         _requestWasTerminated.set(false)
     }
 

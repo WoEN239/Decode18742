@@ -639,6 +639,7 @@ class SortingStorage
     }
     private suspend fun resumeLogicAfterRequest()
     {
+        delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
         _storageCells.hwForcePauseBelts()
         _storageCells.hwReverseBelts(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
         _storageCells.fullCalibrate()
@@ -661,8 +662,8 @@ class SortingStorage
     private suspend fun fullWaitForShotFired(): Boolean
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("Waiting for shot - event send")
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
         _storageCells.hwOpenTurretGate()
+        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
 
         while (!_shotWasFired.get())
         {

@@ -12,7 +12,7 @@ class Process {
     }
 
     suspend fun wait() {
-        while (!closed.get())
+        while (!closed.get() && !Thread.currentThread().isInterrupted)
             delay(5)
     }
 }

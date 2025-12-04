@@ -231,8 +231,13 @@ object Configs {
 
         @JvmField
         var TURRET_SHOOT_POS = Vec2(0.0, -0.05)
+
+
         @JvmField
-        var TURRET_SHOOT_DETECT_CURRENT = 0.5
+        var TURRET_SHOOT_DETECT_CURRENT: Double = 3.66
+        @JvmField
+        var SHOOT_DELAY = 0.008
+
 
         @JvmField
         var TURRET_CENTER_POS = Vec2(0.0, -0.115)
@@ -298,6 +303,19 @@ object Configs {
 
 
     @Config
+    internal object PROCESS_ID {
+        @JvmField
+        var INTAKE = 0
+
+        @JvmField
+        var DRUM_REQUEST = 1
+
+        @JvmField
+        var SINGLE_REQUEST = 2
+    }
+
+
+    @Config
     internal object STORAGE {
         @JvmField
         var MAX_BALL_COUNT = 3
@@ -329,7 +347,7 @@ object Configs {
         var REQUEST_RACE_CONDITION_DELAY_MS: Long = 10
 
         @JvmField
-        var DELAY_FOR_EVENT_AWAITING_MS: Long = 10
+        var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
         @JvmField
         var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 50
 
@@ -418,7 +436,7 @@ object Configs {
 
 
         @JvmField
-        var SORTING_STORAGE_BELT_MOTORS = "belt_motors"
+        var SORTING_STORAGE_BELT_MOTORS = "beltMotors"
 
 
         @JvmField
