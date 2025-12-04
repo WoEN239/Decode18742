@@ -1,27 +1,17 @@
 package org.woen.modules.scoringSystem.simple
 
-import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
-import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
-import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_BALL_MAX_B_S1
-import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_BALL_MAX_R_S1
-import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_GREEN_BALL_MIN_G_S1
-import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_BALL_MAX_G_S1
-import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_BALL_MIN_B_S1
-import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.THRESHOLD_PURPLE_BALL_MIN_R_S1
-import org.woen.telemetry.Configs.COLOR_SENSORS_AND_OPTIC_PARE.VAR_MAXIMUM_READING
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_1
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
+import org.woen.utils.events.SimpleEvent
 import org.woen.utils.motor.MotorOnly
-import woen239.FixColorSensor.fixSensor
-import woen239.enumerators.Ball
 
 class HardwareSimpleStorage : IHardwareDevice
 {
@@ -38,6 +28,11 @@ class HardwareSimpleStorage : IHardwareDevice
 //
     var beltState = BeltState.STOP
     var beltsCurrent = 0.0
+
+    val currentTriggerEvent = SimpleEvent<Int>()
+
+    private var _fullTriggerTimer = ElapsedTime()
+
 //    var ballColor = Ball.Name.NONE
 //    var isBallOnTurret = false
 
@@ -60,6 +55,13 @@ class HardwareSimpleStorage : IHardwareDevice
         }
 
         beltsCurrent = _beltMotor.getCurrent(CurrentUnit.AMPS)
+
+        if(beltsCurrent > Configs.SIMPLE_STORAGE.BELTS_FULL_CURRENT){
+            if(_fullTriggerTimer.seconds() > Configs.SIMPLE_STORAGE.BELTS_FULL_TIMER)
+                currentTriggerEvent.invoke(0)
+        }
+        else
+            _fullTriggerTimer.reset()
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -77,6 +79,8 @@ class HardwareSimpleStorage : IHardwareDevice
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             pushServo.position = Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
             gateServo.position = Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
+
+            _fullTriggerTimer.reset()
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {

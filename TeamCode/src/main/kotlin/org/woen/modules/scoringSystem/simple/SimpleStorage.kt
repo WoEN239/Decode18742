@@ -1,11 +1,11 @@
 package org.woen.modules.scoringSystem.simple
 
-import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrush
 import org.woen.modules.scoringSystem.turret.WaitTurretAtTargetEvent
@@ -43,6 +43,7 @@ class SimpleStorage : IModule {
         ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.ACKT))
 
         _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false))
 
 //        _isStorageFull = false
         _isShooting = false
@@ -57,7 +58,7 @@ class SimpleStorage : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
             _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-//                val process = ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(true)).process
+                val process = ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(true)).process
 
                 _isShooting = true
 
@@ -71,6 +72,10 @@ class SimpleStorage : IModule {
 
                 while (!_gateServo.atTargetAngle)
                     delay(5)
+
+                process.wait()
+
+                delay(90)
 
                 repeat(3) {
                     _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS
@@ -110,11 +115,11 @@ class SimpleStorage : IModule {
             _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
         })
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.right_trigger > 0.1 }, {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
-
-            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
-        }))
+//        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.right_trigger > 0.1 }, {
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
+//
+//            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+//        }))
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({it.left_bumper}, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateSimpleShootEvent())
@@ -123,20 +128,18 @@ class SimpleStorage : IModule {
         ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({it.right_bumper}, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
         }))
-    }
 
-    private var _beltsCurrentTriggerTimer = ElapsedTime()
-
-    override suspend fun process() {
-        if(_hardwareStorage.beltsCurrent > Configs.SIMPLE_STORAGE.BELTS_FULL_CURRENT && !_isShooting){
-            if(_beltsCurrentTriggerTimer.seconds() > Configs.SIMPLE_STORAGE.BELTS_FULL_TIMER) {
+        _hardwareStorage.currentTriggerEvent += {
+            if (!_isShooting) {
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
             }
         }
-        else
-            _beltsCurrentTriggerTimer.reset()
+    }
+
+    override suspend fun process() {
+
     }
 
     override val isBusy: Boolean

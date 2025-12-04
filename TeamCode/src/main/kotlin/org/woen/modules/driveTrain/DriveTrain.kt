@@ -50,7 +50,6 @@ class DriveTrain : IModule {
     private var _lookProcess = AtomicReference(Process())
     private var _lookRegulator = Regulator(Configs.DRIVE_TRAIN.LOOK_REGULATOR_PARAMETERS)
     private var _targetAngle = Angle.ZERO
-    private var _lookTimer = ElapsedTime()
 
     override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -66,12 +65,8 @@ class DriveTrain : IModule {
 
                 val err = (_targetAngle - odometry.odometryOrientation.angl).angle
 
-                if (abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS) {
-                    if(_lookTimer.seconds() > Configs.DRIVE_TRAIN.LOOK_TARGET_TIMER)
+                if (abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS)
                         _lookProcess.get().close()
-                }
-                else
-                    _lookTimer.reset()
 
                 err
             } else
@@ -126,7 +121,7 @@ class DriveTrain : IModule {
                         Vec2(
                             ly,
                             lx
-                        ).turn(if(currentRunColor == HotRun.RunColor.RED) (odometryOrientation.angl - Angle.ofDeg(90.0)).angle else
+                        ).turn(if(currentRunColor == HotRun.RunColor.BLUE) (odometryOrientation.angl - Angle.ofDeg(90.0)).angle else
                             (odometryOrientation.angl * -1.0 + Angle.ofDeg(90.0)).angle) * Vec2(
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER
@@ -149,10 +144,10 @@ class DriveTrain : IModule {
             it.lookMode = _lookMode.get()
         })
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_left }, {
-            _lookMode.set(!_lookMode.get())
-            _lookRegulator.start()
-        }))
+//        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.dpad_left }, {
+//            _lookMode.set(!_lookMode.get())
+//            _lookRegulator.start()
+//        }))
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.drawCircle(

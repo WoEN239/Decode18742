@@ -101,9 +101,7 @@ class Turret : IModule {
                 ).setRot(vecVel.rot()) + Vec2(0.0, Configs.TURRET.CALCULATING_G
                 )) * Configs.TURRET.TIME_STEP
 
-                pos += vecVel * Vec2(Configs.TURRET.TIME_STEP)
-
-                ThreadedTelemetry.LAZY_INSTANCE.log(pos.x.toString())
+                pos += vecVel * Configs.TURRET.TIME_STEP
             }
 
             return pos.y
@@ -112,23 +110,21 @@ class Turret : IModule {
         var left = Configs.TURRET.MIN_APPROXIMATION
         var right = Configs.TURRET.MAX_MOTOR_RPS * (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
 
-//        var iterations = 0
-//
-//        while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS) {
-//            iterations++
-//
-//            val middle = (left + right) / 2.0
-//
-//            val dif =
-//                getHitHeight(middle) - (Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT)
-//
-//            if (dif > 0.0)
-//                right = middle
-//            else
-//                left = middle
-//        }
+        var iterations = 0
 
-        ThreadedTelemetry.LAZY_INSTANCE.log(getHitHeight((left + right) / 2.0).toString()) //infinity
+        while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS) {
+            iterations++
+
+            val middle = (left + right) / 2.0
+
+            val dif =
+                getHitHeight(middle) - (Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT)
+
+            if (dif > 0.0)
+                right = middle
+            else
+                left = middle
+        }
 
         return (left + right) / 2.0
     }

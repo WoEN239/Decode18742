@@ -113,10 +113,7 @@ object Configs {
         var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 22.0, kD = 1.0,  limitU = 12.0)
 
         @JvmField
-        var LOOK_SENS = 0.3
-
-        @JvmField
-        var LOOK_TARGET_TIMER = 0.5
+        var LOOK_SENS = 0.1
     }
 
     @Config
@@ -182,10 +179,10 @@ object Configs {
         var PULLEY_TARGET_SENS = 3.0
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-1.55, -1.55)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.31, -3.66 / 2.0)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-1.55, 1.55)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.31, 3.66 / 2.0)
 
         @JvmField
         var TURRET_HEIGHT = 0.35
@@ -200,7 +197,7 @@ object Configs {
         var TIME_STEP = 0.1
 
         @JvmField
-        var AIR_FORCE_K = 0.4
+        var AIR_FORCE_K = 0.0036
 
         @JvmField
         var CALCULATING_G = 9.78
@@ -212,7 +209,7 @@ object Configs {
         var MIN_APPROXIMATION = 1.0
 
         @JvmField
-        var APPROXIMATION_MAX_ITERATIONS = 100
+        var APPROXIMATION_MAX_ITERATIONS = 70
 
         @JvmField
         var MIN_TURRET_ANGLE_SERVO = 0.0
@@ -230,7 +227,7 @@ object Configs {
         var MAX_SHOOTING_DISTANCE = 3.5
 
         @JvmField
-        var PULLEY_U = 0.7
+        var PULLEY_U = 0.41
 
         @JvmField
         var TURRET_SHOOT_POS = Vec2(0.0, -0.05)
@@ -442,6 +439,6 @@ object Configs {
         var BELTS_FULL_CURRENT = 8.0
 
         @JvmField
-        var BELTS_FULL_TIMER = 0.3
+        var BELTS_FULL_TIMER = 0.1
     }
 }
