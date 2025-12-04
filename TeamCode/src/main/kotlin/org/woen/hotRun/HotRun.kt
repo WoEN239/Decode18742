@@ -131,6 +131,9 @@ class HotRun private constructor() {
             currentRunState.set(RunState.STOP)
 
             opModeStopEvent.invoke(opMode)
+
+            for(i in opMode.hardwareMap.servoController)
+                i.pwmDisable()
         } catch (e: Exception) {
             throw e
         }
