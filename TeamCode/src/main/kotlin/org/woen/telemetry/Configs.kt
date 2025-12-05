@@ -8,6 +8,7 @@ import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
+import woen239.enumerators.RunStatus
 import woen239.enumerators.Shooting
 import woen239.enumerators.StorageSlot
 import kotlin.math.PI
@@ -234,7 +235,7 @@ object Configs {
 
 
         @JvmField
-        var TURRET_SHOOT_DETECT_CURRENT: Double = 3.66
+        var TURRET_SHOOT_DETECT_CURRENT: Double = 3.7
         @JvmField
         var SHOOT_DELAY = 0.008
 
@@ -304,14 +305,23 @@ object Configs {
 
     @Config
     internal object PROCESS_ID {
-        @JvmField
-        var INTAKE = 0
 
         @JvmField
-        var DRUM_REQUEST = 1
+        var PRIORITY_SETTING_FOR_SORTING_STORAGE = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
+
 
         @JvmField
-        var SINGLE_REQUEST = 2
+        var UNDEFINED_PROCESS_ID = 0
+
+
+        @JvmField
+        var INTAKE = 1
+
+        @JvmField
+        var DRUM_REQUEST = 2
+
+        @JvmField
+        var SINGLE_REQUEST = 3
     }
 
 

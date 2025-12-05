@@ -230,10 +230,10 @@ class StorageCells
 
 
     suspend fun hwRotateBeltsForward(timeMs: Long) = _hwSortingM.hwRotateBeltForward(timeMs)
-    suspend fun hwReverseBelts (timeMs: Long) = _hwSortingM.hwReverseBelt(timeMs)
-    suspend fun hwForceResumeBelts() = _hwSortingM.forceSafeResumeBelts()
-    suspend fun hwForcePauseBelts()  = _hwSortingM.forceSafePauseBelts()
-    suspend fun hwOpenTurretGate()   = _hwSortingM.openTurretGate()
+    suspend fun hwReverseBelts(timeMs: Long) = _hwSortingM.hwReverseBelts(timeMs)
+    fun hwStartBelts() = _hwSortingM.startBelts()
+    fun hwStopBelts() = _hwSortingM.stopBelts()
+    suspend fun hwOpenTurretGate() = _hwSortingM.openTurretGate()
 
 
 
@@ -319,7 +319,7 @@ class StorageCells
 
 
 
-    suspend fun pauseAnyIntake() = _hwSortingM.stopAwaitingEating(true)
+    fun pauseAnyIntake() = _hwSortingM.stopAwaitingEating(true)
     fun resumeIntakes() = _hwSortingM.resumeAwaitingEating()
     
     

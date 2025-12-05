@@ -1,225 +1,202 @@
 package woen239.enumerators;
 
 
+import java.util.ArrayList;
+
+import static org.woen.telemetry.Configs.PROCESS_ID.UNDEFINED_PROCESS_ID;
+
+import org.woen.telemetry.ThreadedTelemetry;
+
+
 public class RunStatus
 {
-    static public final int INACTIVE = 0, ACTIVE = 1, TERMINATED = 3, USED_BY_ANOTHER_PROCESS = 4;
-    static public final int IS_INACTIVE = 0, IS_ACTIVE = 1, DO_TERMINATE = 2, IS_TERMINATED = 3;
+    private final int INTEGER_MAX_VALUE = 2147483647;
+    private int _currentActiveProcessId = -1;
 
-    private TerminationStatus _terminationStatus;
-    private Name _memName;
-    private int  _memId, _terminationId;
+    public enum Priority
+    {
+        PRIORITIZE_LOW_PROCESS_ID,
+        PRIORITIZE_HIGH_PROCESS_ID,
+        USE_CUSTOM_PRIORITY
+    }
 
 
 
-    public RunStatus(int value)
-    {
-        SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
-        Set(ToName(value), value);
-    }
-    public RunStatus(Name name)
-    {
-        SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
-        Set(name, ToInt(name));
-    }
-    public RunStatus(int value, Name name)
-    {
-        SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
-        Set(name, value);
-    }
-    public RunStatus(Name name, int value)
-    {
-        SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
-        Set(name, value);
-    }
+    private Priority _prioritySetting = Priority.PRIORITIZE_HIGH_PROCESS_ID;
+
+    private final ArrayList<Integer> _processQueue = new ArrayList<>();
+    private final ArrayList<Integer> _terminationList = new ArrayList<>();
+
+
+
     public RunStatus()
     {
-        SetTermination(IS_INACTIVE, TerminationStatus.IS_INACTIVE);
-        SetInactive();
+        _prioritySetting = Priority.PRIORITIZE_HIGH_PROCESS_ID;
+    }
+    public RunStatus(Priority priority)
+    {
+        _prioritySetting = priority;
     }
 
 
 
-    public enum Name
+    public void FullResetToActiveState()
     {
-        INACTIVE,
-        ACTIVE,
-        TERMINATED,
-        USED_BY_ANOTHER_PROCESS
-    }
-    public enum TerminationStatus
-    {
-        IS_INACTIVE,
-        IS_ACTIVE,
-        DO_TERMINATE,
-        IS_TERMINATED
+        ClearAllProcesses();
+        ClearAllTerminations();
+        ClearCurrentActiveProcess();
     }
 
 
 
-    public void SetActive()
+    public int GetCurrentActiveProcess()
     {
-        Set(ACTIVE, Name.ACTIVE);
+        return _currentActiveProcessId;
     }
-    public void SetInactive()
+    public void ClearCurrentActiveProcess()
     {
-        Set(INACTIVE, Name.INACTIVE);
+        _currentActiveProcessId = UNDEFINED_PROCESS_ID;
     }
-    public void SetAlreadyUsed()
+    public void SetCurrentActiveProcess(int processId)
     {
-        Set(USED_BY_ANOTHER_PROCESS, Name.USED_BY_ANOTHER_PROCESS);
-    }
-
-    public void Set(Name name)
-    {
-        Set(ToInt(name), name);
-    }
-    public void Set(int value)
-    {
-        Set(value, ToName(value));
-    }
-    public void Set(Name name, int value)
-    {
-        Set(value, name);
-    }
-    public void Set(int value, Name name)
-    {
-        _memId = value;
-        _memName = name;
-    }
-
-    public void DoTerminate()
-    {
-        SetTermination(DO_TERMINATE, TerminationStatus.DO_TERMINATE);
+        _currentActiveProcessId = processId;
     }
 
 
-    public void SafeResetTermination()
+
+    public int Current(int pos)
     {
-        if (_terminationId == IS_TERMINATED)
+        return _processQueue.get(pos);
+    }
+    public int size()
+    {
+        return _processQueue.size();
+    }
+    public boolean IsNotBusy()
+    {
+        return _processQueue.isEmpty();
+    }
+    public boolean IsUsedByAnyProcess()
+    {
+        return !_processQueue.isEmpty();
+    }
+    public boolean IsUsedByAnotherProcess(int ourProcessId)
+    {
+        for (int i = 0; i < _processQueue.size(); i++)
         {
-            SetTermination(IS_ACTIVE, TerminationStatus.IS_ACTIVE);
-            if (_memId == TERMINATED) Set(ACTIVE, Name.ACTIVE);
+            if (_processQueue.get(i) != ourProcessId)
+                return false;
+        }
+
+        return true;
+    }
+    public boolean IsThisProcessTerminated(int processId)
+    {
+        return _terminationList.contains(processId);
+    }
+
+
+
+    public void AddProcessToQueue(int processId)
+    {
+        _processQueue.add(processId);
+    }
+    public void ClearAllProcesses()
+    {
+        _processQueue.clear();
+    }
+    public void TryToRemoveProcessIdFromQueue(int processId)
+    {
+        int position = _processQueue.indexOf(processId);
+        while(position != -1)
+        {
+            position = _processQueue.indexOf(processId);
+            if (position != -1) _processQueue.remove(position);
         }
     }
-    public void SetTermination(TerminationStatus name)
+    public boolean IsThisProcessHighestPriority(int processId)
     {
-        SetTermination(ToInt(name), name);
-    }
-    public void SetTermination(int value)
-    {
-        SetTermination(value, ToTermination(value));
-    }
-    public void SetTermination(TerminationStatus name, int value)
-    {
-        SetTermination(value, name);
-    }
-    public void SetTermination(int value, TerminationStatus name)
-    {
-        _terminationStatus = name;
-        _terminationId = value;
-    }
+        int maxId = 0, minId = INTEGER_MAX_VALUE;
+        boolean containsRequestedId = false;
 
-
-
-    public Name Name()
-    {
-        return _memName;
-    }
-    public int  Id()
-    {
-        return _memId;
-    }
-    public TerminationStatus Termination()
-    {
-        return _terminationStatus;
-    }
-    public int TerminationId()
-    {
-        return _terminationId;
-    }
-
-
-
-    public boolean IsActive()
-    {
-        return _memId == IS_ACTIVE;
-    }
-    static public boolean IsActive(int value)
-    {
-        return value == IS_ACTIVE;
-    }
-    static public boolean IsActive(Name name)
-    {
-        return IsActive(ToInt(name));
-    }
-
-
-    public boolean IsInactive()
-    {
-        return _memId == IS_INACTIVE;
-    }
-    static public boolean IsInactive(int value)
-    {
-        return value == IS_INACTIVE;
-    }
-    static public boolean IsInactive(Name name)
-    {
-        return IsInactive(ToInt(name));
-    }
-
-
-    public boolean IsTerminated()
-    {
-        return _terminationId == TERMINATED;
-    }
-    public boolean IsUsedByAnotherProcess()
-    {
-        return _memId == USED_BY_ANOTHER_PROCESS;
-    }
-
-
-
-    static public Name ToName (int value)
-    {
-        switch (value)
+        for (int i = 0; i < _processQueue.size(); i++)
         {
-            case INACTIVE:   return Name.INACTIVE;
-            case ACTIVE:     return Name.ACTIVE;
-            case TERMINATED: return Name.TERMINATED;
-            default:         return Name.USED_BY_ANOTHER_PROCESS;
+            int curProcess = _processQueue.get(i);
+            if (curProcess == processId)
+                containsRequestedId = true;
+
+            if (curProcess > maxId) maxId = curProcess;
+            if (curProcess < minId) minId = curProcess;
+        }
+
+        return containsRequestedId
+            &&
+                (
+                    _prioritySetting == Priority.PRIORITIZE_HIGH_PROCESS_ID
+                    && processId >= maxId
+                ||
+                    _prioritySetting == Priority.PRIORITIZE_LOW_PROCESS_ID
+                    && processId <= minId
+                );
+    }
+    public int GetHighestPriorityProcessId()
+    {
+        int maxId = 0, minId = INTEGER_MAX_VALUE, processId = 0;
+
+        for (int i = 0; i < _processQueue.size(); i++)
+        {
+            int curProcess = _processQueue.get(i);
+
+            if (curProcess > maxId)
+            {
+                maxId = curProcess;
+                processId = i;
+            }
+            if (curProcess < minId)
+            {
+                minId = curProcess;
+                processId = i;
+            }
+        }
+
+        return processId;
+    }
+
+
+
+    public void AddProcessToTerminationList(int processId)
+    {
+        TryToRemoveProcessIdFromQueue(processId);
+        _terminationList.add(processId);
+    }
+    public boolean IsForcedToTerminateThisProcess(int processId)
+    {
+        for (int i = 0; i < _terminationList.size(); i++)
+        {
+            if (_terminationList.get(i) == processId)
+                return true;
+        }
+
+        return false;
+    }
+    public void TryToRemoveThisProcessFromTerminationList(int processId)
+    {
+        int position = _terminationList.indexOf(processId);
+        while(position != -1)
+        {
+            position = _terminationList.indexOf(processId);
+            if (position != -1) _terminationList.remove(position);
         }
     }
-    static public int ToInt (Name name)
+    public void ClearAllTerminations()
     {
-        switch (name)
-        {
-            case INACTIVE:   return INACTIVE;
-            case ACTIVE:     return ACTIVE;
-            case TERMINATED: return TERMINATED;
-            default:         return USED_BY_ANOTHER_PROCESS;
-        }
+        _terminationList.clear();
     }
 
 
-    static public TerminationStatus ToTermination (int value)
+
+    public void ChangePrioritySetting(Priority newPrioritySetting)
     {
-        switch (value)
-        {
-            case IS_INACTIVE:   return TerminationStatus.IS_INACTIVE;
-            case IS_ACTIVE:     return TerminationStatus.IS_ACTIVE;
-            case DO_TERMINATE:  return TerminationStatus.DO_TERMINATE;
-            default:            return TerminationStatus.IS_TERMINATED;
-        }
-    }
-    static public int ToInt (TerminationStatus name)
-    {
-        switch (name)
-        {
-            case IS_INACTIVE:   return IS_INACTIVE;
-            case IS_ACTIVE:     return IS_ACTIVE;
-            case DO_TERMINATE:  return DO_TERMINATE;
-            default:            return IS_TERMINATED;
-        }
+        _prioritySetting = newPrioritySetting;
     }
 }

@@ -359,7 +359,7 @@ class ScoringModulesConnector
     }
     private suspend fun awaitSuccessfulRequestShot()
     {
-        _storage.hwForceResumeBelts()
+        _storage.hwStartBelts()
         ThreadedTelemetry.LAZY_INSTANCE.log("SEND - AWAITING SHOT")
         ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
 
@@ -368,7 +368,7 @@ class ScoringModulesConnector
 
         ThreadedTelemetry.LAZY_INSTANCE.log("\n\n\nRECEIVED - SHOT FIRED")
 
-        _storage.hwForcePauseBelts()
+        _storage.hwStopBelts()
 
         if (_shotWasFired.get())
             ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())

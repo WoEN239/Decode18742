@@ -18,7 +18,6 @@ import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_INTAKES_MS
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_SORTING_REALIGNING_FORWARD_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_SORTING_REALIGNING_REVERSE_MS
@@ -30,8 +29,6 @@ class HwSortingManager
     private val _hwSorting = HwSorting()
     private val _hwSensors = HwSortingSensors()
 
-    private val _runStatus = RunStatus(RunStatus.USED_BY_ANOTHER_PROCESS,
-                                       RunStatus.Name.USED_BY_ANOTHER_PROCESS)
     val isAwaitingIntake   = AtomicBoolean(false)
 
 
@@ -84,7 +81,6 @@ class HwSortingManager
     fun resetParametersAndLogicToDefault()
     {
         isAwaitingIntake.set(false)
-        _runStatus.SetAlreadyUsed()
 
         ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             fullCalibrate()
@@ -95,10 +91,10 @@ class HwSortingManager
 
 
     fun resumeAwaitingEating() = isAwaitingIntake.set(true)
-    suspend fun stopAwaitingEating(stopBelts: Boolean)
+    fun stopAwaitingEating(stopBelts: Boolean)
     {
         isAwaitingIntake.set(false)
-        if (stopBelts) forceSafePauseBelts()
+        if (stopBelts) stopBelts()
     }
     suspend fun fullCalibrate()
     {
@@ -155,107 +151,11 @@ class HwSortingManager
     }
 
 
-    fun safeStartBelts(): Boolean
-    {
-        if (_runStatus.IsActive()) return true
 
-        val startCondition = _runStatus.IsInactive()
-        if (startCondition)
-        {
-            _runStatus.SetActive()
-            _hwSorting.startBeltMotors()
-        }
+    fun startBelts()   = _hwSorting.startBeltMotors()
+    fun reverseBelts() = _hwSorting.reverseBeltMotors()
 
-        return startCondition
-    }
-    suspend fun forceSafeStartBelts()
-    {
-        while (!safeStartBelts())
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
-    fun safeStopBelts(): Boolean
-    {
-        if (_runStatus.IsInactive()) return true  //  Already stopped
-
-        val stopCondition = _runStatus.IsActive()
-        if (stopCondition)
-        {
-            _runStatus.SetInactive()
-            _hwSorting.stopBeltMotors()
-        }
-
-        return stopCondition
-    }
-    fun forceStopBelts()
-    {
-        _runStatus.SetInactive()
-        _hwSorting.stopBeltMotors()
-    }
-    suspend fun forceSafeStopBelts()
-    {
-        while (!safeStopBelts())
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
-
-    fun safePauseBelts(): Boolean
-    {
-        if (_runStatus.IsUsedByAnotherProcess()) return true  //  Already paused
-
-        val pauseCondition = _runStatus.IsActive()
-        if (pauseCondition)
-        {
-            _runStatus.Set(
-                RunStatus.USED_BY_ANOTHER_PROCESS,
-                RunStatus.Name.USED_BY_ANOTHER_PROCESS
-            )
-            _hwSorting.stopBeltMotors()
-        }
-
-        return pauseCondition
-    }
-    suspend fun forceSafePauseBelts()
-    {
-        while (!safePauseBelts())
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
-
-    fun safeResumeBelts(): Boolean
-    {
-        if (_runStatus.IsActive()) return true  //  Already active
-
-        val resumeCondition = _runStatus.IsUsedByAnotherProcess()  //  NOT INACTIVE
-        if (resumeCondition)
-        {
-            _runStatus.SetActive()
-            _hwSorting.startBeltMotors()
-        }
-
-        return resumeCondition
-    }
-    suspend fun forceSafeResumeBelts()
-    {
-        while (!safeResumeBelts())
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
-
-    fun safeReverseBelts(): Boolean
-    {
-        if (_runStatus.IsActive()) return true  //  Already active
-
-        val resumeCondition = _runStatus.IsUsedByAnotherProcess()  //  NOT INACTIVE
-        if (resumeCondition)
-        {
-            _runStatus.SetActive()
-            _hwSorting.reverseBeltMotors()
-        }
-
-        return resumeCondition
-    }
-    suspend fun forceSafeReverseBelts()
-    {
-        while (!safeReverseBelts())
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
+    fun stopBelts() = _hwSorting.stopBeltMotors()
 
 
 
@@ -264,20 +164,20 @@ class HwSortingManager
         ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is moving")
 
         stopAwaitingEating(false)
-        forceSafeResumeBelts()
+        startBelts()
         delay(timeMs)
-        forceSafePauseBelts()
+        stopBelts()
 
         ThreadedTelemetry.LAZY_INSTANCE.log(("HW belt stopped"))
     }
-    suspend fun hwReverseBelt(timeMs: Long)
+    suspend fun hwReverseBelts(timeMs: Long)
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is reversing")
 
         stopAwaitingEating(false)
-        forceSafeReverseBelts()
+        startBelts()
         delay(timeMs)
-        forceSafePauseBelts()
+        stopBelts()
 
         ThreadedTelemetry.LAZY_INSTANCE.log(("HW belt stopped"))
     }
@@ -287,11 +187,11 @@ class HwSortingManager
         stopAwaitingEating(true)
         closeTurretGate()
 
-        forceSafeResumeBelts()
+        startBelts()
         delay(DELAY_FOR_SORTING_REALIGNING_FORWARD_MS)
-        forceSafeReverseBelts()
+        reverseBelts()
         delay(DELAY_FOR_SORTING_REALIGNING_REVERSE_MS)
-        forceSafePauseBelts()
+        stopBelts()
 
         openGate()
         openPush()
