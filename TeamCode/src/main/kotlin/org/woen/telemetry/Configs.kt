@@ -353,7 +353,14 @@ object Configs {
 
 
         @JvmField
-        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 444
+        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 400
+
+        @JvmField
+        var DELAY_FOR_SORTING_REALIGNING_FORWARD_MS: Long = 150
+
+        @JvmField
+        var DELAY_FOR_SORTING_REALIGNING_REVERSE_MS: Long = 44
+
 
 
         @JvmField

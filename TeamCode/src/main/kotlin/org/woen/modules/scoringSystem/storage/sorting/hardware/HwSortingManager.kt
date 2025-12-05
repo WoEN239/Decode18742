@@ -20,6 +20,8 @@ import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_INTAKES_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_SORTING_REALIGNING_FORWARD_MS
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_SORTING_REALIGNING_REVERSE_MS
 
 
 
@@ -281,18 +283,20 @@ class HwSortingManager
     }
     suspend fun hwRotateMobileSlots()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("rotating mobile slot")
         stopAwaitingEating(true)
         closeTurretGate()
+
         forceSafeResumeBelts()
-        delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        delay(DELAY_FOR_SORTING_REALIGNING_FORWARD_MS)
+        forceSafeReverseBelts()
+        delay(DELAY_FOR_SORTING_REALIGNING_REVERSE_MS)
+        forceSafePauseBelts()
 
         openGate()
-        delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
         openPush()
 
         closeGate()
         closePush()
-        delay(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
-        forceSafePauseBelts()
     }
 }

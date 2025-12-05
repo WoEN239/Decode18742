@@ -130,12 +130,8 @@ class StorageCells
                 RequestResult.FAIL_IS_EMPTY,
                 RequestResult.Name.FAIL_IS_EMPTY)
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("Cur storage before request search")
-        ThreadedTelemetry.LAZY_INSTANCE.log("request: $requested")
-        ThreadedTelemetry.LAZY_INSTANCE.log("BOTTOM :${_storageCells[StorageSlot.BOTTOM].Name()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("CENTER :${_storageCells[StorageSlot.CENTER].Name()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("MB_OUT :${_storageCells[StorageSlot.MOBILE_OUT].Name()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("MOB_IN :${_storageCells[StorageSlot.MOBILE_IN].Name()}")
+        ThreadedTelemetry.LAZY_INSTANCE.log("starting request search: ${requested}, storage:")
+        logAllStorageData()
 
         val result = RequestResult(
             RequestResult.FAIL_COLOR_NOT_PRESENT,
@@ -157,19 +153,15 @@ class StorageCells
     }
     private fun anyBallRequestSearch(): RequestResult
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("START: ANY REQUEST SEARCH")
-
         val result = RequestResult(
             RequestResult.FAIL_IS_EMPTY,
             RequestResult.Name.FAIL_IS_EMPTY
         )
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("Cur storage before request search")
-        ThreadedTelemetry.LAZY_INSTANCE.log("request: ANY")
-        ThreadedTelemetry.LAZY_INSTANCE.log("BOTTOM :${_storageCells[StorageSlot.BOTTOM].Name()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("CENTER :${_storageCells[StorageSlot.CENTER].Name()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("MB_OUT :${_storageCells[StorageSlot.MOBILE_OUT].Name()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("MOB_IN :${_storageCells[StorageSlot.MOBILE_IN].Name()}")
+        ThreadedTelemetry.LAZY_INSTANCE.log("starting request search: ANY_CLOSEST, storage:")
+        logAllStorageData()
+
+
         if (isEmpty()) return result
 
 
@@ -193,21 +185,20 @@ class StorageCells
     {
         _hwSortingM.stopAwaitingEating(true)
         val intakeCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
-        ThreadedTelemetry.LAZY_INSTANCE.log("Cur storage before intake updating")
-        ThreadedTelemetry.LAZY_INSTANCE.log("BOTTOM :${_storageCells[StorageSlot.BOTTOM].Name()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("CENTER :${_storageCells[StorageSlot.CENTER].Name()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("MB_OUT :${_storageCells[StorageSlot.MOBILE_OUT].Name()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("MOB_IN :${_storageCells[StorageSlot.MOBILE_IN].Name()}")
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("before intake:")
+        logAllStorageData()
 
         if (intakeCondition)
         {
             _storageCells[StorageSlot.BOTTOM].Set(inputBall)
-
-            ThreadedTelemetry.LAZY_INSTANCE.log("SW STORAGE UPDATED, auto adjusting..")
             hwReAdjustStorage()
         }
         else ThreadedTelemetry.LAZY_INSTANCE.log("INTAKE: UNKNOWN ERROR whilst cells intake")
         //!  else fastFixStorageDesync()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("finished cells intake, new storage:")
+        logAllStorageData()
 
         _hwSortingM.resumeAwaitingEating()
         return intakeCondition
@@ -219,6 +210,9 @@ class StorageCells
 
         if (requestCondition)  _storageCells[StorageSlot.MOBILE_OUT].Empty()
         hwReAdjustStorage()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("finished cells request, new storage:")
+        logAllStorageData()
 
         return requestCondition
     }
@@ -246,12 +240,12 @@ class StorageCells
     suspend fun fullCalibrate() = _hwSortingM.fullCalibrate()
     suspend fun fullRotate()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("storage before full rotation:")
+        logAllStorageData()
+
         _hwSortingM.stopAwaitingEating(true)
-        ThreadedTelemetry.LAZY_INSTANCE.log("FR - hw readjusting")
         hwReAdjustStorage()
 
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("FR - MOVING MOBILE")
         _hwSortingM.hwRotateMobileSlots()
 
         _storageCells[StorageSlot.MOBILE_IN].Set(
@@ -259,13 +253,14 @@ class StorageCells
             _storageCells[StorageSlot.MOBILE_OUT].Name())
         _storageCells[StorageSlot.MOBILE_OUT].Empty()
 
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("FR - hw readjusting")
         hwReAdjustStorage()
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("finished full rotation, new storage:")
+        logAllStorageData()
     }
     private fun swReAdjustStorage(): Boolean
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("SW READJUST START - " + anyBallCount())
+        ThreadedTelemetry.LAZY_INSTANCE.log("SwReadjust start")
         if (_storageCells[StorageSlot.MOBILE_OUT].IsEmpty() &&
             isNotEmpty())
         {
@@ -311,7 +306,7 @@ class StorageCells
         }
         else
         {
-            ThreadedTelemetry.LAZY_INSTANCE.log("case 4: already adjusted, ball count: " + anyBallCount())
+            ThreadedTelemetry.LAZY_INSTANCE.log("finished readjusting")
             return false
         }
     }
@@ -329,6 +324,15 @@ class StorageCells
     
     
 
+    fun logAllStorageData()
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("" +
+                "B: ${_storageCells[StorageSlot.BOTTOM].Name()}; "
+              + "C: ${_storageCells[StorageSlot.CENTER].Name()}; "
+             + "MO: ${_storageCells[StorageSlot.MOBILE_OUT].Name()}; "
+             + "MI: ${_storageCells[StorageSlot.MOBILE_IN].Name()}\n"
+        )
+    }
     fun storageData() = _storageCells
 
     fun anyBallCount(): Int
