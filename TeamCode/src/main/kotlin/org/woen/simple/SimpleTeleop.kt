@@ -114,6 +114,7 @@ class SimpleTeleop : LinearOpMode() {
 
         leftForwardDrive.direction = DcMotorSimple.Direction.REVERSE
         leftBackDrive.direction = DcMotorSimple.Direction.REVERSE
+        rightBackDrive.direction = DcMotorSimple.Direction.REVERSE
 
 //        brushMotor = hardwareMap.get("brushMotor") as DcMotorEx
 //

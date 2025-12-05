@@ -40,7 +40,7 @@ class SimpleStorage : IModule {
 
         _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.ACKT))
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.REVERS))
 
         _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false))

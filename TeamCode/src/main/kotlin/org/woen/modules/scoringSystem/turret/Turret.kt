@@ -97,7 +97,7 @@ class Turret : IModule {
             vecVel += robotXVel
             var pos = Vec2.ZERO
 
-            while (pos.x < shootDistance) {
+            while (pos.x < shootDistance && !Thread.currentThread().isInterrupted) {
                 vecVel -= (Vec2(
                     vecVel.length()
                         .pow(2.0) * Configs.TURRET.AIR_FORCE_K / Configs.TURRET.BALL_MASS, 0.0
@@ -115,7 +115,7 @@ class Turret : IModule {
 
         var iterations = 0
 
-        while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS) {
+        while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS && !Thread.currentThread().isInterrupted) {
             iterations++
 
             val middle = (left + right) / 2.0

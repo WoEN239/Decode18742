@@ -170,13 +170,13 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.22, kI = 0.00001, kF = 0.00505)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.22, kI = 0.00001, kPow = 0.035, kF = 0.00505)
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 3.0
+        var PULLEY_TARGET_SENS = 4.0
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.31, -3.66 / 2.0)
@@ -191,7 +191,7 @@ object Configs {
         var BALL_MASS = 0.075
 
         @JvmField
-        var BASKET_TARGET_HEIGHT = 1.1
+        var BASKET_TARGET_HEIGHT = 1.15
 
         @JvmField
         var TIME_STEP = 0.1
@@ -455,7 +455,7 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 0.2
+        var BELT_PUSH_TIME = 0.21
 
         @JvmField
         var REVERS_TIME = 0.2

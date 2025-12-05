@@ -90,6 +90,7 @@ class HardwareDriveTrain(
 
             _leftForwardMotor.direction = DcMotorSimple.Direction.REVERSE
             _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
+            _rightBackMotor.direction = DcMotorSimple.Direction.REVERSE
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
