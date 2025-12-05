@@ -121,7 +121,7 @@ class DriveTrain : IModule {
                         Vec2(
                             ly,
                             lx
-                        ).turn(if(currentRunColor == HotRun.RunColor.BLUE) (odometryOrientation.angl - Angle.ofDeg(90.0)).angle else
+                        ).turn(if(currentRunColor == HotRun.RunColor.BLUE) (odometryOrientation.angl  * -1.0 - Angle.ofDeg(90.0)).angle else
                             (odometryOrientation.angl * -1.0 + Angle.ofDeg(90.0)).angle) * Vec2(
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER

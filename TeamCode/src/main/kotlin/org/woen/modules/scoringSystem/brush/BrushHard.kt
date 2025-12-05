@@ -32,7 +32,7 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
 
     fun voltageSafe() {
          volt = _motor.getCurrent(CurrentUnit.AMPS)
-//        if (volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe.set(false); else IsSafe.set(true)
+       if (volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe.set(false); else IsSafe.set(true)
     }
 
     fun setDir(Motor: motor_state) {

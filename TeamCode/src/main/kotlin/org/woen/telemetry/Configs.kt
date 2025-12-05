@@ -28,7 +28,7 @@ object Configs {
         var BRUSH_DEF_TIME = 1.0
 
         @JvmField
-        var BRUSH_TARGET_CURRENT = 1.9
+        var BRUSH_TARGET_CURRENT =3.0
 
 
         @JvmField
@@ -197,7 +197,7 @@ object Configs {
         var TIME_STEP = 0.1
 
         @JvmField
-        var AIR_FORCE_K = 0.0036
+        var AIR_FORCE_K = 0.0035
 
         @JvmField
         var CALCULATING_G = 9.78
