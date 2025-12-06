@@ -29,7 +29,7 @@ class HardwareOdometry : IHardwareDevice {
         ) + HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
 
         velocity =
-            Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER))
+            Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER)).turn(-currentOrientation.angle)
         headingVelocity = _computer.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS)
     }
 
@@ -53,8 +53,8 @@ class HardwareOdometry : IHardwareDevice {
                 OdometryComputer.EncoderDirection.REVERSED
             )
 
-//            _computer.recalibrateIMU()
-        }
+            _computer.recalibrateIMU()
+         }
     }
 
     override fun dispose() {
