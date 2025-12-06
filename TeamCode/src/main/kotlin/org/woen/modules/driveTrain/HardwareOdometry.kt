@@ -52,7 +52,7 @@ class HardwareOdometry : IHardwareDevice {
                 OdometryComputer.EncoderDirection.REVERSED
             )
 
-            _computer.recalibrateIMU()
+//            _computer.recalibrateIMU()
         }
     }
 

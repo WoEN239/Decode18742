@@ -3,6 +3,8 @@ package org.woen.modules.driveTrain
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
+import org.woen.modules.scoringSystem.turret.SetTurretMode
+import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
@@ -12,6 +14,7 @@ import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Color
 import org.woen.utils.units.Line
 import org.woen.utils.units.Orientation
+import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
 
 data class RequireOdometryEvent(
@@ -37,7 +40,7 @@ class Odometry : IModule {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val currentOrientation = _hardwareOdometry.currentOrientation
 
-            fun checkToLocate(): Boolean {
+            fun checkToLocate(triangle: Triangle): Boolean {
                 val halfSize = Configs.DRIVE_TRAIN.ROBOT_SIZE / 2.0
 
                 val cornerLeftForward = currentOrientation.pos + Vec2(-halfSize.x, halfSize.y)
@@ -61,28 +64,35 @@ class Odometry : IModule {
                     Line(cornerLeftForward, cornerLeftBack)
                 )
 
-                for (shootTriangle in Configs.DRIVE_TRAIN.SHOOT_TRIANGLES) {
-                    for (shootLine in shootTriangle.lines) {
-                        for (l in robotLines) {
-                            if (!l.isIntersects(shootLine))
-                                continue
+                for (shootLine in triangle.lines) {
+                    for (l in robotLines) {
+                        if (!l.isIntersects(shootLine))
+                            continue
 
-                            val intersects = l.getIntersects(shootLine)
+                        val intersects = l.getIntersects(shootLine)
 
-                            if (l.isPointOnLine(intersects) && shootLine.isPointOnLine(intersects))
-                                return true
-                        }
+                        if (l.isPointOnLine(intersects) && shootLine.isPointOnLine(intersects))
+                            return true
                     }
 
                     for (robotPoint in robotPoints)
-                        if (shootTriangle.isPointLocated(robotPoint))
+                        if (triangle.isPointLocated(robotPoint))
                             return true
                 }
 
                 return false
             }
 
-            val locate = checkToLocate()
+            val shortLocate = checkToLocate(Configs.DRIVE_TRAIN.SHOOT_SHORT_TRIANGLE)
+            val longLocate = checkToLocate(Configs.DRIVE_TRAIN.SHOOT_LONG_TRIANGLE)
+
+            if(shortLocate)
+                ThreadedEventBus.LAZY_INSTANCE.invoke(SetTurretMode(Turret.TurretMode.SHORT))
+
+            if(longLocate)
+                ThreadedEventBus.LAZY_INSTANCE.invoke(SetTurretMode(Turret.TurretMode.LONG))
+
+            val locate = shortLocate || longLocate
 
             _robotLocatedInShootingArea = locate
 

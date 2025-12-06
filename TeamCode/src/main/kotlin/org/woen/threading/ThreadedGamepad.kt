@@ -4,8 +4,10 @@ import com.qualcomm.robotcore.hardware.Gamepad
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.woen.hotRun.HotRun
 import org.woen.utils.smartMutex.SmartMutex
+import java.util.concurrent.CopyOnWriteArrayList
 
 class ThreadedGamepad private constructor() {
     companion object {
@@ -113,20 +115,15 @@ class ThreadedGamepad private constructor() {
         }
     }
 
-    private val _listenersMutex = SmartMutex()
-
-    private val _allListeners = mutableSetOf<IListener>()
+    private val _allListeners = CopyOnWriteArrayList<IListener>()
 
     @Synchronized
-    fun addListener(listener: IListener) =
-        _listenersMutex.smartLock {
-            _allListeners.add(listener)
-        }
+    fun addListener(listener: IListener) = _allListeners.add(listener)
 
     fun init() {
         if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
             HotRun.LAZY_INSTANCE.opModeUpdateEvent += {
-                _listenersMutex.smartLock {
+                runBlocking {
                     for (i in _allListeners)
                         i.update(it.gamepad1)
                 }

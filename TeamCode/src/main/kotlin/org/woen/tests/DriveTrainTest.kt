@@ -14,7 +14,7 @@ import kotlin.math.pow
 import kotlin.math.sign
 
 @TeleOp
-class SimpleTeleop : LinearOpMode() {
+class DriveTrainTest : LinearOpMode() {
     lateinit var leftForwardDrive: DcMotorEx
     lateinit var leftBackDrive: DcMotorEx
     lateinit var rightForwardDrive: DcMotorEx
@@ -33,7 +33,6 @@ class SimpleTeleop : LinearOpMode() {
 
         leftForwardDrive.direction = DcMotorSimple.Direction.REVERSE
         leftBackDrive.direction = DcMotorSimple.Direction.REVERSE
-        rightBackDrive.direction = DcMotorSimple.Direction.REVERSE
 
         while (!isStarted()) {
             if (gamepad1.left_bumper || gamepad1.square || gamepad1.right_bumper || gamepad1.circle ||

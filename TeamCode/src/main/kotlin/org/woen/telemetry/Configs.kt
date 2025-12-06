@@ -30,7 +30,7 @@ object Configs {
         var BRUSH_DEF_TIME = 1.0
 
         @JvmField
-        var BRUSH_TARGET_CURRENT = 3.0
+        var BRUSH_TARGET_CURRENT = 5.0
 
         @JvmField
         var TIME_FOR_BRUSH_REVERSING: Long = 1500
@@ -108,10 +108,10 @@ object Configs {
         var ROBOT_SIZE = Vec2(0.38, 0.38)
 
         @JvmField
-        var SHOOT_TRIANGLES = arrayOf(
-            Triangle(Vec2(-1.83, 1.83), Vec2(0.0, 0.0), Vec2(-1.83, -1.83)),
-            Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
-        )
+        var SHOOT_SHORT_TRIANGLE = Triangle(Vec2(-1.83, 1.83), Vec2(0.0, 0.0), Vec2(-1.83, -1.83))
+
+        @JvmField
+        var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
         @JvmField
         var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 22.0, kD = 1.0, limitU = 12.0)
@@ -165,7 +165,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.2, kI = 0.001, kPow = 0.021, kF = 0.00475)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.9, kPow = 0.01, kF = 0.0048)
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
@@ -174,10 +174,10 @@ object Configs {
         var PULLEY_TARGET_SENS = 4.0
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.31, -3.66 / 2.0)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0, -3.66 / 2.0 + 0.4)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.31, 3.66 / 2.0)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0, 3.66 / 2.0 - 0.4)
 
         @JvmField
         var TURRET_HEIGHT = 0.35
@@ -238,7 +238,13 @@ object Configs {
         var TURRET_CENTER_POS = Vec2(0.0, -0.115)
 
         @JvmField
-        var TURRET_AT_TARGET_TIMER = 0.1
+        var TURRET_AT_TARGET_TIMER = 0.01
+
+        @JvmField
+        var SHORT_PULLEY_VEL = 15.9
+
+        @JvmField
+        var LONG_PULLEY_VEL = 19.6
     }
 
 
@@ -483,18 +489,18 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 0.21
+        var BELT_PUSH_TIME = 0.25
 
         @JvmField
         var REVERS_TIME = 0.2
 
         @JvmField
-        var BELTS_FULL_CURRENT = 8.0
+        var BELTS_FULL_CURRENT = 7.0
 
         @JvmField
         var BELTS_FULL_TIMER = 0.1
 
         @JvmField
-        var BELTS_POWER = 10.0
+        var BELTS_POWER = 8.0
     }
 }

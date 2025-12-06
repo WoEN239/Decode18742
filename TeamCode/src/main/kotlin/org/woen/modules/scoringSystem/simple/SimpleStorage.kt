@@ -5,6 +5,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
 import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
@@ -48,7 +49,13 @@ class SimpleStorage : IModule {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareStorage, _gateServo)
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS
+
+                delay(500)
+
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+            }
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
@@ -115,7 +122,10 @@ class SimpleStorage : IModule {
         }))
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.right_bumper }, {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
+            val located = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireRobotLocatedShootingArea()).isLocated
+
+            if(located)
+                ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
         }))
 
         _hardwareStorage.currentTriggerEvent += {
