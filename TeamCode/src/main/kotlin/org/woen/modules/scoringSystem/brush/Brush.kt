@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 class SwitchBrushStateEvent(var brushState: Brush.BrushState, var reverseTime: Long = 1000)
 
-class Brush : IModule {
+class Brush : IModule {//lol
     enum class BrushState {
         FORWARD,
         STOP,
