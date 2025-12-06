@@ -309,7 +309,11 @@ class SortingStorage
                 RequestResult.FAIL_PROCESS_WAS_TERMINATED,
                 RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("custom readjusting")
+        _storageCells.hwCloseTurretGate()
+        _storageCells.hwRotateBeltsForward(DELAY_FOR_ONE_BALL_PUSHING_MS / 2)
         ThreadedTelemetry.LAZY_INSTANCE.log("before updating, result: ${requestResult.Name()}")
+
         val fullRotations = when (requestResult.Name())
         {
             RequestResult.Name.SUCCESS_MOBILE_IN -> 3
@@ -318,7 +322,7 @@ class SortingStorage
             else -> -1
         }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("UPDATING: rotating cur slot")
+        ThreadedTelemetry.LAZY_INSTANCE.log("updating: rotating cur slot")
         if (fullRotations >= 0)
         {
             repeat(fullRotations) {
@@ -336,7 +340,7 @@ class SortingStorage
     }
     private suspend fun shootRequestFinalPhase(
         requestResult: RequestResult,
-        processId: Int) : RequestResult.Name
+        processId: Int): RequestResult.Name
     {
         if (requestResult.DidFail()) return requestResult.Name()
         if (isForcedToTerminateRequest(processId))
@@ -344,26 +348,16 @@ class SortingStorage
 
         ThreadedTelemetry.LAZY_INSTANCE.log("preparing to update")
         val updateResult = updateAfterRequest(requestResult, processId)
-        if (updateResult.DidSucceed())
+
+        return if (updateResult.DidSucceed())
         {
             if (!fullWaitForShotFired(processId))
-                return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
-
-            return if (_storageCells.updateAfterRequest())
-            {
-                if  (_storageCells.isNotEmpty())
-                     RequestResult.Name.SUCCESS
-                else RequestResult.Name.SUCCESS_IS_NOW_EMPTY
-            }
-            else
-            {
-                //!  _storageCells.fastFixStorageDesync()
-                if  (_storageCells.updateAfterRequest())
-                     RequestResult.Name.SUCCESS
-                else RequestResult.Name.FAIL_SOFTWARE_STORAGE_DESYNC
-            }
+                 RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
+            else if (_storageCells.isNotEmpty())
+                 RequestResult.Name.SUCCESS
+            else RequestResult.Name.SUCCESS_IS_NOW_EMPTY
         }
-        else return updateResult.Name()
+        else updateResult.Name()
     }
 
     private suspend fun requestRaceConditionIsPresent(processId: Int):  Boolean
@@ -407,6 +401,7 @@ class SortingStorage
     }
     private fun isForcedToTerminateRequest(processId: Int)
         = _runStatus.IsForcedToTerminateThisProcess(processId)
+
 
 
 
@@ -788,6 +783,7 @@ class SortingStorage
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("DONE - Shot fired")
+        _storageCells.updateAfterRequest()
         _dynamicMemoryPattern.removeFromTemporary()
         _shotWasFired.set(false)
         return true

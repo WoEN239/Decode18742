@@ -214,18 +214,19 @@ class StorageCells
         _hwSortingM.resumeAwaitingEating()
         return intakeCondition
     }
-    suspend fun updateAfterRequest(): Boolean
+    fun updateAfterRequest()
     {
         _hwSortingM.stopAwaitingEating(true)
-        val requestCondition = _storageCells[StorageSlot.MOBILE_OUT].IsFilled()
 
-        if (requestCondition)  _storageCells[StorageSlot.MOBILE_OUT].Empty()
-        hwReAdjustStorage()
+        _storageCells[StorageSlot.MOBILE_OUT].Set(
+            _storageCells[StorageSlot.CENTER].Id(),
+            _storageCells[StorageSlot.CENTER].Name())
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("finished cells request, new storage:")
+        _storageCells[StorageSlot.CENTER].Set(
+            _storageCells[StorageSlot.BOTTOM].Id(),
+            _storageCells[StorageSlot.BOTTOM].Name())
+
         logAllStorageData()
-
-        return requestCondition
     }
 
 
@@ -246,6 +247,7 @@ class StorageCells
     fun hwStartBelts() = _hwSortingM.startBelts()
     fun hwStopBelts() = _hwSortingM.stopBelts()
     suspend fun hwOpenTurretGate() = _hwSortingM.openTurretGate()
+    suspend fun hwCloseTurretGate() = _hwSortingM.closeTurretGate()
 
 
     suspend fun fullCalibrate() = _hwSortingM.fullCalibrate()
