@@ -28,7 +28,7 @@ class TurretVoltageDropped()
 
 
 class Turret : IModule {
-    private val _hardwareTurret = HardwareTurret("pulleyMotor", "turretAngleServo")
+    private val _hardwareTurret = HardwareTurret()
 
     enum class TurretState {
         STOP,
@@ -45,7 +45,7 @@ class Turret : IModule {
 
     override suspend fun process() {
         _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if (_hardwareTurret.velocityAtTarget.get())
+            if (_hardwareTurret.velocityAtTarget)
                 _currentTargetProcess.close()
 
             if (_currentTurretState.get() != TurretState.SHOOT)
@@ -143,7 +143,7 @@ class Turret : IModule {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareTurret)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretAtTargetEvent::class, {
-            it.atTarget = _hardwareTurret.velocityAtTarget.get()
+            it.atTarget = _hardwareTurret.velocityAtTarget
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitTurretAtTargetEvent::class, {

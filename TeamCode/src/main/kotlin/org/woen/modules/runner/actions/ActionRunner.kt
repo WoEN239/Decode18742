@@ -5,7 +5,7 @@ import kotlinx.coroutines.runBlocking
 import org.woen.hotRun.HotRun
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
 import org.woen.modules.scoringSystem.brush.Brush
-import org.woen.modules.scoringSystem.brush.SwitchBrush
+import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.modules.scoringSystem.simple.StopBeltEvent
 import org.woen.modules.scoringSystem.turret.WaitTurretAtTargetEvent
 import org.woen.threading.ThreadManager
@@ -48,7 +48,7 @@ class ActionRunner private constructor() : DisposableHandle {
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
             ThreadedEventBus.LAZY_INSTANCE.invoke(StopBeltEvent())
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTargetEvent()).targetProcess.wait()

@@ -70,16 +70,10 @@ class HotRun private constructor() {
     }
 
     enum class RunColor(
-        private val _basketPosition: Vec2, private val _startOrientation: Orientation
+        val basketPosition: Vec2, val startOrientation: Orientation
     ) {
         RED(Configs.TURRET.RED_BASKET_POSITION, Configs.ODOMETRY.START_RED_ORIENTATION),
         BLUE(Configs.TURRET.BLUE_BASKET_POSITION, Configs.ODOMETRY.START_BLUE_ORIENTATION);
-
-        val basketPosition
-            get() = _basketPosition.clone()
-
-        val startOrientation
-            get() = _startOrientation.clone()
     }
 
     var currentRunColor = RunColor.RED

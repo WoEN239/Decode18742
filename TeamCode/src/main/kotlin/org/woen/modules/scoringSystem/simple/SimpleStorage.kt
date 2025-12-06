@@ -7,7 +7,7 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
-import org.woen.modules.scoringSystem.brush.SwitchBrush
+import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.modules.scoringSystem.turret.WaitTurretAtTargetEvent
 import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
@@ -36,7 +36,7 @@ class SimpleStorage : IModule {
     private fun terminateShoot() {
         _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.ACKT))
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.FORWARD))
 
         _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false))
@@ -57,7 +57,7 @@ class SimpleStorage : IModule {
 
                 _isShooting = true
 
-                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
+                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
 
@@ -120,7 +120,7 @@ class SimpleStorage : IModule {
 
         _hardwareStorage.currentTriggerEvent += {
             if (!_isShooting) {
-                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.REVERS))
+                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.REVERS))
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
             }

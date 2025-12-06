@@ -31,13 +31,8 @@ class ThreadedBattery private constructor() : IHardwareDevice {
         }
     }
 
-    var currentVoltage: Double
-        get() = _atomicVoltage.get()
-        private set(value) {
-            _atomicVoltage.set(value)
-        }
-
-    private var _atomicVoltage = AtomicReference(1.0)
+    var currentVoltage = 1.0
+        private set
 
     fun voltageToPower(voltage: Double) = voltage / currentVoltage
 

@@ -21,7 +21,7 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
-import org.woen.modules.scoringSystem.brush.SwitchBrush
+import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
 import org.woen.modules.scoringSystem.turret.CurrentlyShooting
 import org.woen.modules.scoringSystem.turret.TurretVoltageDropped
@@ -242,8 +242,8 @@ class ScoringModulesConnector
             _canRestartBrushes.set(false)
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(
-                SwitchBrush(
-                    Brush.AcktBrush.REVERS,
+                SwitchBrushStateEvent(
+                    Brush.BrushState.REVERS,
                     TIME_FOR_BRUSH_REVERSING
             )   )
         }
@@ -258,8 +258,8 @@ class ScoringModulesConnector
         _canRestartBrushes.set(true)
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SwitchBrush(
-                Brush.AcktBrush.REVERS,
+            SwitchBrushStateEvent(
+                Brush.BrushState.REVERS,
                 reverseTime
         )   )
 
@@ -274,7 +274,7 @@ class ScoringModulesConnector
 
         if (_canRestartBrushes.get())
             ThreadedEventBus.LAZY_INSTANCE.invoke(
-                SwitchBrush(Brush.AcktBrush.ACKT)
+                SwitchBrushStateEvent(Brush.BrushState.FORWARD)
             )
     }
 
@@ -396,6 +396,6 @@ class ScoringModulesConnector
     {
         if (BallCountInStorageEvent(0).count < MAX_BALL_COUNT)
             ThreadedEventBus.LAZY_INSTANCE.invoke(
-                SwitchBrush(Brush.AcktBrush.ACKT))
+                SwitchBrushStateEvent(Brush.BrushState.FORWARD))
     }
 }

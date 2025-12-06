@@ -17,12 +17,7 @@ import org.woen.utils.units.Vec2
 import kotlin.math.abs
 import kotlin.math.max
 
-class HardwareDriveTrain(
-    private val _leftForwardMotorName: String,
-    private val _leftBackMotorName: String,
-    private val _rightForwardMotorName: String,
-    private val _rightBackMotorName: String
-) : IHardwareDevice {
+class HardwareDriveTrain : IHardwareDevice {
     private lateinit var _leftForwardMotor: MotorOnly
     private lateinit var _leftBackMotor: MotorOnly
     private lateinit var _rightBackMotor: MotorOnly
@@ -71,10 +66,10 @@ class HardwareDriveTrain(
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _leftForwardMotor = MotorOnly(hardwareMap.get(_leftForwardMotorName) as DcMotorEx)
-        _leftBackMotor = MotorOnly(hardwareMap.get(_leftBackMotorName) as DcMotorEx)
-        _rightBackMotor = MotorOnly(hardwareMap.get(_rightBackMotorName) as DcMotorEx)
-        _rightForwardMotor = MotorOnly(hardwareMap.get(_rightForwardMotorName) as DcMotorEx)
+        _leftForwardMotor = MotorOnly(hardwareMap.get("leftForwardDrive") as DcMotorEx)
+        _leftBackMotor = MotorOnly(hardwareMap.get("leftBackDrive") as DcMotorEx)
+        _rightBackMotor = MotorOnly(hardwareMap.get("rightBackDrive") as DcMotorEx)
+        _rightForwardMotor = MotorOnly(hardwareMap.get("rightForwardDrive") as DcMotorEx)
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _regulatorMutex.smartLock {

@@ -103,7 +103,7 @@ object Configs {
         var POW_MOVE_ENABLED = true
 
         @JvmField
-        var ROBOT_SIZE = Vec2(0.38, 0.36)
+        var ROBOT_SIZE = Vec2(0.38, 0.38)
 
         @JvmField
         var SHOOT_TRIANGLES = arrayOf(
@@ -116,6 +116,9 @@ object Configs {
 
         @JvmField
         var LOOK_SENS = 0.1
+
+        @JvmField
+        var LOOK_TARGET_TIMER = 0.1
     }
 
     @Config
@@ -229,9 +232,11 @@ object Configs {
         @JvmField
         var SHOOT_DELAY = 0.008
 
-
         @JvmField
         var TURRET_CENTER_POS = Vec2(0.0, -0.115)
+
+        @JvmField
+        var TURRET_AT_TARGET_TIMER = 0.1
     }
 
 

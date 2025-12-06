@@ -17,10 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.PI
 import kotlin.math.abs
 
-class HardwareTurret(
-    private val _motorName: String,
-    private var _servoName: String
-) :
+class HardwareTurret :
     IHardwareDevice {
     private lateinit var _motor: DcMotorEx
     private lateinit var _angleSevo: Servo
@@ -48,7 +45,9 @@ class HardwareTurret(
 
     private var _motorVelocity = 0.0
     var shotWasFired = false
-    var velocityAtTarget = AtomicBoolean(false)
+    var velocityAtTarget = false
+
+    private val _targetTimer = ElapsedTime()
 
     private val _deltaTime = ElapsedTime()
     private val _delayTimer = ElapsedTime()
@@ -56,9 +55,7 @@ class HardwareTurret(
     private var _motorAmps = 0.0
 
     override fun update() {
-
         _motorAmps = _motor.getCurrent(CurrentUnit.AMPS)
-        //ThreadedTelemetry.LAZY_INSTANCE.log("tamps: ${_motorAmps}")
 
         if (_motorAmps > Configs.TURRET.TURRET_SHOOT_DETECT_CURRENT)
             shotWasFired = _delayTimer.seconds() > Configs.TURRET.SHOOT_DELAY
@@ -86,10 +83,12 @@ class HardwareTurret(
         val target = _realTargetVelocity
         val velErr = target - _motorVelocity
 
-        if (abs(velErr) > Configs.TURRET.PULLEY_TARGET_SENS)
-            velocityAtTarget.set(false)
+        if (abs(velErr) > Configs.TURRET.PULLEY_TARGET_SENS) {
+            velocityAtTarget = false
+            _targetTimer.reset()
+        }
         else
-            velocityAtTarget.set(true)
+            velocityAtTarget = _targetTimer.seconds() > Configs.TURRET.TURRET_AT_TARGET_TIMER
 
         _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
             _pulleyRegulator.update(
@@ -100,8 +99,8 @@ class HardwareTurret(
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _motor = hardwareMap.get(_motorName) as DcMotorEx
-        _angleSevo = hardwareMap.get(_servoName) as Servo
+        _motor = hardwareMap.get("pulleyMotor") as DcMotorEx
+        _angleSevo = hardwareMap.get("turretAngleServo") as Servo
 
         val rotateServo = hardwareMap.get("turretRotateServo") as Servo
 
@@ -113,6 +112,8 @@ class HardwareTurret(
             _velocityFilter.start()
             _pulleyRegulator.start()
             _deltaTime.reset()
+            _targetTimer.reset()
+            _delayTimer.reset()
 
             rotateServo.position = 0.51
         }

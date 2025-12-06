@@ -7,6 +7,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.utils.smartMutex.SmartMutex
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 
@@ -42,9 +43,7 @@ class ThreadManager private constructor() : DisposableHandle {
         Executors.newFixedThreadPool(Configs.THREAD_POOL.THREAD_POOL_THREADS_COUNT, threadFactory)
     val globalCoroutineScope = CoroutineScope(_threadPool.asCoroutineDispatcher() + Job())
 
-    private val _allThreads = mutableSetOf<Thread>()
-
-    private val _allThreadsMutex = SmartMutex()
+    private val _allThreads = CopyOnWriteArrayList<Thread>()
 
     fun register(thread: Thread): Thread {
         thread.setUncaughtExceptionHandler { _, exception ->
@@ -61,18 +60,14 @@ class ThreadManager private constructor() : DisposableHandle {
             }
         }
 
-        _allThreadsMutex.smartLock {
-            _allThreads.add(thread)
-        }
+        _allThreads.add(thread)
 
         return thread
     }
 
     override fun dispose() {
-        _allThreadsMutex.smartLock {
-            for (i in _allThreads)
-                i.interrupt()
-        }
+        for (i in _allThreads)
+            i.interrupt()
 
         _threadPool.shutdown()
     }

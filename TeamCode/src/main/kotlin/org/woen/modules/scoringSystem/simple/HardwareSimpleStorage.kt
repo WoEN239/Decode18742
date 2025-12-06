@@ -22,19 +22,12 @@ class HardwareSimpleStorage : IHardwareDevice {
 
     private lateinit var _beltMotor: MotorOnly
 
-    //    private lateinit var _intakeColorSensor1: AdafruitI2cColorSensor
-//    private lateinit var _optopar1: AnalogInput
-//    private lateinit var _optopar2: AnalogInput
-//
     var beltState = BeltState.STOP
     var beltsCurrent = 0.0
 
     val currentTriggerEvent = SimpleEvent<Int>()
 
     private var _fullTriggerTimer = ElapsedTime()
-
-//    var ballColor = Ball.Name.NONE
-//    var isBallOnTurret = false
 
     override fun update() {
         if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
@@ -64,7 +57,7 @@ class HardwareSimpleStorage : IHardwareDevice {
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _beltMotor = MotorOnly(hardwareMap.get("beltMotors") as DcMotorEx)
+        _beltMotor = MotorOnly(hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
 
         val pushServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO) as Servo
         val gateServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO) as Servo

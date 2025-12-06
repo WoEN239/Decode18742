@@ -45,7 +45,7 @@ class Camera : DisposableHandle {
 
     private var _aprilProcessor: AprilTagProcessor? = null
 
-    var currentPattern: AtomicReference<Pattern?> = AtomicReference()
+    var currentPattern: Pattern? = null
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted && Configs.CAMERA.CAMERA_ENABLE) {
@@ -62,11 +62,11 @@ class Camera : DisposableHandle {
             }
 
             for (detection in detections) {
-                if (currentPattern.get() == null) {
+                if (currentPattern == null) {
                     val pattern = Pattern.patterns.find { it.cameraTagId == detection.id }
 
                     if (pattern != null) {
-                        currentPattern.set(pattern)
+                        currentPattern = pattern
                         ThreadedEventBus.LAZY_INSTANCE.invoke(OnPatternDetectedEvent(pattern))
                     }
                 }
