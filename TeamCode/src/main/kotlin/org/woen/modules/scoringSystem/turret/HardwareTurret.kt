@@ -67,7 +67,7 @@ class HardwareTurret(
             shotWasFired = false
         }
 
-        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+        if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
             return
 
         _angleSevo.position = anglePosition

@@ -47,10 +47,10 @@ class SegmentsRunner : IModule {
     private var _targetRotateVelocity = 0.0
 
     override suspend fun process() {
-        _runnerJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if (HotRun.LAZY_INSTANCE.currentRunMode.get() != HotRun.RunMode.AUTO)
-                return@launch
+        if (HotRun.LAZY_INSTANCE.currentRunMode != HotRun.RunMode.AUTO)
+            return
 
+        _runnerJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
             val orientationErr = _targetOrientation - odometry.odometryOrientation
@@ -114,7 +114,7 @@ class SegmentsRunner : IModule {
                 _segmentTimer.reset()
             }
 
-            _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
+            _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {

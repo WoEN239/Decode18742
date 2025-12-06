@@ -49,6 +49,7 @@ class ThreadedServo(
         get() = targetAngle / _device.maxAngle
 
     var targetAngle = startAngle
+        get() = field
         set(value) {
             if (value < 0)
                 return
@@ -81,7 +82,7 @@ class ThreadedServo(
         }
 
     override fun update() {
-        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+        if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
             return
 
         _calcMutex.smartLock {

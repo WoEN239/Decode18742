@@ -40,7 +40,7 @@ class HardwareDriveTrain(
     private val _driveTrainMutex = SmartMutex()
 
     override fun update() {
-        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+        if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
             return
 
         val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())

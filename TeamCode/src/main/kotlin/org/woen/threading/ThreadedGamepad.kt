@@ -124,7 +124,7 @@ class ThreadedGamepad private constructor() {
         }
 
     fun init() {
-        if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.MANUAL) {
+        if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
             HotRun.LAZY_INSTANCE.opModeUpdateEvent += {
                 _listenersMutex.smartLock {
                     for (i in _allListeners)

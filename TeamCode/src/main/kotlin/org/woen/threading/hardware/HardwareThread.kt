@@ -43,7 +43,7 @@ class HardwareThread : DisposableHandle {
         Thread.sleep(2)
 
         while (!Thread.currentThread().isInterrupted) {
-            if (HotRun.LAZY_INSTANCE.currentRunState.get() == STOP) {
+            if (HotRun.LAZY_INSTANCE.currentRunState == STOP) {
                 Thread.sleep(5)
                 continue
             }

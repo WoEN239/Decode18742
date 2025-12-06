@@ -9,7 +9,7 @@ import org.woen.hotRun.HotRun
 @Autonomous
 class AutoOpModeRed : LinearOpMode() {
     override fun runOpMode() {
-        HotRun.LAZY_INSTANCE.currentRunColor.set(HotRun.RunColor.RED)
+        HotRun.LAZY_INSTANCE.currentRunColor = HotRun.RunColor.RED
         HotRun.LAZY_INSTANCE.run(this, HotRun.RunMode.AUTO)
 
         OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity)

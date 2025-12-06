@@ -26,7 +26,7 @@ class HardwareOdometry : IHardwareDevice {
         currentOrientation = Orientation(
             Vec2(pos.getX(DistanceUnit.METER), pos.getY(DistanceUnit.METER)),
             Angle(pos.getHeading(AngleUnit.RADIANS))
-        ) + HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
+        ) + HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
 
         velocity =
             Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER)).turn(-currentOrientation.angle)
@@ -37,7 +37,7 @@ class HardwareOdometry : IHardwareDevice {
         _computer = hardwareMap.get("odometry") as OdometryComputer
         _computer.resetPosAndIMU()
 
-        val startOrientation = HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
+        val startOrientation = HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
 
         currentOrientation = startOrientation
 

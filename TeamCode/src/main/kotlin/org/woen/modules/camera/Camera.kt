@@ -49,7 +49,7 @@ class Camera : DisposableHandle {
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted && Configs.CAMERA.CAMERA_ENABLE) {
-            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN || _aprilProcessor == null) {
+            if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN || _aprilProcessor == null) {
                 Thread.sleep(5)
                 continue
             }

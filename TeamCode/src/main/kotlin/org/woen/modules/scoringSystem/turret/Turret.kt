@@ -69,7 +69,7 @@ class Turret : IModule {
 
         val shootDistance =
             (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_SHOOT_POS.turn(odometry.odometryOrientation.angle)
-                    - HotRun.LAZY_INSTANCE.currentRunColor.get()
+                    - HotRun.LAZY_INSTANCE.currentRunColor
                 .basketPosition).length()
 
         val shootingAngle = clamp(
@@ -84,7 +84,7 @@ class Turret : IModule {
                     Configs.TURRET.MIN_TURRET_ANGLE_SERVO
 
         val robotRotationBasketErr = Angle(
-            (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition
+            (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition
                     - odometry.odometryOrientation.pos).rot()
                     - odometry.odometryOrientation.angle
         ).angle

@@ -65,7 +65,7 @@ class ActionRunner private constructor() : DisposableHandle {
 
     fun init() {
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            if (HotRun.LAZY_INSTANCE.currentRunMode.get() == HotRun.RunMode.AUTO)
+            if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)
                 _thread.start()
         }
 

@@ -117,7 +117,7 @@ class ThreadedTelemetry : DisposableHandle {
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted) {
-            if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.STOP && Configs.TELEMETRY.TELEMETRY_ENABLE) {
+            if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.STOP && Configs.TELEMETRY.TELEMETRY_ENABLE) {
                 onTelemetrySend.invoke(this)
 
                 val telemetry = this

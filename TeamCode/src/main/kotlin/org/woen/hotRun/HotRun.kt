@@ -52,10 +52,10 @@ class HotRun private constructor() {
         }
     }
 
-    var currentRunState = AtomicReference(RunState.STOP)
+    var currentRunState = RunState.STOP
         private set
 
-    var currentRunMode = AtomicReference(RunMode.MANUAL)
+    var currentRunMode = RunMode.MANUAL
         private set
 
     enum class RunState {
@@ -82,7 +82,7 @@ class HotRun private constructor() {
             get() = _startOrientation.clone()
     }
 
-    var currentRunColor = AtomicReference(RunColor.RED)
+    var currentRunColor = RunColor.RED
 
     val opModeInitEvent = SimpleEvent<LinearOpMode>()
     val opModeStartEvent = SimpleEvent<LinearOpMode>()
@@ -94,8 +94,8 @@ class HotRun private constructor() {
         try {
             _gamepad = opMode.gamepad1
 
-            currentRunMode.set(runMode)
-            currentRunState.set(RunState.INIT)
+            currentRunMode = runMode
+            currentRunState = RunState.INIT
 
             ThreadManager.LAZY_INSTANCE
             ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
@@ -122,14 +122,14 @@ class HotRun private constructor() {
 
             ThreadedTelemetry.LAZY_INSTANCE.log("start")
 
-            currentRunState.set(RunState.RUN)
+            currentRunState = RunState.RUN
 
             opModeStartEvent.invoke(opMode)
 
             while (opMode.opModeIsActive())
                 opModeUpdateEvent.invoke(opMode)
 
-            currentRunState.set(RunState.STOP)
+            currentRunState = RunState.STOP
 
             opModeStopEvent.invoke(opMode)
 

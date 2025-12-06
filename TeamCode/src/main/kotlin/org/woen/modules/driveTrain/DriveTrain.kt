@@ -55,7 +55,7 @@ class DriveTrain : IModule {
 
             val rotationErr = if (_lookMode.get()) {
                 _targetAngle = Angle(
-                    (HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition -
+                    (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition -
                             (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
                                 odometry.odometryOrientation.angle
                             ))).rot()
@@ -113,7 +113,7 @@ class DriveTrain : IModule {
 
                 val odometryOrientation =
                     ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent()).odometryOrientation
-                val currentRunColor = HotRun.LAZY_INSTANCE.currentRunColor.get()
+                val currentRunColor = HotRun.LAZY_INSTANCE.currentRunColor
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     SetDriveTargetVelocityEvent(
@@ -121,9 +121,9 @@ class DriveTrain : IModule {
                             ly,
                             lx
                         ).turn(
-                            if (currentRunColor == HotRun.RunColor.BLUE) (odometryOrientation.angl * -1.0 - Angle.ofDeg(
-                                90.0
-                            )).angle else
+                            if (currentRunColor == HotRun.RunColor.BLUE) (odometryOrientation.angl * -1.0 -
+                                    Angle.ofDeg(90.0)).angle
+                            else
                                 (odometryOrientation.angl * -1.0 + Angle.ofDeg(90.0)).angle
                         ) * Vec2(
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
@@ -154,7 +154,7 @@ class DriveTrain : IModule {
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.drawCircle(
-                HotRun.LAZY_INSTANCE.currentRunColor.get().basketPosition,
+                HotRun.LAZY_INSTANCE.currentRunColor.basketPosition,
                 0.05,
                 Color.ORANGE
             )

@@ -37,7 +37,7 @@ class HardwareSimpleStorage : IHardwareDevice {
 //    var isBallOnTurret = false
 
     override fun update() {
-        if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
+        if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
             return
 
         when (beltState) {
