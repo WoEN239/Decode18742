@@ -231,6 +231,7 @@ class SortingStorage
 
     suspend fun startLazyIntakes()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("Started LazyIntake")
         _runStatus.SetCurrentActiveProcess(LAZY_INTAKE)
         _lazyIntakeIsActive.set(true)
 
@@ -243,12 +244,11 @@ class SortingStorage
                 terminateIntake(LAZY_INTAKE)
         }
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("Stopped LazyIntake")
         resumeLogicAfterIntake(LAZY_INTAKE)
     }
     suspend fun canStartIntakeIsNotBusy(): IntakeResult.Name
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("RunStatus checking")
-
         if (noIntakeRaceConditionProblems(LAZY_INTAKE))
             return IntakeResult.Name.STARTED_SUCCESSFULLY
 

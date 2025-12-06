@@ -348,7 +348,7 @@ object Configs {
         var STORAGE_SLOT_COUNT = 4
 
         @JvmField
-        var IS_SORTING_MODULE_ACTIVE_AT_START_UP = false
+        var IS_SORTING_MODULE_ACTIVE_AT_START_UP = true
 
 
 

@@ -121,7 +121,7 @@ class HotRun private constructor() {
             opModeStartEvent.invoke(opMode)
 
             while (opMode.opModeIsActive()) {
-                ThreadedTelemetry.LAZY_INSTANCE.log("update")
+                //ThreadedTelemetry.LAZY_INSTANCE.log("update")
                 opModeUpdateEvent.invoke(opMode)
             }
 

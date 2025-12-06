@@ -1,18 +1,29 @@
 package org.woen.modules.runner.actions
 
 import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.woen.hotRun.HotRun
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
+import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.modules.scoringSystem.simple.StopBeltEvent
+import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
+import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.turret.WaitTurretAtTargetEvent
+import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Vec2
+import woen239.enumerators.Ball
+import woen239.enumerators.IntakeResult
 import kotlin.concurrent.thread
+
+
 
 class ActionRunner private constructor() : DisposableHandle {
     companion object {
@@ -48,18 +59,51 @@ class ActionRunner private constructor() : DisposableHandle {
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
-            ThreadedEventBus.LAZY_INSTANCE.invoke(StopBeltEvent())
 
-            ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTargetEvent()).targetProcess.wait()
 
-            Thread.sleep(15000)
+            val preloadPattern: Array<Ball.Name> = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
 
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2(12.0), 0.0))
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                StorageUpdateAfterLazyIntakeEvent(
+                    preloadPattern
+                ))
 
-            Thread.sleep(1000)
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start shooting")
+            ThreadedEventBus.LAZY_INSTANCE.invoke(DefaultFireEvent())
 
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: FINISHED shooting")
+
+
+            delay(2000)
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start LazyIntake")
+            while (IntakeResult.DidFail(
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StartLazyIntakeEvent(
+                IntakeResult.Name.FAIL_UNKNOWN)).startingResult))
+            {
+                delay(DELAY_FOR_EVENT_AWAITING_MS)
+            }
+
+
+            val intakePattern: Array<Ball.Name> = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
+
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                StorageUpdateAfterLazyIntakeEvent(
+                    intakePattern
+                ))
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: FINISHED LazyIntake")
+
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start Shooting")
+            ThreadedEventBus.LAZY_INSTANCE.invoke(DefaultFireEvent())
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: FINISHED shooting")
+
+
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StopLazyIntakeEvent())
+
+
+
         }
     })
 

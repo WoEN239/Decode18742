@@ -365,6 +365,7 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: Started - Smart drum request")
         val requestResult = _storage.shootEntireDrumRequest(
                 shootingMode,
                 requestPattern,
