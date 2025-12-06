@@ -45,7 +45,6 @@ class HardwareBrush : IHardwareDevice {
             BrushDirection.REVERS ->
                 -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER)
         }
-
     }
 
     override fun init(hardwareMap: HardwareMap) {
