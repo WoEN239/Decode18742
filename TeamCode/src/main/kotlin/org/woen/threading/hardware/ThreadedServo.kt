@@ -49,7 +49,6 @@ class ThreadedServo(
         get() = targetAngle / _device.maxAngle
 
     var targetAngle = startAngle
-        get() = field
         set(value) {
             if (value < 0)
                 return

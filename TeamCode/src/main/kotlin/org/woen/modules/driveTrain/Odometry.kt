@@ -108,12 +108,12 @@ class Odometry : IModule {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry)
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-                it.drawRect(
-                    _hardwareOdometry.currentOrientation.pos,
-                    Configs.DRIVE_TRAIN.ROBOT_SIZE,
-                    _hardwareOdometry.currentOrientation.angle,
-                    if (_robotLocatedInShootingArea) Color.GREEN else Color.RED
-                )
+            it.drawRect(
+                _hardwareOdometry.currentOrientation.pos,
+                Configs.DRIVE_TRAIN.ROBOT_SIZE,
+                _hardwareOdometry.currentOrientation.angle,
+                if (_robotLocatedInShootingArea) Color.GREEN else Color.RED
+            )
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(

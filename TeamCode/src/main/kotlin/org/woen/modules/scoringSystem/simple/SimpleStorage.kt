@@ -32,20 +32,15 @@ class SimpleStorage : IModule {
 
     private var _currentShootCoroutine: Job? = null
     private var _isShooting = false
-//    private var _isStorageFull = false
-//    private val _fullTimer = ElapsedTime()
 
     private fun terminateShoot() {
-//        ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false))
-
         _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.REVERS))
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.ACKT))
 
         _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false))
 
-//        _isStorageFull = false
         _isShooting = false
     }
 
@@ -70,7 +65,7 @@ class SimpleStorage : IModule {
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTargetEvent()).targetProcess.wait()
 
-                while (!_gateServo.atTargetAngle)
+                while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)
 
                 process.wait()
@@ -115,23 +110,17 @@ class SimpleStorage : IModule {
             _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
         })
 
-//        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.right_trigger > 0.1 }, {
-//            ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
-//
-//            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
-//        }))
-
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({it.left_bumper}, {
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.left_bumper }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateSimpleShootEvent())
         }))
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({it.right_bumper}, {
+        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.right_bumper }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
         }))
 
         _hardwareStorage.currentTriggerEvent += {
             if (!_isShooting) {
-                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.NOT_ACKT))
+                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrush(Brush.AcktBrush.REVERS))
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
             }

@@ -1,26 +1,21 @@
 package org.woen.modules.scoringSystem.brush
 
 
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicReference
-
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
-
-import com.qualcomm.robotcore.util.ElapsedTime
-import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.woen.telemetry.ThreadedTelemetry
-import org.woen.utils.units.Color
+import java.util.concurrent.atomic.AtomicReference
 
 
 class SwitchBrush(var brushState: Brush.AcktBrush, var reverseTime: Long = 1000)
-
 
 
 class Brush : IModule {
@@ -52,7 +47,7 @@ class Brush : IModule {
             AcktBrush.ACKT -> {
                 bruh.setDir(BrushHard.motor_state.ACKT)
                 if (!bruh.IsSafe.get() && !f11) {
-                    f11 = true;tmr2.reset()
+                    f11 = true; tmr2.reset()
                 }
                 if (!bruh.IsSafe.get() && startTmr && errTime) {
                     turnOn.set(AcktBrush.SAFE); tmr.reset()

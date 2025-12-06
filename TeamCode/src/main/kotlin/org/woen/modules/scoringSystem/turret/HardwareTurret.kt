@@ -27,8 +27,7 @@ class HardwareTurret(
 
     var targetVelocity: Double
         get() = (_realTargetVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
-        set(value)
-        {
+        set(value) {
             _realTargetVelocity =
                 ((value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS))
         }
@@ -51,7 +50,7 @@ class HardwareTurret(
     var shotWasFired = false
     var velocityAtTarget = AtomicBoolean(false)
 
-    private val _deltaTime  = ElapsedTime()
+    private val _deltaTime = ElapsedTime()
     private val _delayTimer = ElapsedTime()
 
     private var _motorAmps = 0.0
@@ -63,8 +62,7 @@ class HardwareTurret(
 
         if (_motorAmps > Configs.TURRET.TURRET_SHOOT_DETECT_CURRENT)
             shotWasFired = _delayTimer.seconds() > Configs.TURRET.SHOOT_DELAY
-        else
-        {
+        else {
             _delayTimer.reset()
             shotWasFired = false
         }

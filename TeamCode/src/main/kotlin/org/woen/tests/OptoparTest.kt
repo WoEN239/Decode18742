@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.AnalogInput
 import org.woen.telemetry.Configs
 
 @TeleOp
-class OptoparTest: LinearOpMode() {
+class OptoparTest : LinearOpMode() {
     override fun runOpMode() {
         val optopar1 =
             hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.TURRET_OPTIC_PARE_1) as AnalogInput
@@ -17,7 +17,7 @@ class OptoparTest: LinearOpMode() {
         waitForStart()
         resetRuntime()
 
-        while (opModeIsActive()){
+        while (opModeIsActive()) {
             val telem = FtcDashboard.getInstance().telemetry
 
             telem.addData("optoppar1", optopar1.voltage)

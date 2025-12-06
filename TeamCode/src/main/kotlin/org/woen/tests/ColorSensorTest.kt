@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import woen239.FixColorSensor.fixSensor
 
 @TeleOp
-class ColorSensorTest: LinearOpMode() {
+class ColorSensorTest : LinearOpMode() {
     override fun runOpMode() {
         var sensor = fixSensor(hardwareMap.get("color2") as AdafruitI2cColorSensor)
 
@@ -21,7 +21,7 @@ class ColorSensorTest: LinearOpMode() {
 
         val deltaTime = ElapsedTime()
 
-        while(opModeIsActive()){
+        while (opModeIsActive()) {
             val telem = FtcDashboard.getInstance().telemetry
 
             val color = sensor.normalizedColors

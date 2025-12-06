@@ -8,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import woen239.odometry.OdometryComputer
 
 @TeleOp
-class PinpointTest: LinearOpMode() {
+class PinpointTest : LinearOpMode() {
     override fun runOpMode() {
         val pinpoint = hardwareMap.get("odometry") as OdometryComputer
         pinpoint.resetPosAndIMU()
@@ -23,7 +23,7 @@ class PinpointTest: LinearOpMode() {
         waitForStart()
         resetRuntime()
 
-        while (opModeIsActive()){
+        while (opModeIsActive()) {
             val telem = FtcDashboard.getInstance().telemetry
 
             pinpoint.update()

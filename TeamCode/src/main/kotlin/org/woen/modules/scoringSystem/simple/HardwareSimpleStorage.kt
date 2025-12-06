@@ -13,16 +13,16 @@ import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.motor.MotorOnly
 
-class HardwareSimpleStorage : IHardwareDevice
-{
-    enum class BeltState{
+class HardwareSimpleStorage : IHardwareDevice {
+    enum class BeltState {
         STOP,
         RUN_REVERS,
         RUN
     }
 
     private lateinit var _beltMotor: MotorOnly
-//    private lateinit var _intakeColorSensor1: AdafruitI2cColorSensor
+
+    //    private lateinit var _intakeColorSensor1: AdafruitI2cColorSensor
 //    private lateinit var _optopar1: AnalogInput
 //    private lateinit var _optopar2: AnalogInput
 //
@@ -40,7 +40,7 @@ class HardwareSimpleStorage : IHardwareDevice
         if (HotRun.LAZY_INSTANCE.currentRunState.get() != HotRun.RunState.RUN)
             return
 
-        when(beltState){
+        when (beltState) {
             BeltState.STOP -> {
                 _beltMotor.power = 0.0
             }
@@ -56,11 +56,10 @@ class HardwareSimpleStorage : IHardwareDevice
 
         beltsCurrent = _beltMotor.getCurrent(CurrentUnit.AMPS)
 
-        if(beltsCurrent > Configs.SIMPLE_STORAGE.BELTS_FULL_CURRENT){
-            if(_fullTriggerTimer.seconds() > Configs.SIMPLE_STORAGE.BELTS_FULL_TIMER)
+        if (beltsCurrent > Configs.SIMPLE_STORAGE.BELTS_FULL_CURRENT) {
+            if (_fullTriggerTimer.seconds() > Configs.SIMPLE_STORAGE.BELTS_FULL_TIMER)
                 currentTriggerEvent.invoke(0)
-        }
-        else
+        } else
             _fullTriggerTimer.reset()
     }
 

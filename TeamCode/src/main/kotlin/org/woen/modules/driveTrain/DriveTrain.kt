@@ -1,7 +1,6 @@
 package org.woen.modules.driveTrain
 
 import com.qualcomm.robotcore.hardware.Gamepad
-import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
@@ -12,7 +11,6 @@ import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
-import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
 import org.woen.utils.regulator.Regulator
@@ -66,7 +64,7 @@ class DriveTrain : IModule {
                 val err = (_targetAngle - odometry.odometryOrientation.angl).angle
 
                 if (abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS)
-                        _lookProcess.get().close()
+                    _lookProcess.get().close()
 
                 err
             } else
@@ -113,7 +111,8 @@ class DriveTrain : IModule {
                     rx = sign(rx) * (4.0 * (abs(rx) - 0.5).pow(3.0) + 0.5)
                 }
 
-                val odometryOrientation = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent()).odometryOrientation
+                val odometryOrientation =
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent()).odometryOrientation
                 val currentRunColor = HotRun.LAZY_INSTANCE.currentRunColor.get()
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
@@ -121,8 +120,12 @@ class DriveTrain : IModule {
                         Vec2(
                             ly,
                             lx
-                        ).turn(if(currentRunColor == HotRun.RunColor.BLUE) (odometryOrientation.angl  * -1.0 - Angle.ofDeg(90.0)).angle else
-                            (odometryOrientation.angl * -1.0 + Angle.ofDeg(90.0)).angle) * Vec2(
+                        ).turn(
+                            if (currentRunColor == HotRun.RunColor.BLUE) (odometryOrientation.angl * -1.0 - Angle.ofDeg(
+                                90.0
+                            )).angle else
+                                (odometryOrientation.angl * -1.0 + Angle.ofDeg(90.0)).angle
+                        ) * Vec2(
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER
                         ),
@@ -136,7 +139,7 @@ class DriveTrain : IModule {
             _lookMode.set(it.lookMode)
             _lookProcess.set(it.process)
 
-            if(it.lookMode)
+            if (it.lookMode)
                 _lookRegulator.start()
         })
 

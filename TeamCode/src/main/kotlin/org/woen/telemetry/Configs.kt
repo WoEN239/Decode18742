@@ -22,6 +22,7 @@ object Configs {
     internal object BRUSH {
         @JvmField
         var BRUSH_SAFE_TIME = 0.5
+
         @JvmField
         var BRUSH_ERR_TIME = 0.5
 
@@ -29,7 +30,7 @@ object Configs {
         var BRUSH_DEF_TIME = 1.0
 
         @JvmField
-        var BRUSH_TARGET_CURRENT =3.0
+        var BRUSH_TARGET_CURRENT = 3.0
 
 
         @JvmField
@@ -111,7 +112,7 @@ object Configs {
         )
 
         @JvmField
-        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 22.0, kD = 1.0,  limitU = 12.0)
+        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 22.0, kD = 1.0, limitU = 12.0)
 
         @JvmField
         var LOOK_SENS = 0.1
@@ -147,19 +148,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ACCURACY = 300
-
-        @JvmField
         var CAMERA_ENABLE = false
-
-        @JvmField
-        var CAMERA_TRIGGER_DISTANCE = 3.0
-
-        @JvmField
-        var CAMERA_POSITION = Vec2(-0.3, -0.1025)
-
-        @JvmField
-        var CAMERA_HEIGHT = 0.37
     }
 
     @Config
@@ -171,7 +160,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.22, kI = 0.00001, kPow = 0.035, kF = 0.00505)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.2, kI = 0.001, kPow = 0.021, kF = 0.00475)
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
@@ -198,7 +187,7 @@ object Configs {
         var TIME_STEP = 0.1
 
         @JvmField
-        var AIR_FORCE_K = 0.0035
+        var AIR_FORCE_K = 0.0046
 
         @JvmField
         var CALCULATING_G = 9.78
@@ -228,7 +217,7 @@ object Configs {
         var MAX_SHOOTING_DISTANCE = 3.5
 
         @JvmField
-        var PULLEY_U = 0.41
+        var PULLEY_U = 0.403
 
         @JvmField
         var TURRET_SHOOT_POS = Vec2(0.0, -0.05)
@@ -236,6 +225,7 @@ object Configs {
 
         @JvmField
         var TURRET_SHOOT_DETECT_CURRENT: Double = 3.7
+
         @JvmField
         var SHOOT_DELAY = 0.008
 
@@ -251,56 +241,64 @@ object Configs {
         var OPTIC_PARE_SEES_NOT_BLACK = 0.4
 
 
-
         @JvmField
         var THRESHOLD_GREEN_BALL_MAX_R_S1 = 100
+
         @JvmField
         var THRESHOLD_GREEN_BALL_MIN_G_S1 = 50
+
         @JvmField
         var THRESHOLD_GREEN_BALL_MAX_B_S1 = 220
 
         @JvmField
         var THRESHOLD_GREEN_BALL_MAX_R_S2 = 70
+
         @JvmField
         var THRESHOLD_GREEN_BALL_MIN_G_S2 = 40
+
         @JvmField
         var THRESHOLD_GREEN_BALL_MAX_B_S2 = 70
 
 
-
         @JvmField
         var THRESHOLD_PURPLE_BALL_MIN_R_S1 = 80
+
         @JvmField
         var THRESHOLD_PURPLE_BALL_MAX_G_S1 = 150
+
         @JvmField
         var THRESHOLD_PURPLE_BALL_MIN_B_S1 = 80
 
         @JvmField
         var THRESHOLD_PURPLE_BALL_MIN_R_S2 = 40
+
         @JvmField
         var THRESHOLD_PURPLE_BALL_MAX_G_S2 = 70
+
         @JvmField
         var THRESHOLD_PURPLE_BALL_MIN_B_S2 = 20
 
 
-
         @JvmField
         var CONST_MAXIMUM_READING = 10240.0
+
         @JvmField
         var ACCUMULATION_INTERVAL_MS = 24
+
         @JvmField
         var VAR_MAXIMUM_READING = (
                 65535.coerceAtMost(
                     1024 * (256 - max(
-                        0, 256 - ceil((
-                            ACCUMULATION_INTERVAL_MS
-                            / 2.4f
-                        ).toDouble()
-                    ).toInt()
-                ) ) )
+                        0, 256 - ceil(
+                            (
+                                    ACCUMULATION_INTERVAL_MS
+                                            / 2.4f
+                                    ).toDouble()
+                        ).toInt()
+                    ))
+                )
                 ).toDouble()
     }
-
 
 
     @Config
@@ -329,9 +327,9 @@ object Configs {
     internal object STORAGE {
         @JvmField
         var MAX_BALL_COUNT = 3
+
         @JvmField
         var STORAGE_SLOT_COUNT = 4
-
 
 
         @JvmField
@@ -353,11 +351,13 @@ object Configs {
 
         @JvmField
         var INTAKE_RACE_CONDITION_DELAY_MS: Long = 15
+
         @JvmField
         var REQUEST_RACE_CONDITION_DELAY_MS: Long = 10
 
         @JvmField
         var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
+
         @JvmField
         var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 50
 
@@ -372,10 +372,8 @@ object Configs {
         var DELAY_FOR_SORTING_REALIGNING_REVERSE_MS: Long = 44
 
 
-
         @JvmField
-        var DELAY_BETWEEN_INTAKES_MS: Long = 777
-
+        var DELAY_BETWEEN_INTAKES_MS: Long = 1111
 
 
         @JvmField
@@ -383,28 +381,30 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO_OPEN_VALUE  = 0.1
+        var GATE_SERVO_OPEN_VALUE = 0.1
+
         @JvmField
         var GATE_SERVO_CLOSE_VALUE = 1.0
 
         @JvmField
-        var PUSH_SERVO_OPEN_VALUE  = 0.67
+        var PUSH_SERVO_OPEN_VALUE = 0.67
+
         @JvmField
         var PUSH_SERVO_CLOSE_VALUE = 0.45
 
 
-
         @JvmField
         var POWER_FOR_FAST_BELT_ROTATING = 12.0
+
         @JvmField
         var POWER_FOR_SLOW_BELT_ROTATING = 9.0
 
         @JvmField
-        var TURRET_GATE_SERVO_OPEN_VALUE  = 0.4
+        var TURRET_GATE_SERVO_OPEN_VALUE = 0.4
+
         @JvmField
         var TURRET_GATE_SERVO_CLOSE_VALUE = 0.6
     }
-
 
 
     @Config
@@ -414,42 +414,43 @@ object Configs {
 
         @JvmField
         var MAX_ATTEMPTS_FOR_PATTERN_DETECTION = 2
+
         @JvmField
         var TRY_RECALIBRATE_IF_SOMETHING_FAILS = true
 
 
-
         @JvmField
         var DEFAULT_SHOOTING_MODE = Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
+
         @JvmField
         var DEFAULT_PATTERN = Shooting.StockPattern.Name.USE_DETECTED_PATTERN
 
         @JvmField
         var FAILSAFE_SHOOTING_MODE = Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
+
         @JvmField
         var FAILSAFE_PATTERN = Shooting.StockPattern.Name.ANY
     }
 
 
-    
     @Config
     internal object HARDWARE_DEVICES_NAMES {
         @JvmField
         var INTAKE_COLOR_SENSOR_1 = "color1"
+
         @JvmField
         var INTAKE_COLOR_SENSOR_2 = "color2"
 
 
         @JvmField
         var TURRET_OPTIC_PARE_1 = "turret_optic_pare_1"
+
         @JvmField
         var TURRET_OPTIC_PARE_2 = "turret_optic_pare_2"
 
 
-
         @JvmField
         var TURRET_GATE_SERVO = "turret_gate_servo"
-
 
 
         @JvmField
@@ -458,6 +459,7 @@ object Configs {
 
         @JvmField
         var GATE_SERVO = "gate_servo"
+
         @JvmField
         var PUSH_SERVO = "push_servo"
     }

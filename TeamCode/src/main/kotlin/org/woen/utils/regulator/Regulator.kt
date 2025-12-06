@@ -64,7 +64,7 @@ class Regulator(val parameters: RegulatorParameters) {
         )
             _integral += err * _deltaTime.seconds()
 
-        if(abs(_oldKi - parameters.kI) > 0.00001)
+        if (abs(_oldKi - parameters.kI) > 0.00001)
             _integral = 0.0
 
         _oldKi = parameters.kI

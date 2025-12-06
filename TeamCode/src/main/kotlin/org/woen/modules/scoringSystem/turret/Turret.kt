@@ -43,7 +43,6 @@ class Turret : IModule {
     private var _isShooting = AtomicBoolean(false)
 
 
-
     override suspend fun process() {
         _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             if (_hardwareTurret.velocityAtTarget.get())
@@ -101,7 +100,8 @@ class Turret : IModule {
                 vecVel -= (Vec2(
                     vecVel.length()
                         .pow(2.0) * Configs.TURRET.AIR_FORCE_K / Configs.TURRET.BALL_MASS, 0.0
-                ).setRot(vecVel.rot()) + Vec2(0.0, Configs.TURRET.CALCULATING_G
+                ).setRot(vecVel.rot()) + Vec2(
+                    0.0, Configs.TURRET.CALCULATING_G
                 )) * Configs.TURRET.TIME_STEP
 
                 pos += vecVel * Configs.TURRET.TIME_STEP

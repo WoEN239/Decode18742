@@ -61,19 +61,18 @@ class ThreadedEventBus private constructor() {
         if (callbacks == null)
             return event
 
-        val coroutine = arrayListOf<Job>()
+        val coroutines = arrayListOf<Job>()
 
         for (i in callbacks) {
-            coroutine.add(i.second.launch {
+            coroutines.add(i.second.launch {
                 i.first.invoke(event)
             })
         }
 
         if (event is StoppingEvent) {
             runBlocking {
-                for (i in coroutine) {
+                for (i in coroutines)
                     i.join()
-                }
             }
         }
 

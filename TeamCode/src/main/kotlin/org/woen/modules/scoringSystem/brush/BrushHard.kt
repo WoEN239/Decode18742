@@ -2,7 +2,6 @@ package org.woen.modules.scoringSystem.brush
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.hotRun.HotRun
@@ -13,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference
 class BrushHard(private val _deviceName: String) : IHardwareDevice {
     private lateinit var _motor: DcMotorEx
     var IsSafe = AtomicReference(true)
-    var volt=0.0;
+    var volt = 0.0
     private var motor_power = 0.0
 
     override fun update() {
@@ -31,8 +30,8 @@ class BrushHard(private val _deviceName: String) : IHardwareDevice {
     }
 
     fun voltageSafe() {
-         volt = _motor.getCurrent(CurrentUnit.AMPS)
-       if (volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe.set(false); else IsSafe.set(true)
+        volt = _motor.getCurrent(CurrentUnit.AMPS)
+        if (volt >= Configs.BRUSH.BRUSH_TARGET_CURRENT) IsSafe.set(false); else IsSafe.set(true)
     }
 
     fun setDir(Motor: motor_state) {

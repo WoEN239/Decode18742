@@ -55,7 +55,7 @@ class ThreadedTelemetry : DisposableHandle {
     }
 
     fun initConfigs() {
-        FtcDashboard.getInstance().withConfigRoot { it ->
+        FtcDashboard.getInstance().withConfigRoot {
             Configs::class.nestedClasses.forEach { jt ->
                 val objClass = jt.objectInstance
 

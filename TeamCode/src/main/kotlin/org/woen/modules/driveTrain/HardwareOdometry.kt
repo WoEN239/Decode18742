@@ -1,15 +1,11 @@
 package org.woen.modules.driveTrain
 
 import com.qualcomm.robotcore.hardware.HardwareMap
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
-import org.woen.threading.ThreadManager
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
@@ -32,7 +28,8 @@ class HardwareOdometry : IHardwareDevice {
             Angle(pos.getHeading(AngleUnit.RADIANS))
         ) + HotRun.LAZY_INSTANCE.currentRunColor.get().startOrientation
 
-        velocity = Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER))
+        velocity =
+            Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER))
         headingVelocity = _computer.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS)
     }
 
