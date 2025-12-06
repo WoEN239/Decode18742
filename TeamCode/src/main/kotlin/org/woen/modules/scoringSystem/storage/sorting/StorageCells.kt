@@ -90,7 +90,7 @@ class StorageCells
         {
             if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].IsEmpty())
             {
-                result.Set(curSlotId)
+                result.Set(PREFERRED_INTAKE_SLOT_ORDER[curSlotId])
                 curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
@@ -181,6 +181,17 @@ class StorageCells
 
 
 
+    fun updateAfterLazyIntake(inputBalls: Array<Ball.Name>)
+    {
+        if (inputBalls.size > MAX_BALL_COUNT) return
+
+        var curSlot = StorageSlot.BOTTOM
+        while (curSlot <= StorageSlot.MOBILE_OUT)
+        {
+            _storageCells[curSlot].Set(inputBalls[curSlot])
+            curSlot++
+        }
+    }
     suspend fun updateAfterIntake(inputBall: Ball.Name): Boolean
     {
         _hwSortingM.stopAwaitingEating(true)
@@ -218,6 +229,7 @@ class StorageCells
     }
 
 
+
     fun fastFixStorageDesync()
     {
         TODO("Add storage recalibrations using in robot optic-pares")
@@ -234,7 +246,6 @@ class StorageCells
     fun hwStartBelts() = _hwSortingM.startBelts()
     fun hwStopBelts() = _hwSortingM.stopBelts()
     suspend fun hwOpenTurretGate() = _hwSortingM.openTurretGate()
-
 
 
     suspend fun fullCalibrate() = _hwSortingM.fullCalibrate()
@@ -258,11 +269,13 @@ class StorageCells
         ThreadedTelemetry.LAZY_INSTANCE.log("finished full rotation, new storage:")
         logAllStorageData()
     }
+
+
     private fun swReAdjustStorage(): Boolean
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("SwReadjust start")
-        if (_storageCells[StorageSlot.MOBILE_OUT].IsEmpty() &&
-            isNotEmpty())
+        if (_storageCells[StorageSlot.MOBILE_OUT].IsEmpty()
+            && isNotEmpty())
         {
             _storageCells[StorageSlot.MOBILE_OUT].Set(
                 _storageCells[StorageSlot.CENTER].Id(),
@@ -291,7 +304,6 @@ class StorageCells
                 _storageCells[StorageSlot.MOBILE_IN].Name())
 
             _storageCells[StorageSlot.MOBILE_IN].Empty()
-
             return true
         }
         else if (_storageCells[StorageSlot.BOTTOM].IsEmpty()
@@ -321,16 +333,15 @@ class StorageCells
 
     fun pauseAnyIntake() = _hwSortingM.stopAwaitingEating(true)
     fun resumeIntakes() = _hwSortingM.resumeAwaitingEating()
-    
-    
+
 
     fun logAllStorageData()
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("" +
-                "B: ${_storageCells[StorageSlot.BOTTOM].Name()}; "
-              + "C: ${_storageCells[StorageSlot.CENTER].Name()}; "
-             + "MO: ${_storageCells[StorageSlot.MOBILE_OUT].Name()}; "
-             + "MI: ${_storageCells[StorageSlot.MOBILE_IN].Name()}\n"
+                "B:  ${_storageCells[StorageSlot.BOTTOM].Name()}; "
+              + "C:  ${_storageCells[StorageSlot.CENTER].Name()}; "
+              + "MO: ${_storageCells[StorageSlot.MOBILE_OUT].Name()}; "
+              + "MI: ${_storageCells[StorageSlot.MOBILE_IN].Name()}\n"
         )
     }
     fun storageData() = _storageCells

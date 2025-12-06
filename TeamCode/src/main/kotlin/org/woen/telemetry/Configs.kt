@@ -323,10 +323,13 @@ object Configs {
         var INTAKE = 1
 
         @JvmField
-        var DRUM_REQUEST = 2
+        var LAZY_INTAKE = 2
 
         @JvmField
-        var SINGLE_REQUEST = 3
+        var DRUM_REQUEST = 3
+
+        @JvmField
+        var SINGLE_REQUEST = 4
     }
 
 
@@ -363,7 +366,7 @@ object Configs {
         var REQUEST_RACE_CONDITION_DELAY_MS: Long = 10
 
         @JvmField
-        var DELAY_FOR_EVENT_AWAITING_MS: Long = 5
+        var DELAY_FOR_EVENT_AWAITING_MS: Long = 10
 
         @JvmField
         var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 50
@@ -378,6 +381,8 @@ object Configs {
         @JvmField
         var DELAY_FOR_SORTING_REALIGNING_REVERSE_MS: Long = 44
 
+        @JvmField
+        var MAX_DELAY_FOR_SHOT_AWAITING_MS: Long = 2000
 
         @JvmField
         var DELAY_BETWEEN_INTAKES_MS: Long = 1111

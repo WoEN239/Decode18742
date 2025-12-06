@@ -44,7 +44,7 @@ import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
-
+import org.woen.telemetry.Configs.STORAGE.MAX_DELAY_FOR_SHOT_AWAITING_MS
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -96,7 +96,7 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveStreamDrumRequest::class, {
 
-                startStreamDrumRequest()
+                startLazyStreamDrumRequest()
         }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveDrumRequest::class, {
@@ -314,13 +314,13 @@ class ScoringModulesConnector
         sendFinishedFiringEvent(requestResult)
         return requestResult
     }
-    private suspend fun startStreamDrumRequest(): RequestResult.Name
+    private suspend fun startLazyStreamDrumRequest(): RequestResult.Name
     {
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
-        val requestResult = _storage.shootEntireDrumRequest()
-        ThreadedTelemetry.LAZY_INSTANCE.log("SIMPLE DrumRequest - FINISHED")
+        val requestResult = _storage.lazyShootEverything()
+        ThreadedTelemetry.LAZY_INSTANCE.log("LAZY DrumRequest - FINISHED")
 
         tryRestartBrushes()
         setIdle()
@@ -359,12 +359,17 @@ class ScoringModulesConnector
     }
     private suspend fun awaitSuccessfulRequestShot()
     {
-        _storage.hwStartBelts()
         ThreadedTelemetry.LAZY_INSTANCE.log("SEND - AWAITING SHOT")
         ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
+        _storage.hwStartBelts()
 
-        while (!_shotWasFired.get() && !_requestWasTerminated.get())
+        var timePassedWaitingForShot: Long = 0
+        while (!_shotWasFired.get() && !_requestWasTerminated.get()
+            && timePassedWaitingForShot < MAX_DELAY_FOR_SHOT_AWAITING_MS)
+        {
             delay(DELAY_FOR_EVENT_AWAITING_MS)
+            timePassedWaitingForShot += DELAY_FOR_EVENT_AWAITING_MS
+        }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("\n\n\nRECEIVED - SHOT FIRED")
 

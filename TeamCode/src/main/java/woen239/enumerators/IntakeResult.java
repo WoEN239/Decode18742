@@ -3,10 +3,10 @@ package woen239.enumerators;
 
 public class IntakeResult
 {
-    static public final int SUCCESS = 0, SUCCESS_BOTTOM = 1, SUCCESS_CENTER = 2,
-        SUCCESS_MOBILE_OUT = 3, SUCCESS_MOBILE_IN = 4, FAIL_UNKNOWN = 5,
-            FAIL_STORAGE_IS_FULL = 6, FAIL_HARDWARE_PROBLEM = 7,
-                FAIL_USING_DIFFERENT_STORAGE_TYPE = 8,
+    static public final int SUCCESS_BOTTOM = 0, SUCCESS_CENTER = 1,
+        SUCCESS_MOBILE_OUT = 2, SUCCESS_MOBILE_IN = 3,
+            SUCCESS = 4, STARTED_SUCCESSFULLY = 5,
+                FAIL_UNKNOWN = 6, FAIL_STORAGE_IS_FULL = 7, FAIL_HARDWARE_PROBLEM = 8,
                     FAIL_IS_CURRENTLY_BUSY = 9, FAIL_PROCESS_WAS_TERMINATED = 10;
 
 
@@ -38,17 +38,18 @@ public class IntakeResult
 
     public enum Name
     {
-        SUCCESS,
         SUCCESS_BOTTOM,
         SUCCESS_CENTER,
         SUCCESS_MOBILE_OUT,
         SUCCESS_MOBILE_IN,
 
+        SUCCESS,
+        STARTED_SUCCESSFULLY,
+
         FAIL_UNKNOWN,
         FAIL_STORAGE_IS_FULL,
 
         FAIL_HARDWARE_PROBLEM,
-        FAIL_USING_DIFFERENT_STORAGE_TYPE,
 
         FAIL_IS_CURRENTLY_BUSY,
         FAIL_PROCESS_WAS_TERMINATED,
@@ -86,22 +87,9 @@ public class IntakeResult
 
 
 
-    public boolean SolutionIsMobileIn()
-    {
-        return _memId == SUCCESS_MOBILE_IN;
-    }
-    public boolean SolutionIsMobileOut()
-    {
-        return _memId == SUCCESS_MOBILE_OUT;
-    }
-    public boolean SolutionIsMobileSlot()
-    {
-        return _memId == SUCCESS_MOBILE_OUT || _memId == SUCCESS_MOBILE_IN;
-    }
-
     public boolean DidFail()
     {
-        return _memId > SUCCESS_MOBILE_IN;
+        return _memId > STARTED_SUCCESSFULLY;
     }
     static public  boolean DidFail(Name name)
     {
@@ -109,7 +97,7 @@ public class IntakeResult
     }
     static public  boolean DidFail(int value)
     {
-        return value > SUCCESS_MOBILE_IN;
+        return value > STARTED_SUCCESSFULLY;
     }
     public boolean DidSucceed()
     {
@@ -130,40 +118,42 @@ public class IntakeResult
     {
         switch (value)
         {
-            case SUCCESS:             return Name.SUCCESS;
-            case SUCCESS_BOTTOM:      return Name.SUCCESS_BOTTOM;
-            case SUCCESS_CENTER:      return Name.SUCCESS_CENTER;
-            case SUCCESS_MOBILE_OUT:  return Name.SUCCESS_MOBILE_OUT;
-            case SUCCESS_MOBILE_IN:   return Name.SUCCESS_MOBILE_IN;
+            case SUCCESS_BOTTOM:     return Name.SUCCESS_BOTTOM;
+            case SUCCESS_CENTER:     return Name.SUCCESS_CENTER;
+            case SUCCESS_MOBILE_OUT: return Name.SUCCESS_MOBILE_OUT;
+            case SUCCESS_MOBILE_IN:  return Name.SUCCESS_MOBILE_IN;
 
-            case FAIL_UNKNOWN:            return Name.FAIL_UNKNOWN;
-            case FAIL_STORAGE_IS_FULL:    return Name.FAIL_STORAGE_IS_FULL;
+            case SUCCESS:              return Name.SUCCESS;
+            case STARTED_SUCCESSFULLY: return Name.STARTED_SUCCESSFULLY;
 
-            case FAIL_HARDWARE_PROBLEM:   return Name.FAIL_HARDWARE_PROBLEM;
-            case FAIL_USING_DIFFERENT_STORAGE_TYPE: return Name.FAIL_USING_DIFFERENT_STORAGE_TYPE;
+            case FAIL_UNKNOWN:         return Name.FAIL_UNKNOWN;
+            case FAIL_STORAGE_IS_FULL: return Name.FAIL_STORAGE_IS_FULL;
 
-            case FAIL_IS_CURRENTLY_BUSY:  return Name.FAIL_IS_CURRENTLY_BUSY;
-            default:                      return Name.FAIL_PROCESS_WAS_TERMINATED;
+            case FAIL_HARDWARE_PROBLEM: return Name.FAIL_HARDWARE_PROBLEM;
+
+            case FAIL_IS_CURRENTLY_BUSY: return Name.FAIL_IS_CURRENTLY_BUSY;
+            default:                     return Name.FAIL_PROCESS_WAS_TERMINATED;
         }
     }
     static public int ToInt (Name name)
     {
         switch (name)
         {
-            case SUCCESS:             return SUCCESS;
             case SUCCESS_BOTTOM:      return SUCCESS_BOTTOM;
             case SUCCESS_CENTER:      return SUCCESS_CENTER;
             case SUCCESS_MOBILE_OUT:  return SUCCESS_MOBILE_OUT;
             case SUCCESS_MOBILE_IN:   return SUCCESS_MOBILE_IN;
 
-            case FAIL_UNKNOWN:            return FAIL_UNKNOWN;
-            case FAIL_STORAGE_IS_FULL:    return FAIL_STORAGE_IS_FULL;
+            case SUCCESS:              return SUCCESS;
+            case STARTED_SUCCESSFULLY: return STARTED_SUCCESSFULLY;
 
-            case FAIL_HARDWARE_PROBLEM:   return FAIL_HARDWARE_PROBLEM;
-            case FAIL_USING_DIFFERENT_STORAGE_TYPE: return FAIL_USING_DIFFERENT_STORAGE_TYPE;
+            case FAIL_UNKNOWN:         return FAIL_UNKNOWN;
+            case FAIL_STORAGE_IS_FULL: return FAIL_STORAGE_IS_FULL;
 
-            case FAIL_IS_CURRENTLY_BUSY:  return FAIL_IS_CURRENTLY_BUSY;
-            default:                      return FAIL_PROCESS_WAS_TERMINATED;
+            case FAIL_HARDWARE_PROBLEM: return FAIL_HARDWARE_PROBLEM;
+
+            case FAIL_IS_CURRENTLY_BUSY: return FAIL_IS_CURRENTLY_BUSY;
+            default:                     return FAIL_PROCESS_WAS_TERMINATED;
         }
     }
 }

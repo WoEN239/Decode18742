@@ -27,7 +27,7 @@ import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_SORTING_REALIGNING_REVERSE_M
 class HwSortingManager
 {
     private val _hwSorting = HwSorting()
-    private val _hwSensors = HwSortingSensors()
+    //private val _hwSensors = HwSortingSensors()
 
     val isAwaitingIntake   = AtomicBoolean(false)
 
@@ -45,38 +45,38 @@ class HwSortingManager
 
     private fun subscribeAndHandleColorSensorsEvent()
     {
-        _hwSensors.colorSensorsTriggerAutoIntakeEvent +=
-        {
-            if (isAwaitingIntake.get())
-            {
-                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-
-                    val storageCanHandleInput = ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        BallCountInStorageEvent()).count + 1 < MAX_BALL_COUNT
-
-                    if (storageCanHandleInput)
-                    {
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(
-                            StorageGetReadyForIntakeEvent(it))
-
-                        ThreadedTelemetry.LAZY_INSTANCE.log("\nCOLOR SENSORS - START INTAKE")
-                        delay(DELAY_BETWEEN_INTAKES_MS)
-
-                        resumeAwaitingEating()
-                    }
-                    else
-                    {
-                        stopAwaitingEating(true)
-                        delay(DELAY_BETWEEN_INTAKES_MS)
-                    }
-                }
-            }
-        }
+//        _hwSensors.colorSensorsTriggerAutoIntakeEvent +=
+//        {
+//            if (isAwaitingIntake.get())
+//            {
+//                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//
+//                    val storageCanHandleInput = ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        BallCountInStorageEvent()).count + 1 < MAX_BALL_COUNT
+//
+//                    if (storageCanHandleInput)
+//                    {
+//                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                            StorageGetReadyForIntakeEvent(it))
+//
+//                        ThreadedTelemetry.LAZY_INSTANCE.log("\nCOLOR SENSORS - START INTAKE")
+//                        delay(DELAY_BETWEEN_INTAKES_MS)
+//
+//                        resumeAwaitingEating()
+//                    }
+//                    else
+//                    {
+//                        stopAwaitingEating(true)
+//                        delay(DELAY_BETWEEN_INTAKES_MS)
+//                    }
+//                }
+//            }
+//        }
     }
     private fun addDevices()
     {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSorting)
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSensors)
+        //HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSensors)
     }
     fun resetParametersAndLogicToDefault()
     {

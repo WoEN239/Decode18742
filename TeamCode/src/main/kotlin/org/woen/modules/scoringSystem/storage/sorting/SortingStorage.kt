@@ -32,21 +32,27 @@ import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
+import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
+import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
+import org.woen.telemetry.Configs.STORAGE.MAX_DELAY_FOR_SHOT_AWAITING_MS
 
 import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
 import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
 
 import org.woen.telemetry.Configs.PROCESS_ID.INTAKE
+import org.woen.telemetry.Configs.PROCESS_ID.LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.SINGLE_REQUEST
 
 import org.woen.telemetry.Configs.PROCESS_ID.UNDEFINED_PROCESS_ID
 import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAGE
+
 
 
 class SortingStorage
@@ -55,6 +61,7 @@ class SortingStorage
     private val _dynamicMemoryPattern = DynamicPattern()
 
     private val _shotWasFired = AtomicBoolean(false)
+    private val _lazyIntakeIsActive = AtomicBoolean(false)
 
     private val _runStatus = RunStatus(PRIORITY_SETTING_FOR_SORTING_STORAGE)
 
@@ -75,7 +82,9 @@ class SortingStorage
     private fun subscribeToTerminateEvents()
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
-                _runStatus.AddProcessToTerminationList(INTAKE)
+                val intakeProcessId =  getActiveIntakeProcessId()
+                if (intakeProcessId != UNDEFINED_PROCESS_ID)
+                    _runStatus.AddProcessToTerminationList(intakeProcessId)
         }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
@@ -86,6 +95,27 @@ class SortingStorage
     }
     private fun subscribeToInfoEvents()
     {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            StartLazyIntakeEvent::class, {
+
+                val tryToStartLazyIntake = canStartIntakeIsNotBusy()
+                it.startingResult = tryToStartLazyIntake
+
+                if (tryToStartLazyIntake != IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY)
+                    startLazyIntakes()
+        }   )
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            StopLazyIntakeEvent::class, {
+                _lazyIntakeIsActive.set(false)
+        }   )
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            StorageUpdateAfterLazyIntakeEvent::class, {
+                setAfterLazyIntake(it.inputBallsFromBottomToMobileOut)
+        }   )
+
+
+
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             ShotWasFiredEvent::class, {
                 shotWasFired()
@@ -137,18 +167,51 @@ class SortingStorage
 
 
 
+    fun setAfterLazyIntake(inputBalls: Array<Ball.Name>)
+        = _storageCells.updateAfterLazyIntake(inputBalls)
+
+
+    suspend fun startLazyIntakes()
+    {
+        _runStatus.SetCurrentActiveProcess(LAZY_INTAKE)
+        _lazyIntakeIsActive.set(true)
+
+        _storageCells.hwStartBelts()
+        while (_lazyIntakeIsActive.get())
+        {
+            delay(DELAY_FOR_EVENT_AWAITING_MS)
+
+            if (isForcedToTerminateIntake(LAZY_INTAKE))
+                terminateIntake(LAZY_INTAKE)
+        }
+
+        resumeLogicAfterIntake(LAZY_INTAKE)
+    }
+    suspend fun canStartIntakeIsNotBusy(): IntakeResult.Name
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("RunStatus checking")
+
+        if (noIntakeRaceConditionProblems(LAZY_INTAKE))
+            return IntakeResult.Name.STARTED_SUCCESSFULLY
+
+        resumeLogicAfterIntake(LAZY_INTAKE)
+        return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
+    }
     suspend fun handleIntake(inputBall: Ball.Name): IntakeResult.Name
     {
         if (_storageCells.anyBallCount() >= MAX_BALL_COUNT)
             return IntakeResult.Name.FAIL_STORAGE_IS_FULL
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("START SEARCHING INTAKE")
-        logAllRunstatus()
+        ThreadedTelemetry.LAZY_INSTANCE.log("RunStatus checking")
 
-        if (noIntakeRaceConditionProblems())
+        if (noIntakeRaceConditionProblems(INTAKE))
         {
-            if (isForcedToTerminateIntake()) return terminateIntake()
+            _runStatus.SetCurrentActiveProcess(INTAKE)
 
+            if (isForcedToTerminateIntake(INTAKE))
+                return terminateIntake(INTAKE)
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("searching for intake slot")
             val storageCanHandle = _storageCells.handleIntake()
             ThreadedTelemetry.LAZY_INSTANCE.log("DONE SEARCHING INTAKE")
             ThreadedTelemetry.LAZY_INSTANCE.log("SEARCH RESULT: " + storageCanHandle.Name())
@@ -156,11 +219,11 @@ class SortingStorage
             val intakeResult = updateAfterInput(storageCanHandle, inputBall)
             //  Safe updating storage after intake  - wont update if an error occurs
 
-            resumeLogicAfterIntake()
+            resumeLogicAfterIntake(INTAKE)
             return intakeResult
         }
 
-        resumeLogicAfterIntake()
+        resumeLogicAfterIntake(INTAKE)
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
     private suspend fun updateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
@@ -176,54 +239,45 @@ class SortingStorage
         else IntakeResult.Name.FAIL_UNKNOWN
     }
 
-    private suspend fun intakeRaceConditionIsPresent():  Boolean
+    private suspend fun intakeRaceConditionIsPresent(processId: Int):  Boolean
     {
         if (_runStatus.IsNotBusy())
         {
-            _runStatus.AddProcessToQueue(INTAKE)
+            _runStatus.AddProcessToQueue(processId)
 
             delay(INTAKE_RACE_CONDITION_DELAY_MS)
-            ThreadedTelemetry.LAZY_INSTANCE.log("calculating highest priority")
-            logAllRunstatus()
-            return !_runStatus.IsThisProcessHighestPriority(INTAKE)
+            return !_runStatus.IsThisProcessHighestPriority(processId)
         }
         return true
     }
-    private suspend fun noIntakeRaceConditionProblems(): Boolean
+    private suspend fun noIntakeRaceConditionProblems(processId: Int): Boolean
     {
-        _runStatus.TryToRemoveThisProcessFromTerminationList(INTAKE)
+        _runStatus.TryToRemoveThisProcessFromTerminationList(processId)
 
-        return !intakeRaceConditionIsPresent()
+        return !intakeRaceConditionIsPresent(processId)
     }
 
-    private fun terminateIntake(): IntakeResult.Name
+    private fun terminateIntake(processId: Int): IntakeResult.Name
     {
-        _runStatus.TryToRemoveProcessIdFromQueue(INTAKE)
-        _runStatus.TryToRemoveThisProcessFromTerminationList(INTAKE)
+        ThreadedTelemetry.LAZY_INSTANCE.log("[!] Intake is being terminated..")
 
-        resumeLogicAfterIntake()
+        _runStatus.TryToRemoveProcessIdFromQueue(processId)
+        _runStatus.TryToRemoveThisProcessFromTerminationList(processId)
+
+        resumeLogicAfterIntake(processId)
         return IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
     }
-    private fun isForcedToTerminateIntake()
-        = _runStatus.IsForcedToTerminateThisProcess(INTAKE)
-
-
-    private fun logAllRunstatus()
+    private fun getActiveIntakeProcessId(): Int
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("Runstatus size: ${_runStatus.size()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("Runstatus isNOTbusy: ${_runStatus.IsNotBusy()}")
+        val activeProcess = _runStatus.GetCurrentActiveProcess()
 
-        var i = 0
-        var c: Int
-
-        while (i < _runStatus.size())
-        {
-            c = _runStatus.Current(i)
-            ThreadedTelemetry.LAZY_INSTANCE.log("${i}) = ${c}")
-
-            i++
-        }
+        return if (activeProcess == INTAKE || activeProcess == LAZY_INTAKE)
+            activeProcess else -1
     }
+    private fun isForcedToTerminateIntake(processId: Int)
+        = _runStatus.IsForcedToTerminateThisProcess(processId)
+
+
 
     suspend fun handleRequest(request: BallRequest.Name): RequestResult.Name
     {
@@ -231,6 +285,7 @@ class SortingStorage
         if (cantHandleRequestRaceCondition(SINGLE_REQUEST))
             return terminateRequest(SINGLE_REQUEST)
 
+        _runStatus.SetCurrentActiveProcess(SINGLE_REQUEST)
 
         val requestResult = _storageCells.handleRequest(request)
         ThreadedTelemetry.LAZY_INSTANCE.log("FINISHED searching, result: ${requestResult.Name()}")
@@ -341,10 +396,8 @@ class SortingStorage
         _runStatus.TryToRemoveProcessIdFromQueue(processId)
         _runStatus.TryToRemoveThisProcessFromTerminationList(processId)
 
-        val requestFail = RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
         resumeLogicAfterRequest(processId)
-
-        return requestFail
+        return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
     }
     private fun getActiveRequestProcessId(): Int
     {
@@ -357,12 +410,33 @@ class SortingStorage
 
 
 
+
+    suspend fun lazyShootEverything(): RequestResult.Name
+    {
+        if (cantHandleRequestRaceCondition(DRUM_REQUEST))
+            return terminateRequest(DRUM_REQUEST)
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("MODE: Lazy shoot everything")
+        _runStatus.SetCurrentActiveProcess(DRUM_REQUEST)
+
+        var shotsFired = 0
+        while (shotsFired < MAX_BALL_COUNT)
+        {
+            if (!fullWaitForShotFired(DRUM_REQUEST))
+                return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
+
+            ThreadedTelemetry.LAZY_INSTANCE.log("shot finished, updating..")
+            shotsFired++
+        }
+        return RequestResult.Name.SUCCESS_IS_NOW_EMPTY
+    }
     suspend fun shootEntireDrumRequest(): RequestResult.Name
     {
         if (_storageCells.isEmpty()) return RequestResult.Name.FAIL_IS_EMPTY
         if (cantHandleRequestRaceCondition(DRUM_REQUEST))
             return terminateRequest(DRUM_REQUEST)
 
+        _runStatus.SetCurrentActiveProcess(DRUM_REQUEST)
         ThreadedTelemetry.LAZY_INSTANCE.log("MODE: SHOOT EVERYTHING")
         val requestResult = shootEverything()
 
@@ -379,6 +453,8 @@ class SortingStorage
         if (_storageCells.isEmpty()) return RequestResult.Name.FAIL_IS_EMPTY
         if (cantHandleRequestRaceCondition(DRUM_REQUEST))
             return terminateRequest(DRUM_REQUEST)
+
+        _runStatus.SetCurrentActiveProcess(DRUM_REQUEST)
 
         val patternOrder = if (!includeLastUnfinishedPattern) requestOrder
             else DynamicPattern.trimPattern(
@@ -423,6 +499,8 @@ class SortingStorage
             return terminateRequest(DRUM_REQUEST)
 
 
+
+        _runStatus.SetCurrentActiveProcess(DRUM_REQUEST)
 
         val patternOrder = if (!includeLastUnfinishedPattern) requestOrder
         else DynamicPattern.trimPattern(
@@ -681,11 +759,15 @@ class SortingStorage
         else _storageCells.fullCalibrate()
 
         _runStatus.TryToRemoveProcessIdFromQueue(processId)
+        _runStatus.ClearCurrentActiveProcess()
         _storageCells.resumeIntakes()
     }
 
-    private fun resumeLogicAfterIntake()
-        = _runStatus.TryToRemoveProcessIdFromQueue(INTAKE)
+    private fun resumeLogicAfterIntake(processId: Int)
+    {
+        _runStatus.TryToRemoveProcessIdFromQueue(processId)
+        _runStatus.ClearCurrentActiveProcess()
+    }
 
 
 
@@ -696,9 +778,12 @@ class SortingStorage
         ThreadedTelemetry.LAZY_INSTANCE.log("Sorting waiting for shot - event send")
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
 
-        while (!_shotWasFired.get())
+        var timePassedWaitingForShot: Long = 0
+
+        while (!_shotWasFired.get() && timePassedWaitingForShot < MAX_DELAY_FOR_SHOT_AWAITING_MS)
         {
             delay(DELAY_FOR_EVENT_AWAITING_MS)
+            timePassedWaitingForShot += DELAY_FOR_EVENT_AWAITING_MS
             if (isForcedToTerminateRequest(processId)) return false
         }
 
