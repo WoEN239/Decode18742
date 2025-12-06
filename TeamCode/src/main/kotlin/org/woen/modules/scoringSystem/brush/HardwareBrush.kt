@@ -7,6 +7,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
+import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.motor.MotorOnly
 
 class HardwareBrush : IHardwareDevice {
@@ -23,7 +24,7 @@ class HardwareBrush : IHardwareDevice {
         _motor.power = motorPower
     }
 
-    enum class BrushState {
+    enum class BrushDirection {
         FORWARD,
         STOP,
         REVERS,
@@ -34,13 +35,15 @@ class HardwareBrush : IHardwareDevice {
         isSafe = volt < Configs.BRUSH.BRUSH_TARGET_CURRENT
     }
 
-    fun setDir(dir: BrushState) {
+    fun setDir(dir: BrushDirection) {
         motorPower = when (dir) {
-            BrushState.FORWARD -> 1.0
+            BrushDirection.FORWARD ->
+                ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER)
 
-            BrushState.STOP -> 0.0
+            BrushDirection.STOP -> 0.0
 
-            BrushState.REVERS -> -1.0
+            BrushDirection.REVERS ->
+                -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER)
         }
 
     }

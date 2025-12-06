@@ -29,7 +29,8 @@ class HardwareOdometry : IHardwareDevice {
         ) + HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
 
         velocity =
-            Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER)).turn(-currentOrientation.angle)
+            Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER))
+                .turn(-currentOrientation.angle)
         headingVelocity = _computer.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS)
     }
 
@@ -37,9 +38,7 @@ class HardwareOdometry : IHardwareDevice {
         _computer = hardwareMap.get("odometry") as OdometryComputer
         _computer.resetPosAndIMU()
 
-        val startOrientation = HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
-
-        currentOrientation = startOrientation
+        currentOrientation = HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _computer.setOffsets(
@@ -54,7 +53,7 @@ class HardwareOdometry : IHardwareDevice {
             )
 
             _computer.recalibrateIMU()
-         }
+        }
     }
 
     override fun dispose() {

@@ -44,7 +44,7 @@ class Brush : IModule {
         val errTime = tmr2.time() > Configs.BRUSH.BRUSH_ERR_TIME
         when (turnOn.get()) {
             BrushState.FORWARD -> {
-                bruh.setDir(HardwareBrush.BrushState.FORWARD)
+                bruh.setDir(HardwareBrush.BrushDirection.FORWARD)
                 if (!bruh.isSafe && !f11) {
                     f11 = true; tmr2.reset()
                 }
@@ -54,7 +54,7 @@ class Brush : IModule {
             }
 
             BrushState.SAFE -> {
-                bruh.setDir(HardwareBrush.BrushState.REVERS)
+                bruh.setDir(HardwareBrush.BrushDirection.REVERS)
                 if (bruh.isSafe && difTmr) {
                     turnOn.set(BrushState.FORWARD)
                 }
@@ -64,7 +64,7 @@ class Brush : IModule {
             }
 
             BrushState.STOP -> {
-                bruh.setDir(HardwareBrush.BrushState.STOP)
+                bruh.setDir(HardwareBrush.BrushDirection.STOP)
                 tmr2.reset()
                 tmr1.reset()
                 f11 = false
@@ -82,7 +82,7 @@ class Brush : IModule {
     }
 
     suspend fun revers(tmr1: Long = 1000) {
-        bruh.setDir(HardwareBrush.BrushState.REVERS)
+        bruh.setDir(HardwareBrush.BrushDirection.REVERS)
         delay(tmr1)
     }
 

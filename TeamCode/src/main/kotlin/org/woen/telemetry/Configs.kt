@@ -32,9 +32,11 @@ object Configs {
         @JvmField
         var BRUSH_TARGET_CURRENT = 3.0
 
-
         @JvmField
         var TIME_FOR_BRUSH_REVERSING: Long = 1500
+
+        @JvmField
+        var BRUSH_POWER = 10.0
     }
 
     @Config
@@ -482,5 +484,8 @@ object Configs {
 
         @JvmField
         var BELTS_FULL_TIMER = 0.1
+
+        @JvmField
+        var BELTS_POWER = 10.0
     }
 }

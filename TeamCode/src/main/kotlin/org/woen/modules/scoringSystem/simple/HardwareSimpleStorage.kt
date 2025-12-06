@@ -10,6 +10,7 @@ import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
+import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.motor.MotorOnly
 
@@ -39,11 +40,13 @@ class HardwareSimpleStorage : IHardwareDevice {
             }
 
             BeltState.RUN_REVERS -> {
-                _beltMotor.power = -1.0
+                _beltMotor.power =
+                    -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
             }
 
             BeltState.RUN -> {
-                _beltMotor.power = 1.0
+                _beltMotor.power =
+                    ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
             }
         }
 
@@ -57,7 +60,8 @@ class HardwareSimpleStorage : IHardwareDevice {
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _beltMotor = MotorOnly(hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
+        _beltMotor =
+            MotorOnly(hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
 
         val pushServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO) as Servo
         val gateServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO) as Servo
