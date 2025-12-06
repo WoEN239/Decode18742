@@ -27,6 +27,9 @@ import org.woen.modules.scoringSystem.turret.CurrentlyShooting
 import org.woen.modules.scoringSystem.turret.TurretVoltageDropped
 import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
 
+import org.woen.modules.scoringSystem.storage.EnableSortingModuleEvent
+import org.woen.modules.scoringSystem.storage.DisableSortingModuleEvent
+
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 
@@ -42,9 +45,12 @@ import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_DELAY_FOR_SHOT_AWAITING_MS
+
+import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
+import org.woen.telemetry.Configs.STORAGE.IS_SORTING_MODULE_ACTIVE_AT_START_UP
+
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -57,10 +63,11 @@ class ScoringModulesConnector
 
 
     private val _isBusy               = AtomicBoolean(false)
-    private val _isAlreadyShooting    = AtomicBoolean(false)
+    private val _isAlreadyShooting     = AtomicBoolean(false)
+    private val _isSortingModuleActive = AtomicBoolean(IS_SORTING_MODULE_ACTIVE_AT_START_UP)
 
-    private val _shotWasFired         = AtomicBoolean(false)
-    private val _canRestartBrushes    = AtomicBoolean(false)
+    private val _shotWasFired      = AtomicBoolean(false)
+    private val _canRestartBrushes = AtomicBoolean(false)
 
     private val _intakeWasTerminated  = AtomicBoolean(false)
     private val _requestWasTerminated = AtomicBoolean(false)
@@ -81,9 +88,22 @@ class ScoringModulesConnector
     private fun subscribeToEvents()
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            EnableSortingModuleEvent::class, {
+                _isSortingModuleActive.set(true)
+        }   )
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            DisableSortingModuleEvent::class, {
+                _isSortingModuleActive.set(false)
+        }   )
+
+
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGetReadyForIntakeEvent::class, {
 
-                startIntakeProcess(it.inputBall)
+                if (_isSortingModuleActive.get())
+                    startIntakeProcess(it.inputBall)
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
 
@@ -91,27 +111,35 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveSingleRequest::class, {
 
-                startSingleRequest(it.ballRequest)
+                if (_isSortingModuleActive.get())
+                    startSingleRequest(it.ballRequest)
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveStreamDrumRequest::class, {
 
-                startLazyStreamDrumRequest()
+                if (_isSortingModuleActive.get())
+                    startLazyStreamDrumRequest()
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveDrumRequest::class, {
 
-                startDrumRequest(
-                    it.shootingMode,
-                    it.requestPattern,
-                    it.failsafePattern
-        )   }   )
+                if (_isSortingModuleActive.get())
+                    startDrumRequest(
+                        it.shootingMode,
+                        it.requestPattern,
+                        it.failsafePattern)
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
+        }   )
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             TurretVoltageDropped::class, {
 
-                _shotWasFired.set(true)
+                if (_isSortingModuleActive.get())
+                    _shotWasFired.set(true)
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
             }
         )
 
@@ -119,14 +147,19 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageRequestIsReadyEvent::class, {
 
-                currentlyShootingRequestsProcess()
+                if (_isSortingModuleActive.get())
+                    currentlyShootingRequestsProcess()
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             ReverseAndThenStartBrushesAgain::class, {
-                startBrushesAfterDelay(it.reverseTime)
+
+                if (_isSortingModuleActive.get())
+                    startBrushesAfterDelay(it.reverseTime)
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
     }
     private fun subscribeToGamepad()
@@ -135,33 +168,47 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.dpad_right }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        StorageGetReadyForIntakeEvent(Ball.Name.PURPLE))
+                    if (_isSortingModuleActive.get())
+                    {
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                            StorageGetReadyForIntakeEvent(
+                                Ball.Name.PURPLE))
 
-                    ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - PURPLE Intake - GAMEPAD")
-                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                        ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - PURPLE Intake - GAMEPAD")
+                        ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                    }
+                    else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
             { it.dpad_left }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        StorageGetReadyForIntakeEvent(Ball.Name.GREEN))
+                    if (_isSortingModuleActive.get())
+                    {
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                            StorageGetReadyForIntakeEvent(
+                                Ball.Name.GREEN))
 
-                    ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - GREEN Intake - GAMEPAD")
-                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                        ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - GREEN Intake - GAMEPAD")
+                        ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                    }
+                    else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
             { it.dpad_down }, {
 
-                    _intakeWasTerminated.set(true)
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
+                    if (_isSortingModuleActive.get())
+                    {
+                        _intakeWasTerminated.set(true)
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
 
-                    ThreadedTelemetry.LAZY_INSTANCE.log("\nSTOP  - INTAKE - GAMEPAD")
-                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                        ThreadedTelemetry.LAZY_INSTANCE.log("\nSTOP  - INTAKE - GAMEPAD")
+                        ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                    }
+                    else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
 
 
@@ -170,30 +217,42 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.right_bumper }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDrumRequest())
+                    if (_isSortingModuleActive.get())
+                    {
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDrumRequest())
 
-                    ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - STREAM Drum request - GAMEPAD")
-                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                        ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - STREAM Drum request - GAMEPAD")
+                        ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                    }
+                    else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
             { it.right_trigger > 0.75 }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
+                    if (_isSortingModuleActive.get())
+                    {
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 
-                    ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - PURPLE Request - GAMEPAD")
-                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                        ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - PURPLE Request - GAMEPAD")
+                        ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                    }
+                    else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
             { it.left_trigger > 0.75 }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
+                    if (_isSortingModuleActive.get())
+                    {
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 
-                    ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - GREEN Request - GAMEPAD")
-                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                        ThreadedTelemetry.LAZY_INSTANCE.log("\nSTART - GREEN Request - GAMEPAD")
+                        ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                    }
+                    else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
 
 
@@ -201,11 +260,15 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.left_bumper }, {
 
-                    _requestWasTerminated.set(true)
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
+                    if (_isSortingModuleActive.get())
+                    {
+                        _requestWasTerminated.set(true)
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
 
-                    ThreadedTelemetry.LAZY_INSTANCE.log("\nSTOP  - ANY Request - GAMEPAD")
-                    ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                        ThreadedTelemetry.LAZY_INSTANCE.log("\nSTOP  - ANY Request - GAMEPAD")
+                        ThreadedTelemetry.LAZY_INSTANCE.log("CONNECTOR STATUS isBusy: " + isBusy())
+                    }
+                    else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
     }
     private fun resetParametersToDefault()

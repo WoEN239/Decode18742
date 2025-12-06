@@ -30,6 +30,8 @@ import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
+import org.woen.modules.scoringSystem.storage.DisableSortingModuleEvent
+import org.woen.modules.scoringSystem.storage.EnableSortingModuleEvent
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
@@ -38,6 +40,8 @@ import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
+import org.woen.telemetry.Configs.STORAGE.IS_SORTING_MODULE_ACTIVE_AT_START_UP
+
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_DELAY_FOR_SHOT_AWAITING_MS
@@ -60,8 +64,9 @@ class SortingStorage
     private val _storageCells = StorageCells()
     private val _dynamicMemoryPattern = DynamicPattern()
 
-    private val _shotWasFired = AtomicBoolean(false)
-    private val _lazyIntakeIsActive = AtomicBoolean(false)
+    private val _shotWasFired          = AtomicBoolean(false)
+    private val _lazyIntakeIsActive    = AtomicBoolean(false)
+    private val _isSortingModuleActive = AtomicBoolean(IS_SORTING_MODULE_ACTIVE_AT_START_UP)
 
     private val _runStatus = RunStatus(PRIORITY_SETTING_FOR_SORTING_STORAGE)
 
@@ -82,79 +87,132 @@ class SortingStorage
     private fun subscribeToTerminateEvents()
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
-                val intakeProcessId =  getActiveIntakeProcessId()
-                if (intakeProcessId != UNDEFINED_PROCESS_ID)
-                    _runStatus.AddProcessToTerminationList(intakeProcessId)
+
+                if (_isSortingModuleActive.get())
+                {
+                    val intakeProcessId = getActiveIntakeProcessId()
+                    if (intakeProcessId != UNDEFINED_PROCESS_ID)
+                        _runStatus.AddProcessToTerminationList(intakeProcessId)
+                }
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
-                val requestProcessId = getActiveRequestProcessId()
-                if (requestProcessId != UNDEFINED_PROCESS_ID)
-                    _runStatus.AddProcessToTerminationList(requestProcessId)
+
+                if (_isSortingModuleActive.get())
+                {
+                    val requestProcessId = getActiveRequestProcessId()
+                    if (requestProcessId != UNDEFINED_PROCESS_ID)
+                        _runStatus.AddProcessToTerminationList(requestProcessId)
+                }
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
     }
     private fun subscribeToInfoEvents()
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            EnableSortingModuleEvent::class, {
+                _isSortingModuleActive.set(true)
+        }   )
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            DisableSortingModuleEvent::class, {
+                _isSortingModuleActive.set(false)
+        }   )
+
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StartLazyIntakeEvent::class, {
 
-                val tryToStartLazyIntake = canStartIntakeIsNotBusy()
-                it.startingResult = tryToStartLazyIntake
+                if (_isSortingModuleActive.get())
+                {
+                    val tryToStartLazyIntake = canStartIntakeIsNotBusy()
+                    it.startingResult = tryToStartLazyIntake
 
-                if (tryToStartLazyIntake != IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY)
-                    startLazyIntakes()
+                    if (tryToStartLazyIntake != IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY)
+                        startLazyIntakes()
+                }
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StopLazyIntakeEvent::class, {
-                _lazyIntakeIsActive.set(false)
+
+                if (_isSortingModuleActive.get())
+                    _lazyIntakeIsActive.set(false)
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageUpdateAfterLazyIntakeEvent::class, {
-                setAfterLazyIntake(it.inputBallsFromBottomToMobileOut)
+
+                if (_isSortingModuleActive.get())
+                    setAfterLazyIntake(it.inputBallsFromBottomToMobileOut)
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             ShotWasFiredEvent::class, {
-                shotWasFired()
+
+                if (_isSortingModuleActive.get())
+                    shotWasFired()
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             BallCountInStorageEvent::class, {
-                it.count = anyBallCount()
+
+                if (_isSortingModuleActive.get())
+                    it.count = anyBallCount()
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageHandleIdenticalColorsEvent::class, {
-                val result = _storageCells.handleIdenticalColorRequest()
 
-                it.maxIdenticalColorCount = result.maxIdenticalColorCount
-                it.identicalColor = result.identicalColor
+                if (_isSortingModuleActive.get())
+                {
+                    val result = _storageCells.handleIdenticalColorRequest()
+
+                    it.maxIdenticalColorCount = result.maxIdenticalColorCount
+                    it.identicalColor = result.identicalColor
+                }
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(OnPatternDetectedEvent::class, {
-                _dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
+
+                if (_isSortingModuleActive.get())
+                    _dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
+                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
     }
     private fun subscribeToGamepadEvents()
     {
         ThreadedGamepad.LAZY_INSTANCE.addListener(
         createClickDownListener({ it.triangle }, {
-                    _dynamicMemoryPattern.resetTemporary()
+
+                    if (_isSortingModuleActive.get())
+                            _dynamicMemoryPattern.resetTemporary()
+                    else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
         createClickDownListener({ it.square },   {
-                    _dynamicMemoryPattern.addToTemporary()
+
+                    if (_isSortingModuleActive.get())
+                            _dynamicMemoryPattern.addToTemporary()
+                    else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
         createClickDownListener({ it.circle },   {
-                    _dynamicMemoryPattern.removeFromTemporary()
+
+                    if (_isSortingModuleActive.get())
+                            _dynamicMemoryPattern.removeFromTemporary()
+                    else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
     }
     private fun resetParametersToDefault()

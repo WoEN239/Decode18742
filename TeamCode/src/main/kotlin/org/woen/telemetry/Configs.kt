@@ -341,6 +341,10 @@ object Configs {
         @JvmField
         var STORAGE_SLOT_COUNT = 4
 
+        @JvmField
+        var IS_SORTING_MODULE_ACTIVE_AT_START_UP = false
+
+
 
         @JvmField
         var PREFERRED_INTAKE_SLOT_ORDER: Array<Int> = arrayOf(
