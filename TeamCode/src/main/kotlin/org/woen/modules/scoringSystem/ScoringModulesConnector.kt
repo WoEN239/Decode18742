@@ -296,7 +296,7 @@ class ScoringModulesConnector
 
         setBusy()
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("INPUT BALL: $inputBall")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: Started - Intake, INPUT BALL: $inputBall")
         val intakeResult = _storage.handleIntake(inputBall)
 
 
@@ -311,7 +311,7 @@ class ScoringModulesConnector
             )   )
         }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("FINISHED - INTAKE, result: $intakeResult")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: FINISHED - INTAKE, result: $intakeResult")
         setIdle()
         return intakeResult
     }
@@ -356,7 +356,7 @@ class ScoringModulesConnector
          *  2) > If all is good - sends event StorageRequestIsReadyEvent
          *  3) > Waits for the turret being fully accelerated
          *  4) > Push the ball in the turret
-         *  5) > Ball flies, and should invoke ShotWasFiredEvent
+         *  5) > Ball flies, and invoked ShotWasFiredEvent
          *  6) > Awaits ShotWasFiredEvent
          *  7) > > Loop if drum request continues
          *  8) Exit when entire drum was fired
@@ -365,13 +365,13 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: Started - Smart drum request")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: Started - SMART drum request")
         val requestResult = _storage.shootEntireDrumRequest(
                 shootingMode,
                 requestPattern,
                 failsafePattern)
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("SMART DrumRequest - FINISHED")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: FINISHED - SMART drum request")
 
         tryRestartBrushes()
         setIdle()
@@ -383,8 +383,9 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: Started - LazySTREAM drum request")
         val requestResult = _storage.lazyShootEverything()
-        ThreadedTelemetry.LAZY_INSTANCE.log("LAZY DrumRequest - FINISHED")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: FINISHED - LazySTREAM drum request")
 
         tryRestartBrushes()
         setIdle()
@@ -396,8 +397,10 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
         setBusy()
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: Started - Single request")
+
         val requestResult = _storage.handleRequest(ballRequest)
-        ThreadedTelemetry.LAZY_INSTANCE.log("SINGLE request - FINISHED")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: FINISHED - Single request")
 
         tryRestartBrushes()
         setIdle()
@@ -448,10 +451,15 @@ class ScoringModulesConnector
     }
 
     private fun sendFinishedFiringEvent(requestResult: RequestResult.Name)
-        = ThreadedEventBus.LAZY_INSTANCE.invoke(
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("SMC: FINISHED all firing, event send")
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
             FullFinishedFiringEvent(
                 requestResult
-        )   )
+            )
+        )
+    }
 
 
 

@@ -33,7 +33,7 @@ import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.FAILSAFE_SHOOTING_MODE
 
 import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.MAX_ATTEMPTS_FOR_PATTERN_DETECTION
 import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS
-
+import org.woen.telemetry.ThreadedTelemetry
 
 
 class DefaultFireEvent()
@@ -88,15 +88,31 @@ class SortingAutoLogic
         = _patternDetectionAttempts.get() < MAX_ATTEMPTS_FOR_PATTERN_DETECTION
     private suspend fun tryGetPattern(): Boolean
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Waiting for detected pattern")
+
         val waitDuration = ElapsedTime()
         _patternDetectionAttempts.getAndAdd(1)
 
         while(waitDuration.milliseconds() < MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS)
         {
-            if (_patternWasDetected.get()) return true
+            if (_patternWasDetected.get())
+            {
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL: Pattern detected successfully")
+                var i = 0
+                var patternString = ""
+                while (i < _pattern.permanent().size)
+                {
+                    patternString += _pattern.permanent()[i].toString() + ", "
+                    i++
+                }
+                ThreadedTelemetry.LAZY_INSTANCE.log(patternString)
+
+                return true
+            }
             delay(DELAY_FOR_EVENT_AWAITING_MS)
         }
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("SAL: Failed to get pattern")
         return false
     }
 
@@ -104,6 +120,8 @@ class SortingAutoLogic
 
     private suspend fun firePattern()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Choosing default")
+
         if (DEFAULT_SHOOTING_MODE == Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE)
             fireEverything()
 
@@ -111,13 +129,28 @@ class SortingAutoLogic
         {
             Shooting.StockPattern.Name.USE_DETECTED_PATTERN ->
             {
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Trying: fire detected pattern")
                 if (_patternWasDetected.get()
                     || canTryDetectPattern() && tryGetPattern())
+                {
+                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire detected pattern" +
+                            "\nSAL pattern: ")
+
+                    var i = 0
+                    var patternString = ""
+                    while (i < _pattern.permanent().size)
+                    {
+                        patternString += _pattern.permanent()[i].toString() + ", "
+                        i++
+                    }
+                    ThreadedTelemetry.LAZY_INSTANCE.log(patternString)
+
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             DEFAULT_SHOOTING_MODE,
                             _pattern.permanent()
                     )   )
+                }
                 else fireFailsafe()
             }
 
@@ -132,11 +165,16 @@ class SortingAutoLogic
                         ballCount, Ball.Name.NONE
                 )   )
 
-                if (storageBalls.maxIdenticalColorCount == ballCount)
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire identical colors: $ballCount")
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - got - identical count: " +
+                        "${storageBalls.maxIdenticalColorCount}, " +
+                        "identical color: ${storageBalls.identicalColor}")
+
+                if (storageBalls.maxIdenticalColorCount >= ballCount)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             DEFAULT_SHOOTING_MODE,
-                            Array(ballCount)
+                            Array(storageBalls.maxIdenticalColorCount)
                             {
                                 Ball.ToBallRequestName(storageBalls.identicalColor)
                             }
@@ -151,6 +189,18 @@ class SortingAutoLogic
                         DEFAULT_PATTERN
                     )
 
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire custom pattern" +
+                        "\nSAL pattern: ")
+
+                var i = 0
+                var patternString = ""
+                while (i < convertedPattern.size)
+                {
+                    patternString += convertedPattern[i].toString() + ", "
+                    i++
+                }
+                ThreadedTelemetry.LAZY_INSTANCE.log(patternString)
+
                 if (convertedPattern != null)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
@@ -163,6 +213,8 @@ class SortingAutoLogic
     }
     private suspend fun fireFailsafe()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Choosing failsafe")
+
         if (FAILSAFE_SHOOTING_MODE == Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE)
             fireEverything()
 
@@ -170,13 +222,30 @@ class SortingAutoLogic
         {
             Shooting.StockPattern.Name.USE_DETECTED_PATTERN ->
             {
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Trying: fire detected pattern")
+
+
                 if (_patternWasDetected.get()
                     || canTryDetectPattern() && tryGetPattern())
+                {
+                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire detected pattern" +
+                            "\nSAL pattern: ")
+
+                    var i = 0
+                    var patternString = ""
+                    while (i < _pattern.permanent().size)
+                    {
+                        patternString += _pattern.permanent()[i].toString() + ", "
+                        i++
+                    }
+                    ThreadedTelemetry.LAZY_INSTANCE.log(patternString)
+
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             FAILSAFE_SHOOTING_MODE,
                             _pattern.permanent()
                     )   )
+                }
                 else sendFinishedFiringEvent(RequestResult.Name.FAIL_COULD_NOT_DETECT_PATTERN)
             }
 
@@ -191,11 +260,16 @@ class SortingAutoLogic
                         0, Ball.Name.NONE
                 )   )
 
-                if (storageBalls.maxIdenticalColorCount == ballCount)
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire identical colors: $ballCount")
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - got - identical count: " +
+                        "${storageBalls.maxIdenticalColorCount}, " +
+                        "identical color: ${storageBalls.identicalColor}")
+
+                if (storageBalls.maxIdenticalColorCount >= ballCount)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             FAILSAFE_SHOOTING_MODE,
-                            Array(ballCount)
+                            Array(storageBalls.maxIdenticalColorCount)
                             {
                                 Ball.ToBallRequestName(storageBalls.identicalColor)
                             }
@@ -210,6 +284,18 @@ class SortingAutoLogic
                     FAILSAFE_PATTERN
                 )
 
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire custom pattern" +
+                        "\nSAL pattern: ")
+
+                var i = 0
+                var patternString = ""
+                while (i < convertedPattern.size)
+                {
+                    patternString += convertedPattern[i].toString() + ", "
+                    i++
+                }
+                ThreadedTelemetry.LAZY_INSTANCE.log(patternString)
+
                 if (convertedPattern != null)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
@@ -222,6 +308,8 @@ class SortingAutoLogic
     }
     private fun fireEverything()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire everything")
+
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             StorageGiveDrumRequest(
                 Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE,
@@ -232,8 +320,13 @@ class SortingAutoLogic
     }
 
     private fun sendFinishedFiringEvent(requestResult: RequestResult.Name)
-        = ThreadedEventBus.LAZY_INSTANCE.invoke(
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Shooting stopped, fail reason: $requestResult")
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
             FullFinishedFiringEvent(
                 requestResult
-        )   )
+            )
+        )
+    }
 }

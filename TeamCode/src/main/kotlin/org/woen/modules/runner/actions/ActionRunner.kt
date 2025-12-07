@@ -71,38 +71,38 @@ class ActionRunner private constructor() : DisposableHandle {
             ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start shooting")
             ThreadedEventBus.LAZY_INSTANCE.invoke(DefaultFireEvent())
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: FINISHED shooting")
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Send shooting request, awaiting 2 sec")
 
 
             delay(2000)
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start LazyIntake")
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Try start LazyIntake")
             while (IntakeResult.DidFail(
             ThreadedEventBus.LAZY_INSTANCE.invoke(StartLazyIntakeEvent(
                 IntakeResult.Name.FAIL_UNKNOWN)).startingResult))
             {
                 delay(DELAY_FOR_EVENT_AWAITING_MS)
             }
-
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: started lazy intake")
 
             val intakePattern: Array<Ball.Name> = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
 
 
+            delay(3000)
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 StorageUpdateAfterLazyIntakeEvent(
                     intakePattern
                 ))
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: FINISHED LazyIntake")
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(StopLazyIntakeEvent())
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Stopped LazyIntake")
+
 
 
             ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start Shooting")
             ThreadedEventBus.LAZY_INSTANCE.invoke(DefaultFireEvent())
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: FINISHED shooting")
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Send shooting request")
 
-
-
-            ThreadedEventBus.LAZY_INSTANCE.invoke(StopLazyIntakeEvent())
-
-
+            delay(3000)
 
         }
     })
