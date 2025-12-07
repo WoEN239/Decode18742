@@ -93,6 +93,10 @@ class DriveTrain : IModule {
     constructor() {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
 
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            _lookMode = false
+        }
+
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {
             _driveMutex.smartLock {
                 _targetTranslateVelocity = it.translateVelocity

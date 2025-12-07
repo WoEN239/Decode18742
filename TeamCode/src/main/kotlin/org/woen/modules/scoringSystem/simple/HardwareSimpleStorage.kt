@@ -33,6 +33,9 @@ class HardwareSimpleStorage : IHardwareDevice {
     private var _fullTriggerTimer = ElapsedTime()
 
     override fun update() {
+        if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)
+            return
+
         if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
             return
 
@@ -65,16 +68,20 @@ class HardwareSimpleStorage : IHardwareDevice {
         val gateServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO) as Servo
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
+                _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-            _beltMotor.direction = Configs.STORAGE.SORTING_STORAGE_BELT_MOTORS_DIRECTION
+                _beltMotor.direction = Configs.STORAGE.SORTING_STORAGE_BELT_MOTORS_DIRECTION
+            }
         }
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            pushServo.position = Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
-            gateServo.position = Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
+            if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
+                pushServo.position = Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
+                gateServo.position = Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
 
-            _fullTriggerTimer.reset()
+                _fullTriggerTimer.reset()
+            }
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {

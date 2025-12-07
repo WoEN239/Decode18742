@@ -2,7 +2,7 @@ package org.woen.modules.scoringSystem.turret
 
 import woen239.enumerators.BallRequest
 
-class Pattern private constructor(val cameraTagId: Int, val subsequence: Array<BallRequest.Name>) {
+class Pattern constructor(val cameraTagId: Int, val subsequence: Array<BallRequest.Name>) {
     companion object {
         val patterns = setOf(
             Pattern(

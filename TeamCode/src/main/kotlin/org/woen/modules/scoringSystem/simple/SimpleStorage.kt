@@ -9,6 +9,7 @@ import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
 import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
+import org.woen.modules.scoringSystem.storage.DisableSortingModuleEvent
 import org.woen.modules.scoringSystem.turret.WaitTurretAtTargetEvent
 import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
@@ -46,17 +47,26 @@ class SimpleStorage : IModule {
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareStorage, _gateServo)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareStorage)
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
+                HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gateServo)
+        }
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                delay(100)
+            if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
+                ThreadedEventBus.LAZY_INSTANCE.invoke(DisableSortingModuleEvent())
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS_FAST
+                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                    delay(100)
 
-                delay(500)
+                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS_FAST
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+                    delay(500)
+
+                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+                }
             }
         }
 
@@ -93,7 +103,7 @@ class SimpleStorage : IModule {
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
 
-                delay(400)
+                delay(450)
 
                 HotRun.LAZY_INSTANCE.gamepadRumble(0.5)
 

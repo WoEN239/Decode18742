@@ -119,7 +119,7 @@ object Configs {
         var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
         @JvmField
-        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 22.0, kD = 1.0, limitU = 12.0)
+        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 18.0, kD = 1.0, limitU = 12.0)
 
         @JvmField
         var LOOK_SENS = 0.1
@@ -158,7 +158,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = false
+        var CAMERA_ENABLE = true
     }
 
     @Config
@@ -170,7 +170,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.8, kPow = 0.005, kF = 0.0048)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.4, kI = 0.001, kPow = 0.001, kF = 0.00485)
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
@@ -179,10 +179,10 @@ object Configs {
         var PULLEY_TARGET_SENS = 3.0
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0, -3.66 / 2.0 + 0.4)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0, -3.66 / 2.0 + 0.3)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0, 3.66 / 2.0 - 0.4)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0, 3.66 / 2.0 - 0.3)
 
         @JvmField
         var TURRET_HEIGHT = 0.35
@@ -391,13 +391,16 @@ object Configs {
         var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 411
 
         @JvmField
-        var DELAY_FOR_SORTING_REALIGNING_FORWARD_MS: Long = 150
+        var DELAY_FOR_SORTING_REALIGNING_FORWARD_MS: Long = 200
 
         @JvmField
         var DELAY_FOR_SORTING_REALIGNING_REVERSE_MS: Long = 44
 
         @JvmField
-        var MAX_DELAY_FOR_SHOT_AWAITING_MS: Long = 1333
+        var MAX_DELAY_FOR_SHOT_AWAITING_MS: Long = 155
+
+        @JvmField
+        var DELAY_BETWEEN_SHOTS: Long = 888
 
         @JvmField
         var DELAY_BETWEEN_INTAKES_MS: Long = 1111
@@ -494,7 +497,7 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 0.21
+        var BELT_PUSH_TIME = 0.24
 
         @JvmField
         var REVERS_TIME = 0.2

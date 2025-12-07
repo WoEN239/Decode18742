@@ -137,25 +137,39 @@ class HwSortingManager
 
     suspend fun openTurretGate()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ Start - OPENING turret gate")
         _hwSorting.openTurretGate()
 
         while (!_hwSorting.turretGateServo.atTargetAngle)
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ OPENED turret gate successfully")
     }
     suspend fun closeTurretGate()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ Close - OPENING turret gate")
         _hwSorting.closeTurretGate()
 
         while (!_hwSorting.turretGateServo.atTargetAngle)
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ CLOSED turret gate successfully")
     }
 
 
 
-    fun startBelts()   = _hwSorting.startBeltMotors()
+    fun startBelts()
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ STARTED HW BELTS")
+        _hwSorting.startBeltMotors()
+    }
     fun reverseBelts() = _hwSorting.reverseBeltMotors()
 
-    fun stopBelts() = _hwSorting.stopBeltMotors()
+    fun stopBelts()
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ STOPPED HW BELTS")
+        _hwSorting.stopBeltMotors()
+    }
 
 
 

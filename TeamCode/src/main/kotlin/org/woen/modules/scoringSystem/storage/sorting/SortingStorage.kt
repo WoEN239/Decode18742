@@ -56,7 +56,7 @@ import org.woen.telemetry.Configs.PROCESS_ID.SINGLE_REQUEST
 
 import org.woen.telemetry.Configs.PROCESS_ID.UNDEFINED_PROCESS_ID
 import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAGE
-
+import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_SHOTS
 
 
 class SortingStorage
@@ -828,20 +828,25 @@ class SortingStorage
     private fun shotWasFired() = _shotWasFired.set(true)
     private suspend fun fullWaitForShotFired(processId: Int): Boolean
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("OPENING TURRET GATE")
         _storageCells.hwOpenTurretGate()
+        delay(DELAY_BETWEEN_SHOTS)
         ThreadedTelemetry.LAZY_INSTANCE.log("Sorting waiting for shot - event send")
+        _shotWasFired.set(false)
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
 
         var timePassedWaitingForShot: Long = 0
 
-        while (!_shotWasFired.get() && timePassedWaitingForShot < MAX_DELAY_FOR_SHOT_AWAITING_MS)
+        while (!_shotWasFired.get() &&
+            timePassedWaitingForShot < MAX_DELAY_FOR_SHOT_AWAITING_MS * 22)
         {
             delay(DELAY_FOR_EVENT_AWAITING_MS)
             timePassedWaitingForShot += DELAY_FOR_EVENT_AWAITING_MS
             if (isForcedToTerminateRequest(processId)) return false
         }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("DONE - Shot fired")
+        ThreadedTelemetry.LAZY_INSTANCE.log("DONE - Shot fired: ${_shotWasFired.get()}")
+        ThreadedTelemetry.LAZY_INSTANCE.log("time passed ? $timePassedWaitingForShot")
         _storageCells.updateAfterRequest()
         _dynamicMemoryPattern.removeFromTemporary()
         _shotWasFired.set(false)

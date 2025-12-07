@@ -226,6 +226,8 @@ class StorageCells
             _storageCells[StorageSlot.BOTTOM].Id(),
             _storageCells[StorageSlot.BOTTOM].Name())
 
+        _storageCells[StorageSlot.BOTTOM].Empty()
+
         logAllStorageData()
     }
 

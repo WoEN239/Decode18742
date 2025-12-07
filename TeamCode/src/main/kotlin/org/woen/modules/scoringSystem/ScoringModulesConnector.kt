@@ -45,6 +45,7 @@ import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
+import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_SHOTS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_DELAY_FOR_SHOT_AWAITING_MS
 
@@ -414,6 +415,7 @@ class ScoringModulesConnector
         var turretHasAccelerated = ThreadedEventBus.LAZY_INSTANCE.invoke(
             RequestTurretAtTargetEvent() ).atTarget
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("[&] SMC: Waiting for turret speed")
         while (!turretHasAccelerated)
         {
             delay(DELAY_FOR_EVENT_AWAITING_MS)
@@ -422,15 +424,22 @@ class ScoringModulesConnector
                 RequestTurretAtTargetEvent() ).atTarget
         }
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("[&] SMC: Turret accelerated successfully")
         awaitSuccessfulRequestShot()
     }
     private suspend fun awaitSuccessfulRequestShot()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("SEND - AWAITING SHOT")
-        ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
+        //delay(DELAY_BETWEEN_SHOTS)
+        ThreadedTelemetry.LAZY_INSTANCE.log("[]  SMC: Started Hw belts")
         _storage.hwStartBelts()
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("SEND - AWAITING SHOT")
+        ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
+
+
+        _shotWasFired.set(false)
         var timePassedWaitingForShot: Long = 0
+        ThreadedTelemetry.LAZY_INSTANCE.log("Will be waiting for shot: $MAX_DELAY_FOR_SHOT_AWAITING_MS")
         while (!_shotWasFired.get() && !_requestWasTerminated.get()
             && timePassedWaitingForShot < MAX_DELAY_FOR_SHOT_AWAITING_MS)
         {
@@ -438,11 +447,14 @@ class ScoringModulesConnector
             timePassedWaitingForShot += DELAY_FOR_EVENT_AWAITING_MS
         }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("\n\n\nRECEIVED - SHOT FIRED")
-
         _storage.hwStopBelts()
 
-        if (_shotWasFired.get())
+        if (timePassedWaitingForShot >= MAX_DELAY_FOR_SHOT_AWAITING_MS)
+             ThreadedTelemetry.LAZY_INSTANCE.log("\n\nShot timeout, assume success")
+        else ThreadedTelemetry.LAZY_INSTANCE.log("\n\n\nRECEIVED - SHOT FIRED")
+
+
+//        if (_shotWasFired.get())
             ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
 
         _shotWasFired.set(false)

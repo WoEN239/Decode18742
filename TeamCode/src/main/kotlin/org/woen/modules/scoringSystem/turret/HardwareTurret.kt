@@ -5,10 +5,13 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadManager
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
@@ -115,7 +118,11 @@ class HardwareTurret :
             _targetTimer.reset()
             _delayTimer.reset()
 
-            rotateServo.position = 0.51
+            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                delay(150)
+
+                rotateServo.position = 0.51
+            }
         }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {

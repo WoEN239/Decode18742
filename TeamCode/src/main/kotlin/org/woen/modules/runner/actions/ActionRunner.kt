@@ -4,12 +4,16 @@ import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.woen.hotRun.HotRun
+import org.woen.modules.camera.OnPatternDetectedEvent
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
+import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
+import org.woen.modules.scoringSystem.storage.DisableSortingModuleEvent
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
+import org.woen.modules.scoringSystem.turret.Pattern
 import org.woen.telemetry.Configs
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.ThreadedTelemetry
@@ -18,6 +22,7 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Vec2
 import woen239.enumerators.Ball
+import woen239.enumerators.BallRequest
 import woen239.enumerators.IntakeResult
 import kotlin.concurrent.thread
 
@@ -57,6 +62,28 @@ class ActionRunner private constructor() : DisposableHandle {
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
 
+//            val pattern = Pattern(
+//                22,
+//                arrayOf(BallRequest.Name.PURPLE, BallRequest.Name.GREEN, BallRequest.Name.PURPLE)
+//            )
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(OnPatternDetectedEvent(pattern))
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                SetDriveTargetVelocityEvent(
+                    Vec2(
+                        Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
+                        0.0
+                    ), 0.0
+                )
+            )
+
+            delay(200)
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(true)).process.wait()
+
+
             val preloadPattern: Array<Ball.Name> = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(
@@ -68,44 +95,30 @@ class ActionRunner private constructor() : DisposableHandle {
             ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start shooting")
             ThreadedEventBus.LAZY_INSTANCE.invoke(DefaultFireEvent())
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Send shooting request, awaiting 2 sec")
+            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Send shooting request, awaiting 10 sec")
 
 
-            delay(3000)
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Try start LazyIntake")
-            while (IntakeResult.DidFail(
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false)).process.wait()
+
+            delay(10000)
+
             ThreadedEventBus.LAZY_INSTANCE.invoke(
-                StartLazyIntakeEvent(
-                    IntakeResult.Name.FAIL_UNKNOWN
+                SetDriveTargetVelocityEvent(
+                    Vec2(
+                        Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
+                        0.0
+                    ), 0.0
                 )
-            ).startingResult))
-            {
-                delay(DELAY_FOR_EVENT_AWAITING_MS)
-            }
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: started lazy intake")
+            )
 
-            val intakePattern: Array<Ball.Name> = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
+            delay(500)
 
-
-            delay(3000)
-            ThreadedEventBus.LAZY_INSTANCE.invoke(
-                StorageUpdateAfterLazyIntakeEvent(
-                    intakePattern
-                ))
-
-            ThreadedEventBus.LAZY_INSTANCE.invoke(StopLazyIntakeEvent())
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Stopped LazyIntake")
+            ThreadedEventBus.LAZY_INSTANCE.invoke(DisableSortingModuleEvent())
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
 
 
-
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start Shooting")
-            ThreadedEventBus.LAZY_INSTANCE.invoke(DefaultFireEvent())
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Send shooting request")
-
-            delay(3000)
-
-            ////////////////////////////////////////////////////////////////////////////////////////
-
+        ////////////////////////////////////////////////////////////////////////////////////////
 //            ThreadedEventBus.LAZY_INSTANCE.invoke(
 //                SetDriveTargetVelocityEvent(
 //                    Vec2(
