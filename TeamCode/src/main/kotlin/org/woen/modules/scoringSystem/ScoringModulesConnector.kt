@@ -62,7 +62,7 @@ class ScoringModulesConnector
     private val _storage = SortingStorage()
 
 
-    private val _isBusy               = AtomicBoolean(false)
+    private val _isBusy                = AtomicBoolean(false)
     private val _isAlreadyShooting     = AtomicBoolean(false)
     private val _isSortingModuleActive = AtomicBoolean(IS_SORTING_MODULE_ACTIVE_AT_START_UP)
 
@@ -134,14 +134,14 @@ class ScoringModulesConnector
         }   )
 
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            TurretVoltageDropped::class, {
-
-                if (_isSortingModuleActive.get())
-                    _shotWasFired.set(true)
-                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
-            }
-        )
+//        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+//            TurretVoltageDropped::class, {
+//
+//                if (_isSortingModuleActive.get())
+//                    _shotWasFired.set(true)
+//                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
+//            }
+//        )
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(

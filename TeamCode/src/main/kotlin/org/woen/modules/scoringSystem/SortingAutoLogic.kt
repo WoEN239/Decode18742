@@ -129,11 +129,11 @@ class SortingAutoLogic
         {
             Shooting.StockPattern.Name.USE_DETECTED_PATTERN ->
             {
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Trying: fire detected pattern")
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default trying: fire detected pattern")
                 if (_patternWasDetected.get()
                     || canTryDetectPattern() && tryGetPattern())
                 {
-                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire detected pattern" +
+                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default decided: Fire detected pattern" +
                             "\nSAL pattern: ")
 
                     var i = 0
@@ -165,7 +165,7 @@ class SortingAutoLogic
                         ballCount, Ball.Name.NONE
                 )   )
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire identical colors: $ballCount")
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default decided: Fire identical colors: $ballCount")
                 ThreadedTelemetry.LAZY_INSTANCE.log("SAL - got - identical count: " +
                         "${storageBalls.maxIdenticalColorCount}, " +
                         "identical color: ${storageBalls.identicalColor}")
@@ -189,7 +189,7 @@ class SortingAutoLogic
                         DEFAULT_PATTERN
                     )
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire custom pattern" +
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default decided: Fire custom pattern" +
                         "\nSAL pattern: ")
 
                 var i = 0
@@ -222,13 +222,13 @@ class SortingAutoLogic
         {
             Shooting.StockPattern.Name.USE_DETECTED_PATTERN ->
             {
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Trying: fire detected pattern")
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe trying: fire detected pattern")
 
 
                 if (_patternWasDetected.get()
                     || canTryDetectPattern() && tryGetPattern())
                 {
-                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire detected pattern" +
+                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe decided: Fire detected pattern" +
                             "\nSAL pattern: ")
 
                     var i = 0
@@ -260,7 +260,7 @@ class SortingAutoLogic
                         0, Ball.Name.NONE
                 )   )
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire identical colors: $ballCount")
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe decided: Fire identical colors: $ballCount")
                 ThreadedTelemetry.LAZY_INSTANCE.log("SAL - got - identical count: " +
                         "${storageBalls.maxIdenticalColorCount}, " +
                         "identical color: ${storageBalls.identicalColor}")
@@ -281,10 +281,9 @@ class SortingAutoLogic
             {
                 val convertedPattern = Shooting.StockPattern.
                 TryConvertToPatternSequence(
-                    FAILSAFE_PATTERN
-                )
+                    FAILSAFE_PATTERN)
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire custom pattern" +
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe decided: Fire custom pattern" +
                         "\nSAL pattern: ")
 
                 var i = 0
@@ -308,7 +307,7 @@ class SortingAutoLogic
     }
     private fun fireEverything()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Decided: Fire everything")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - ? Decided: Fire everything")
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             StorageGiveDrumRequest(

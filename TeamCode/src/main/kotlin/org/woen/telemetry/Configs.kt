@@ -388,7 +388,7 @@ object Configs {
 
 
         @JvmField
-        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 400
+        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 411
 
         @JvmField
         var DELAY_FOR_SORTING_REALIGNING_FORWARD_MS: Long = 150
@@ -397,7 +397,7 @@ object Configs {
         var DELAY_FOR_SORTING_REALIGNING_REVERSE_MS: Long = 44
 
         @JvmField
-        var MAX_DELAY_FOR_SHOT_AWAITING_MS: Long = 2000
+        var MAX_DELAY_FOR_SHOT_AWAITING_MS: Long = 1333
 
         @JvmField
         var DELAY_BETWEEN_INTAKES_MS: Long = 1111
@@ -421,7 +421,7 @@ object Configs {
 
 
         @JvmField
-        var POWER_FOR_FAST_BELT_ROTATING = 12.0
+        var POWER_FOR_FAST_BELT_ROTATING = 11.0
 
         @JvmField
         var POWER_FOR_SLOW_BELT_ROTATING = 9.0
@@ -430,7 +430,7 @@ object Configs {
         var TURRET_GATE_SERVO_OPEN_VALUE = 0.4
 
         @JvmField
-        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.6
+        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.54
     }
 
 

@@ -57,7 +57,6 @@ class ActionRunner private constructor() : DisposableHandle {
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
 
-
             val preloadPattern: Array<Ball.Name> = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(
@@ -72,7 +71,7 @@ class ActionRunner private constructor() : DisposableHandle {
             ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Send shooting request, awaiting 2 sec")
 
 
-            delay(2000)
+            delay(3000)
             ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Try start LazyIntake")
             while (IntakeResult.DidFail(
             ThreadedEventBus.LAZY_INSTANCE.invoke(
