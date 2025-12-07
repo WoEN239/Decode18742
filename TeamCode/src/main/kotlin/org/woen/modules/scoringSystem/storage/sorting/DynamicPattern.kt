@@ -5,7 +5,8 @@ import kotlin.math.min
 
 import woen239.enumerators.BallRequest
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
-
+import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadedEventBus
 
 
 class DynamicPattern
@@ -63,8 +64,9 @@ class DynamicPattern
             : Array<BallRequest.Name>
         {
             val newPatternLength = min(MAX_BALL_COUNT, lastUnfinished.size + pattern.size)
-            val newPattern = arrayOf<BallRequest.Name>()
+            val newPattern = Array(newPatternLength) { BallRequest.Name.NONE }
 
+            ThreadedTelemetry.LAZY_INSTANCE.log("DP: exp new count: $newPatternLength")
             var curRequestId = 0
             while (curRequestId < newPatternLength) {
                 newPattern[curRequestId] = if (curRequestId < lastUnfinished.size)

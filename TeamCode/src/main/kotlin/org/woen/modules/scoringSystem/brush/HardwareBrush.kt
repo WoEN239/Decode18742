@@ -13,6 +13,7 @@ import org.woen.utils.motor.MotorOnly
 class HardwareBrush : IHardwareDevice {
     private lateinit var _motor: DcMotorEx
     var isSafe = true
+    var isSafe1 = true
     var volt = 0.0
     private var motorPower = 0.0
 
@@ -33,6 +34,7 @@ class HardwareBrush : IHardwareDevice {
     fun voltageSafe() {
         volt = _motor.getCurrent(CurrentUnit.AMPS)
         isSafe = volt < Configs.BRUSH.BRUSH_TARGET_CURRENT
+        isSafe1 = volt < Configs.BRUSH.BRUSH_BIG_TARGET_CURRENT
     }
 
     fun setDir(dir: BrushDirection) {

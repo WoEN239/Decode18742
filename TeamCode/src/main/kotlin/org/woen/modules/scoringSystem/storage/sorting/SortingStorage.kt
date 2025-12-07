@@ -504,6 +504,7 @@ class SortingStorage
     ): RequestResult.Name
     {
         if (_storageCells.isEmpty()) return RequestResult.Name.FAIL_IS_EMPTY
+        if (requestOrder.isEmpty())  return RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
         if (cantHandleRequestRaceCondition(DRUM_REQUEST))
             return terminateRequest(DRUM_REQUEST)
 

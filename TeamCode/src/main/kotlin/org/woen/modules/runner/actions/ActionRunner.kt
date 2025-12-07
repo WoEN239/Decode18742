@@ -6,13 +6,11 @@ import kotlinx.coroutines.runBlocking
 import org.woen.hotRun.HotRun
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
 import org.woen.modules.scoringSystem.DefaultFireEvent
-import org.woen.modules.scoringSystem.brush.Brush
-import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
-import org.woen.modules.scoringSystem.simple.StopBeltEvent
+import org.woen.modules.scoringSystem.simple.SimpleShootEvent
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
-import org.woen.modules.scoringSystem.turret.WaitTurretAtTargetEvent
+import org.woen.telemetry.Configs
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
@@ -22,7 +20,6 @@ import org.woen.utils.units.Vec2
 import woen239.enumerators.Ball
 import woen239.enumerators.IntakeResult
 import kotlin.concurrent.thread
-
 
 
 class ActionRunner private constructor() : DisposableHandle {
@@ -66,7 +63,8 @@ class ActionRunner private constructor() : DisposableHandle {
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 StorageUpdateAfterLazyIntakeEvent(
                     preloadPattern
-                ))
+                )
+            )
 
             ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start shooting")
             ThreadedEventBus.LAZY_INSTANCE.invoke(DefaultFireEvent())
@@ -77,8 +75,11 @@ class ActionRunner private constructor() : DisposableHandle {
             delay(2000)
             ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Try start LazyIntake")
             while (IntakeResult.DidFail(
-            ThreadedEventBus.LAZY_INSTANCE.invoke(StartLazyIntakeEvent(
-                IntakeResult.Name.FAIL_UNKNOWN)).startingResult))
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                StartLazyIntakeEvent(
+                    IntakeResult.Name.FAIL_UNKNOWN
+                )
+            ).startingResult))
             {
                 delay(DELAY_FOR_EVENT_AWAITING_MS)
             }
@@ -104,6 +105,37 @@ class ActionRunner private constructor() : DisposableHandle {
 
             delay(3000)
 
+            ////////////////////////////////////////////////////////////////////////////////////////
+
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                SetDriveTargetVelocityEvent(
+//                    Vec2(
+//                        Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
+//                        0.0
+//                    ), 0.0
+//                )
+//            )
+//
+//            delay(200)
+//
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
+//
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
+//
+//            delay(15000)
+//
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                SetDriveTargetVelocityEvent(
+//                    Vec2(
+//                        Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
+//                        0.0
+//                    ), 0.0
+//                )
+//            )
+//
+//            delay(500)
+//
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
         }
     })
 

@@ -22,7 +22,8 @@ class Brush : IModule {//lol
         FORWARD,
         STOP,
         REVERS,
-        SAFE
+        SAFE,
+    STOP_ON_TIME
     }
 
     private var _currentJob: Job? = null //отслеживание текущей задачи
@@ -32,6 +33,7 @@ class Brush : IModule {//lol
     private var tmr = ElapsedTime()
     private var tmr1 = ElapsedTime()
     private var tmr2 = ElapsedTime()
+    private var tmr3 = ElapsedTime()
     private var f12 = false
     private var f11 = false
     suspend fun AvtoUse() {
@@ -42,12 +44,18 @@ class Brush : IModule {//lol
         val difTmr = tmr.time() > Configs.BRUSH.BRUSH_DEF_TIME
         val startTmr = tmr1.time() > Configs.BRUSH.BRUSH_SAFE_TIME
         val errTime = tmr2.time() > Configs.BRUSH.BRUSH_ERR_TIME
+        val stopTime = tmr3.time() > Configs.BRUSH.BRUSH_STOP_TIME
+
         when (turnOn.get()) {
             BrushState.FORWARD -> {
                 bruh.setDir(HardwareBrush.BrushDirection.FORWARD)
                 if (!bruh.isSafe && !f11) {
                     f11 = true; tmr2.reset()
                 }
+               if(!bruh.isSafe1){
+                   turnOn.set(BrushState.STOP_ON_TIME)
+                   tmr3.reset()
+               }
                 if (!bruh.isSafe && startTmr && errTime) {
                     turnOn.set(BrushState.SAFE); tmr.reset()
                 }
@@ -75,6 +83,14 @@ class Brush : IModule {//lol
                 turnOn.set(BrushState.STOP)
                 tmr2.reset()
                 tmr1.reset()
+                f11 = false
+            }
+
+            BrushState.STOP_ON_TIME->{
+                bruh.setDir(HardwareBrush.BrushDirection.STOP)
+                tmr2.reset()
+                tmr1.reset()
+                if(startTmr)turnOn.set(BrushState.FORWARD)
                 f11 = false
             }
 

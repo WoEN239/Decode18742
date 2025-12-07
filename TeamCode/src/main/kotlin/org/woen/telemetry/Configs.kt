@@ -33,6 +33,11 @@ object Configs {
         var BRUSH_TARGET_CURRENT = 5.0
 
         @JvmField
+        var BRUSH_BIG_TARGET_CURRENT = 7.0
+
+        @JvmField
+        var BRUSH_STOP_TIME =0.5
+        @JvmField
         var TIME_FOR_BRUSH_REVERSING: Long = 1500
 
         @JvmField
@@ -165,13 +170,13 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.9, kPow = 0.01, kF = 0.0048)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.8, kPow = 0.005, kF = 0.0048)
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 4.0
+        var PULLEY_TARGET_SENS = 3.0
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0, -3.66 / 2.0 + 0.4)
@@ -241,7 +246,7 @@ object Configs {
         var TURRET_AT_TARGET_TIMER = 0.01
 
         @JvmField
-        var SHORT_PULLEY_VEL = 15.9
+        var SHORT_PULLEY_VEL = 16.3
 
         @JvmField
         var LONG_PULLEY_VEL = 19.6
@@ -489,7 +494,7 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 0.25
+        var BELT_PUSH_TIME = 0.21
 
         @JvmField
         var REVERS_TIME = 0.2
@@ -501,6 +506,9 @@ object Configs {
         var BELTS_FULL_TIMER = 0.1
 
         @JvmField
-        var BELTS_POWER = 8.0
+        var BELTS_POWER = 5.0
+
+        @JvmField
+        var BELTS_FAST_POWER = 10.0
     }
 }

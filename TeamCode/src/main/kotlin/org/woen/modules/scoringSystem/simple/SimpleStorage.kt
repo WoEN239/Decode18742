@@ -50,7 +50,9 @@ class SimpleStorage : IModule {
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS
+                delay(100)
+
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS_FAST
 
                 delay(500)
 
@@ -80,9 +82,7 @@ class SimpleStorage : IModule {
                 delay(90)
 
                 repeat(3) {
-                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS
-
-                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
 
                     delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
 
@@ -91,9 +91,13 @@ class SimpleStorage : IModule {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTargetEvent()).targetProcess.wait()
                 }
 
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
+
+                delay(400)
+
                 HotRun.LAZY_INSTANCE.gamepadRumble(0.5)
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS_FAST
 
                 delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
 
@@ -126,6 +130,8 @@ class SimpleStorage : IModule {
 
             if(located)
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
+            else
+                HotRun.LAZY_INSTANCE.gamepadRumble(0.3)
         }))
 
         _hardwareStorage.currentTriggerEvent += {

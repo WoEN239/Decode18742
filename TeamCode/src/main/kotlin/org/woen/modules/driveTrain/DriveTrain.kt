@@ -44,10 +44,13 @@ class DriveTrain : IModule {
     private var _lookRegulator = Regulator(Configs.DRIVE_TRAIN.LOOK_REGULATOR_PARAMETERS)
     private var _targetAngle = Angle.ZERO
     private var _lookTargetTimer = ElapsedTime()
+    private var _currentRobotRotation = Angle.ZERO
 
     override suspend fun process() {
         _driveJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+
+            _currentRobotRotation = odometry.odometryOrientation.angl
 
             val rotationErr = if (_lookMode) {
                 _targetAngle = Angle(
@@ -110,8 +113,6 @@ class DriveTrain : IModule {
                     rx = sign(rx) * (4.0 * (abs(rx) - 0.5).pow(3.0) + 0.5)
                 }
 
-                val odometryOrientation =
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent()).odometryOrientation
                 val currentRunColor = HotRun.LAZY_INSTANCE.currentRunColor
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
@@ -120,10 +121,10 @@ class DriveTrain : IModule {
                             ly,
                             lx
                         ).turn(
-                            if (currentRunColor == HotRun.RunColor.BLUE) (odometryOrientation.angl * -1.0 -
+                            if (currentRunColor == HotRun.RunColor.BLUE) (_currentRobotRotation * -1.0 -
                                     Angle.ofDeg(90.0)).angle
                             else
-                                (odometryOrientation.angl * -1.0 + Angle.ofDeg(90.0)).angle
+                                (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle
                         ) * Vec2(
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
                             Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER
