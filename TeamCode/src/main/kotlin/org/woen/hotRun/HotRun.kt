@@ -76,7 +76,7 @@ class HotRun private constructor() {
         BLUE(Configs.TURRET.BLUE_BASKET_POSITION, Configs.ODOMETRY.START_BLUE_ORIENTATION);
     }
 
-    var currentRunColor = RunColor.BLUE
+    var currentRunColor = RunColor.RED
 
     val opModeInitEvent = SimpleEvent<LinearOpMode>()
     val opModeStartEvent = SimpleEvent<LinearOpMode>()

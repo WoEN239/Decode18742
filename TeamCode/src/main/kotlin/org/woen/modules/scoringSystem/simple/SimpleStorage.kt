@@ -47,15 +47,9 @@ class SimpleStorage : IModule {
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareStorage)
-
-        HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
-                HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_gateServo)
-        }
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareStorage, _gateServo)
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
                 ThreadedEventBus.LAZY_INSTANCE.invoke(DisableSortingModuleEvent())
 
                 ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -67,7 +61,6 @@ class SimpleStorage : IModule {
 
                     _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
                 }
-            }
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {

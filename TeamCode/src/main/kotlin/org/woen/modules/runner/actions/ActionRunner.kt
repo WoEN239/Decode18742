@@ -10,6 +10,7 @@ import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
 import org.woen.modules.scoringSystem.storage.DisableSortingModuleEvent
+import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
@@ -67,7 +68,7 @@ class ActionRunner private constructor() : DisposableHandle {
 //                arrayOf(BallRequest.Name.PURPLE, BallRequest.Name.GREEN, BallRequest.Name.PURPLE)
 //            )
 //            ThreadedEventBus.LAZY_INSTANCE.invoke(OnPatternDetectedEvent(pattern))
-
+//
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SetDriveTargetVelocityEvent(
                     Vec2(
@@ -114,9 +115,7 @@ class ActionRunner private constructor() : DisposableHandle {
 
             delay(500)
 
-            ThreadedEventBus.LAZY_INSTANCE.invoke(DisableSortingModuleEvent())
             ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
-
 
         ////////////////////////////////////////////////////////////////////////////////////////
 //            ThreadedEventBus.LAZY_INSTANCE.invoke(
@@ -152,6 +151,10 @@ class ActionRunner private constructor() : DisposableHandle {
     })
 
     fun init() {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(FullFinishedFiringEvent::class, {
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(DisableSortingModuleEvent())
+        })
+
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)
                 _thread.start()

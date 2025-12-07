@@ -66,8 +66,8 @@ class HardwareThreads private constructor() : DisposableHandle {
         EXPANSION.link.addModules(Turret(), Brush(), SimpleStorage())
         ActionRunner.LAZY_INSTANCE
 
-        ScoringModulesConnector()
-        SortingAutoLogic()
+//        ScoringModulesConnector()
+//        SortingAutoLogic()
 
     }
 }

@@ -158,7 +158,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = true
+        var CAMERA_ENABLE = false
     }
 
     @Config
@@ -170,19 +170,19 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.4, kI = 0.001, kPow = 0.001, kF = 0.00485)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.8, kI = 0.001, kPow = 0.001, kF = 0.00485)
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 3.0
+        var PULLEY_TARGET_SENS = 2.0
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0, -3.66 / 2.0 + 0.3)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0, 3.66 / 2.0 - 0.3)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, 3.66 / 2.0)
 
         @JvmField
         var TURRET_HEIGHT = 0.35
@@ -246,7 +246,7 @@ object Configs {
         var TURRET_AT_TARGET_TIMER = 0.01
 
         @JvmField
-        var SHORT_PULLEY_VEL = 16.3
+        var SHORT_PULLEY_VEL = 16.2
 
         @JvmField
         var LONG_PULLEY_VEL = 19.6
@@ -497,7 +497,7 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 0.24
+        var BELT_PUSH_TIME = 1.9
 
         @JvmField
         var REVERS_TIME = 0.2

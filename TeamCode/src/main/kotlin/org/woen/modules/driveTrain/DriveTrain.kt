@@ -149,6 +149,11 @@ class DriveTrain : IModule {
             }
         })
 
+        ThreadedGamepad.LAZY_INSTANCE.addListener(ThreadedGamepad.createClickDownListener({it.circle}, {
+            if(_lookMode)
+                ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false))
+        }))
+
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestLookModeEvent::class, {
             it.lookMode = _lookMode
         })
