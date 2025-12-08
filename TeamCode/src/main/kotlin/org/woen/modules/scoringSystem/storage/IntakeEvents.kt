@@ -7,14 +7,12 @@ import woen239.enumerators.IntakeResult
 
 class TerminateIntakeEvent()
 class StorageGetReadyForIntakeEvent(
-    var inputBall: Ball.Name = Ball.Name.NONE
-)
+    var inputBall: Ball.Name = Ball.Name.NONE)
 
 
 data class StartLazyIntakeEvent(
-    var startingResult: IntakeResult.Name
-)
+    var startingResult: IntakeResult.Name)
 class StopLazyIntakeEvent()
+
 class StorageUpdateAfterLazyIntakeEvent(
-    var inputBallsFromBottomToMobileOut: Array<Ball.Name>
-)
+    var inputFromTurretSlotToBottom: Array<Ball.Name>)

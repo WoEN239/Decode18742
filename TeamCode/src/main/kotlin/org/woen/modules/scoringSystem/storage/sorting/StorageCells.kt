@@ -26,30 +26,22 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
  *
- *   //  The MobileSlot is a legacy name for 2 slots unit
- *   //  It behaves and is treated as two slots
- *       there CAN be balls in both position
- *   //  But the total ball count in all robot slots
- *       must be less or equal to MAX_BALL_COUNT (3)
+ *   //  Only possible to move the storage in one direction
+ *   //  First ball in sequence becomes last once every rotation
+ *   //  The balls are always aligned to the Turret slot
  *
- *   //  Every slot can only move the balls in one direction (Forward - CW)
  *
- *                                          __--__
- *                                         /      \
- *                                         |      |    Storage RotateForward (CW)
- *                                                V
- *                    OUTPUT
- *   SWITCH  |          ^^          |   SORTING
- *    SERVO  |          ||          |   SERVO
- *     GATE -|-----==SERVO GATE==   \___GATE______________________
- *           |          ||             /                          \
- *   PUSHER ===/   [MOBILE_OUT slot]  / --->   [MOBILE_IN slot]   |
- *    SERVO  |          ^^^                           |||         |
- *           |          |||                      ==FALL SERVO==   |
- *           |          |||                           vvv         \---------
- *           |      [CENTER slot]       <---     [BOTTOM slot]  <---- INTAKE
- *           \____________________________________________________/---------
- *
+ *                                               OUTPUT
+ *                          SORTING      |        ^^^         |
+ *                          SERVO GATE   |        |||         |
+ *       ____________________________/___/   =TURRET GATE=    |
+ *      /                           /             |||         |
+ *      |    [MOBILE slot]      <--/---      [TURRET slot]  \=== PUSHER SERVO
+ *      |         |||                             ^^^         |
+ *      |         |||                             |||         |
+ *      |         vvv                             |||         |
+ *      |    [BOTTOM slot]      ------>      [CENTER slot]    |
+ *      \_____________________________________________________/
  *
  */
 
@@ -71,8 +63,8 @@ class StorageCells
     {
         _storageCells[StorageSlot.BOTTOM].Empty()
         _storageCells[StorageSlot.CENTER].Empty()
-        _storageCells[StorageSlot.MOBILE_OUT].Empty()
-        _storageCells[StorageSlot.MOBILE_IN].Empty()
+        _storageCells[StorageSlot.TURRET].Empty()
+        _storageCells[StorageSlot.MOBILE].Empty()
     }
 
 
@@ -83,7 +75,7 @@ class StorageCells
             IntakeResult.FAIL_STORAGE_IS_FULL,
             IntakeResult.Name.FAIL_STORAGE_IS_FULL
         )
-        if (anyBallCount() >= MAX_BALL_COUNT) return result
+        if (alreadyFull()) return result
 
         var curSlotId = StorageSlot.BOTTOM
         while (curSlotId < MAX_BALL_COUNT)
@@ -186,46 +178,33 @@ class StorageCells
         if (inputBalls.size > MAX_BALL_COUNT) return
 
         var curSlot = StorageSlot.BOTTOM
-        while (curSlot <= StorageSlot.MOBILE_OUT)
+        while (curSlot <= StorageSlot.TURRET)
         {
             _storageCells[curSlot].Set(inputBalls[curSlot])
             curSlot++
         }
     }
-    suspend fun updateAfterIntake(inputBall: Ball.Name): Boolean
+    suspend fun updateAfterIntake(inputBall: Ball.Name)
     {
         _hwSortingM.stopAwaitingEating(true)
-        val intakeCondition = _storageCells[StorageSlot.BOTTOM].IsEmpty()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("before intake:")
         logAllStorageData()
 
-        if (intakeCondition)
-        {
-            _storageCells[StorageSlot.BOTTOM].Set(inputBall)
-            hwReAdjustStorage()
-        }
-        else ThreadedTelemetry.LAZY_INSTANCE.log("INTAKE: UNKNOWN ERROR whilst cells intake")
-        //!  else fastFixStorageDesync()
+        _storageCells[StorageSlot.BOTTOM].Set(inputBall)
+        hwReAdjustStorage()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("finished cells intake, new storage:")
         logAllStorageData()
 
         _hwSortingM.resumeAwaitingEating()
-        return intakeCondition
     }
     fun updateAfterRequest()
     {
         _hwSortingM.stopAwaitingEating(true)
 
-        _storageCells[StorageSlot.MOBILE_OUT].Set(
-            _storageCells[StorageSlot.CENTER].Id(),
-            _storageCells[StorageSlot.CENTER].Name())
-
-        _storageCells[StorageSlot.CENTER].Set(
-            _storageCells[StorageSlot.BOTTOM].Id(),
-            _storageCells[StorageSlot.BOTTOM].Name())
-
+        _storageCells[StorageSlot.TURRET].Set(_storageCells[StorageSlot.CENTER])
+        _storageCells[StorageSlot.CENTER].Set(_storageCells[StorageSlot.BOTTOM])
         _storageCells[StorageSlot.BOTTOM].Empty()
 
         logAllStorageData()
@@ -244,8 +223,8 @@ class StorageCells
 
 
 
-    suspend fun hwRotateBeltsForward(timeMs: Long) = _hwSortingM.hwRotateBeltForward(timeMs)
-    suspend fun hwReverseBelts(timeMs: Long) = _hwSortingM.hwReverseBelts(timeMs)
+    suspend fun hwForwardBeltsTime(timeMs: Long) = _hwSortingM.hwForwardBeltsTime(timeMs)
+    suspend fun hwReverseBeltsTime(timeMs: Long) = _hwSortingM.hwReverseBeltsTime(timeMs)
     fun hwStartBelts() = _hwSortingM.startBelts()
     fun hwStopBelts() = _hwSortingM.stopBelts()
     suspend fun hwOpenTurretGate() = _hwSortingM.openTurretGate()
@@ -261,12 +240,10 @@ class StorageCells
         _hwSortingM.stopAwaitingEating(true)
         hwReAdjustStorage()
 
-        _hwSortingM.hwRotateMobileSlots()
+        _hwSortingM.hwRotateMobileSlot()
 
-        _storageCells[StorageSlot.MOBILE_IN].Set(
-            _storageCells[StorageSlot.MOBILE_OUT].Id(),
-            _storageCells[StorageSlot.MOBILE_OUT].Name())
-        _storageCells[StorageSlot.MOBILE_OUT].Empty()
+        _storageCells[StorageSlot.MOBILE].Set(_storageCells[StorageSlot.TURRET])
+        _storageCells[StorageSlot.TURRET].Empty()
 
         hwReAdjustStorage()
 
@@ -278,46 +255,31 @@ class StorageCells
     private fun swReAdjustStorage(): Boolean
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("SwReadjust start")
-        if (_storageCells[StorageSlot.MOBILE_OUT].IsEmpty()
+        if (_storageCells[StorageSlot.TURRET].IsEmpty()
             && isNotEmpty())
         {
-            _storageCells[StorageSlot.MOBILE_OUT].Set(
-                _storageCells[StorageSlot.CENTER].Id(),
-                _storageCells[StorageSlot.CENTER].Name())
+            _storageCells[StorageSlot.TURRET].Set(_storageCells[StorageSlot.CENTER])
+            _storageCells[StorageSlot.CENTER].Set(_storageCells[StorageSlot.BOTTOM])
+            _storageCells[StorageSlot.BOTTOM].Set(_storageCells[StorageSlot.MOBILE])
+            _storageCells[StorageSlot.MOBILE].Empty()
 
-            _storageCells[StorageSlot.CENTER].Set(
-                _storageCells[StorageSlot.BOTTOM].Id(),
-                _storageCells[StorageSlot.BOTTOM].Name())
-
-            _storageCells[StorageSlot.BOTTOM].Set(
-                _storageCells[StorageSlot.MOBILE_IN].Id(),
-                _storageCells[StorageSlot.MOBILE_IN].Name())
-
-            _storageCells[StorageSlot.MOBILE_IN].Empty()
             return true
         }
         else if (_storageCells[StorageSlot.CENTER].IsEmpty()
             && anyBallCount() > 1)
         {
-            _storageCells[StorageSlot.CENTER].Set(
-                _storageCells[StorageSlot.BOTTOM].Id(),
-                _storageCells[StorageSlot.BOTTOM].Name())
+            _storageCells[StorageSlot.CENTER].Set(_storageCells[StorageSlot.BOTTOM])
+            _storageCells[StorageSlot.BOTTOM].Set(_storageCells[StorageSlot.MOBILE])
+            _storageCells[StorageSlot.MOBILE].Empty()
 
-            _storageCells[StorageSlot.BOTTOM].Set(
-                _storageCells[StorageSlot.MOBILE_IN].Id(),
-                _storageCells[StorageSlot.MOBILE_IN].Name())
-
-            _storageCells[StorageSlot.MOBILE_IN].Empty()
             return true
         }
         else if (_storageCells[StorageSlot.BOTTOM].IsEmpty()
-              && _storageCells[StorageSlot.MOBILE_IN].IsFilled())
+              && _storageCells[StorageSlot.MOBILE].IsFilled())
         {
-            _storageCells[StorageSlot.BOTTOM].Set(
-                _storageCells[StorageSlot.MOBILE_IN].Id(),
-                _storageCells[StorageSlot.MOBILE_IN].Name())
+            _storageCells[StorageSlot.BOTTOM].Set(_storageCells[StorageSlot.MOBILE])
+            _storageCells[StorageSlot.MOBILE].Empty()
 
-            _storageCells[StorageSlot.MOBILE_IN].Empty()
             return true
         }
         else
@@ -330,7 +292,7 @@ class StorageCells
     {
         _hwSortingM.stopAwaitingEating(true)
         while (swReAdjustStorage())
-            _hwSortingM.hwRotateBeltForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
+            _hwSortingM.hwForwardBeltsTime(DELAY_FOR_ONE_BALL_PUSHING_MS)
     }
 
 
@@ -344,8 +306,8 @@ class StorageCells
         ThreadedTelemetry.LAZY_INSTANCE.log("" +
                 "B:  ${_storageCells[StorageSlot.BOTTOM].Name()}; "
               + "C:  ${_storageCells[StorageSlot.CENTER].Name()}; "
-              + "MO: ${_storageCells[StorageSlot.MOBILE_OUT].Name()}; "
-              + "MI: ${_storageCells[StorageSlot.MOBILE_IN].Name()}\n"
+              + "MO: ${_storageCells[StorageSlot.TURRET].Name()}; "
+              + "MI: ${_storageCells[StorageSlot.MOBILE].Name()}\n"
         )
     }
     fun storageData() = _storageCells
@@ -355,7 +317,7 @@ class StorageCells
         var count = 0
         var curSlotId = StorageSlot.BOTTOM
 
-        while (curSlotId < StorageSlot.MOBILE_IN)
+        while (curSlotId < StorageSlot.MOBILE)
         {
             if (_storageCells[curSlotId].HasBall()) count++
             curSlotId++
@@ -363,19 +325,20 @@ class StorageCells
 
         return count
     }
+    fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT;
     fun isEmpty(): Boolean
     {
         return _storageCells[StorageSlot.BOTTOM].IsEmpty()
             && _storageCells[StorageSlot.CENTER].IsEmpty()
-            && _storageCells[StorageSlot.MOBILE_OUT].IsEmpty()
-            && _storageCells[StorageSlot.MOBILE_IN].IsEmpty()
+            && _storageCells[StorageSlot.TURRET].IsEmpty()
+            && _storageCells[StorageSlot.MOBILE].IsEmpty()
     }
     fun isNotEmpty(): Boolean
     {
         return _storageCells[StorageSlot.BOTTOM].IsFilled()
             || _storageCells[StorageSlot.CENTER].IsFilled()
-            || _storageCells[StorageSlot.MOBILE_OUT].IsFilled()
-            || _storageCells[StorageSlot.MOBILE_IN].IsFilled()
+            || _storageCells[StorageSlot.TURRET].IsFilled()
+            || _storageCells[StorageSlot.MOBILE].IsFilled()
     }
 
 
@@ -384,7 +347,7 @@ class StorageCells
         var count = 0
         var curSlotId = StorageSlot.BOTTOM
 
-        while (curSlotId < StorageSlot.MOBILE_IN)
+        while (curSlotId < StorageSlot.MOBILE)
         {
             if (_storageCells[curSlotId].HasBall(ball)) count++
             curSlotId++
@@ -397,7 +360,7 @@ class StorageCells
         val countPG = intArrayOf(0, 0, 0)
         var curSlotId = StorageSlot.BOTTOM
 
-        while (curSlotId < StorageSlot.MOBILE_IN)
+        while (curSlotId < StorageSlot.MOBILE)
         {
             countPG[_storageCells[curSlotId].Id()]++
             curSlotId++

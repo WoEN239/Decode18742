@@ -7,14 +7,12 @@ import woen239.enumerators.RequestResult
 
 
 class StorageGiveSingleRequest(
-    var ballRequest: BallRequest.Name
-)
+    var ballRequest: BallRequest.Name)
 class StorageGiveStreamDrumRequest()
 class StorageGiveDrumRequest(
     var shootingMode:    Shooting.Mode,
     var requestPattern:  Array<BallRequest.Name>,
-    var failsafePattern: Array<BallRequest.Name> = arrayOf()
-)
+    var failsafePattern: Array<BallRequest.Name> = arrayOf())
 
 
 class TerminateRequestEvent()
@@ -22,5 +20,4 @@ class TerminateRequestEvent()
 
 class StorageRequestIsReadyEvent()
 class FullFinishedFiringEvent(
-    var requestResult: RequestResult.Name
-)
+    var requestResult: RequestResult.Name)

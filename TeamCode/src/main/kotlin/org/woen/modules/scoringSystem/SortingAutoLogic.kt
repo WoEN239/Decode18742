@@ -133,11 +133,10 @@ class SortingAutoLogic
                 if (_patternWasDetected.get()
                     || canTryDetectPattern() && tryGetPattern())
                 {
-                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default decided: Fire detected pattern" +
-                            "\nSAL pattern: ")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default decided: Fire detected pattern")
 
                     var i = 0
-                    var patternString = ""
+                    var patternString = "SAL pattern: "
                     while (i < _pattern.permanent().size)
                     {
                         patternString += _pattern.permanent()[i].toString() + ", "
@@ -189,11 +188,10 @@ class SortingAutoLogic
                         DEFAULT_PATTERN
                     )
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default decided: Fire custom pattern" +
-                        "\nSAL pattern: ")
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default decided: Fire custom pattern")
 
                 var i = 0
-                var patternString = ""
+                var patternString = "SAL pattern: "
                 while (i < convertedPattern.size)
                 {
                     patternString += convertedPattern[i].toString() + ", "
@@ -228,11 +226,10 @@ class SortingAutoLogic
                 if (_patternWasDetected.get()
                     || canTryDetectPattern() && tryGetPattern())
                 {
-                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe decided: Fire detected pattern" +
-                            "\nSAL pattern: ")
+                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe decided: Fire detected pattern")
 
                     var i = 0
-                    var patternString = ""
+                    var patternString = "SAL pattern: "
                     while (i < _pattern.permanent().size)
                     {
                         patternString += _pattern.permanent()[i].toString() + ", "
@@ -283,11 +280,10 @@ class SortingAutoLogic
                 TryConvertToPatternSequence(
                     FAILSAFE_PATTERN)
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe decided: Fire custom pattern" +
-                        "\nSAL pattern: ")
+                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe decided: Fire custom pattern")
 
                 var i = 0
-                var patternString = ""
+                var patternString = "SAL pattern: "
                 while (i < convertedPattern.size)
                 {
                     patternString += convertedPattern[i].toString() + ", "

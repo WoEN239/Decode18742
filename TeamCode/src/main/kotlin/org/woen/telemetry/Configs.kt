@@ -336,25 +336,22 @@ object Configs {
         @JvmField
         var STORAGE_SLOT_COUNT = 4
 
-        @JvmField
-        var IS_SORTING_MODULE_ACTIVE_AT_START_UP = true
-
 
 
         @JvmField
         var PREFERRED_INTAKE_SLOT_ORDER: Array<Int> = arrayOf(
             StorageSlot.BOTTOM,
             StorageSlot.CENTER,
-            StorageSlot.MOBILE_OUT,
-            StorageSlot.MOBILE_IN
+            StorageSlot.TURRET,
+            StorageSlot.MOBILE
         )
 
         @JvmField
         var PREFERRED_REQUEST_SLOT_ORDER: Array<Int> = arrayOf(
-            StorageSlot.MOBILE_OUT,
+            StorageSlot.TURRET,
             StorageSlot.CENTER,
             StorageSlot.BOTTOM,
-            StorageSlot.MOBILE_IN
+            StorageSlot.MOBILE
         )
 
 
@@ -368,7 +365,7 @@ object Configs {
         var DELAY_FOR_EVENT_AWAITING_MS: Long = 10
 
         @JvmField
-        var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 50
+        var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 20
 
 
         @JvmField
@@ -408,7 +405,7 @@ object Configs {
 
 
         @JvmField
-        var POWER_FOR_FAST_BELT_ROTATING = 11.0
+        var POWER_FOR_FAST_BELT_ROTATING = 12.0
 
         @JvmField
         var POWER_FOR_SLOW_BELT_ROTATING = 9.0
@@ -417,12 +414,17 @@ object Configs {
         var TURRET_GATE_SERVO_OPEN_VALUE = 0.4
 
         @JvmField
-        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.54
+        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.535
     }
 
 
     @Config
     internal object SORTING_AUTO_OPMODE {
+
+        @JvmField
+        var IS_SORTING_MODULE_ACTIVE_AT_START_UP = true
+
+
         @JvmField
         var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 2000
 

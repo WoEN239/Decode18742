@@ -62,6 +62,11 @@ public class Ball
         _memId = value;
         _memName = name;
     }
+    public void Set(Ball newBall)
+    {
+        _memId = newBall.Id();
+        _memName = newBall.Name();
+    }
 
 
 

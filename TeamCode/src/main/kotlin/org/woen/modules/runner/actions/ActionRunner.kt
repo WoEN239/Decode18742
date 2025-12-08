@@ -62,13 +62,69 @@ class ActionRunner private constructor() : DisposableHandle {
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
+            sortingAutoLogic()
+            //streamAutoLogic()
+        }
+    })
 
+    suspend fun sortingAutoLogic()
+    {
 //            val pattern = Pattern(
 //                22,
 //                arrayOf(BallRequest.Name.PURPLE, BallRequest.Name.GREEN, BallRequest.Name.PURPLE)
 //            )
 //            ThreadedEventBus.LAZY_INSTANCE.invoke(OnPatternDetectedEvent(pattern))
-//
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SetDriveTargetVelocityEvent(
+                Vec2(
+                    Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
+                    0.0
+                ),
+                0.0
+        )   )
+
+        delay(200)
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(true)).process.wait()
+
+
+        val preloadPattern: Array<Ball.Name> = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            StorageUpdateAfterLazyIntakeEvent(
+                preloadPattern))
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start shooting")
+        ThreadedEventBus.LAZY_INSTANCE.invoke(DefaultFireEvent())
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Send shooting request, awaiting 10 sec")
+
+
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false)).process.wait()
+
+        delay(20000)
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SetDriveTargetVelocityEvent(
+                Vec2(
+                    Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
+                    0.0
+                ), 0.0
+        )   )
+
+        delay(500)
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SetDriveTargetVelocityEvent(
+                Vec2.ZERO, 0.0
+        )   )
+    }
+
+    suspend fun streamAutoLogic() {
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SetDriveTargetVelocityEvent(
                     Vec2(
@@ -82,27 +138,9 @@ class ActionRunner private constructor() : DisposableHandle {
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
 
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(true)).process.wait()
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
 
-
-            val preloadPattern: Array<Ball.Name> = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
-
-            ThreadedEventBus.LAZY_INSTANCE.invoke(
-                StorageUpdateAfterLazyIntakeEvent(
-                    preloadPattern
-                )
-            )
-
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Start shooting")
-            ThreadedEventBus.LAZY_INSTANCE.invoke(DefaultFireEvent())
-
-            ThreadedTelemetry.LAZY_INSTANCE.log("Auto: Send shooting request, awaiting 10 sec")
-
-
-
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false)).process.wait()
-
-            delay(10000)
+            delay(15000)
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SetDriveTargetVelocityEvent(
@@ -116,39 +154,7 @@ class ActionRunner private constructor() : DisposableHandle {
             delay(500)
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
-
-        ////////////////////////////////////////////////////////////////////////////////////////
-//            ThreadedEventBus.LAZY_INSTANCE.invoke(
-//                SetDriveTargetVelocityEvent(
-//                    Vec2(
-//                        Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
-//                        0.0
-//                    ), 0.0
-//                )
-//            )
-//
-//            delay(200)
-//
-//            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
-//
-//            ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
-//
-//            delay(15000)
-//
-//            ThreadedEventBus.LAZY_INSTANCE.invoke(
-//                SetDriveTargetVelocityEvent(
-//                    Vec2(
-//                        Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
-//                        0.0
-//                    ), 0.0
-//                )
-//            )
-//
-//            delay(500)
-//
-//            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveTargetVelocityEvent(Vec2.ZERO, 0.0))
-        }
-    })
+    }
 
     fun init() {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(FullFinishedFiringEvent::class, {

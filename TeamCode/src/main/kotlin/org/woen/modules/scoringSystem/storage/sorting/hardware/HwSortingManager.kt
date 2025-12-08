@@ -98,119 +98,118 @@ class HwSortingManager
     }
     suspend fun fullCalibrate()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: STARTED full calibration")
         _hwSorting.fullCalibrate()
 
         while (!_hwSorting.gateServo.atTargetAngle
             || !_hwSorting.pushServo.atTargetAngle
             || !_hwSorting.turretGateServo.atTargetAngle)
                 delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Full calibration completed")
     }
     suspend fun openGate()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Started OPENING sorting gate")
         _hwSorting.openGate()
 
         while (!_hwSorting.gateServo.atTargetAngle)
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
-    }
-    suspend fun closeGate()
-    {
-        _hwSorting.closeGate()
 
-        while (!_hwSorting.gateServo.atTargetAngle)
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: OPENED sorting gate")
     }
     suspend fun openPush()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Started OPENING push")
         _hwSorting.openPush()
 
         while (!_hwSorting.pushServo.atTargetAngle)
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: OPENED push")
     }
-    suspend fun closePush()
+    suspend fun closeGateWithPush()
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Started CLOSING sorting gate & push")
+        _hwSorting.closeGate()
         _hwSorting.closePush()
 
-        while (!_hwSorting.pushServo.atTargetAngle)
+        while (!_hwSorting.pushServo.atTargetAngle
+            || !_hwSorting.gateServo.atTargetAngle)
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: CLOSED sorting gate & push")
     }
 
 
     suspend fun openTurretGate()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ Start - OPENING turret gate")
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Started OPENING turret gate")
         _hwSorting.openTurretGate()
 
         while (!_hwSorting.turretGateServo.atTargetAngle)
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ OPENED turret gate successfully")
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: OPENED turret gate successfully")
     }
     suspend fun closeTurretGate()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ Close - OPENING turret gate")
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Started CLOSING turret gate")
         _hwSorting.closeTurretGate()
 
         while (!_hwSorting.turretGateServo.atTargetAngle)
             delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ CLOSED turret gate successfully")
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: CLOSED turret gate successfully")
     }
 
 
 
     fun startBelts()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ STARTED HW BELTS")
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Started hw belts")
         _hwSorting.startBeltMotors()
     }
-    fun reverseBelts() = _hwSorting.reverseBeltMotors()
+    fun reverseBelts()
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Reversing hw belts")
+        _hwSorting.reverseBeltMotors()
+    }
 
     fun stopBelts()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("@@@ STOPPED HW BELTS")
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Stopped hw belts")
         _hwSorting.stopBeltMotors()
     }
 
 
 
-    suspend fun hwRotateBeltForward(timeMs: Long)
+    suspend fun hwForwardBeltsTime(timeMs: Long)
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is moving")
-
         stopAwaitingEating(false)
         startBelts()
         delay(timeMs)
         stopBelts()
-
-        ThreadedTelemetry.LAZY_INSTANCE.log(("HW belt stopped"))
     }
-    suspend fun hwReverseBelts(timeMs: Long)
+    suspend fun hwReverseBeltsTime(timeMs: Long)
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("HW belt is reversing")
-
         stopAwaitingEating(false)
-        startBelts()
+        reverseBelts()
         delay(timeMs)
         stopBelts()
-
-        ThreadedTelemetry.LAZY_INSTANCE.log(("HW belt stopped"))
     }
-    suspend fun hwRotateMobileSlots()
+    suspend fun hwRotateMobileSlot()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("rotating mobile slot")
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Rotating mobile slot")
         stopAwaitingEating(true)
         closeTurretGate()
 
-        startBelts()
-        delay(DELAY_FOR_SORTING_REALIGNING_FORWARD_MS)
-        reverseBelts()
-        delay(DELAY_FOR_SORTING_REALIGNING_REVERSE_MS)
-        stopBelts()
+        hwForwardBeltsTime(DELAY_FOR_SORTING_REALIGNING_FORWARD_MS)
+        hwReverseBeltsTime(DELAY_FOR_SORTING_REALIGNING_REVERSE_MS)
 
         openGate()
         openPush()
 
-        closeGate()
-        closePush()
+        closeGateWithPush()
     }
 }

@@ -40,7 +40,6 @@ import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
-import org.woen.telemetry.Configs.STORAGE.IS_SORTING_MODULE_ACTIVE_AT_START_UP
 
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
@@ -56,7 +55,9 @@ import org.woen.telemetry.Configs.PROCESS_ID.SINGLE_REQUEST
 
 import org.woen.telemetry.Configs.PROCESS_ID.UNDEFINED_PROCESS_ID
 import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAGE
-import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_SHOTS
+
+import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.IS_SORTING_MODULE_ACTIVE_AT_START_UP
+
 
 
 class SortingStorage
@@ -88,24 +89,16 @@ class SortingStorage
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
 
-                if (_isSortingModuleActive.get())
-                {
-                    val intakeProcessId = getActiveIntakeProcessId()
-                    if (intakeProcessId != UNDEFINED_PROCESS_ID)
-                        _runStatus.AddProcessToTerminationList(intakeProcessId)
-                }
-                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
+                val intakeProcessId = getActiveIntakeProcessId()
+                if (intakeProcessId != UNDEFINED_PROCESS_ID)
+                    _runStatus.AddProcessToTerminationList(intakeProcessId)
         }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
 
-                if (_isSortingModuleActive.get())
-                {
-                    val requestProcessId = getActiveRequestProcessId()
-                    if (requestProcessId != UNDEFINED_PROCESS_ID)
-                        _runStatus.AddProcessToTerminationList(requestProcessId)
-                }
-                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
+                val requestProcessId = getActiveRequestProcessId()
+                if (requestProcessId != UNDEFINED_PROCESS_ID)
+                    _runStatus.AddProcessToTerminationList(requestProcessId)
         }   )
     }
     private fun subscribeToInfoEvents()
@@ -137,7 +130,7 @@ class SortingStorage
             StopLazyIntakeEvent::class, {
 
                 if (_isSortingModuleActive.get())
-                    _lazyIntakeIsActive.set(false)
+                     _lazyIntakeIsActive.set(false)
                 else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
@@ -145,7 +138,7 @@ class SortingStorage
             StorageUpdateAfterLazyIntakeEvent::class, {
 
                 if (_isSortingModuleActive.get())
-                    setAfterLazyIntake(it.inputBallsFromBottomToMobileOut)
+                     setAfterLazyIntake(it.inputFromTurretSlotToBottom)
                 else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
@@ -155,7 +148,7 @@ class SortingStorage
             ShotWasFiredEvent::class, {
 
                 if (_isSortingModuleActive.get())
-                    shotWasFired()
+                     shotWasFired()
                 else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
@@ -163,7 +156,7 @@ class SortingStorage
             BallCountInStorageEvent::class, {
 
                 if (_isSortingModuleActive.get())
-                    it.count = anyBallCount()
+                     it.count = anyBallCount()
                 else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )
 
@@ -183,10 +176,7 @@ class SortingStorage
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(OnPatternDetectedEvent::class, {
-
-                if (_isSortingModuleActive.get())
-                    _dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
-                else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
+                _dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
         }   )
     }
     private fun subscribeToGamepadEvents()
@@ -195,7 +185,7 @@ class SortingStorage
         createClickDownListener({ it.triangle }, {
 
                     if (_isSortingModuleActive.get())
-                            _dynamicMemoryPattern.resetTemporary()
+                         _dynamicMemoryPattern.resetTemporary()
                     else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
 
@@ -203,7 +193,7 @@ class SortingStorage
         createClickDownListener({ it.square },   {
 
                     if (_isSortingModuleActive.get())
-                            _dynamicMemoryPattern.addToTemporary()
+                         _dynamicMemoryPattern.addToTemporary()
                     else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
 
@@ -211,7 +201,7 @@ class SortingStorage
         createClickDownListener({ it.circle },   {
 
                     if (_isSortingModuleActive.get())
-                            _dynamicMemoryPattern.removeFromTemporary()
+                         _dynamicMemoryPattern.removeFromTemporary()
                     else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
         }   )   )
     }
@@ -257,10 +247,7 @@ class SortingStorage
     }
     suspend fun handleIntake(inputBall: Ball.Name): IntakeResult.Name
     {
-        if (_storageCells.anyBallCount() >= MAX_BALL_COUNT)
-            return IntakeResult.Name.FAIL_STORAGE_IS_FULL
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("RunStatus checking")
+        if (_storageCells.alreadyFull()) return IntakeResult.Name.FAIL_STORAGE_IS_FULL
 
         if (noIntakeRaceConditionProblems(INTAKE))
         {
@@ -269,13 +256,11 @@ class SortingStorage
             if (isForcedToTerminateIntake(INTAKE))
                 return terminateIntake(INTAKE)
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("searching for intake slot")
+            ThreadedTelemetry.LAZY_INSTANCE.log("SSM - searching for intake slot")
             val storageCanHandle = _storageCells.handleIntake()
-            ThreadedTelemetry.LAZY_INSTANCE.log("DONE SEARCHING INTAKE")
-            ThreadedTelemetry.LAZY_INSTANCE.log("SEARCH RESULT: " + storageCanHandle.Name())
+            ThreadedTelemetry.LAZY_INSTANCE.log("SSM - DONE Searching, result: " + storageCanHandle.Name())
 
-            val intakeResult = updateAfterInput(storageCanHandle, inputBall)
-            //  Safe updating storage after intake  - wont update if an error occurs
+            val intakeResult = safeSortIntake(storageCanHandle, inputBall)
 
             resumeLogicAfterIntake(INTAKE)
             return intakeResult
@@ -284,17 +269,16 @@ class SortingStorage
         resumeLogicAfterIntake(INTAKE)
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
-    private suspend fun updateAfterInput(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
+    private suspend fun safeSortIntake(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
     {
         if (intakeResult.DidFail()) return intakeResult.Name()   //  Intake failed
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("SORTING INTAKE")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SSM - Sorting intake")
         _storageCells.hwReAdjustStorage()
-        _storageCells.hwRotateBeltsForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
+        _storageCells.hwForwardBeltsTime(DELAY_FOR_ONE_BALL_PUSHING_MS / 2)
 
-        return if (_storageCells.updateAfterIntake(inputBall))
-             IntakeResult.Name.SUCCESS
-        else IntakeResult.Name.FAIL_UNKNOWN
+        _storageCells.updateAfterIntake(inputBall)
+        return IntakeResult.Name.SUCCESS
     }
 
     private suspend fun intakeRaceConditionIsPresent(processId: Int):  Boolean
@@ -357,7 +341,7 @@ class SortingStorage
         resumeLogicAfterRequest(DRUM_REQUEST)
         return shootingResult
     }
-    private suspend fun updateAfterRequest(
+    private suspend fun rotateToFoundBall(
         requestResult: RequestResult,
         processId: Int): RequestResult
     {
@@ -369,8 +353,7 @@ class SortingStorage
 
         ThreadedTelemetry.LAZY_INSTANCE.log("custom readjusting")
         _storageCells.hwCloseTurretGate()
-        _storageCells.hwRotateBeltsForward(DELAY_FOR_ONE_BALL_PUSHING_MS / 2)
-        ThreadedTelemetry.LAZY_INSTANCE.log("before updating, result: ${requestResult.Name()}")
+        _storageCells.hwForwardBeltsTime(DELAY_FOR_ONE_BALL_PUSHING_MS / 2)
 
         val fullRotations = when (requestResult.Name())
         {
@@ -405,7 +388,7 @@ class SortingStorage
             return terminateRequest(processId)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("preparing to update")
-        val updateResult = updateAfterRequest(requestResult, processId)
+        val updateResult = rotateToFoundBall(requestResult, processId)
 
         return if (updateResult.DidSucceed())
         {
@@ -805,10 +788,10 @@ class SortingStorage
         if (doAutoCalibration)
         {
             _storageCells.hwStopBelts()
-            _storageCells.hwReverseBelts(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+            _storageCells.hwReverseBeltsTime(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
 
             _storageCells.fullCalibrate()
-            _storageCells.hwRotateBeltsForward(DELAY_FOR_ONE_BALL_PUSHING_MS)
+            _storageCells.hwForwardBeltsTime(DELAY_FOR_ONE_BALL_PUSHING_MS)
         }
         else _storageCells.fullCalibrate()
 
@@ -828,25 +811,24 @@ class SortingStorage
     private fun shotWasFired() = _shotWasFired.set(true)
     private suspend fun fullWaitForShotFired(processId: Int): Boolean
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("OPENING TURRET GATE")
         _storageCells.hwOpenTurretGate()
-        delay(DELAY_BETWEEN_SHOTS)
-        ThreadedTelemetry.LAZY_INSTANCE.log("Sorting waiting for shot - event send")
-        _shotWasFired.set(false)
+        ThreadedTelemetry.LAZY_INSTANCE.log("SSM waiting for shot - event send")
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageRequestIsReadyEvent())
 
         var timePassedWaitingForShot: Long = 0
 
         while (!_shotWasFired.get() &&
-            timePassedWaitingForShot < MAX_DELAY_FOR_SHOT_AWAITING_MS * 22)
+            timePassedWaitingForShot < MAX_DELAY_FOR_SHOT_AWAITING_MS)
         {
             delay(DELAY_FOR_EVENT_AWAITING_MS)
             timePassedWaitingForShot += DELAY_FOR_EVENT_AWAITING_MS
             if (isForcedToTerminateRequest(processId)) return false
         }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("DONE - Shot fired: ${_shotWasFired.get()}")
-        ThreadedTelemetry.LAZY_INSTANCE.log("time passed ? $timePassedWaitingForShot")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SSM - DONE waiting for shot")
+        ThreadedTelemetry.LAZY_INSTANCE.log("SSM: fired? ${_shotWasFired.get()}," +
+                " delta time: $timePassedWaitingForShot")
+
         _storageCells.updateAfterRequest()
         _dynamicMemoryPattern.removeFromTemporary()
         _shotWasFired.set(false)
@@ -862,6 +844,7 @@ class SortingStorage
 
     fun storageData()  = _storageCells.storageData()
     fun anyBallCount() = _storageCells.anyBallCount()
+    fun alreadyFull()  = _storageCells.alreadyFull()
 
     fun ballColorCountPG() = _storageCells.ballColorCountPG()
     fun selectedBallCount(ball: Ball.Name) = _storageCells.selectedBallCount(ball)

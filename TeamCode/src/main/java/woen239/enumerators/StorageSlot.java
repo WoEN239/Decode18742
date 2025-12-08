@@ -4,8 +4,7 @@ package woen239.enumerators;
 public class StorageSlot
 {
     static public final int BOTTOM = 0, CENTER = 1,
-            MOBILE_OUT = 2, MOBILE_IN = 3, OUTSIDE_MOBILE = 4,
-                UNDEFINED = 5;
+            TURRET = 2, MOBILE = 3, UNDEFINED = 5;
 
     private Name _memName;
     private int  _memId;
@@ -37,9 +36,8 @@ public class StorageSlot
     {
         BOTTOM,
         CENTER,
-        MOBILE_OUT,
-        MOBILE_IN,
-        OUTSIDE_MOBILE,
+        TURRET,
+        MOBILE,
         UNDEFINED
     }
 
@@ -81,9 +79,8 @@ public class StorageSlot
         {
             case BOTTOM: return Name.BOTTOM;
             case CENTER: return Name.CENTER;
-            case OUTSIDE_MOBILE: return Name.OUTSIDE_MOBILE;
-            case MOBILE_OUT:     return Name.MOBILE_OUT;
-            case MOBILE_IN:      return Name.MOBILE_IN;
+            case TURRET: return Name.TURRET;
+            case MOBILE: return Name.MOBILE;
             default:  return Name.UNDEFINED;
         }
     }
@@ -93,9 +90,8 @@ public class StorageSlot
         {
             case BOTTOM: return BOTTOM;
             case CENTER: return CENTER;
-            case OUTSIDE_MOBILE: return OUTSIDE_MOBILE;
-            case MOBILE_OUT:     return MOBILE_OUT;
-            case MOBILE_IN:      return MOBILE_IN;
+            case TURRET: return TURRET;
+            case MOBILE: return MOBILE;
             default:  return UNDEFINED;
         }
     }
