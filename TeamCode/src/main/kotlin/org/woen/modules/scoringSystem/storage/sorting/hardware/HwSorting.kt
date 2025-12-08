@@ -69,9 +69,6 @@ class HwSorting : IHardwareDevice
         )
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            val rotateServo = hardwareMap.get("turretRotateServo") as Servo
-            rotateServo.position = 0.55
-
             _beltMotors.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
             _beltMotors.direction = SORTING_STORAGE_BELT_MOTORS_DIRECTION
 

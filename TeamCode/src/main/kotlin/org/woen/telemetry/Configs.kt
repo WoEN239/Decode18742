@@ -176,9 +176,6 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 2.0
-
-        @JvmField
         var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0, -3.66 / 2.0 + 0.3)
 
         @JvmField
@@ -203,12 +200,6 @@ object Configs {
         var CALCULATING_G = 9.78
 
         @JvmField
-        var MAX_MOTOR_RPS = 100.0
-
-        @JvmField
-        var MIN_APPROXIMATION = 1.0
-
-        @JvmField
         var APPROXIMATION_MAX_ITERATIONS = 70
 
         @JvmField
@@ -224,32 +215,25 @@ object Configs {
         var MAX_TURRET_ANGLE = 55.0 / 180 * PI
 
         @JvmField
-        var MAX_SHOOTING_DISTANCE = 3.5
-
-        @JvmField
         var PULLEY_U = 0.403
 
         @JvmField
         var TURRET_SHOOT_POS = Vec2(0.0, -0.05)
 
-
         @JvmField
         var TURRET_SHOOT_DETECT_CURRENT: Double = 3.7
 
         @JvmField
-        var SHOOT_DELAY = 0.008
+        var SHOOT_TRIGGER_DELAY = 0.008
 
         @JvmField
         var TURRET_CENTER_POS = Vec2(0.0, -0.115)
 
         @JvmField
-        var TURRET_AT_TARGET_TIMER = 0.01
+        var SHORT_PULLEY_VOLTAGE = 8.0
 
         @JvmField
-        var SHORT_PULLEY_VEL = 16.2
-
-        @JvmField
-        var LONG_PULLEY_VEL = 19.6
+        var LONG_PULLEY_VOLTAGE = 11.0
     }
 
 
@@ -497,7 +481,10 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 1.9
+        var BELT_PUSH_TIME = 3
+
+        @JvmField
+        var LOOK_DELAY_TIME = 0.09
 
         @JvmField
         var REVERS_TIME = 0.2

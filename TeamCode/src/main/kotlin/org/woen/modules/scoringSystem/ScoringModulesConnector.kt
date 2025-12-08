@@ -24,8 +24,6 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
 import org.woen.modules.scoringSystem.turret.CurrentlyShooting
-import org.woen.modules.scoringSystem.turret.TurretVoltageDropped
-import org.woen.modules.scoringSystem.turret.RequestTurretAtTargetEvent
 
 import org.woen.modules.scoringSystem.storage.EnableSortingModuleEvent
 import org.woen.modules.scoringSystem.storage.DisableSortingModuleEvent
@@ -45,7 +43,6 @@ import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-import org.woen.telemetry.Configs.STORAGE.DELAY_BETWEEN_SHOTS
 import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 import org.woen.telemetry.Configs.STORAGE.MAX_DELAY_FOR_SHOT_AWAITING_MS
 
@@ -412,17 +409,17 @@ class ScoringModulesConnector
 
     private suspend fun currentlyShootingRequestsProcess()
     {
-        var turretHasAccelerated = ThreadedEventBus.LAZY_INSTANCE.invoke(
-            RequestTurretAtTargetEvent() ).atTarget
-
-        ThreadedTelemetry.LAZY_INSTANCE.log("[&] SMC: Waiting for turret speed")
-        while (!turretHasAccelerated)
-        {
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
-
-            turretHasAccelerated = ThreadedEventBus.LAZY_INSTANCE.invoke(
-                RequestTurretAtTargetEvent() ).atTarget
-        }
+//        var turretHasAccelerated = ThreadedEventBus.LAZY_INSTANCE.invoke(
+//            RequestTurretAtTargetEvent() ).atTarget
+//
+//        ThreadedTelemetry.LAZY_INSTANCE.log("[&] SMC: Waiting for turret speed")
+//        while (!turretHasAccelerated)
+//        {
+//            delay(DELAY_FOR_EVENT_AWAITING_MS)
+//
+//            turretHasAccelerated = ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                RequestTurretAtTargetEvent() ).atTarget
+//        }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("[&] SMC: Turret accelerated successfully")
         awaitSuccessfulRequestShot()

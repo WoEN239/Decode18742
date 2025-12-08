@@ -25,21 +25,12 @@ class HardwareTurret :
     private lateinit var _motor: DcMotorEx
     private lateinit var _angleSevo: Servo
 
-    var targetVelocity: Double
-        get() = (_realTargetVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
-        set(value) {
-            _realTargetVelocity =
-                ((value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS))
-        }
+    var currentVoltage = 0.0
 
     val currentVelocity: Double
         get() = (_motorVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
 
     var anglePosition = 0.0
-
-    private var _realTargetVelocity = 0.0
-
-    private val _pulleyRegulator = Regulator(Configs.TURRET.PULLEY_REGULATOR)
 
     private val _velocityFilter =
         ExponentialFilter(Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.get())
@@ -48,12 +39,9 @@ class HardwareTurret :
 
     private var _motorVelocity = 0.0
     var shotWasFired = false
-    var velocityAtTarget = false
-
-    private val _targetTimer = ElapsedTime()
 
     private val _deltaTime = ElapsedTime()
-    private val _delayTimer = ElapsedTime()
+    private val _shootTriggerTimer = ElapsedTime()
 
     private var _motorAmps = 0.0
 
@@ -61,9 +49,9 @@ class HardwareTurret :
         _motorAmps = _motor.getCurrent(CurrentUnit.AMPS)
 
         if (_motorAmps > Configs.TURRET.TURRET_SHOOT_DETECT_CURRENT)
-            shotWasFired = _delayTimer.seconds() > Configs.TURRET.SHOOT_DELAY
+            shotWasFired = _shootTriggerTimer.seconds() > Configs.TURRET.SHOOT_TRIGGER_DELAY
         else {
-            _delayTimer.reset()
+            _shootTriggerTimer.reset()
             shotWasFired = false
         }
 
@@ -83,22 +71,7 @@ class HardwareTurret :
 
         _oldMotorPosition = currentMotorPosition
 
-        val target = _realTargetVelocity
-        val velErr = target - _motorVelocity
-
-        if (abs(velErr) > Configs.TURRET.PULLEY_TARGET_SENS) {
-            velocityAtTarget = false
-            _targetTimer.reset()
-        }
-        else
-            velocityAtTarget = _targetTimer.seconds() > Configs.TURRET.TURRET_AT_TARGET_TIMER
-
-        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
-            _pulleyRegulator.update(
-                velErr,
-                target
-            )
-        )
+        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(currentVoltage)
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -113,16 +86,10 @@ class HardwareTurret :
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _velocityFilter.start()
-            _pulleyRegulator.start()
             _deltaTime.reset()
-            _targetTimer.reset()
-            _delayTimer.reset()
+            _shootTriggerTimer.reset()
 
-            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                delay(150)
-
-                rotateServo.position = 0.51
-            }
+            rotateServo.position = 0.51
         }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
@@ -132,7 +99,6 @@ class HardwareTurret :
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData("currentTurretVelocity", currentVelocity)
-            it.addData("targetTurretVelocity", targetVelocity)
             it.addData("current ticks velocity", _motorVelocity)
             it.addData("angle pos", anglePosition)
             it.addData("pulley amps", _motorAmps)

@@ -9,8 +9,6 @@ import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
 import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
-import org.woen.modules.scoringSystem.storage.DisableSortingModuleEvent
-import org.woen.modules.scoringSystem.turret.WaitTurretAtTargetEvent
 import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -50,17 +48,13 @@ class SimpleStorage : IModule {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareStorage, _gateServo)
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-                ThreadedEventBus.LAZY_INSTANCE.invoke(DisableSortingModuleEvent())
+            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS_FAST
 
-                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                    delay(100)
+                delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
 
-                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERS_FAST
-
-                    delay(500)
-
-                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
-                }
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+            }
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
@@ -75,28 +69,16 @@ class SimpleStorage : IModule {
 
                 _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 
-                ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTargetEvent()).targetProcess.wait()
-
                 while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)
 
                 process.wait()
 
-                delay(90)
-
-                repeat(3) {
-                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
-
-                    delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
-
-                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTargetEvent()).targetProcess.wait()
-                }
+                delay((Configs.SIMPLE_STORAGE.LOOK_DELAY_TIME * 1000.0).toLong())
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
 
-                delay(450)
+                delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
 
                 HotRun.LAZY_INSTANCE.gamepadRumble(0.5)
 
@@ -129,9 +111,10 @@ class SimpleStorage : IModule {
         }))
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.right_bumper }, {
-            val located = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireRobotLocatedShootingArea()).isLocated
+            val located =
+                ThreadedEventBus.LAZY_INSTANCE.invoke(RequireRobotLocatedShootingArea()).isLocated
 
-            if(located)
+            if (located)
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
             else
                 HotRun.LAZY_INSTANCE.gamepadRumble(0.3)
