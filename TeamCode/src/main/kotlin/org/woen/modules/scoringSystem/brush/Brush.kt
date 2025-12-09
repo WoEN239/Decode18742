@@ -17,16 +17,16 @@ import java.util.concurrent.atomic.AtomicReference
 
 class SwitchBrushStateEvent(var brushState: Brush.BrushState, var reverseTime: Long = 1000)
 
-class Brush : IModule {//lol
+class Brush : IModule {
     enum class BrushState {
         FORWARD,
         STOP,
         REVERS,
         SAFE,
-    STOP_ON_TIME
+        STOP_ON_TIME
     }
 
-    private var _currentJob: Job? = null //отслеживание текущей задачи
+    private var _currentJob: Job? = null
     private var bruh = HardwareBrush()
     private var turnOn = AtomicReference(BrushState.STOP)
     private var timerRevers = AtomicReference<Long>(0)
@@ -37,7 +37,6 @@ class Brush : IModule {//lol
     private var f12 = false
     private var f11 = false
     suspend fun AvtoUse() {
-        //ThreadedTelemetry.LAZY_INSTANCE.log("")
         if (!f12) {
             f12 = true; tmr1.reset()
         }
@@ -102,10 +101,9 @@ class Brush : IModule {//lol
         delay(tmr1)
     }
 
-    //тут будут щётки
     override suspend fun process() {
         _currentJob =
-            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch { //запрос и запуск куратины
+            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
                 AvtoUse()
             }
     }
@@ -121,7 +119,7 @@ class Brush : IModule {//lol
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(bruh)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SwitchBrushStateEvent::class, {
-            turnOn.set(it.brushState)//1-ack; 2-notack; 3-brake; 4- revers with fixed time
+            turnOn.set(it.brushState)
             timerRevers.set(it.reverseTime)
         })
 

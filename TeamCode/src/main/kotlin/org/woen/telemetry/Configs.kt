@@ -197,13 +197,13 @@ object Configs {
         var BASKET_TARGET_HEIGHT = 1.15
 
         @JvmField
-        var TIME_STEP = 0.1
+        var TIME_STEP = 0.05
 
         @JvmField
         var CALCULATING_G = 9.78
 
         @JvmField
-        var APPROXIMATION_MAX_ITERATIONS = 70
+        var APPROXIMATION_MAX_ITERATIONS = 100
 
         @JvmField
         var MIN_TURRET_ANGLE_SERVO = 0.0

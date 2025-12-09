@@ -22,7 +22,9 @@ class HardwareTurret :
     private lateinit var _angleSevo: Servo
 
     var anglePosition: Double
-        get() = (_anglePosition - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) / (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) * (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_ANGLE
+        get() = (_anglePosition - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) /
+                (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) *
+                (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_ANGLE
         set(value) {
             _anglePosition = (value - Configs.TURRET.MIN_TURRET_ANGLE) /
                     (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) *
