@@ -18,9 +18,6 @@ class HardwareBrush : IHardwareDevice {
     private var motorPower = 0.0
 
     override fun update() {
-        if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
-            return
-
         voltageSafe()
         _motor.power = motorPower
     }

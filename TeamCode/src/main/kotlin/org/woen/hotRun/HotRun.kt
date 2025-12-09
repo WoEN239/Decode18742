@@ -76,7 +76,7 @@ class HotRun private constructor() {
         BLUE(Configs.TURRET.BLUE_BASKET_POSITION, Configs.ODOMETRY.START_BLUE_ORIENTATION);
     }
 
-    var currentRunColor = RunColor.RED
+    var currentRunColor = RunColor.BLUE
 
     val opModeInitEvent = SimpleEvent<LinearOpMode>()
     val opModeStartEvent = SimpleEvent<LinearOpMode>()
@@ -120,10 +120,8 @@ class HotRun private constructor() {
 
             opModeStartEvent.invoke(opMode)
 
-            while (opMode.opModeIsActive()) {
-                //ThreadedTelemetry.LAZY_INSTANCE.log("update")
+            while (opMode.opModeIsActive())
                 opModeUpdateEvent.invoke(opMode)
-            }
 
             currentRunState = RunState.STOP
 

@@ -55,9 +55,6 @@ class HardwareTurret :
             shotWasFired = false
         }
 
-        if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
-            return
-
         _angleSevo.position = anglePosition
 
         val currentMotorPosition = _motor.currentPosition.toDouble()
@@ -102,6 +99,7 @@ class HardwareTurret :
             it.addData("current ticks velocity", _motorVelocity)
             it.addData("angle pos", anglePosition)
             it.addData("pulley amps", _motorAmps)
+            it.addData("pulleyVolts", currentVoltage)
         }
     }
 

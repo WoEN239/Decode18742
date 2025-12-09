@@ -170,7 +170,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.8, kI = 0.001, kPow = 0.001, kF = 0.00485)
+        var PULLEY_REGULATOR = RegulatorParameters()
 
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
@@ -194,7 +194,7 @@ object Configs {
         var TIME_STEP = 0.1
 
         @JvmField
-        var AIR_FORCE_K = 0.0046
+        var AIR_FORCE_K = 0
 
         @JvmField
         var CALCULATING_G = 9.78
@@ -209,13 +209,13 @@ object Configs {
         var MAX_TURRET_ANGLE_SERVO = 0.6
 
         @JvmField
-        var MIN_TURRET_ANGLE = 45.0 / 180 * PI
+        var MIN_TURRET_ANGLE = 45.0 / 180.0 * PI
 
         @JvmField
-        var MAX_TURRET_ANGLE = 55.0 / 180 * PI
+        var MAX_TURRET_ANGLE = 55.0 / 180.0 * PI
 
         @JvmField
-        var PULLEY_U = 0.403
+        var PULLEY_U = 1.0
 
         @JvmField
         var TURRET_SHOOT_POS = Vec2(0.0, -0.05)
@@ -230,10 +230,7 @@ object Configs {
         var TURRET_CENTER_POS = Vec2(0.0, -0.115)
 
         @JvmField
-        var SHORT_PULLEY_VOLTAGE = 8.0
-
-        @JvmField
-        var LONG_PULLEY_VOLTAGE = 11.0
+        var MINIMAL_SHOOT_VELOCITY = 10.0
     }
 
 

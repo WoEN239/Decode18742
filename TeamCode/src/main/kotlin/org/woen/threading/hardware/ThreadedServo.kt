@@ -82,9 +82,6 @@ class ThreadedServo(
         }
 
     override fun update() {
-        if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
-            return
-
         _calcMutex.smartLock {
             if (t3 > t2) {
                 if (_servoTime.seconds() <= t2 + t3) {

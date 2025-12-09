@@ -12,6 +12,7 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
+import kotlin.math.PI
 import kotlin.math.pow
 
 class SetTurretMode(val mode: Turret.TurretMode)
@@ -46,12 +47,17 @@ class Turret : IModule {
             if (_currentTurretState != TurretState.SHOOT)
                 return@launch
 
-            _hardwareTurret.currentVoltage = getTargetVoltage()
+           val aimPos = aim()
+
             _hardwareTurret.anglePosition =
-                (aim() - Configs.TURRET.MIN_TURRET_ANGLE) /
+                (aimPos - Configs.TURRET.MIN_TURRET_ANGLE) /
                         (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) *
                         (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) +
                         Configs.TURRET.MIN_TURRET_ANGLE_SERVO
+
+            ThreadedTelemetry.LAZY_INSTANCE.log((aimPos / PI * 180.0).toString())
+
+            _hardwareTurret.currentVoltage = getTargetVoltage()
 
             if (_isShooting && _hardwareTurret.shotWasFired) {
                 _isShooting = false
@@ -63,13 +69,20 @@ class Turret : IModule {
     }
 
     private fun getTargetVoltage(): Double {
-        if (_currentMode == TurretMode.SHORT)
-            return Configs.TURRET.SHORT_PULLEY_VOLTAGE
+        val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
-        return Configs.TURRET.LONG_PULLEY_VOLTAGE
+        val shootDistance =
+            (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_SHOOT_POS.turn(odometry.odometryOrientation.angle)
+                    - HotRun.LAZY_INSTANCE.currentRunColor
+                .basketPosition).length()
+
+        return shootDistance
     }
 
     private fun aim(): Double {
+        if(_hardwareTurret.currentVelocity < Configs.TURRET.MINIMAL_SHOOT_VELOCITY)
+            return 0.0
+
         val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
         val shootDistance =
@@ -108,6 +121,8 @@ class Turret : IModule {
         var right = Configs.TURRET.MAX_TURRET_ANGLE
 
         var iterations = 0
+
+        getHitHeight(_hardwareTurret.currentVelocity, (left + right) / 2.0)
 
         while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS && !Thread.currentThread().isInterrupted) {
             iterations++
