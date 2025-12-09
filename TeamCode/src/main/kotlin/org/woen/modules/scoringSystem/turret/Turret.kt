@@ -103,14 +103,8 @@ class Turret : IModule {
 
         val turretVel = _hardwareTurret.currentVelocity
 
-        val aimPos = approximation(Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE)
+        _hardwareTurret.anglePosition = approximation(Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE)
         { getHitHeight(turretVel, it)}
-
-        _hardwareTurret.anglePosition =
-            (aimPos - Configs.TURRET.MIN_TURRET_ANGLE) /
-                    (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) *
-                    (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) +
-                    Configs.TURRET.MIN_TURRET_ANGLE_SERVO
     }
 
     private fun approximation(min: Double, max: Double, func: (Double) -> Double): Double {

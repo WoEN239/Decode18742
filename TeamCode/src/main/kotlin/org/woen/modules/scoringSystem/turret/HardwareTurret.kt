@@ -21,7 +21,16 @@ class HardwareTurret :
     private lateinit var _motor: DcMotorEx
     private lateinit var _angleSevo: Servo
 
-    var anglePosition = 0.0
+    var anglePosition: Double
+        get() = (_anglePosition - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) / (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) * (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_ANGLE
+        set(value) {
+            _anglePosition = (value - Configs.TURRET.MIN_TURRET_ANGLE) /
+                    (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) *
+                    (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) +
+                    Configs.TURRET.MIN_TURRET_ANGLE_SERVO
+        }
+
+    private var _anglePosition = 0.0
 
     private var _oldMotorPosition = 0.0
     private var _motorVelocity = 0.0
@@ -63,7 +72,7 @@ class HardwareTurret :
             shotWasFired = false
         }
 
-        _angleSevo.position = anglePosition
+        _angleSevo.position = _anglePosition
 
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
@@ -125,8 +134,8 @@ class HardwareTurret :
             it.addData("target pulley velocity", targetVelocity)
             it.addData("current ticks pulley velocity", _motorVelocity)
             it.addData("target ticks pulley velocity", _targetTicksVelocity)
-            it.addData("angle turret pos", anglePosition)
             it.addData("pulley amps", _motorAmps)
+            it.addData("angle position", anglePosition)
             it.addLine("======")
         }
     }
