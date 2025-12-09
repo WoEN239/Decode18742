@@ -5,18 +5,14 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.ThreadManager
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.regulator.Regulator
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -25,25 +21,37 @@ class HardwareTurret :
     private lateinit var _motor: DcMotorEx
     private lateinit var _angleSevo: Servo
 
-    var currentVoltage = 0.0
+    var anglePosition = 0.0
+
+    private var _oldMotorPosition = 0.0
+    private var _motorVelocity = 0.0
+    var targetVelocity: Double
+        get() = (_targetTicksVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
+        set(value) {
+            _targetTicksVelocity =
+                (value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
+        }
+
+    private var _targetTicksVelocity = 0.0
 
     val currentVelocity: Double
         get() = (_motorVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
 
-    var anglePosition = 0.0
 
+    var shotWasFired = false
+        private set
+    private var _motorAmps = 0.0
+
+    private val _regulator = Regulator(Configs.TURRET.PULLEY_REGULATOR)
     private val _velocityFilter =
         ExponentialFilter(Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.get())
 
-    private var _oldMotorPosition = 0.0
+    var velocityAtTarget = false
+        private set
 
-    private var _motorVelocity = 0.0
-    var shotWasFired = false
-
+    private val _targetTimer = ElapsedTime()
     private val _deltaTime = ElapsedTime()
     private val _shootTriggerTimer = ElapsedTime()
-
-    private var _motorAmps = 0.0
 
     override fun update() {
         _motorAmps = _motor.getCurrent(CurrentUnit.AMPS)
@@ -68,7 +76,21 @@ class HardwareTurret :
 
         _oldMotorPosition = currentMotorPosition
 
-        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(currentVoltage)
+        if(abs(currentVelocity - targetVelocity) < Configs.TURRET.PULLEY_TARGET_SENS){
+            velocityAtTarget = _targetTimer.seconds() > Configs.TURRET.PULLEY_TARGET_TIMER
+        }
+        else {
+            _targetTimer.reset()
+
+            velocityAtTarget = false
+        }
+
+        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
+            _regulator.update(
+                _targetTicksVelocity - _motorVelocity,
+                _targetTicksVelocity
+            )
+        )
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -82,9 +104,12 @@ class HardwareTurret :
         }
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            _velocityFilter.start()
             _deltaTime.reset()
             _shootTriggerTimer.reset()
+            _targetTimer.reset()
+
+            _velocityFilter.start()
+            _regulator.start()
 
             rotateServo.position = 0.51
         }
@@ -95,11 +120,14 @@ class HardwareTurret :
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-            it.addData("currentTurretVelocity", currentVelocity)
-            it.addData("current ticks velocity", _motorVelocity)
-            it.addData("angle pos", anglePosition)
+            it.addLine("===TURRET===")
+            it.addData("current pulley velocity", currentVelocity)
+            it.addData("target pulley velocity", targetVelocity)
+            it.addData("current ticks pulley velocity", _motorVelocity)
+            it.addData("target ticks pulley velocity", _targetTicksVelocity)
+            it.addData("angle turret pos", anglePosition)
             it.addData("pulley amps", _motorAmps)
-            it.addData("pulleyVolts", currentVoltage)
+            it.addLine("======")
         }
     }
 

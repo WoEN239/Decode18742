@@ -172,6 +172,12 @@ object Configs {
         @JvmField
         var PULLEY_REGULATOR = RegulatorParameters()
 
+        @JvmField
+        var PULLEY_TARGET_SENS = 0.1
+
+        @JvmField
+        var PULLEY_TARGET_TIMER = 0.1
+
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
@@ -192,9 +198,6 @@ object Configs {
 
         @JvmField
         var TIME_STEP = 0.1
-
-        @JvmField
-        var AIR_FORCE_K = 0
 
         @JvmField
         var CALCULATING_G = 9.78
@@ -218,6 +221,9 @@ object Configs {
         var PULLEY_U = 1.0
 
         @JvmField
+        var AIR_FORCE_K = 0.0
+
+        @JvmField
         var TURRET_SHOOT_POS = Vec2(0.0, -0.05)
 
         @JvmField
@@ -230,7 +236,16 @@ object Configs {
         var TURRET_CENTER_POS = Vec2(0.0, -0.115)
 
         @JvmField
-        var MINIMAL_SHOOT_VELOCITY = 10.0
+        var SHORT_ANGLE_POSITION = 50.0 / 180.0 * PI
+
+        @JvmField
+        var LONG_ANGLE_POSITION = 50.0 / 180.0 * PI
+
+        @JvmField
+        var MINIMAL_PULLEY_VELOCITY = 5.0
+
+        @JvmField
+        var MAX_MOTOR_RPS = 85.0
     }
 
 
