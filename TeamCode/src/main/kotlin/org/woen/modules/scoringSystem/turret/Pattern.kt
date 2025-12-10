@@ -1,6 +1,6 @@
 package org.woen.modules.scoringSystem.turret
 
-import woen239.enumerators.BallRequest
+import org.woen.enumerators.BallRequest
 
 class Pattern constructor(val cameraTagId: Int, val subsequence: Array<BallRequest.Name>) {
     companion object {

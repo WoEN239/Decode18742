@@ -3,7 +3,7 @@ package org.woen.modules.scoringSystem.storage.sorting
 
 import kotlin.math.min
 
-import woen239.enumerators.BallRequest
+import org.woen.enumerators.BallRequest
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 
 

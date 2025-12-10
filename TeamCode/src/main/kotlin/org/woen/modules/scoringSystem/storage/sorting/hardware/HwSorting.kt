@@ -6,15 +6,14 @@ import java.util.concurrent.atomic.AtomicReference
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import org.woen.threading.hardware.ThreadedServo
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.hardware.Servo
 
 import org.woen.hotRun.HotRun
 import org.woen.utils.motor.MotorOnly
 
-import org.woen.threading.hardware.HardwareThreads
+import org.woen.threading.hardware.ThreadedServo
 import org.woen.threading.hardware.ThreadedBattery
+import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.IHardwareDevice
 
 import org.woen.telemetry.Configs.STORAGE.GATE_SERVO_OPEN_VALUE
@@ -46,17 +45,15 @@ class HwSorting : IHardwareDevice
 
     val gateServo = ThreadedServo(
         GATE_SERVO,
-        startAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE
-    )
+        startAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE)
+
     val pushServo = ThreadedServo(
         PUSH_SERVO,
-        startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE
-    )
+        startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE)
 
     val turretGateServo = ThreadedServo(
         TURRET_GATE_SERVO,
-        startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE
-    )
+        startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE)
 
 
 
@@ -65,8 +62,7 @@ class HwSorting : IHardwareDevice
         _beltMotors = MotorOnly(hardwareMap.get(SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
 
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
-            gateServo, pushServo, turretGateServo
-        )
+            gateServo, pushServo, turretGateServo)
 
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             _beltMotors.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE

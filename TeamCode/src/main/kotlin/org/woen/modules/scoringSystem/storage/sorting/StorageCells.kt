@@ -1,13 +1,13 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
-import woen239.enumerators.Ball
-import woen239.enumerators.BallRequest
+import org.woen.enumerators.Ball
+import org.woen.enumerators.BallRequest
 
-import woen239.enumerators.IntakeResult
-import woen239.enumerators.RequestResult
+import org.woen.enumerators.IntakeResult
+import org.woen.enumerators.RequestResult
 
-import woen239.enumerators.StorageSlot
+import org.woen.enumerators.StorageSlot
 
 import org.woen.telemetry.ThreadedTelemetry
 
@@ -61,10 +61,10 @@ class StorageCells
     }
     private fun fullEmptyStorageCells()
     {
-        _storageCells[StorageSlot.BOTTOM].Empty()
-        _storageCells[StorageSlot.CENTER].Empty()
-        _storageCells[StorageSlot.TURRET].Empty()
-        _storageCells[StorageSlot.MOBILE].Empty()
+        _storageCells[StorageSlot.BOTTOM].empty()
+        _storageCells[StorageSlot.CENTER].empty()
+        _storageCells[StorageSlot.TURRET].empty()
+        _storageCells[StorageSlot.MOBILE].empty()
     }
 
 
@@ -80,9 +80,9 @@ class StorageCells
         var curSlotId = StorageSlot.BOTTOM
         while (curSlotId < MAX_BALL_COUNT)
         {
-            if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].IsEmpty())
+            if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].isEmpty())
             {
-                result.Set(PREFERRED_INTAKE_SLOT_ORDER[curSlotId])
+                result.set(PREFERRED_INTAKE_SLOT_ORDER[curSlotId])
                 curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
@@ -91,11 +91,11 @@ class StorageCells
         return result
     }
 
-    suspend fun handleRequest(request: BallRequest.Name): RequestResult
+    suspend fun handleRequest(requestName: BallRequest.Name): RequestResult
     {
-        val requestBuffer = BallRequest(request)
+        val request = BallRequest(requestName)
 
-        if (requestBuffer.IsNone())
+        if (request.isNone())
             return RequestResult(
                 RequestResult.FAIL_ILLEGAL_ARGUMENT,
                 RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
@@ -103,17 +103,17 @@ class StorageCells
 
         hwReAdjustStorage()
 
-        if (requestBuffer.IsPreferred())
+        if (request.isPreferred())
         {
-            val requestResult = requestSearch(requestBuffer.ToBall())
+            val requestResult = requestSearch(request.toBall())
 
-            if (requestResult.DidFail())
-                return requestSearch(requestBuffer.ToInverseBall())
+            if (requestResult.didFail())
+                return requestSearch(request.toInverseBall())
 
             return requestResult
         }
-        else if (requestBuffer.IsAny()) return anyBallRequestSearch()
-        else return requestSearch(requestBuffer.ToBall())
+        else if (request.isAny()) return anyBallRequestSearch()
+        else return requestSearch(request.toBall())
     }
     private fun requestSearch(requested: Ball.Name): RequestResult
     {
@@ -133,9 +133,9 @@ class StorageCells
         var curSlotId = StorageSlot.BOTTOM
         while (curSlotId < STORAGE_SLOT_COUNT)
         {
-            if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].Name() == requested)
+            if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].name() == requested)
             {
-                result.Set(PREFERRED_REQUEST_SLOT_ORDER[curSlotId])
+                result.set(PREFERRED_REQUEST_SLOT_ORDER[curSlotId])
                 curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
@@ -160,9 +160,9 @@ class StorageCells
         var curSlotId = StorageSlot.BOTTOM
         while (curSlotId < STORAGE_SLOT_COUNT)
         {
-            if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].HasBall())
+            if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].isFilled())
             {
-                result.Set(PREFERRED_REQUEST_SLOT_ORDER[curSlotId])
+                result.set(PREFERRED_REQUEST_SLOT_ORDER[curSlotId])
                 curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
@@ -180,7 +180,7 @@ class StorageCells
         var curSlot = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.TURRET)
         {
-            _storageCells[curSlot].Set(inputBalls[curSlot])
+            _storageCells[curSlot].set(inputBalls[curSlot])
             curSlot++
         }
     }
@@ -191,7 +191,7 @@ class StorageCells
         ThreadedTelemetry.LAZY_INSTANCE.log("before intake:")
         logAllStorageData()
 
-        _storageCells[StorageSlot.BOTTOM].Set(inputBall)
+        _storageCells[StorageSlot.BOTTOM].set(inputBall)
         hwReAdjustStorage()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("finished cells intake, new storage:")
@@ -203,9 +203,9 @@ class StorageCells
     {
         _hwSortingM.stopAwaitingEating(true)
 
-        _storageCells[StorageSlot.TURRET].Set(_storageCells[StorageSlot.CENTER])
-        _storageCells[StorageSlot.CENTER].Set(_storageCells[StorageSlot.BOTTOM])
-        _storageCells[StorageSlot.BOTTOM].Empty()
+        _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
+        _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
+        _storageCells[StorageSlot.BOTTOM].empty()
 
         logAllStorageData()
     }
@@ -242,8 +242,8 @@ class StorageCells
 
         _hwSortingM.hwRotateMobileSlot()
 
-        _storageCells[StorageSlot.MOBILE].Set(_storageCells[StorageSlot.TURRET])
-        _storageCells[StorageSlot.TURRET].Empty()
+        _storageCells[StorageSlot.MOBILE].set(_storageCells[StorageSlot.TURRET])
+        _storageCells[StorageSlot.TURRET].empty()
 
         hwReAdjustStorage()
 
@@ -255,30 +255,30 @@ class StorageCells
     private fun swReAdjustStorage(): Boolean
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("SwReadjust start")
-        if (_storageCells[StorageSlot.TURRET].IsEmpty()
+        if (_storageCells[StorageSlot.TURRET].isEmpty()
             && isNotEmpty())
         {
-            _storageCells[StorageSlot.TURRET].Set(_storageCells[StorageSlot.CENTER])
-            _storageCells[StorageSlot.CENTER].Set(_storageCells[StorageSlot.BOTTOM])
-            _storageCells[StorageSlot.BOTTOM].Set(_storageCells[StorageSlot.MOBILE])
-            _storageCells[StorageSlot.MOBILE].Empty()
+            _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
+            _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
+            _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
+            _storageCells[StorageSlot.MOBILE].empty()
 
             return true
         }
-        else if (_storageCells[StorageSlot.CENTER].IsEmpty()
+        else if (_storageCells[StorageSlot.CENTER].isEmpty()
             && anyBallCount() > 1)
         {
-            _storageCells[StorageSlot.CENTER].Set(_storageCells[StorageSlot.BOTTOM])
-            _storageCells[StorageSlot.BOTTOM].Set(_storageCells[StorageSlot.MOBILE])
-            _storageCells[StorageSlot.MOBILE].Empty()
+            _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
+            _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
+            _storageCells[StorageSlot.MOBILE].empty()
 
             return true
         }
-        else if (_storageCells[StorageSlot.BOTTOM].IsEmpty()
-              && _storageCells[StorageSlot.MOBILE].IsFilled())
+        else if (_storageCells[StorageSlot.BOTTOM].isEmpty()
+              && _storageCells[StorageSlot.MOBILE].isFilled())
         {
-            _storageCells[StorageSlot.BOTTOM].Set(_storageCells[StorageSlot.MOBILE])
-            _storageCells[StorageSlot.MOBILE].Empty()
+            _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
+            _storageCells[StorageSlot.MOBILE].empty()
 
             return true
         }
@@ -304,10 +304,10 @@ class StorageCells
     fun logAllStorageData()
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("" +
-                "B:  ${_storageCells[StorageSlot.BOTTOM].Name()}; "
-              + "C:  ${_storageCells[StorageSlot.CENTER].Name()}; "
-              + "MO: ${_storageCells[StorageSlot.TURRET].Name()}; "
-              + "MI: ${_storageCells[StorageSlot.MOBILE].Name()}\n"
+                "B:  ${_storageCells[StorageSlot.BOTTOM].name()}; "
+              + "C:  ${_storageCells[StorageSlot.CENTER].name()}; "
+              + "MO: ${_storageCells[StorageSlot.TURRET].name()}; "
+              + "MI: ${_storageCells[StorageSlot.MOBILE].name()}\n"
         )
     }
     fun storageData() = _storageCells
@@ -319,26 +319,26 @@ class StorageCells
 
         while (curSlotId < StorageSlot.MOBILE)
         {
-            if (_storageCells[curSlotId].HasBall()) count++
+            if (_storageCells[curSlotId].isFilled()) count++
             curSlotId++
         }
 
         return count
     }
-    fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT;
+    fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT
     fun isEmpty(): Boolean
     {
-        return _storageCells[StorageSlot.BOTTOM].IsEmpty()
-            && _storageCells[StorageSlot.CENTER].IsEmpty()
-            && _storageCells[StorageSlot.TURRET].IsEmpty()
-            && _storageCells[StorageSlot.MOBILE].IsEmpty()
+        return _storageCells[StorageSlot.BOTTOM].isEmpty()
+            && _storageCells[StorageSlot.CENTER].isEmpty()
+            && _storageCells[StorageSlot.TURRET].isEmpty()
+            && _storageCells[StorageSlot.MOBILE].isEmpty()
     }
     fun isNotEmpty(): Boolean
     {
-        return _storageCells[StorageSlot.BOTTOM].IsFilled()
-            || _storageCells[StorageSlot.CENTER].IsFilled()
-            || _storageCells[StorageSlot.TURRET].IsFilled()
-            || _storageCells[StorageSlot.MOBILE].IsFilled()
+        return _storageCells[StorageSlot.BOTTOM].isFilled()
+            || _storageCells[StorageSlot.CENTER].isFilled()
+            || _storageCells[StorageSlot.TURRET].isFilled()
+            || _storageCells[StorageSlot.MOBILE].isFilled()
     }
 
 
@@ -349,7 +349,7 @@ class StorageCells
 
         while (curSlotId < StorageSlot.MOBILE)
         {
-            if (_storageCells[curSlotId].HasBall(ball)) count++
+            if (_storageCells[curSlotId].hasBall(ball)) count++
             curSlotId++
         }
 
@@ -362,7 +362,7 @@ class StorageCells
 
         while (curSlotId < StorageSlot.MOBILE)
         {
-            countPG[_storageCells[curSlotId].Id()]++
+            countPG[_storageCells[curSlotId].id()]++
             curSlotId++
         }
 

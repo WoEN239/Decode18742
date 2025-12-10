@@ -1,9 +1,9 @@
 package org.woen.modules.scoringSystem.storage
 
 
-import woen239.enumerators.Shooting
-import woen239.enumerators.BallRequest
-import woen239.enumerators.RequestResult
+import org.woen.enumerators.Shooting
+import org.woen.enumerators.BallRequest
+import org.woen.enumerators.RequestResult
 
 
 class StorageGiveSingleRequest(

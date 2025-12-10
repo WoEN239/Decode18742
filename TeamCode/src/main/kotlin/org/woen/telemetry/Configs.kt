@@ -1,19 +1,24 @@
 package org.woen.telemetry
 
 
+import kotlin.math.PI
+import kotlin.math.max
+import kotlin.math.ceil
+
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-import org.woen.utils.regulator.RegulatorParameters
-import org.woen.utils.units.Angle
-import org.woen.utils.units.Orientation
-import org.woen.utils.units.Triangle
+
+import org.woen.enumerators.Shooting
+import org.woen.enumerators.StorageSlot
+
 import org.woen.utils.units.Vec2
-import woen239.enumerators.RunStatus
-import woen239.enumerators.Shooting
-import woen239.enumerators.StorageSlot
-import kotlin.math.PI
-import kotlin.math.ceil
-import kotlin.math.max
+import org.woen.utils.units.Angle
+import org.woen.utils.units.Triangle
+import org.woen.utils.units.Orientation
+import org.woen.utils.process.RunStatus
+
+import org.woen.utils.regulator.RegulatorParameters
+
 
 
 object Configs {
@@ -250,7 +255,8 @@ object Configs {
 
 
     @Config
-    internal object COLOR_SENSORS_AND_OPTIC_PARE {
+    internal object STORAGE_SENSORS {
+
         @JvmField
         var OPTIC_PARE_SEES_NOT_BLACK = 0.4
 
@@ -307,7 +313,7 @@ object Configs {
                             (
                                     ACCUMULATION_INTERVAL_MS
                                             / 2.4f
-                                    ).toDouble()
+                                ).toDouble()
                         ).toInt()
                     ))
                 )
@@ -342,6 +348,7 @@ object Configs {
 
     @Config
     internal object STORAGE {
+
         @JvmField
         var MAX_BALL_COUNT = 3
 
@@ -351,20 +358,18 @@ object Configs {
 
 
         @JvmField
-        var PREFERRED_INTAKE_SLOT_ORDER: Array<Int> = arrayOf(
+        var PREFERRED_INTAKE_SLOT_ORDER = arrayOf(
             StorageSlot.BOTTOM,
             StorageSlot.CENTER,
             StorageSlot.TURRET,
-            StorageSlot.MOBILE
-        )
+            StorageSlot.MOBILE)
 
         @JvmField
-        var PREFERRED_REQUEST_SLOT_ORDER: Array<Int> = arrayOf(
+        var PREFERRED_REQUEST_SLOT_ORDER = arrayOf(
             StorageSlot.TURRET,
             StorageSlot.CENTER,
             StorageSlot.BOTTOM,
-            StorageSlot.MOBILE
-        )
+            StorageSlot.MOBILE)
 
 
         @JvmField
@@ -377,23 +382,21 @@ object Configs {
         var DELAY_FOR_EVENT_AWAITING_MS: Long = 10
 
         @JvmField
-        var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 20
+        var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 10
 
 
         @JvmField
         var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 411
 
         @JvmField
-        var DELAY_FOR_SORTING_REALIGNING_FORWARD_MS: Long = 200
+        var DELAY_FOR_SORTING_REALIGNING_FORWARD_MS: Long = 100
 
         @JvmField
-        var DELAY_FOR_SORTING_REALIGNING_REVERSE_MS: Long = 44
+        var DELAY_FOR_SORTING_REALIGNING_REVERSE_MS: Long = 50
 
         @JvmField
         var MAX_DELAY_FOR_SHOT_AWAITING_MS: Long = 155
 
-        @JvmField
-        var DELAY_BETWEEN_SHOTS: Long = 888
 
         @JvmField
         var DELAY_BETWEEN_INTAKES_MS: Long = 1111

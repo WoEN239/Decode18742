@@ -1,7 +1,7 @@
 package org.woen.modules.scoringSystem.storage
 
 
-import woen239.enumerators.Ball
+import org.woen.enumerators.Ball
 import org.woen.threading.StoppingEvent
 
 

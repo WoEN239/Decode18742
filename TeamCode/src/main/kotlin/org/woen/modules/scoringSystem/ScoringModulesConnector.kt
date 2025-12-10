@@ -5,12 +5,12 @@ import kotlinx.coroutines.delay
 import org.woen.hotRun.HotRun
 import java.util.concurrent.atomic.AtomicBoolean
 
-import woen239.enumerators.Ball
-import woen239.enumerators.BallRequest
+import org.woen.enumerators.Ball
+import org.woen.enumerators.BallRequest
 
-import woen239.enumerators.IntakeResult
-import woen239.enumerators.RequestResult
-import woen239.enumerators.Shooting
+import org.woen.enumerators.IntakeResult
+import org.woen.enumerators.RequestResult
+import org.woen.enumerators.Shooting
 
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
