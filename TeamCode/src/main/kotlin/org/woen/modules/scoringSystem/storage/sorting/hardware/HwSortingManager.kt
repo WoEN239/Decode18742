@@ -200,6 +200,7 @@ class HwSortingManager
         openGate()
         openPush()
 
+        delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
         closeGateWithPush()
     }
 }

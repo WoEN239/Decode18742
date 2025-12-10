@@ -373,7 +373,7 @@ object Configs {
         var SORTING_REALIGNING_REVERSE_MS: Long = 50
 
         @JvmField
-        var MAX_SHOT_AWAITING_MS: Long = 155
+        var MAX_SHOT_AWAITING_MS: Long = 160
 
 
         @JvmField

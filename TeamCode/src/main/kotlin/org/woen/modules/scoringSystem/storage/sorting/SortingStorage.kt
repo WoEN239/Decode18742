@@ -778,11 +778,12 @@ class SortingStorage
     {
         if (doAutoCalibration)
         {
-            _storageCells.hwStopBelts()
-            _storageCells.hwReverseBeltsTime(DELAY.ONE_BALL_PUSHING_MS * 2)
+            ThreadedTelemetry.LAZY_INSTANCE.log("SSM: REVERSING BELTS AFTER SHOT")
+            _storageCells.hwReverseBeltsTime(DELAY.ONE_BALL_PUSHING_MS)
+            ThreadedTelemetry.LAZY_INSTANCE.log("SSM: FINISHED REVERSING")
 
             _storageCells.fullCalibrate()
-            _storageCells.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS)
+            _storageCells.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS / 2)
         }
         else _storageCells.fullCalibrate()
 
@@ -820,6 +821,7 @@ class SortingStorage
         ThreadedTelemetry.LAZY_INSTANCE.log("SSM: fired? ${_shotWasFired.get()}," +
                 " delta time: $timePassedWaitingForShot")
 
+        _storageCells.hwReverseBeltsTime(DELAY.ONE_BALL_PUSHING_MS)
         _storageCells.updateAfterRequest()
         _dynamicMemoryPattern.removeFromTemporary()
         _shotWasFired.set(false)
