@@ -1,5 +1,6 @@
 package org.woen.modules.scoringSystem.turret
 
+import androidx.core.math.MathUtils.clamp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
@@ -26,7 +27,9 @@ class HardwareTurret :
                 (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) *
                 (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_ANGLE
         set(value) {
-            _anglePosition = (value - Configs.TURRET.MIN_TURRET_ANGLE) /
+            _anglePosition = (clamp(
+                value, Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE)
+                    - Configs.TURRET.MIN_TURRET_ANGLE) /
                     (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) *
                     (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) +
                     Configs.TURRET.MIN_TURRET_ANGLE_SERVO
@@ -87,10 +90,9 @@ class HardwareTurret :
 
         _oldMotorPosition = currentMotorPosition
 
-        if(abs(currentVelocity - targetVelocity) < Configs.TURRET.PULLEY_TARGET_SENS){
+        if (abs(currentVelocity - targetVelocity) < Configs.TURRET.PULLEY_TARGET_SENS) {
             velocityAtTarget = _targetTimer.seconds() > Configs.TURRET.PULLEY_TARGET_TIMER
-        }
-        else {
+        } else {
             _targetTimer.reset()
 
             velocityAtTarget = false
@@ -128,17 +130,17 @@ class HardwareTurret :
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _motor.mode = DcMotor.RunMode.RESET_ENCODERS
             _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+
+            _angleSevo.direction = Servo.Direction.REVERSE
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-            it.addLine("===TURRET===")
             it.addData("current pulley velocity", currentVelocity)
             it.addData("target pulley velocity", targetVelocity)
             it.addData("current ticks pulley velocity", _motorVelocity)
             it.addData("target ticks pulley velocity", _targetTicksVelocity)
             it.addData("pulley amps", _motorAmps)
             it.addData("angle position", anglePosition)
-            it.addLine("======")
         }
     }
 

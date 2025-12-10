@@ -9,6 +9,7 @@ import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
 import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
+import org.woen.modules.scoringSystem.turret.WaitTurretAtTarget
 import org.woen.telemetry.Configs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -69,6 +70,8 @@ class SimpleStorage : IModule {
 
                 _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 
+                ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTarget()).process.wait()
+
                 while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)
 
@@ -76,9 +79,21 @@ class SimpleStorage : IModule {
 
                 delay((Configs.SIMPLE_STORAGE.LOOK_DELAY_TIME * 1000.0).toLong())
 
+                repeat(3) {
+                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
+
+                    delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
+
+                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+
+                    delay(300)
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTarget()).process.wait()
+                }
+
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
 
-                delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
+                delay(1000)
 
                 HotRun.LAZY_INSTANCE.gamepadRumble(0.5)
 

@@ -1,6 +1,7 @@
 package org.woen.modules.scoringSystem.turret
 
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
@@ -10,12 +11,15 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
+import org.woen.utils.process.Process
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
 import kotlin.math.PI
 import kotlin.math.pow
 
 class SetTurretMode(val mode: Turret.TurretMode)
+class RequestTurretAtTarget(var atTarget: Boolean = false)
+class WaitTurretAtTarget(var process: Process = Process())
 
 class CurrentlyShooting()
 class TurretVoltageDropped()
@@ -47,7 +51,7 @@ class Turret : IModule {
             if (_currentTurretState != TurretState.SHOOT)
                 return@launch
 
-           calcTurretState()
+            calcTurretState()
 
             if (_isShooting && _hardwareTurret.shotWasFired) {
                 _isShooting = false
@@ -65,21 +69,21 @@ class Turret : IModule {
             (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_SHOOT_POS.turn(odometry.odometryOrientation.angle)
                     - HotRun.LAZY_INSTANCE.currentRunColor
                 .basketPosition).length()
-
-        val robotRotationBasketErr = Angle(
-            (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition
-                    - odometry.odometryOrientation.pos).rot()
-                    - odometry.odometryOrientation.angle
-        ).angle
-
-        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
+//
+//        val robotRotationBasketErr = Angle(
+//            (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition
+//                    - odometry.odometryOrientation.pos).rot()
+//                    - odometry.odometryOrientation.angle
+//        ).angle
+//
+//        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
 
         fun getHitHeight(startVel: Double, angle: Double): Double {
             var vecVel = Vec2(startVel * Configs.TURRET.PULLEY_U, 0.0).setRot(angle)
-            vecVel += robotXVel
+//            vecVel += robotXVel
             var pos = Vec2.ZERO
 
-            while (pos.x < shootDistance && !Thread.currentThread().isInterrupted && pos.y > 0.0) {
+            while (pos.x < shootDistance && !Thread.currentThread().isInterrupted && pos.y > -1.0) {
                 vecVel -= (Vec2(
                     vecVel.length()
                         .pow(2.0) * Configs.TURRET.AIR_FORCE_K / Configs.TURRET.BALL_MASS, 0.0
@@ -101,7 +105,7 @@ class Turret : IModule {
             Configs.TURRET.MAX_MOTOR_RPS * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS
         ) { getHitHeight(it, targetAngle) }
 
-        val turretVel = _hardwareTurret.currentVelocity
+        val turretVel = _hardwareTurret.targetVelocity
 
         _hardwareTurret.anglePosition = approximation(Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE)
         { getHitHeight(turretVel, it)}
@@ -164,5 +168,16 @@ class Turret : IModule {
         HotRun.LAZY_INSTANCE.opModeStopEvent += {
             setTurretState(TurretState.STOP)
         }
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretAtTarget::class, {
+            it.atTarget = _hardwareTurret.velocityAtTarget
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitTurretAtTarget::class, {
+            while (!_hardwareTurret.velocityAtTarget && !Thread.currentThread().isInterrupted)
+                delay(5)
+
+            it.process.close()
+        })
     }
 }

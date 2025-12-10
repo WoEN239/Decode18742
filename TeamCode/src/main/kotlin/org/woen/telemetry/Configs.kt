@@ -119,7 +119,7 @@ object Configs {
         var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
         @JvmField
-        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 18.0, kD = 1.0, limitU = 12.0)
+        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 21.0, kD = 1.0, limitU = 12.0)
 
         @JvmField
         var LOOK_SENS = 0.1
@@ -170,10 +170,10 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters()
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.4, kI = 0.05)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 0.1
+        var PULLEY_TARGET_SENS = 0.2
 
         @JvmField
         var PULLEY_TARGET_TIMER = 0.1
@@ -182,10 +182,10 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0, -3.66 / 2.0 + 0.3)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0, -3.66 / 2.0 + 0.33)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, 3.66 / 2.0)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0, 3.66 / 2.0)
 
         @JvmField
         var TURRET_HEIGHT = 0.35
@@ -218,10 +218,10 @@ object Configs {
         var MAX_TURRET_ANGLE = 55.0 / 180.0 * PI
 
         @JvmField
-        var PULLEY_U = 1.0
+        var PULLEY_U = 0.37
 
         @JvmField
-        var AIR_FORCE_K = 0.0
+        var AIR_FORCE_K = 0.0019
 
         @JvmField
         var TURRET_SHOOT_POS = Vec2(0.0, -0.05)
@@ -239,7 +239,7 @@ object Configs {
         var SHORT_ANGLE_POSITION = 50.0 / 180.0 * PI
 
         @JvmField
-        var LONG_ANGLE_POSITION = 50.0 / 180.0 * PI
+        var LONG_ANGLE_POSITION = 45.0 / 180.0 * PI
 
         @JvmField
         var MINIMAL_PULLEY_VELOCITY = 5.0
@@ -495,7 +495,7 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 3
+        var BELT_PUSH_TIME = 0.13
 
         @JvmField
         var LOOK_DELAY_TIME = 0.09
