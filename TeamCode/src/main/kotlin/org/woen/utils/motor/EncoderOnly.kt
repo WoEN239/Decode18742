@@ -187,7 +187,7 @@ class EncoderOnly : DcMotorEx {
         _motor = motor
 
         _motor.direction = Direction.FORWARD
-        _motor.mode = RunMode.STOP_AND_RESET_ENCODER
+        _motor.mode = RunMode.RESET_ENCODERS
         _motor.mode = RunMode.RUN_WITHOUT_ENCODER
     }
 }

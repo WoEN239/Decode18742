@@ -251,8 +251,31 @@ object Configs {
 
         @JvmField
         var MAX_MOTOR_RPS = 85.0
-    }
 
+        @JvmField
+        var ZERO_ROTATE_POS = 0.51
+
+        @JvmField
+        var ZEROING_TIME = 0.1
+
+        @JvmField
+        var ROTATE_SERVO_RATIO = 36.0 / 110.0
+
+        @JvmField
+        var ROTATE_SERVO_TURNS = PI * 2.0 * 5.0
+
+        @JvmField
+        var ROTATE_ENCODER_RATIO = 17.0 / 110.0
+
+        @JvmField
+        var ENCODER_TICKS_IN_REVOLUTION = 8192.0
+
+        @JvmField
+        var MAX_ROTATE = (0.58 - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
+
+        @JvmField
+        var MIN_ROTATE = (0.405 - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
+    }
 
     @Config
     internal object STORAGE_SENSORS {

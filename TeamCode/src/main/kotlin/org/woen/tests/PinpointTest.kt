@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import woen239.odometry.OdometryComputer
 
 @TeleOp
@@ -33,6 +34,9 @@ class PinpointTest : LinearOpMode() {
             telem.addData("posX", pos.getX(DistanceUnit.METER))
             telem.addData("posY", pos.getY(DistanceUnit.METER))
             telem.addData("rotate", pos.getHeading(AngleUnit.DEGREES))
+            telem.addData("velX", pinpoint.getVelX(DistanceUnit.METER))
+            telem.addData("velY", pinpoint.getVelY(DistanceUnit.METER))
+            telem.addData("velH", pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS))
 
             telem.update()
         }

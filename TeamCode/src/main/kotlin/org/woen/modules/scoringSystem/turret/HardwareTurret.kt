@@ -6,13 +6,17 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadManager
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
+import org.woen.utils.motor.EncoderOnly
 import org.woen.utils.regulator.Regulator
 import kotlin.math.PI
 import kotlin.math.abs
@@ -21,6 +25,9 @@ class HardwareTurret :
     IHardwareDevice {
     private lateinit var _motor: DcMotorEx
     private lateinit var _angleSevo: Servo
+    private lateinit var _rotateServo: Servo
+
+    private lateinit var _rotateEncoder: EncoderOnly
 
     var anglePosition: Double
         get() = (_anglePosition - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) /
@@ -28,7 +35,8 @@ class HardwareTurret :
                 (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_ANGLE
         set(value) {
             _anglePosition = (clamp(
-                value, Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE)
+                value, Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE
+            )
                     - Configs.TURRET.MIN_TURRET_ANGLE) /
                     (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) *
                     (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) +
@@ -51,7 +59,6 @@ class HardwareTurret :
     val currentVelocity: Double
         get() = (_motorVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
 
-
     var shotWasFired = false
         private set
     private var _motorAmps = 0.0
@@ -66,6 +73,26 @@ class HardwareTurret :
     private val _targetTimer = ElapsedTime()
     private val _deltaTime = ElapsedTime()
     private val _shootTriggerTimer = ElapsedTime()
+    private var _isServoZeroed = false
+
+    val currentRotatePosition
+        get() = _rotateEncoder.currentPosition.toDouble() / Configs.TURRET.ENCODER_TICKS_IN_REVOLUTION * Configs.TURRET.ROTATE_ENCODER_RATIO * 2.0 * PI
+
+    var targetRotatePosition: Double
+        get() {
+            if (_isServoZeroed)
+                return (_rotateServo.position - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_TURNS * Configs.TURRET.ROTATE_SERVO_RATIO
+
+            return 0.0
+        }
+        set(value) {
+            if (_isServoZeroed)
+                _rotateServo.position = clamp(
+                    value, Configs.TURRET.MIN_ROTATE,
+                    Configs.TURRET.MAX_ROTATE
+                ) / Configs.TURRET.ROTATE_SERVO_RATIO / Configs.TURRET.ROTATE_SERVO_TURNS +
+                        Configs.TURRET.ZERO_ROTATE_POS
+        }
 
     override fun update() {
         _motorAmps = _motor.getCurrent(CurrentUnit.AMPS)
@@ -82,8 +109,6 @@ class HardwareTurret :
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
         val rawVelocity = (currentMotorPosition - _oldMotorPosition) / _deltaTime.seconds()
-
-        _deltaTime.reset()
 
         _motorVelocity =
             _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
@@ -104,13 +129,17 @@ class HardwareTurret :
                 _targetTicksVelocity
             )
         )
+
+        _deltaTime.reset()
     }
 
     override fun init(hardwareMap: HardwareMap) {
         _motor = hardwareMap.get("pulleyMotor") as DcMotorEx
         _angleSevo = hardwareMap.get("turretAngleServo") as Servo
 
-        val rotateServo = hardwareMap.get("turretRotateServo") as Servo
+        _rotateEncoder = EncoderOnly(hardwareMap.get("turretRotateEncoder") as DcMotorEx)
+
+        _rotateServo = hardwareMap.get("turretRotateServo") as Servo
 
         Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.onSet += {
             _velocityFilter.coef = it
@@ -124,7 +153,17 @@ class HardwareTurret :
             _velocityFilter.start()
             _regulator.start()
 
-            rotateServo.position = 0.51
+            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                _isServoZeroed = false
+
+                _rotateServo.position = Configs.TURRET.ZERO_ROTATE_POS
+
+                delay((Configs.TURRET.ZEROING_TIME * 1000.0).toLong())
+
+                _rotateEncoder.resetEncoder()
+
+                _isServoZeroed = true
+            }
         }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {

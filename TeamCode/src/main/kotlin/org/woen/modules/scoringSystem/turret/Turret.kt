@@ -21,15 +21,18 @@ import org.woen.threading.hardware.HardwareThreads
 
 import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.TURRET
-
+import org.woen.threading.StoppingEvent
+import org.woen.utils.units.Angle
 
 
 class SetTurretMode(val mode: Turret.TurretMode)
-class RequestTurretAtTarget(var atTarget: Boolean = false)
+class RequestTurretAtTarget(var atTarget: Boolean = false): StoppingEvent
 class WaitTurretAtTarget(var process: Process = Process())
 
 class CurrentlyShooting()
 class TurretCurrentPeaked()
+
+class RequestTurretCurrentRotation(var rotation: Double): StoppingEvent
 
 
 class Turret : IModule {
@@ -76,18 +79,22 @@ class Turret : IModule {
             (odometry.odometryOrientation.pos + TURRET.TURRET_SHOOT_POS.turn(odometry.odometryOrientation.angle)
                     - HotRun.LAZY_INSTANCE.currentRunColor
                 .basketPosition).length()
-//
-//        val robotRotationBasketErr = Angle(
-//            (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition
-//                    - odometry.odometryOrientation.pos).rot()
-//                    - odometry.odometryOrientation.angle
-//        ).angle
-//
-//        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
+
+        val robotRotationBasketErr = Angle(
+            (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition
+                    - odometry.odometryOrientation.pos).rot()
+                    - odometry.odometryOrientation.angle
+        ).angle
+
+        _hardwareTurret.targetRotatePosition = robotRotationBasketErr
+
+        ThreadedTelemetry.LAZY_INSTANCE.log(robotRotationBasketErr.toString())
+
+        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
 
         fun getHitHeight(startVel: Double, angle: Double): Double {
             var vecVel = Vec2(startVel * TURRET.PULLEY_U, 0.0).setRot(angle)
-//            vecVel += robotXVel
+            vecVel += robotXVel
             var pos = Vec2.ZERO
 
             while (pos.x < shootDistance && !Thread.currentThread().isInterrupted && pos.y > -1.0) {
@@ -185,6 +192,10 @@ class Turret : IModule {
                 delay(DELAY.EVENT_AWAITING_MS)
 
             it.process.close()
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretCurrentRotation::class, {
+            it.rotation = _hardwareTurret.currentRotatePosition
         })
     }
 }
