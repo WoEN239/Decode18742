@@ -1,15 +1,18 @@
 package org.woen.threading
 
+
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.CopyOnWriteArrayList
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.utils.smartMutex.SmartMutex
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
+
+
 
 class ThreadManager private constructor() : DisposableHandle {
     companion object {
@@ -66,8 +69,7 @@ class ThreadManager private constructor() : DisposableHandle {
     }
 
     override fun dispose() {
-        for (i in _allThreads)
-            i.interrupt()
+        for (thread in _allThreads) thread.interrupt()
 
         _threadPool.shutdown()
     }

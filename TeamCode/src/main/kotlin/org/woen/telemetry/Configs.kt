@@ -346,6 +346,44 @@ object Configs {
     }
 
 
+
+    @Config
+    internal object DELAY {
+
+        @JvmField
+        var INTAKE_RACE_CONDITION_MS: Long = 15
+
+        @JvmField
+        var REQUEST_RACE_CONDITION_MS: Long = 10
+
+        @JvmField
+        var EVENT_AWAITING_MS: Long = 5
+
+        @JvmField
+        var HARDWARE_REQUEST_FREQUENCY_MS: Long = 5
+
+
+        @JvmField
+        var ONE_BALL_PUSHING_MS: Long = 411
+
+        @JvmField
+        var SORTING_REALIGNING_FORWARD_MS: Long = 100
+
+        @JvmField
+        var SORTING_REALIGNING_REVERSE_MS: Long = 50
+
+        @JvmField
+        var MAX_SHOT_AWAITING_MS: Long = 155
+
+
+        @JvmField
+        var BETWEEN_INTAKES_MS: Long = 1111
+
+
+    }
+
+
+
     @Config
     internal object STORAGE {
 
@@ -371,35 +409,6 @@ object Configs {
             StorageSlot.BOTTOM,
             StorageSlot.MOBILE)
 
-
-        @JvmField
-        var INTAKE_RACE_CONDITION_DELAY_MS: Long = 15
-
-        @JvmField
-        var REQUEST_RACE_CONDITION_DELAY_MS: Long = 10
-
-        @JvmField
-        var DELAY_FOR_EVENT_AWAITING_MS: Long = 10
-
-        @JvmField
-        var DELAY_FOR_HARDWARE_REQUEST_FREQUENCY: Long = 10
-
-
-        @JvmField
-        var DELAY_FOR_ONE_BALL_PUSHING_MS: Long = 411
-
-        @JvmField
-        var DELAY_FOR_SORTING_REALIGNING_FORWARD_MS: Long = 100
-
-        @JvmField
-        var DELAY_FOR_SORTING_REALIGNING_REVERSE_MS: Long = 50
-
-        @JvmField
-        var MAX_DELAY_FOR_SHOT_AWAITING_MS: Long = 155
-
-
-        @JvmField
-        var DELAY_BETWEEN_INTAKES_MS: Long = 1111
 
 
         @JvmField

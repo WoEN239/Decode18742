@@ -39,14 +39,8 @@ import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
+import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
-
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
-import org.woen.telemetry.Configs.STORAGE.MAX_DELAY_FOR_SHOT_AWAITING_MS
-
-import org.woen.telemetry.Configs.STORAGE.INTAKE_RACE_CONDITION_DELAY_MS
-import org.woen.telemetry.Configs.STORAGE.REQUEST_RACE_CONDITION_DELAY_MS
 
 import org.woen.telemetry.Configs.PROCESS_ID.INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.LAZY_INTAKE
@@ -228,7 +222,7 @@ class SortingStorage
         _storageCells.hwStartBelts()
         while (_lazyIntakeIsActive.get())
         {
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            delay(DELAY.EVENT_AWAITING_MS)
 
             if (isForcedToTerminateIntake(LAZY_INTAKE))
                 terminateIntake(LAZY_INTAKE)
@@ -275,7 +269,7 @@ class SortingStorage
 
         ThreadedTelemetry.LAZY_INSTANCE.log("SSM - Sorting intake")
         _storageCells.hwReAdjustStorage()
-        _storageCells.hwForwardBeltsTime(DELAY_FOR_ONE_BALL_PUSHING_MS / 2)
+        _storageCells.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS / 2)
 
         _storageCells.updateAfterIntake(inputBall)
         return IntakeResult.Name.SUCCESS
@@ -287,7 +281,7 @@ class SortingStorage
         {
             _runStatus.addProcessToQueue(processId)
 
-            delay(INTAKE_RACE_CONDITION_DELAY_MS)
+            delay(DELAY.INTAKE_RACE_CONDITION_MS)
             return !_runStatus.isThisProcessHighestPriority(processId)
         }
         return true
@@ -353,7 +347,7 @@ class SortingStorage
 
         ThreadedTelemetry.LAZY_INSTANCE.log("custom readjusting")
         _storageCells.hwCloseTurretGate()
-        _storageCells.hwForwardBeltsTime(DELAY_FOR_ONE_BALL_PUSHING_MS / 2)
+        _storageCells.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS / 2)
 
         val fullRotations = when (requestResult.name())
         {
@@ -365,16 +359,13 @@ class SortingStorage
 
         ThreadedTelemetry.LAZY_INSTANCE.log("updating: rotating cur slot")
         if (fullRotations >= 0)
-        {
-            repeat(fullRotations) {
-                _storageCells.fullRotate()
-                delay(DELAY_FOR_ONE_BALL_PUSHING_MS)
-            }
-        }
+            repeat(fullRotations)
+                { _storageCells.fullRotate() }
+
         _storageCells.hwReAdjustStorage()
 
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("sorting finished - success\nGetting ready to shoot")
+        ThreadedTelemetry.LAZY_INSTANCE.log("sorting finished - success", "Getting ready to shoot")
         return RequestResult(
                 RequestResult.SUCCESS,
                 RequestResult.Name.SUCCESS)
@@ -408,7 +399,7 @@ class SortingStorage
             _runStatus.addProcessToQueue(processId)
             _storageCells.pauseAnyIntake()
 
-            delay(REQUEST_RACE_CONDITION_DELAY_MS)
+            delay(DELAY.REQUEST_RACE_CONDITION_MS)
             return !_runStatus.isThisProcessHighestPriority(processId)
         }
         return true
@@ -419,7 +410,7 @@ class SortingStorage
         _runStatus.safeRemoveThisProcessFromTerminationList(processId)
 
         while (requestRaceConditionIsPresent(processId))
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            delay(DELAY.EVENT_AWAITING_MS)
 
         return isForcedToTerminateRequest(processId)
     }
@@ -788,10 +779,10 @@ class SortingStorage
         if (doAutoCalibration)
         {
             _storageCells.hwStopBelts()
-            _storageCells.hwReverseBeltsTime(DELAY_FOR_ONE_BALL_PUSHING_MS * 2)
+            _storageCells.hwReverseBeltsTime(DELAY.ONE_BALL_PUSHING_MS * 2)
 
             _storageCells.fullCalibrate()
-            _storageCells.hwForwardBeltsTime(DELAY_FOR_ONE_BALL_PUSHING_MS)
+            _storageCells.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS)
         }
         else _storageCells.fullCalibrate()
 
@@ -818,10 +809,10 @@ class SortingStorage
         var timePassedWaitingForShot: Long = 0
 
         while (!_shotWasFired.get() &&
-            timePassedWaitingForShot < MAX_DELAY_FOR_SHOT_AWAITING_MS)
+            timePassedWaitingForShot < DELAY.MAX_SHOT_AWAITING_MS)
         {
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
-            timePassedWaitingForShot += DELAY_FOR_EVENT_AWAITING_MS
+            delay(DELAY.EVENT_AWAITING_MS)
+            timePassedWaitingForShot += DELAY.EVENT_AWAITING_MS
             if (isForcedToTerminateRequest(processId)) return false
         }
 

@@ -24,7 +24,7 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
 import org.woen.modules.scoringSystem.turret.CurrentlyShooting
-import org.woen.modules.scoringSystem.turret.TurretVoltageDropped
+import org.woen.modules.scoringSystem.turret.TurretCurrentPeaked
 
 import org.woen.modules.scoringSystem.storage.EnableSortingModuleEvent
 import org.woen.modules.scoringSystem.storage.DisableSortingModuleEvent
@@ -43,11 +43,9 @@ import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 
-import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
-import org.woen.telemetry.Configs.STORAGE.MAX_DELAY_FOR_SHOT_AWAITING_MS
-
+import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
+import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
 import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.IS_SORTING_MODULE_ACTIVE_AT_START_UP
 
 
@@ -133,7 +131,7 @@ class ScoringModulesConnector
 
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            TurretVoltageDropped::class, {
+            TurretCurrentPeaked::class, {
 
                 if (_isSortingModuleActive.get())
                     _shotWasFired.set(true)
@@ -262,7 +260,7 @@ class ScoringModulesConnector
                         _requestWasTerminated.set(true)
                         ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
 
-                        ThreadedTelemetry.LAZY_INSTANCE.log("\nSTOP  - ANY Request - GAMEPAD")
+                        ThreadedTelemetry.LAZY_INSTANCE.log("", "STOP  - ANY Request - GAMEPAD")
                         ThreadedTelemetry.LAZY_INSTANCE.log("SMC isBusy: " + isBusy())
                     }
                     else ThreadedTelemetry.LAZY_INSTANCE.log("! Sorting module is inactive")
@@ -303,7 +301,7 @@ class ScoringModulesConnector
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SwitchBrushStateEvent(
-                    Brush.BrushState.REVERS,
+                    Brush.BrushState.REVERSE,
                     TIME_FOR_BRUSH_REVERSING
             )   )
         }
@@ -319,7 +317,7 @@ class ScoringModulesConnector
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             SwitchBrushStateEvent(
-                Brush.BrushState.REVERS,
+                Brush.BrushState.REVERSE,
                 reverseTime
         )   )
 
@@ -345,7 +343,7 @@ class ScoringModulesConnector
         failsafePattern: Array<BallRequest.Name>
     ): RequestResult.Name
     {
-        while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
+        while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("SMC: Started - SMART drum request")
@@ -363,7 +361,7 @@ class ScoringModulesConnector
     }
     private suspend fun startLazyStreamDrumRequest(): RequestResult.Name
     {
-        while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
+        while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("SMC: Started - LazySTREAM drum request")
@@ -377,7 +375,7 @@ class ScoringModulesConnector
     }
     private suspend fun startSingleRequest(ballRequest: BallRequest.Name): RequestResult.Name
     {
-        while (isBusy()) delay(DELAY_FOR_EVENT_AWAITING_MS)
+        while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("SMC: Started - Single request")
@@ -400,7 +398,7 @@ class ScoringModulesConnector
 //        ThreadedTelemetry.LAZY_INSTANCE.log("[&] SMC: Waiting for turret speed")
 //        while (!turretHasAccelerated)
 //        {
-//            delay(DELAY_FOR_EVENT_AWAITING_MS)
+//            delay(EVENT_AWAITING_MS)
 //
 //            turretHasAccelerated = ThreadedEventBus.LAZY_INSTANCE.invoke(
 //                RequestTurretAtTargetEvent() ).atTarget
@@ -418,15 +416,15 @@ class ScoringModulesConnector
 
         var timePassedWaitingForShot: Long = 0
         while (!_shotWasFired.get() && !_requestWasTerminated.get()
-            && timePassedWaitingForShot < MAX_DELAY_FOR_SHOT_AWAITING_MS)
+            && timePassedWaitingForShot < DELAY.MAX_SHOT_AWAITING_MS)
         {
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
-            timePassedWaitingForShot += DELAY_FOR_EVENT_AWAITING_MS
+            delay(DELAY.EVENT_AWAITING_MS)
+            timePassedWaitingForShot += DELAY.EVENT_AWAITING_MS
         }
 
         _storage.hwStopBelts()
 
-        if (timePassedWaitingForShot >= MAX_DELAY_FOR_SHOT_AWAITING_MS)
+        if (timePassedWaitingForShot >= DELAY.MAX_SHOT_AWAITING_MS)
              ThreadedTelemetry.LAZY_INSTANCE.log("\n\n\nSMC - Shot timeout, assume success\n")
         else ThreadedTelemetry.LAZY_INSTANCE.log("\n\n\nSMC - RECEIVED - SHOT FIRED\n")
 

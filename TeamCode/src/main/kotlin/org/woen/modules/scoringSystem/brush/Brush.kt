@@ -17,17 +17,19 @@ import java.util.concurrent.atomic.AtomicReference
 
 class SwitchBrushStateEvent(var brushState: Brush.BrushState, var reverseTime: Long = 1000)
 
+
+
 class Brush : IModule {
     enum class BrushState {
         FORWARD,
         STOP,
-        REVERS,
+        REVERSE,
         SAFE,
         STOP_ON_TIME
     }
 
     private var _currentJob: Job? = null
-    private var bruh = HardwareBrush()
+    private var hwBrush = HardwareBrush()
     private var turnOn = AtomicReference(BrushState.STOP)
     private var timerRevers = AtomicReference<Long>(0)
     private var tmr = ElapsedTime()
@@ -36,33 +38,35 @@ class Brush : IModule {
     private var tmr3 = ElapsedTime()
     private var f12 = false
     private var f11 = false
-    suspend fun AvtoUse() {
-        if (!f12) {
-            f12 = true; tmr1.reset()
+    suspend fun autoUse()
+    {
+        if (!f12)
+        {
+            f12 = true
+            tmr1.reset()
         }
         val difTmr = tmr.time() > Configs.BRUSH.BRUSH_DEF_TIME
         val startTmr = tmr1.time() > Configs.BRUSH.BRUSH_SAFE_TIME
         val errTime = tmr2.time() > Configs.BRUSH.BRUSH_ERR_TIME
-        val stopTime = tmr3.time() > Configs.BRUSH.BRUSH_STOP_TIME
 
         when (turnOn.get()) {
             BrushState.FORWARD -> {
-                bruh.setDir(HardwareBrush.BrushDirection.FORWARD)
-                if (!bruh.isSafe && !f11) {
+                hwBrush.setDir(HardwareBrush.BrushDirection.FORWARD)
+                if (!hwBrush.isSafe && !f11) {
                     f11 = true; tmr2.reset()
                 }
-               if(!bruh.isSafe1){
+               if(!hwBrush.isSafe1){
                    turnOn.set(BrushState.STOP_ON_TIME)
                    tmr3.reset()
                }
-                if (!bruh.isSafe && startTmr && errTime) {
+                if (!hwBrush.isSafe && startTmr && errTime) {
                     turnOn.set(BrushState.SAFE); tmr.reset()
                 }
             }
 
             BrushState.SAFE -> {
-                bruh.setDir(HardwareBrush.BrushDirection.REVERS)
-                if (bruh.isSafe && difTmr) {
+                hwBrush.setDir(HardwareBrush.BrushDirection.REVERSE)
+                if (hwBrush.isSafe && difTmr) {
                     turnOn.set(BrushState.FORWARD)
                 }
                 tmr2.reset()
@@ -71,14 +75,14 @@ class Brush : IModule {
             }
 
             BrushState.STOP -> {
-                bruh.setDir(HardwareBrush.BrushDirection.STOP)
+                hwBrush.setDir(HardwareBrush.BrushDirection.STOP)
                 tmr2.reset()
                 tmr1.reset()
                 f11 = false
             }
 
-            BrushState.REVERS -> {
-                revers(timerRevers.get())
+            BrushState.REVERSE -> {
+                reverse(timerRevers.get())
                 turnOn.set(BrushState.STOP)
                 tmr2.reset()
                 tmr1.reset()
@@ -86,7 +90,7 @@ class Brush : IModule {
             }
 
             BrushState.STOP_ON_TIME->{
-                bruh.setDir(HardwareBrush.BrushDirection.STOP)
+                hwBrush.setDir(HardwareBrush.BrushDirection.STOP)
                 tmr2.reset()
                 tmr1.reset()
                 if(startTmr)turnOn.set(BrushState.FORWARD)
@@ -96,15 +100,15 @@ class Brush : IModule {
         }
     }
 
-    suspend fun revers(tmr1: Long = 1000) {
-        bruh.setDir(HardwareBrush.BrushDirection.REVERS)
+    suspend fun reverse(tmr1: Long = 1000) {
+        hwBrush.setDir(HardwareBrush.BrushDirection.REVERSE)
         delay(tmr1)
     }
 
     override suspend fun process() {
         _currentJob =
             ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                AvtoUse()
+                autoUse()
             }
     }
 
@@ -116,7 +120,7 @@ class Brush : IModule {
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(bruh)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(hwBrush)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SwitchBrushStateEvent::class, {
             turnOn.set(it.brushState)
@@ -129,7 +133,7 @@ class Brush : IModule {
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addLine(turnOn.get().toString())
-            it.addLine(bruh.volt.toString())
+            it.addLine(hwBrush.volt.toString())
         }
     }
 }

@@ -11,13 +11,11 @@ import org.woen.enumerators.StorageSlot
 
 import org.woen.telemetry.ThreadedTelemetry
 
+import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.STORAGE.STORAGE_SLOT_COUNT
-
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
-
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_ONE_BALL_PUSHING_MS
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
@@ -292,7 +290,7 @@ class StorageCells
     {
         _hwSortingM.stopAwaitingEating(true)
         while (swReAdjustStorage())
-            _hwSortingM.hwForwardBeltsTime(DELAY_FOR_ONE_BALL_PUSHING_MS)
+            _hwSortingM.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS)
     }
 
 

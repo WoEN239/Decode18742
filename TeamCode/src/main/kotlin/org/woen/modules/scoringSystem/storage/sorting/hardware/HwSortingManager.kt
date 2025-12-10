@@ -10,9 +10,7 @@ import org.woen.threading.ThreadManager
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.HardwareThreads
 
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_HARDWARE_REQUEST_FREQUENCY
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_SORTING_REALIGNING_FORWARD_MS
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_SORTING_REALIGNING_REVERSE_MS
+import org.woen.telemetry.Configs.DELAY
 
 
 
@@ -51,7 +49,7 @@ class HwSortingManager
 //                        ThreadedEventBus.LAZY_INSTANCE.invoke(
 //                            StorageGetReadyForIntakeEvent(it))
 //
-//                        ThreadedTelemetry.LAZY_INSTANCE.log("\nCOLOR SENSORS - START INTAKE")
+//                        ThreadedTelemetry.LAZY_INSTANCE.log("", "COLOR SENSORS - START INTAKE")
 //                        delay(DELAY_BETWEEN_INTAKES_MS)
 //
 //                        resumeAwaitingEating()
@@ -96,7 +94,7 @@ class HwSortingManager
         while (!_hwSorting.gateServo.atTargetAngle
             || !_hwSorting.pushServo.atTargetAngle
             || !_hwSorting.turretGateServo.atTargetAngle)
-                delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+                delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Full calibration completed")
     }
@@ -106,7 +104,7 @@ class HwSortingManager
         _hwSorting.openGate()
 
         while (!_hwSorting.gateServo.atTargetAngle)
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: OPENED sorting gate")
     }
@@ -116,7 +114,7 @@ class HwSortingManager
         _hwSorting.openPush()
 
         while (!_hwSorting.pushServo.atTargetAngle)
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: OPENED push")
     }
@@ -128,7 +126,7 @@ class HwSortingManager
 
         while (!_hwSorting.pushServo.atTargetAngle
             || !_hwSorting.gateServo.atTargetAngle)
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: CLOSED sorting gate & push")
     }
@@ -140,7 +138,7 @@ class HwSortingManager
         _hwSorting.openTurretGate()
 
         while (!_hwSorting.turretGateServo.atTargetAngle)
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: OPENED turret gate successfully")
     }
@@ -150,7 +148,7 @@ class HwSortingManager
         _hwSorting.closeTurretGate()
 
         while (!_hwSorting.turretGateServo.atTargetAngle)
-            delay(DELAY_FOR_HARDWARE_REQUEST_FREQUENCY)
+            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: CLOSED turret gate successfully")
     }
@@ -196,8 +194,8 @@ class HwSortingManager
         stopAwaitingEating(true)
         closeTurretGate()
 
-        hwForwardBeltsTime(DELAY_FOR_SORTING_REALIGNING_FORWARD_MS)
-        hwReverseBeltsTime(DELAY_FOR_SORTING_REALIGNING_REVERSE_MS)
+        hwForwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
+        hwReverseBeltsTime(DELAY.SORTING_REALIGNING_REVERSE_MS)
 
         openGate()
         openPush()

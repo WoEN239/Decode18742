@@ -22,8 +22,8 @@ import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
+import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
-import org.woen.telemetry.Configs.STORAGE.DELAY_FOR_EVENT_AWAITING_MS
 
 import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.DEFAULT_PATTERN
 import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.DEFAULT_SHOOTING_MODE
@@ -106,7 +106,7 @@ class SortingAutoLogic
 
                 return true
             }
-            delay(DELAY_FOR_EVENT_AWAITING_MS)
+            delay(DELAY.EVENT_AWAITING_MS)
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("SAL: Failed to get pattern")

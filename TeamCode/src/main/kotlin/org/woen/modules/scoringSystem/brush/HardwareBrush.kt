@@ -1,5 +1,6 @@
 package org.woen.modules.scoringSystem.brush
 
+
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
@@ -9,6 +10,8 @@ import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.motor.MotorOnly
+
+
 
 class HardwareBrush : IHardwareDevice {
     private lateinit var _motor: DcMotorEx
@@ -25,7 +28,7 @@ class HardwareBrush : IHardwareDevice {
     enum class BrushDirection {
         FORWARD,
         STOP,
-        REVERS,
+        REVERSE,
     }
 
     fun voltageSafe() {
@@ -41,7 +44,7 @@ class HardwareBrush : IHardwareDevice {
 
             BrushDirection.STOP -> 0.0
 
-            BrushDirection.REVERS ->
+            BrushDirection.REVERSE ->
                 -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER * 0.2)
         }
     }

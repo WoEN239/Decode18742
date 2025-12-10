@@ -1,23 +1,27 @@
 package org.woen.modules.runner.actions
 
-import kotlinx.coroutines.DisposableHandle
+import kotlin.concurrent.thread
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.DisposableHandle
+
 import org.woen.hotRun.HotRun
+import org.woen.utils.units.Vec2
+import org.woen.utils.smartMutex.SmartMutex
+import org.woen.enumerators.Ball
+
+import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadManager
+import org.woen.threading.ThreadedEventBus
+
 import org.woen.modules.driveTrain.SetDriveTargetVelocityEvent
 import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
-import org.woen.telemetry.Configs
-import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.ThreadManager
-import org.woen.threading.ThreadedEventBus
-import org.woen.utils.smartMutex.SmartMutex
-import org.woen.utils.units.Vec2
-import org.woen.enumerators.Ball
-import kotlin.concurrent.thread
+
 
 
 class ActionRunner private constructor() : DisposableHandle {
@@ -29,16 +33,16 @@ class ActionRunner private constructor() : DisposableHandle {
         @JvmStatic
         val LAZY_INSTANCE: ActionRunner
             get() {
-                var isInited = false
+                var isInitialised = false
 
                 _instanceMutex.smartLock {
                     if (_nullableInstance == null) {
                         _nullableInstance = ActionRunner()
-                        isInited = true
+                        isInitialised = true
                     }
                 }
 
-                if (isInited)
+                if (isInitialised)
                     _nullableInstance?.init()
 
                 return _nullableInstance!!

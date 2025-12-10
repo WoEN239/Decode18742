@@ -222,10 +222,9 @@ class ThreadedTelemetry : DisposableHandle {
     fun drawRect(center: Vec2, size: Vec2, rot: Double = 0.0, color: Color) =
         drawRect(center, size, rot, color.toString())
 
-    fun log(vararg strs: String) {
-        for (i in strs) {
-            logWithTag(i, "18742robot")
-        }
+    fun log(msg: String) = logWithTag(msg, "18742robot")
+    fun log(vararg msg: String) {
+        for (s in msg) logWithTag(s, "18742robot")
     }
 
     fun logWithTag(str: String, tag: String) =
