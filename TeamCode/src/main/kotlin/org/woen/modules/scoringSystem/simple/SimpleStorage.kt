@@ -86,9 +86,11 @@ class SimpleStorage : IModule {
 
                     _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
 
-                    delay(300)
+                    delay(50)
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTarget()).process.wait()
+
+                    delay(50)
                 }
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
