@@ -74,20 +74,22 @@ class HardwareTurret :
     private val _deltaTime = ElapsedTime()
     private val _shootTriggerTimer = ElapsedTime()
     private var _isServoZeroed = false
+    private var _currentRotate = 0.0
+    private var _targetRotationPosition = 0.0
 
     val currentRotatePosition
-        get() = _rotateEncoder.currentPosition.toDouble() / Configs.TURRET.ENCODER_TICKS_IN_REVOLUTION * Configs.TURRET.ROTATE_ENCODER_RATIO * 2.0 * PI
+        get() = _currentRotate / Configs.TURRET.ENCODER_TICKS_IN_REVOLUTION * Configs.TURRET.ROTATE_ENCODER_RATIO * 2.0 * PI
 
     var targetRotatePosition: Double
         get() {
             if (_isServoZeroed)
-                return (_rotateServo.position - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_TURNS * Configs.TURRET.ROTATE_SERVO_RATIO
+                return (_targetRotationPosition - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_TURNS * Configs.TURRET.ROTATE_SERVO_RATIO
 
             return 0.0
         }
         set(value) {
             if (_isServoZeroed)
-                _rotateServo.position = clamp(
+                _targetRotationPosition = clamp(
                     value, Configs.TURRET.MIN_ROTATE,
                     Configs.TURRET.MAX_ROTATE
                 ) / Configs.TURRET.ROTATE_SERVO_RATIO / Configs.TURRET.ROTATE_SERVO_TURNS +
@@ -105,6 +107,12 @@ class HardwareTurret :
         }
 
         _angleSevo.position = _anglePosition
+
+        if(_isServoZeroed) {
+            targetRotatePosition = 0.0
+            _currentRotate = _rotateEncoder.currentPosition.toDouble()
+            _rotateServo.position = _targetRotationPosition
+        }
 
         val currentMotorPosition = _motor.currentPosition.toDouble()
 

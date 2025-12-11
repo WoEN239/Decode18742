@@ -6,6 +6,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.scoringSystem.turret.RequestTurretCurrentRotation
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
@@ -75,7 +76,7 @@ class DriveTrain : IModule {
             _driveMutex.smartLock {
                 _hardwareDriveTrain.drive(
                     _targetTranslateVelocity,
-                    if (_lookMode)
+                    if (_lookMode )
                         _lookRegulator.update(rotationErr)
                     else _targetRotateVelocity
                 )

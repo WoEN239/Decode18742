@@ -79,23 +79,13 @@ class SimpleStorage : IModule {
 
                 delay((Configs.SIMPLE_STORAGE.LOOK_DELAY_TIME * 1000.0).toLong())
 
-                repeat(3) {
-                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
-
-                    delay((Configs.SIMPLE_STORAGE.BELT_PUSH_TIME * 1000.0).toLong())
-
-                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
-
-                    delay(50)
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTarget()).process.wait()
-
-                    delay(50)
-                }
-
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
 
-                delay(1000)
+                delay(2000)
+
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST_FAST
+
+                delay(500)
 
                 HotRun.LAZY_INSTANCE.gamepadRumble(0.5)
 

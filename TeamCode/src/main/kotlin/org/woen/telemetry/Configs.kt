@@ -7,6 +7,8 @@ import kotlin.math.ceil
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles
 
 import org.woen.enumerators.Shooting
 import org.woen.enumerators.StorageSlot
@@ -124,7 +126,7 @@ object Configs {
         var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
         @JvmField
-        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 21.0, kD = 1.0, limitU = 12.0)
+        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 14.0, kD = 1.0, limitU = 12.0)
 
         @JvmField
         var LOOK_SENS = 0.1
@@ -163,7 +165,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = false
+        var CAMERA_ENABLE = true
     }
 
     @Config
@@ -175,10 +177,10 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.41, kI = 0.05)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.015, kF = 0.0042)
 
         @JvmField
-        var PULLEY_TARGET_SENS = 0.22
+        var PULLEY_TARGET_SENS = 0.4
 
         @JvmField
         var PULLEY_TARGET_TIMER = 0.1
@@ -187,10 +189,10 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 - 0.05, -3.66 / 2.0 + 0.35)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 - 0.25, -3.66 / 2.0)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 - 0.05, 3.66 / 2.0)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 - 0.25, 3.66 / 2.0)
 
         @JvmField
         var TURRET_HEIGHT = 0.35
@@ -223,22 +225,21 @@ object Configs {
         var MAX_TURRET_ANGLE = 55.0 / 180.0 * PI
 
         @JvmField
-        var PULLEY_U = 0.3712
+        var PULLEY_U = 0.34
+        @JvmField
+        var AIR_FORCE_K = 0.00195
 
         @JvmField
-        var AIR_FORCE_K = 0.001841
+        var TURRET_SHOOT_POS = Vec2(0.0, 0.06)
 
         @JvmField
-        var TURRET_SHOOT_POS = Vec2(0.0, -0.05)
+        var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.085)
 
         @JvmField
         var TURRET_SHOOT_DETECT_CURRENT: Double = 3.7
 
         @JvmField
         var SHOOT_TRIGGER_DELAY = 0.008
-
-        @JvmField
-        var TURRET_CENTER_POS = Vec2(0.0, -0.115)
 
         @JvmField
         var SHORT_ANGLE_POSITION = 50.0 / 180.0 * PI
@@ -275,6 +276,9 @@ object Configs {
 
         @JvmField
         var MIN_ROTATE = (0.405 - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
+
+        @JvmField
+        var ACCEL_K = 0.0
     }
 
     @Config
@@ -530,7 +534,7 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var BELT_PUSH_TIME = 0.13
+        var BELT_PUSH_TIME = 0.15
 
         @JvmField
         var LOOK_DELAY_TIME = 0.09
@@ -548,6 +552,9 @@ object Configs {
         var BELTS_POWER = 5.0
 
         @JvmField
-        var BELTS_FAST_POWER = 10.0
+        var BELTS_FAST_POWER = 6.2
+
+        @JvmField
+        var BELTS_FAST_FAST_POWER = 10.0
     }
 }

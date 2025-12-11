@@ -26,7 +26,8 @@ class HardwareSimpleStorage : IHardwareDevice {
         RUN_REVERSE,
         RUN_REVERSE_FAST,
         RUN,
-        RUN_FAST
+        RUN_FAST,
+        RUN_FAST_FAST
     }
 
     private lateinit var _beltMotor: MotorOnly
@@ -49,9 +50,11 @@ class HardwareSimpleStorage : IHardwareDevice {
 
             BeltState.RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
 
-            BeltState.RUN_REVERSE_FAST -> -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_FAST_POWER)
+            BeltState.RUN_REVERSE_FAST -> -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_FAST_FAST_POWER)
 
             BeltState.RUN_FAST -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_FAST_POWER)
+
+            BeltState.RUN_FAST_FAST -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_FAST_FAST_POWER)
         }
 
         beltsCurrent = _beltMotor.getCurrent(CurrentUnit.AMPS)
