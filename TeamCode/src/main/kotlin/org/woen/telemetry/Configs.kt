@@ -97,19 +97,19 @@ object Configs {
     @Config
     internal object DRIVE_TRAIN {
         @JvmField
-        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 5.6)
+        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 2.0, kP = 12.0)
 
         @JvmField
-        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 5.1)
+        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 7.5, kI = 1.0, kP = 3.0)
 
         @JvmField
-        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 1.1)
+        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 1.0, kI = 1.0)
 
         @JvmField
-        var DRIVE_VEC_MULTIPLIER = 2.0
+        var DRIVE_VEC_MULTIPLIER = 1.7
 
         @JvmField
-        var DRIVE_ANGLE_MULTIPLIER = 12.0
+        var DRIVE_ANGLE_MULTIPLIER = 10.0
 
         @JvmField
         var POW_MOVE_ENABLED = true
@@ -175,7 +175,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.015, kF = 0.0042)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.018, kF = 0.0042)
 
         @JvmField
         var PULLEY_TARGET_SENS = 0.4
@@ -554,7 +554,7 @@ object Configs {
         var BELTS_POWER = 5.0
 
         @JvmField
-        var BELTS_FAST_POWER = 7.3
+        var BELTS_FAST_POWER = 7.2
 
         @JvmField
         var BELTS_FAST_FAST_POWER = 10.0

@@ -59,7 +59,7 @@ class DriveTrain : IModule {
                             (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
                                 odometry.odometryOrientation.angle
                             ))).rot()
-                )
+                ) + ThreadedEventBus.LAZY_INSTANCE.invoke(RequestTurretCurrentRotation()).rotation
 
                 val err = (_targetAngle - odometry.odometryOrientation.angl).angle
 

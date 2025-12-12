@@ -82,6 +82,8 @@ class Turret : IModule {
                     - odometry.odometryOrientation.angle
         ).angle
 
+        _hardwareTurret.targetRotatePosition = robotRotationBasketErr
+
         val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
 
         fun getHitHeight(startVel: Double, angle: Double): Double {

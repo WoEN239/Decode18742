@@ -95,6 +95,7 @@ class HardwareDriveTrain : IHardwareDevice {
 
             it.addData("currentXVel", odometry.odometryVelocity.x)
             it.addData("currentYVel", odometry.odometryVelocity.y)
+            it.addData("currentRotationVelocity", odometry.odometryRotateVelocity)
         }
     }
 

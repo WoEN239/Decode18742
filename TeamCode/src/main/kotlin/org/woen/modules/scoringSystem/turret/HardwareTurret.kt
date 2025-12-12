@@ -109,7 +109,7 @@ class HardwareTurret :
         _angleSevo.position = _anglePosition
 
         if(_isServoZeroed) {
-            targetRotatePosition = 0.0
+//            targetRotatePosition = 0.0
             _currentRotate = _rotateEncoder.currentPosition.toDouble()
             _rotateServo.position = _targetRotationPosition
         }
