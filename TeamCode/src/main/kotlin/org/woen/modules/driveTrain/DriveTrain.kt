@@ -146,6 +146,7 @@ class DriveTrain : IModule {
 
             if (it.lookMode) {
                 _lookRegulator.start()
+                _lookRegulator.resetIntegral()
                 _lookTargetTimer.reset()
             }
         })

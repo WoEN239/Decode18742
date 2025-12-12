@@ -70,7 +70,7 @@ class SimpleStorage : IModule {
 
                 _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 
-                ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTarget()).process.wait()
+//                ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTarget()).process.wait()
 
                 while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)

@@ -29,7 +29,6 @@ class Regulator(val parameters: RegulatorParameters) {
     @Synchronized
     fun start() {
         _deltaTime.reset()
-        _integral = 0.0
     }
 
     @Synchronized

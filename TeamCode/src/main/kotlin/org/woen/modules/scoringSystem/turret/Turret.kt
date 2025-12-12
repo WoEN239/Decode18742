@@ -110,7 +110,7 @@ class Turret : IModule {
             _hardwareTurret.targetVelocity = approximation(
                 Configs.TURRET.MINIMAL_PULLEY_VELOCITY,
                 Configs.TURRET.MAX_MOTOR_RPS * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS
-            ) { getHitHeight(it, targetAngle) } + Configs.TURRET.ACCEL_K
+            ) { getHitHeight(it, targetAngle) }
         }
 
         val calcAngle = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {

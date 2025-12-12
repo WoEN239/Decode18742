@@ -53,7 +53,6 @@ class HardwareSimpleStorage : IHardwareDevice {
             BeltState.RUN_REVERSE_FAST -> -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_FAST_FAST_POWER)
 
             BeltState.RUN_FAST -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_FAST_POWER)
-
             BeltState.RUN_FAST_FAST -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_FAST_FAST_POWER)
         }
 

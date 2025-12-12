@@ -131,11 +131,19 @@ class HardwareTurret :
             velocityAtTarget = false
         }
 
+        val err = _targetTicksVelocity - _motorVelocity
+
         _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
+            if(err < Configs.TURRET.ACCEL_THRESHOLD)
             _regulator.update(
-                _targetTicksVelocity - _motorVelocity,
+                err,
                 _targetTicksVelocity
             )
+            else{
+                _regulator.start()
+
+                Configs.TURRET.ACCEL_K
+            }
         )
 
         _deltaTime.reset()

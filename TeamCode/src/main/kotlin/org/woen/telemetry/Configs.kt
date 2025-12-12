@@ -7,8 +7,6 @@ import kotlin.math.ceil
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles
 
 import org.woen.enumerators.Shooting
 import org.woen.enumerators.StorageSlot
@@ -189,10 +187,10 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 - 0.25, -3.66 / 2.0)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 - 0.22, -3.66 / 2.0)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 - 0.25, 3.66 / 2.0)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 - 0.22, 3.66 / 2.0)
 
         @JvmField
         var TURRET_HEIGHT = 0.35
@@ -201,7 +199,7 @@ object Configs {
         var BALL_MASS = 0.075
 
         @JvmField
-        var BASKET_TARGET_HEIGHT = 1.15
+        var BASKET_TARGET_HEIGHT = 1.05
 
         @JvmField
         var TIME_STEP = 0.05
@@ -225,9 +223,10 @@ object Configs {
         var MAX_TURRET_ANGLE = 55.0 / 180.0 * PI
 
         @JvmField
-        var PULLEY_U = 0.34
+        var PULLEY_U = 0.3395
+
         @JvmField
-        var AIR_FORCE_K = 0.00195
+        var AIR_FORCE_K = 0.0
 
         @JvmField
         var TURRET_SHOOT_POS = Vec2(0.0, 0.06)
@@ -278,7 +277,10 @@ object Configs {
         var MIN_ROTATE = (0.405 - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
 
         @JvmField
-        var ACCEL_K = 0.0
+        var ACCEL_K = 10.5
+
+        @JvmField
+        var ACCEL_THRESHOLD = 0.55
     }
 
     @Config
@@ -543,7 +545,7 @@ object Configs {
         var REVERS_TIME = 0.2
 
         @JvmField
-        var BELTS_FULL_CURRENT = 8.0
+        var BELTS_FULL_CURRENT = 8.1
 
         @JvmField
         var BELTS_FULL_TIMER = 0.1
@@ -552,7 +554,7 @@ object Configs {
         var BELTS_POWER = 5.0
 
         @JvmField
-        var BELTS_FAST_POWER = 6.2
+        var BELTS_FAST_POWER = 7.3
 
         @JvmField
         var BELTS_FAST_FAST_POWER = 10.0
