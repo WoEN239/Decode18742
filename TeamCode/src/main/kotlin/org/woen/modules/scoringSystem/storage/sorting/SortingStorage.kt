@@ -779,7 +779,7 @@ class SortingStorage
         if (doAutoCalibration)
         {
             ThreadedTelemetry.LAZY_INSTANCE.log("SSM: REVERSING BELTS AFTER SHOT")
-            _storageCells.hwReverseBeltsTime(DELAY.ONE_BALL_PUSHING_MS)
+            _storageCells.hwReverseBeltsTime(DELAY.ONE_BALL_PUSHING_MS / 2)
             ThreadedTelemetry.LAZY_INSTANCE.log("SSM: FINISHED REVERSING")
 
             _storageCells.fullCalibrate()

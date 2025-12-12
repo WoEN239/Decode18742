@@ -445,7 +445,7 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO_OPEN_VALUE = 0.1
+        var GATE_SERVO_OPEN_VALUE = 0.20
 
         @JvmField
         var GATE_SERVO_CLOSE_VALUE = 1.0

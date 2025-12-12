@@ -422,8 +422,6 @@ class ScoringModulesConnector
             timePassedWaitingForShot += DELAY.EVENT_AWAITING_MS
         }
 
-        //_storage.hwStopBelts()
-
         if (timePassedWaitingForShot >= DELAY.MAX_SHOT_AWAITING_MS)
              ThreadedTelemetry.LAZY_INSTANCE.log("\n\n\nSMC - Shot timeout, assume success\n")
         else ThreadedTelemetry.LAZY_INSTANCE.log("\n\n\nSMC - RECEIVED - SHOT FIRED\n")
