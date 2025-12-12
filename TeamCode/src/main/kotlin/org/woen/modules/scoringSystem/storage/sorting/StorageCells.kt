@@ -12,8 +12,7 @@ import org.woen.enumerators.StorageSlot
 import org.woen.telemetry.ThreadedTelemetry
 
 import org.woen.telemetry.Configs.DELAY
-import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
-import org.woen.telemetry.Configs.STORAGE.STORAGE_SLOT_COUNT
+import org.woen.telemetry.Configs.GENERIC
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 
@@ -47,7 +46,7 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
 class StorageCells
 {
-    private val _storageCells = Array(STORAGE_SLOT_COUNT) { Ball() }
+    private val _storageCells = Array(GENERIC.STORAGE_SLOT_COUNT) { Ball() }
     private val _hwSortingM = HwSortingManager()
 
 
@@ -76,12 +75,12 @@ class StorageCells
         if (alreadyFull()) return result
 
         var curSlotId = StorageSlot.BOTTOM
-        while (curSlotId < MAX_BALL_COUNT)
+        while (curSlotId < GENERIC.MAX_BALL_COUNT)
         {
             if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].isEmpty())
             {
                 result.set(PREFERRED_INTAKE_SLOT_ORDER[curSlotId])
-                curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
+                curSlotId += GENERIC.STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -129,12 +128,12 @@ class StorageCells
         )
 
         var curSlotId = StorageSlot.BOTTOM
-        while (curSlotId < STORAGE_SLOT_COUNT)
+        while (curSlotId < GENERIC.STORAGE_SLOT_COUNT)
         {
             if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].name() == requested)
             {
                 result.set(PREFERRED_REQUEST_SLOT_ORDER[curSlotId])
-                curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
+                curSlotId += GENERIC.STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -156,12 +155,12 @@ class StorageCells
 
 
         var curSlotId = StorageSlot.BOTTOM
-        while (curSlotId < STORAGE_SLOT_COUNT)
+        while (curSlotId < GENERIC.STORAGE_SLOT_COUNT)
         {
             if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].isFilled())
             {
                 result.set(PREFERRED_REQUEST_SLOT_ORDER[curSlotId])
-                curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
+                curSlotId += GENERIC.STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -173,7 +172,7 @@ class StorageCells
 
     fun updateAfterLazyIntake(inputBalls: Array<Ball.Name>)
     {
-        if (inputBalls.size > MAX_BALL_COUNT) return
+        if (inputBalls.size > GENERIC.MAX_BALL_COUNT) return
 
         var curSlot = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.TURRET)
@@ -223,6 +222,7 @@ class StorageCells
 
     suspend fun hwForwardBeltsTime(timeMs: Long) = _hwSortingM.hwForwardBeltsTime(timeMs)
     suspend fun hwReverseBeltsTime(timeMs: Long) = _hwSortingM.hwReverseBeltsTime(timeMs)
+    fun hwSlowStartBelt() = _hwSortingM.slowStartBelts()
     fun hwStartBelts() = _hwSortingM.startBelts()
     fun hwStopBelts() = _hwSortingM.stopBelts()
     suspend fun hwOpenTurretGate() = _hwSortingM.openTurretGate()
@@ -323,7 +323,7 @@ class StorageCells
 
         return count
     }
-    fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT
+    fun alreadyFull() = anyBallCount() >= GENERIC.MAX_BALL_COUNT
     fun isEmpty(): Boolean
     {
         return _storageCells[StorageSlot.BOTTOM].isEmpty()

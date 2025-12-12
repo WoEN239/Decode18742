@@ -155,6 +155,11 @@ class HwSortingManager
 
 
 
+    fun slowStartBelts()
+    {
+        ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: SLOW Started hw belts")
+        _hwSorting.slowStartBeltMotors()
+    }
     fun startBelts()
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("HWSMM: Started hw belts")

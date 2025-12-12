@@ -23,7 +23,7 @@ import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
 import org.woen.telemetry.Configs.DELAY
-import org.woen.telemetry.Configs.STORAGE.MAX_BALL_COUNT
+import org.woen.telemetry.Configs.GENERIC
 
 import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.DEFAULT_PATTERN
 import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.DEFAULT_SHOOTING_MODE
@@ -281,7 +281,7 @@ class SortingAutoLogic
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             StorageGiveDrumRequest(
                 Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE,
-                Array(MAX_BALL_COUNT)
+                Array(GENERIC.MAX_BALL_COUNT)
                 {
                     BallRequest.Name.ANY_CLOSEST
                 }

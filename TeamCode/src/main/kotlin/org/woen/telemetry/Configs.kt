@@ -18,7 +18,7 @@ import org.woen.utils.units.Orientation
 import org.woen.utils.process.RunStatus
 
 import org.woen.utils.regulator.RegulatorParameters
-
+import kotlin.jvm.JvmField
 
 
 object Configs {
@@ -399,7 +399,7 @@ object Configs {
         var SORTING_REALIGNING_FORWARD_MS: Long = 100
 
         @JvmField
-        var SORTING_REALIGNING_REVERSE_MS: Long = 50
+        var SORTING_REALIGNING_REVERSE_MS: Long = 60
 
         @JvmField
         var MAX_SHOT_AWAITING_MS: Long = 160
@@ -407,14 +407,12 @@ object Configs {
 
         @JvmField
         var BETWEEN_INTAKES_MS: Long = 1111
-
-
     }
 
 
 
     @Config
-    internal object STORAGE {
+    internal object GENERIC {
 
         @JvmField
         var MAX_BALL_COUNT = 3
@@ -422,7 +420,12 @@ object Configs {
         @JvmField
         var STORAGE_SLOT_COUNT = 4
 
+    }
 
+
+
+    @Config
+    internal object STORAGE {
 
         @JvmField
         var PREFERRED_INTAKE_SLOT_ORDER = arrayOf(
@@ -468,15 +471,14 @@ object Configs {
 
         @JvmField
         var TURRET_GATE_SERVO_CLOSE_VALUE = 0.535
+
+        @JvmField
+        var IS_SORTING_MODULE_ACTIVE_AT_START_UP = true
     }
 
 
     @Config
     internal object SORTING_AUTO_OPMODE {
-
-        @JvmField
-        var IS_SORTING_MODULE_ACTIVE_AT_START_UP = true
-
 
         @JvmField
         var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 2000
@@ -504,6 +506,7 @@ object Configs {
 
     @Config
     internal object HARDWARE_DEVICES_NAMES {
+
         @JvmField
         var INTAKE_COLOR_SENSOR_1 = "color1"
 
@@ -535,6 +538,7 @@ object Configs {
 
     @Config
     internal object SIMPLE_STORAGE {
+
         @JvmField
         var BELT_PUSH_TIME = 0.15
 
