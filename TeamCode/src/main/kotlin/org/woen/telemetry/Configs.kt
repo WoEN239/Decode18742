@@ -408,13 +408,13 @@ object Configs {
 
 
         @JvmField
-        var ONE_BALL_PUSHING_MS: Long = 411
+        var ONE_BALL_PUSHING_MS: Long = 400
 
         @JvmField
-        var SORTING_REALIGNING_FORWARD_MS: Long = 100
+        var SORTING_REALIGNING_FORWARD_MS: Long = 70
 
         @JvmField
-        var SORTING_REALIGNING_REVERSE_MS: Long = 60
+        var SORTING_REALIGNING_REVERSE_MS: Long = 70
 
         @JvmField
         var MAX_SHOT_AWAITING_MS: Long = 160
@@ -429,12 +429,11 @@ object Configs {
     @Config
     internal object GENERIC {
 
-        @JvmField
-        var MAX_BALL_COUNT = 3
+        const val MAX_BALL_COUNT = 3
 
-        @JvmField
-        var STORAGE_SLOT_COUNT = 4
+        const val STORAGE_SLOT_COUNT = 4
 
+        const val NOTHING = 0
     }
 
 
@@ -461,6 +460,11 @@ object Configs {
         @JvmField
         var SORTING_STORAGE_BELT_MOTORS_DIRECTION = DcMotorSimple.Direction.REVERSE
 
+        @JvmField
+        var USE_LAZY_VERSION_OF_STREAM_REQUEST = true
+
+        @JvmField
+        var SMART_AUTO_ADJUST_FOR_FAILED_SHOTS = false
 
         @JvmField
         var GATE_SERVO_OPEN_VALUE = 0.20
@@ -486,9 +490,6 @@ object Configs {
 
         @JvmField
         var TURRET_GATE_SERVO_CLOSE_VALUE = 0.535
-
-        @JvmField
-        var IS_SORTING_MODULE_ACTIVE_AT_START_UP = true
     }
 
 

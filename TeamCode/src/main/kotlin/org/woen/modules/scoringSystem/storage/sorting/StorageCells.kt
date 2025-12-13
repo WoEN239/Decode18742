@@ -12,7 +12,11 @@ import org.woen.enumerators.StorageSlot
 import org.woen.telemetry.ThreadedTelemetry
 
 import org.woen.telemetry.Configs.DELAY
-import org.woen.telemetry.Configs.GENERIC
+
+import org.woen.telemetry.Configs.GENERIC.NOTHING
+import org.woen.telemetry.Configs.GENERIC.MAX_BALL_COUNT
+import org.woen.telemetry.Configs.GENERIC.STORAGE_SLOT_COUNT
+
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
 import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
 
@@ -46,15 +50,15 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
 class StorageCells
 {
-    private val _storageCells = Array(GENERIC.STORAGE_SLOT_COUNT) { Ball() }
-    private val _hwSortingM = HwSortingManager()
+    private val _storageCells = Array(STORAGE_SLOT_COUNT) { Ball() }
+    val hwSortingM = HwSortingManager()
 
 
 
     fun resetParametersToDefault()
     {
         fullEmptyStorageCells()
-        _hwSortingM.resetParametersAndLogicToDefault()
+        hwSortingM.resetParametersAndLogicToDefault()
     }
     private fun fullEmptyStorageCells()
     {
@@ -75,12 +79,12 @@ class StorageCells
         if (alreadyFull()) return result
 
         var curSlotId = StorageSlot.BOTTOM
-        while (curSlotId < GENERIC.MAX_BALL_COUNT)
+        while (curSlotId < MAX_BALL_COUNT)
         {
             if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].isEmpty())
             {
                 result.set(PREFERRED_INTAKE_SLOT_ORDER[curSlotId])
-                curSlotId += GENERIC.STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
+                curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -128,12 +132,12 @@ class StorageCells
         )
 
         var curSlotId = StorageSlot.BOTTOM
-        while (curSlotId < GENERIC.STORAGE_SLOT_COUNT)
+        while (curSlotId < STORAGE_SLOT_COUNT)
         {
             if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].name() == requested)
             {
                 result.set(PREFERRED_REQUEST_SLOT_ORDER[curSlotId])
-                curSlotId += GENERIC.STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
+                curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -155,12 +159,12 @@ class StorageCells
 
 
         var curSlotId = StorageSlot.BOTTOM
-        while (curSlotId < GENERIC.STORAGE_SLOT_COUNT)
+        while (curSlotId < STORAGE_SLOT_COUNT)
         {
             if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].isFilled())
             {
                 result.set(PREFERRED_REQUEST_SLOT_ORDER[curSlotId])
-                curSlotId += GENERIC.STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
+                curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
         }
@@ -172,7 +176,7 @@ class StorageCells
 
     fun updateAfterLazyIntake(inputBalls: Array<Ball.Name>)
     {
-        if (inputBalls.size > GENERIC.MAX_BALL_COUNT) return
+        if (inputBalls.size > MAX_BALL_COUNT) return
 
         var curSlot = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.TURRET)
@@ -183,7 +187,7 @@ class StorageCells
     }
     suspend fun updateAfterIntake(inputBall: Ball.Name)
     {
-        _hwSortingM.stopAwaitingEating(true)
+        hwSortingM.stopAwaitingEating(true)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("before intake:")
         logAllStorageData()
@@ -194,11 +198,11 @@ class StorageCells
         ThreadedTelemetry.LAZY_INSTANCE.log("finished cells intake, new storage:")
         logAllStorageData()
 
-        _hwSortingM.resumeAwaitingEating()
+        hwSortingM.resumeAwaitingEating()
     }
     fun updateAfterRequest()
     {
-        _hwSortingM.stopAwaitingEating(true)
+        hwSortingM.stopAwaitingEating(true)
 
         _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
         _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
@@ -220,25 +224,15 @@ class StorageCells
 
 
 
-    suspend fun hwForwardBeltsTime(timeMs: Long) = _hwSortingM.hwForwardBeltsTime(timeMs)
-    suspend fun hwReverseBeltsTime(timeMs: Long) = _hwSortingM.hwReverseBeltsTime(timeMs)
-    fun hwSlowStartBelt() = _hwSortingM.slowStartBelts()
-    fun hwStartBelts() = _hwSortingM.startBelts()
-    fun hwStopBelts() = _hwSortingM.stopBelts()
-    suspend fun hwOpenTurretGate() = _hwSortingM.openTurretGate()
-    suspend fun hwCloseTurretGate() = _hwSortingM.closeTurretGate()
-
-
-    suspend fun fullCalibrate() = _hwSortingM.fullCalibrate()
     suspend fun fullRotate()
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("storage before full rotation:")
         logAllStorageData()
 
-        _hwSortingM.stopAwaitingEating(true)
+        hwSortingM.stopAwaitingEating(true)
         hwReAdjustStorage()
 
-        _hwSortingM.hwRotateMobileSlot()
+        hwSortingM.hwRotateMobileSlot()
 
         _storageCells[StorageSlot.MOBILE].set(_storageCells[StorageSlot.TURRET])
         _storageCells[StorageSlot.TURRET].empty()
@@ -288,18 +282,18 @@ class StorageCells
     }
     suspend fun hwReAdjustStorage()
     {
-        _hwSortingM.stopAwaitingEating(true)
+        hwSortingM.stopAwaitingEating(true)
         while (swReAdjustStorage())
-            _hwSortingM.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS)
+            hwSortingM.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS)
     }
 
 
 
-    fun pauseAnyIntake() = _hwSortingM.stopAwaitingEating(true)
-    fun resumeIntakes() = _hwSortingM.resumeAwaitingEating()
+    fun pauseAnyIntake() = hwSortingM.stopAwaitingEating(true)
+    fun resumeIntakes()  = hwSortingM.resumeAwaitingEating()
 
 
-    fun logAllStorageData()
+    private fun logAllStorageData()
     {
         ThreadedTelemetry.LAZY_INSTANCE.log("" +
                 "B:  ${_storageCells[StorageSlot.BOTTOM].name()}; "
@@ -312,7 +306,7 @@ class StorageCells
 
     fun anyBallCount(): Int
     {
-        var count = 0
+        var count = NOTHING
         var curSlotId = StorageSlot.BOTTOM
 
         while (curSlotId < StorageSlot.MOBILE)
@@ -323,7 +317,7 @@ class StorageCells
 
         return count
     }
-    fun alreadyFull() = anyBallCount() >= GENERIC.MAX_BALL_COUNT
+    fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT
     fun isEmpty(): Boolean
     {
         return _storageCells[StorageSlot.BOTTOM].isEmpty()
@@ -342,7 +336,7 @@ class StorageCells
 
     fun selectedBallCount(ball: Ball.Name): Int
     {
-        var count = 0
+        var count = NOTHING
         var curSlotId = StorageSlot.BOTTOM
 
         while (curSlotId < StorageSlot.MOBILE)
@@ -355,7 +349,7 @@ class StorageCells
     }
     fun ballColorCountPG(): IntArray
     {
-        val countPG = intArrayOf(0, 0, 0)
+        val countPG = intArrayOf(NOTHING, NOTHING, NOTHING)
         var curSlotId = StorageSlot.BOTTOM
 
         while (curSlotId < StorageSlot.MOBILE)
@@ -370,10 +364,9 @@ class StorageCells
 
     fun handleIdenticalColorRequest(): StorageHandleIdenticalColorsEvent
     {
-        //  -1 used because were are not using the "empty" count
         val currentStorage = ballColorCountPG()
-        val purpleCount = currentStorage[Ball.PURPLE - 1]
-        val greenCount  = currentStorage[Ball.GREEN  - 1]
+        val purpleCount = currentStorage[BallRequest.ShortScale.PURPLE]
+        val greenCount  = currentStorage[BallRequest.ShortScale.GREEN]
 
         return if (greenCount > purpleCount)
              StorageHandleIdenticalColorsEvent(

@@ -2,6 +2,7 @@ package org.woen.utils.process
 
 
 import org.woen.telemetry.Configs
+import org.woen.telemetry.Configs.GENERIC.NOTHING
 
 
 
@@ -58,11 +59,11 @@ class RunStatus
 
     fun addProcessToQueue(processId: Int) = _processQueue.add(processId)
     fun clearAllProcesses() = _processQueue.clear()
-    fun safeToRemoveProcessIdFromQueue(processId: Int)
+    fun safeRemoveThisProcessIdFromQueue(processId: Int)
     {
         do
         {
-            val position = _processQueue.indexOf(processId)
+            val position  =     _processQueue.indexOf(processId)
             if (position != -1) _processQueue.removeAt(position)
         }
         while (position != -1)
@@ -71,7 +72,7 @@ class RunStatus
 
     fun isThisProcessHighestPriority(processId: Int): Boolean
     {
-        var maxId = 0
+        var maxId = NOTHING
         var minId = Int.MAX_VALUE
         var containsRequestedId = false
 
@@ -92,7 +93,7 @@ class RunStatus
     }
     fun getHighestPriorityProcessId(): Int
     {
-        var maxId = 0
+        var maxId = NOTHING
         var minId = Int.MAX_VALUE
 
         for (curProcess in _processQueue)
@@ -107,7 +108,7 @@ class RunStatus
     fun isForcedToTerminateThisProcess(processId: Int) = _terminationList.contains(processId)
     fun addProcessToTerminationList(processId: Int)
     {
-        safeToRemoveProcessIdFromQueue(processId)
+        safeRemoveThisProcessIdFromQueue(processId)
         _terminationList.add(processId)
     }
     fun safeRemoveThisProcessFromTerminationList(processId: Int)

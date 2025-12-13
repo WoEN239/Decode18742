@@ -6,11 +6,6 @@ import org.woen.threading.StoppingEvent
 
 
 
-class EnableSortingModuleEvent()
-class DisableSortingModuleEvent()
-
-
-
 class ShotWasFiredEvent()
 data class BallCountInStorageEvent(var count: Int = 0): StoppingEvent
 data class StorageHandleIdenticalColorsEvent(

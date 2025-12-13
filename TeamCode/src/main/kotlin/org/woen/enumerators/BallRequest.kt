@@ -24,6 +24,30 @@ class BallRequest
         ANY_CLOSEST
     }
 
+    class ShortScale
+    {
+        companion object
+        {
+            const val PURPLE:       Int = 0
+            const val GREEN:        Int = 1
+            const val ABSTRACT_ANY: Int = 2
+            const val NONE:         Int = 3
+
+            fun toShortScale(name: Name): Int
+            {
+                return when (name)
+                {
+                    Name.PURPLE -> PURPLE
+                    Name.GREEN  -> GREEN
+                    Name.ANY_CLOSEST,
+                    Name.PREFER_PURPLE,
+                    Name.PREFER_GREEN -> ABSTRACT_ANY
+                    Name.NONE -> NONE
+                }
+            }
+        }
+    }
+
 
     fun empty() = set(NONE, Name.NONE)
 
