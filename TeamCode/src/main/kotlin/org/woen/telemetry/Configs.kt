@@ -164,6 +164,21 @@ object Configs {
     internal object CAMERA {
         @JvmField
         var CAMERA_ENABLE = true
+        @JvmField
+        var CAMERA_H_RED_DOWN=4.0
+        @JvmField
+        var CAMERA_H_RED_UP=30.0
+        @JvmField
+        var CAMERA_C_RED_DOWN=127.7
+        @JvmField
+        var CAMERA_C_RED_UP=255.0
+        @JvmField
+        var CAMERA_V_RED_DOWN=154.5
+        @JvmField
+        var CAMERA_V_RED_UP=255.0
+        @JvmField
+        var CAMERA_KSIZE=22.0
+
     }
 
     @Config
