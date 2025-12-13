@@ -22,8 +22,6 @@ import kotlin.math.pow
 
 
 class SetTurretMode(val mode: Turret.TurretMode)
-class RequestTurretAtTarget(var atTarget: Boolean = false) : StoppingEvent
-class WaitTurretAtTarget(var process: Process = Process())
 
 class CurrentlyShooting()
 class TurretCurrentPeaked()
@@ -71,24 +69,28 @@ class Turret : IModule {
     private fun calcTurretState() {
         val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
+        val turretPos =
+            odometry.odometryOrientation.pos +
+                    Configs.TURRET.TURRET_CENTER_POS.turn(odometry.odometryOrientation.angle) +
+                    Configs.TURRET.TURRET_SHOOT_POS.turn(
+                        odometry.odometryOrientation.angle + _hardwareTurret.currentRotatePosition
+                    )
+
         val shootDistance =
-            (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(odometry.odometryOrientation.angle) + Configs.TURRET.TURRET_SHOOT_POS.turn(odometry.odometryOrientation.angle + _hardwareTurret.currentRotatePosition)
-                    - HotRun.LAZY_INSTANCE.currentRunColor
-                .basketPosition).length()
+            (turretPos - HotRun.LAZY_INSTANCE.currentRunColor.basketPosition).length()
 
         val robotRotationBasketErr = Angle(
-            (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition
-                    - odometry.odometryOrientation.pos).rot()
+            (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition - turretPos).rot()
                     - odometry.odometryOrientation.angle
         ).angle
 
-        _hardwareTurret.targetRotatePosition = robotRotationBasketErr
+//        _hardwareTurret.targetRotatePosition = robotRotationBasketErr
 
-        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
+//        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
 
         fun getHitHeight(startVel: Double, angle: Double): Double {
             var vecVel = Vec2(startVel * Configs.TURRET.PULLEY_U, 0.0).setRot(angle)
-            vecVel += robotXVel
+//            vecVel += robotXVel
             var pos = Vec2.ZERO
 
             while (pos.x < shootDistance && !Thread.currentThread().isInterrupted && pos.y > -1.0) {
@@ -186,18 +188,6 @@ class Turret : IModule {
         HotRun.LAZY_INSTANCE.opModeStopEvent += {
             setTurretState(TurretState.STOP)
         }
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretAtTarget::class, {
-            it.atTarget = _hardwareTurret.velocityAtTarget
-        })
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitTurretAtTarget::class, {
-            do
-                delay(5)
-            while (!_hardwareTurret.velocityAtTarget && !Thread.currentThread().isInterrupted)
-
-            it.process.close()
-        })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretCurrentRotation::class, {
             it.rotation = Angle(_hardwareTurret.currentRotatePosition)

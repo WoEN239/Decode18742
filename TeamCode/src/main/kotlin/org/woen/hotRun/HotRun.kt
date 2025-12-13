@@ -125,6 +125,8 @@ class HotRun private constructor() {
 
             currentRunState = RunState.STOP
 
+            opMode.sleep(50)
+
             opModeStopEvent.invoke(opMode)
 
             for (i in opMode.hardwareMap.servoController)

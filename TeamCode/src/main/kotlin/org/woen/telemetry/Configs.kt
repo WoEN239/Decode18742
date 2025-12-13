@@ -32,7 +32,7 @@ object Configs {
         var BRUSH_ERR_TIME = 0.5
 
         @JvmField
-        var BRUSH_DEF_TIME = 1.0
+        var BRUSH_DEF_TIME = 1.5
 
         @JvmField
         var BRUSH_TARGET_CURRENT = 5.0
@@ -82,10 +82,10 @@ object Configs {
     @Config
     internal object ODOMETRY {
         @JvmField
-        var START_RED_ORIENTATION = Orientation(Vec2(1.631, 0.39), Angle(PI))
+        var START_RED_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), 0.91 + 0.38 / 2.0), Angle(PI / 2.0))
 
         @JvmField
-        var START_BLUE_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI))
+        var START_BLUE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), -0.91 - 0.38 / 2.0), Angle(-PI / 2.0))
 
         @JvmField
         var X_ODOMETER_POSITION = -0.09
@@ -97,13 +97,13 @@ object Configs {
     @Config
     internal object DRIVE_TRAIN {
         @JvmField
-        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 2.0, kP = 12.0)
+        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 3.0, kP = 10.0)
 
         @JvmField
-        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 7.5, kI = 1.0, kP = 3.0)
+        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kI = 2.0, kP = 8.0)
 
         @JvmField
-        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 1.0, kI = 1.0)
+        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.5, kP = 2.5, kI = 2.0)
 
         @JvmField
         var DRIVE_VEC_MULTIPLIER = 1.7
@@ -124,7 +124,7 @@ object Configs {
         var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
         @JvmField
-        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 14.0, kD = 1.0, limitU = 12.0)
+        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 5.5, limitU = DRIVE_ANGLE_MULTIPLIER)
 
         @JvmField
         var LOOK_SENS = 0.1
@@ -136,19 +136,19 @@ object Configs {
     @Config
     internal object ROAD_RUNNER {
         @JvmField
-        var ROAD_RUNNER_POS_X_P = 5.0
+        var ROAD_RUNNER_POS_X_P = 1.0
 
         @JvmField
-        var ROAD_RUNNER_POS_Y_P = 5.0
+        var ROAD_RUNNER_POS_Y_P = 1.5
 
         @JvmField
-        var ROAD_RUNNER_POS_H_P = 12.0
+        var ROAD_RUNNER_POS_H_P = 5.0
 
         @JvmField
-        var ROAD_RUNNER_TRANSLATE_VELOCITY = 2.0
+        var ROAD_RUNNER_TRANSLATE_VELOCITY = 1.6
 
         @JvmField
-        var ROAD_RUNNER_ROTATE_VELOCITY = 12.0
+        var ROAD_RUNNER_ROTATE_VELOCITY = 9.0
 
         @JvmField
         var ROAD_RUNNER_ROTATE_ACCEL = 6.0
@@ -214,7 +214,7 @@ object Configs {
         var BALL_MASS = 0.075
 
         @JvmField
-        var BASKET_TARGET_HEIGHT = 1.05
+        var BASKET_TARGET_HEIGHT = 1.08
 
         @JvmField
         var TIME_STEP = 0.05
@@ -238,7 +238,7 @@ object Configs {
         var MAX_TURRET_ANGLE = 55.0 / 180.0 * PI
 
         @JvmField
-        var PULLEY_U = 0.3395
+        var PULLEY_U = 0.3365
 
         @JvmField
         var AIR_FORCE_K = 0.0
@@ -573,7 +573,7 @@ object Configs {
         var BELTS_POWER = 5.0
 
         @JvmField
-        var BELTS_FAST_POWER = 7.2
+        var BELTS_FAST_POWER = 7.5
 
         @JvmField
         var BELTS_FAST_FAST_POWER = 10.0

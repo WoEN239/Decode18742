@@ -9,8 +9,8 @@ import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
 import org.woen.modules.driveTrain.SetLookModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
-import org.woen.modules.scoringSystem.turret.WaitTurretAtTarget
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -81,11 +81,7 @@ class SimpleStorage : IModule {
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
 
-                delay(2000)
-
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST_FAST
-
-                delay(500)
+                delay(1600)
 
                 HotRun.LAZY_INSTANCE.gamepadRumble(0.5)
 
@@ -94,6 +90,8 @@ class SimpleStorage : IModule {
                 delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
 
                 terminateShoot()
+
+                it.process.close()
             }
         })
 

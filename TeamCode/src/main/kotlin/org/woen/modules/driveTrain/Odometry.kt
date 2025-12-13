@@ -124,6 +124,8 @@ class Odometry : IModule {
                 _hardwareOdometry.currentOrientation.angle,
                 if (_robotLocatedInShootingArea) Color.GREEN else Color.RED
             )
+
+            it.addLine("robot position: ${_hardwareOdometry.currentOrientation}")
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(

@@ -57,11 +57,11 @@ class SegmentsRunner : IModule {
 
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SetDriveTargetVelocityEvent(
-                    orientationErr.pos * Vec2(
+                    (orientationErr.pos * Vec2(
                         Configs.ROAD_RUNNER.ROAD_RUNNER_POS_X_P,
                         Configs.ROAD_RUNNER.ROAD_RUNNER_POS_Y_P
                     ) +
-                            _targetTranslateVelocity,
+                            _targetTranslateVelocity).turn(-odometry.odometryOrientation.angle),
                     orientationErr.angl.angle * Configs.ROAD_RUNNER.ROAD_RUNNER_POS_H_P +
                             _targetRotateVelocity
                 )
@@ -79,6 +79,10 @@ class SegmentsRunner : IModule {
 
                 if (currentSegment.isEnd(currentTime)) {
                     _segmentsQueue.removeFirst().second.close()
+
+                    _segmentTimerMutex.smartLock {
+                        _segmentTimer.reset()
+                    }
 
                     if (_segmentsQueue.isEmpty()) {
                         _targetTranslateVelocity = Vec2.ZERO
@@ -105,6 +109,11 @@ class SegmentsRunner : IModule {
     constructor() {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RunSegmentEvent::class, {
             _segmentsMutex.smartLock {
+                if(_segmentsQueue.isEmpty())
+                    _segmentTimerMutex.smartLock {
+                        _segmentTimer.reset()
+                    }
+
                 _segmentsQueue.addLast(Pair(it.segment, it.process))
             }
         })

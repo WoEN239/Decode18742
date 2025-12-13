@@ -109,7 +109,7 @@ class HardwareTurret :
         _angleSevo.position = _anglePosition
 
         if(_isServoZeroed) {
-//            targetRotatePosition = 0.0
+            targetRotatePosition = 0.0
             _currentRotate = _rotateEncoder.currentPosition.toDouble()
             _rotateServo.position = _targetRotationPosition
         }
@@ -196,6 +196,10 @@ class HardwareTurret :
             it.addData("target ticks pulley velocity", _targetTicksVelocity)
             it.addData("pulley amps", _motorAmps)
             it.addData("angle position", anglePosition)
+        }
+
+        HotRun.LAZY_INSTANCE.opModeStopEvent += {
+            _motor.power = 0.0
         }
     }
 

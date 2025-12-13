@@ -11,6 +11,7 @@ import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 import woen239.odometry.OdometryComputer
+import kotlin.math.PI
 
 class HardwareOdometry : IHardwareDevice {
     private lateinit var _computer: OdometryComputer
@@ -24,13 +25,17 @@ class HardwareOdometry : IHardwareDevice {
         val pos = _computer.position
 
         currentOrientation = Orientation(
-            Vec2(pos.getX(DistanceUnit.METER), pos.getY(DistanceUnit.METER)),
+            Vec2(
+                pos.getX(DistanceUnit.METER),
+                pos.getY(DistanceUnit.METER)
+            ).turn(HotRun.LAZY_INSTANCE.currentRunColor.startOrientation.angle - PI),
             Angle(pos.getHeading(AngleUnit.RADIANS))
         ) + HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
 
         velocity =
-            Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER))
-                .turn(-currentOrientation.angle)
+            Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER)).turn(
+                HotRun.LAZY_INSTANCE.currentRunColor.startOrientation.angle - PI
+            ).turn(-currentOrientation.angle)
         headingVelocity = _computer.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS)
     }
 
