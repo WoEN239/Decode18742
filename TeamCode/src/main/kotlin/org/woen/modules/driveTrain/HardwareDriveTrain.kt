@@ -68,13 +68,7 @@ class HardwareDriveTrain : IHardwareDevice {
         _rightBackMotor = MotorOnly(hardwareMap.get("rightBackDrive") as DcMotorEx)
         _rightForwardMotor = MotorOnly(hardwareMap.get("rightForwardDrive") as DcMotorEx)
 
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            _regulatorMutex.smartLock {
-                _forwardRegulator.start()
-                _sideRegulator.start()
-                _rotateRegulator.start()
-            }
-
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _leftBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
             _leftForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
             _rightBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
@@ -97,6 +91,18 @@ class HardwareDriveTrain : IHardwareDevice {
             it.addData("currentYVel", odometry.odometryVelocity.y)
             it.addData("currentRotationVelocity", odometry.odometryRotateVelocity)
         }
+    }
+
+    override fun opModeStart() {
+        _regulatorMutex.smartLock {
+            _forwardRegulator.start()
+            _sideRegulator.start()
+            _rotateRegulator.start()
+        }
+    }
+
+    override fun opModeStop() {
+
     }
 
     fun drive(targetTranslateVelocity: Vec2, targetRotationVelocity: Double) {

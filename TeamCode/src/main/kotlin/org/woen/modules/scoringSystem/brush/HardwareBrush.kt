@@ -57,6 +57,14 @@ class HardwareBrush : IHardwareDevice {
         }
     }
 
+    override fun opModeStart() {
+
+    }
+
+    override fun opModeStop() {
+
+    }
+
     override fun dispose() {
     }
 }

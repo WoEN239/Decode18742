@@ -83,7 +83,7 @@ class SimpleStorage : IModule {
 
                 delay(1600)
 
-                HotRun.LAZY_INSTANCE.gamepadRumble(0.5)
+                ThreadedGamepad.LAZY_INSTANCE.rumble(0.5)
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE_FAST
 
@@ -121,8 +121,6 @@ class SimpleStorage : IModule {
 
             if (located)
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
-            else
-                HotRun.LAZY_INSTANCE.gamepadRumble(0.3)
         }))
 
         _hardwareStorage.currentTriggerEvent += {

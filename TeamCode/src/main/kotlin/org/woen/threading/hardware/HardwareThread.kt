@@ -6,9 +6,9 @@ import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
-import org.woen.hotRun.HotRun.RunState.STOP
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
+import org.woen.utils.process.ThreadState
 import org.woen.utils.updateCounter.UpdateCounter
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.thread
@@ -37,16 +37,20 @@ class HardwareThread : DisposableHandle {
         }
     }
 
+    private var _currentThreadState = ThreadState.WAIT
+    private var _isThreadFree = false
+
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         var lastJob: Job? = null
 
-        Thread.sleep(2)
-
         while (!Thread.currentThread().isInterrupted) {
-            if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN) {
+            if (_currentThreadState == ThreadState.WAIT) {
                 Thread.sleep(5)
+                _isThreadFree = true
                 continue
             }
+
+            _isThreadFree = false
 
             for (i in _devices)
                 i.update()
@@ -74,6 +78,23 @@ class HardwareThread : DisposableHandle {
                 "hardware ups + " + _thread.name,
                 String.format("%.1f", _updateCounter.currentUPS)
             )
+        }
+
+        HotRun.LAZY_INSTANCE.opModeStartEvent += {
+            for (i in _devices)
+                i.opModeStart()
+
+            _currentThreadState = ThreadState.RUN
+        }
+
+        HotRun.LAZY_INSTANCE.opModeStopEvent += {
+            _currentThreadState = ThreadState.WAIT
+
+            while (!_isThreadFree)
+                Thread.sleep(5)
+
+            for(i in _devices)
+                i.opModeStop()
         }
     }
 }

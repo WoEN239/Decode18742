@@ -161,27 +161,6 @@ class HardwareTurret :
             _velocityFilter.coef = it
         }
 
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            _deltaTime.reset()
-            _shootTriggerTimer.reset()
-            _targetTimer.reset()
-
-            _velocityFilter.start()
-            _regulator.start()
-
-            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                _isServoZeroed = false
-
-                _rotateServo.position = Configs.TURRET.ZERO_ROTATE_POS
-
-                delay((Configs.TURRET.ZEROING_TIME * 1000.0).toLong())
-
-                _rotateEncoder.resetEncoder()
-
-                _isServoZeroed = true
-            }
-        }
-
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _motor.mode = DcMotor.RunMode.RESET_ENCODERS
             _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
@@ -197,10 +176,31 @@ class HardwareTurret :
             it.addData("pulley amps", _motorAmps)
             it.addData("angle position", anglePosition)
         }
+    }
 
-        HotRun.LAZY_INSTANCE.opModeStopEvent += {
-            _motor.power = 0.0
+    override fun opModeStart() {
+        _deltaTime.reset()
+        _shootTriggerTimer.reset()
+        _targetTimer.reset()
+
+        _velocityFilter.start()
+        _regulator.start()
+
+        ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            _isServoZeroed = false
+
+            _rotateServo.position = Configs.TURRET.ZERO_ROTATE_POS
+
+            delay((Configs.TURRET.ZEROING_TIME * 1000.0).toLong())
+
+            _rotateEncoder.resetEncoder()
+
+            _isServoZeroed = true
         }
+    }
+
+    override fun opModeStop() {
+
     }
 
     override fun dispose() {

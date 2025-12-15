@@ -39,6 +39,9 @@ class HardwareSimpleStorage : IHardwareDevice {
 
     private var _fullTriggerTimer = ElapsedTime()
 
+    private lateinit var _pushServo: Servo
+    private lateinit var _gateServo: Servo
+
     override fun update() {
         if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
             return
@@ -68,8 +71,8 @@ class HardwareSimpleStorage : IHardwareDevice {
         _beltMotor =
             MotorOnly(hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
 
-        val pushServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO) as Servo
-        val gateServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO) as Servo
+        _pushServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO) as Servo
+        _gateServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO) as Servo
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
@@ -77,16 +80,21 @@ class HardwareSimpleStorage : IHardwareDevice {
             _beltMotor.direction = Configs.STORAGE.SORTING_STORAGE_BELT_MOTORS_DIRECTION
         }
 
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            pushServo.position = Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
-            gateServo.position = Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
-
-            _fullTriggerTimer.reset()
-        }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData("beltsCurrent", beltsCurrent)
         }
+    }
+
+    override fun opModeStart() {
+        _pushServo.position = Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
+        _gateServo.position = Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
+
+        _fullTriggerTimer.reset()
+    }
+
+    override fun opModeStop() {
+
     }
 
     override fun dispose() {

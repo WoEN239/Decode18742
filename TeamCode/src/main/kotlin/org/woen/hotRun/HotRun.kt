@@ -18,8 +18,6 @@ import org.woen.utils.events.SimpleEvent
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.math.abs
 
 class HotRun private constructor() {
     companion object {
@@ -82,18 +80,15 @@ class HotRun private constructor() {
     val opModeStartEvent = SimpleEvent<LinearOpMode>()
     val opModeUpdateEvent = SimpleEvent<LinearOpMode>()
     val opModeStopEvent = SimpleEvent<LinearOpMode>()
-    private lateinit var _gamepad: Gamepad
 
     fun run(opMode: LinearOpMode, runMode: RunMode, isGamepadStart: Boolean = false) {
         try {
-            _gamepad = opMode.gamepad1
-
             currentRunMode = runMode
             currentRunState = RunState.INIT
 
             ThreadManager.LAZY_INSTANCE
             ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
-            ThreadedGamepad.LAZY_INSTANCE.init()
+            ThreadedGamepad.LAZY_INSTANCE.init(opMode.gamepad1)
             HardwareThreads.LAZY_INSTANCE
             ActionRunner.LAZY_INSTANCE
             Camera.LAZY_INSTANCE
@@ -103,12 +98,7 @@ class HotRun private constructor() {
             ThreadedTelemetry.LAZY_INSTANCE.log("init completed")
 
             while (!opMode.isStarted()) {
-                if (isGamepadStart && (_gamepad.left_bumper || _gamepad.right_bumper ||
-                            abs(_gamepad.left_stick_y.toDouble()) > 0.01 || abs(_gamepad.left_stick_x.toDouble()) > 0.01
-                            || abs(_gamepad.right_stick_x.toDouble()) > 0.01 || abs(_gamepad.right_stick_y.toDouble()) > 0.01
-                            || _gamepad.left_trigger > 0.01 || _gamepad.right_trigger > 0.01
-                            )
-                )
+                if (isGamepadStart && ThreadedGamepad.LAZY_INSTANCE.getIsGamepadTriggered())
                     OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity)
                         .startActiveOpMode()
             }
@@ -125,8 +115,6 @@ class HotRun private constructor() {
 
             currentRunState = RunState.STOP
 
-            opMode.sleep(50)
-
             opModeStopEvent.invoke(opMode)
 
             for (i in opMode.hardwareMap.servoController)
@@ -134,9 +122,5 @@ class HotRun private constructor() {
         } catch (e: Exception) {
             throw e
         }
-    }
-
-    fun gamepadRumble(duration: Double) {
-        _gamepad.rumble((duration * 1000.0).toInt())
     }
 }

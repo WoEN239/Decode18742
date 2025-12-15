@@ -8,6 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.woen.hotRun.HotRun
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.math.abs
 
 class ThreadedGamepad private constructor() {
     companion object {
@@ -117,10 +118,24 @@ class ThreadedGamepad private constructor() {
 
     private val _allListeners = CopyOnWriteArrayList<IListener>()
 
-    @Synchronized
+    private lateinit var _gamepad: Gamepad
+
     fun addListener(listener: IListener) = _allListeners.add(listener)
 
-    fun init() {
+    fun getIsGamepadTriggered() =
+        abs(_gamepad.left_stick_x) > 0.01 || abs(_gamepad.left_stick_y) > 0.01 ||
+                abs(_gamepad.right_stick_x) > 0.01 || abs(_gamepad.right_stick_y) > 0.01 || _gamepad.left_trigger > 0.01 || _gamepad.right_trigger > 0.01 ||
+                _gamepad.left_bumper || _gamepad.right_bumper || _gamepad.ps || _gamepad.touchpad || _gamepad.dpad_up || _gamepad.dpad_down || _gamepad.dpad_left || _gamepad.dpad_right ||
+                _gamepad.circle || _gamepad.square || _gamepad.triangle || _gamepad.cross
+
+    fun rumble(duration: Double){
+        if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
+            _gamepad.rumble((duration * 1000.0).toInt())
+    }
+
+    fun init(gamepad: Gamepad) {
+        _gamepad = gamepad
+
         if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
             HotRun.LAZY_INSTANCE.opModeUpdateEvent += {
                 runBlocking {

@@ -46,6 +46,14 @@ class ThreadedBattery private constructor() : IHardwareDevice {
         _battery = hardwareMap.get(VoltageSensor::class.java, "Control Hub")
     }
 
+    override fun opModeStart() {
+
+    }
+
+    override fun opModeStop() {
+
+    }
+
     override fun dispose() {
 
     }

@@ -72,6 +72,15 @@ class HwSorting : IHardwareDevice
             fullCalibrate()
         }
     }
+
+    override fun opModeStart() {
+        TODO("Not yet implemented")
+    }
+
+    override fun opModeStop() {
+        TODO("Not yet implemented")
+    }
+
     override fun update()
     {
         _beltMotors.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_beltMotorsPower.get())
