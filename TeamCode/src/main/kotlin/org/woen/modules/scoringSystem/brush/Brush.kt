@@ -17,8 +17,6 @@ import java.util.concurrent.atomic.AtomicReference
 
 class SwitchBrushStateEvent(var brushState: Brush.BrushState, var reverseTime: Long = 1000)
 
-
-
 class Brush : IModule {
     enum class BrushState {
         FORWARD,
@@ -115,6 +113,14 @@ class Brush : IModule {
     override val isBusy: Boolean
         get() = _currentJob != null && !_currentJob!!.isCompleted
 
+    override fun opModeStart() {
+        turnOn.set(BrushState.FORWARD)
+    }
+
+    override fun opModeStop() {
+
+    }
+
     override fun dispose() {
         _currentJob?.cancel()
     }
@@ -126,10 +132,6 @@ class Brush : IModule {
             turnOn.set(it.brushState)
             timerRevers.set(it.reverseTime)
         })
-
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            turnOn.set(BrushState.FORWARD)
-        }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addLine(turnOn.get().toString())

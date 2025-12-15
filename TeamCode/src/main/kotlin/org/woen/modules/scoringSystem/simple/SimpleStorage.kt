@@ -48,16 +48,6 @@ class SimpleStorage : IModule {
     constructor() {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareStorage, _gateServo)
 
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE_FAST
-
-                delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
-
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
-            }
-        }
-
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
             _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
                 val process = ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(true)).process
@@ -138,6 +128,20 @@ class SimpleStorage : IModule {
 
     override val isBusy: Boolean
         get() = true
+
+    override fun opModeStart() {
+        ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE_FAST
+
+            delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
+
+            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+        }
+    }
+
+    override fun opModeStop() {
+
+    }
 
     override fun dispose() {
 

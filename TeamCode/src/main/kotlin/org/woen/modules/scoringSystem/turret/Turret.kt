@@ -2,7 +2,6 @@ package org.woen.modules.scoringSystem.turret
 
 
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.woen.hotRun.HotRun
@@ -14,7 +13,6 @@ import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
-import org.woen.utils.process.Process
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
 import kotlin.math.PI
@@ -157,6 +155,23 @@ class Turret : IModule {
     override val isBusy: Boolean
         get() = _turretJob != null && !_turretJob!!.isCompleted
 
+    private fun setTurretState(state: TurretState) {
+        _currentTurretState = state
+
+        when (_currentTurretState) {
+            TurretState.STOP -> _hardwareTurret.targetVelocity = 0.0
+            TurretState.SHOOT -> calcTurretState()
+        }
+    }
+
+    override fun opModeStart() {
+        setTurretState(TurretState.SHOOT)
+    }
+
+    override fun opModeStop() {
+        setTurretState(TurretState.STOP)
+    }
+
     override fun dispose() {
         _turretJob?.cancel()
     }
@@ -171,23 +186,6 @@ class Turret : IModule {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetTurretMode::class, {
             _currentMode = it.mode
         })
-
-        fun setTurretState(state: TurretState) {
-            _currentTurretState = state
-
-            when (_currentTurretState) {
-                TurretState.STOP -> _hardwareTurret.targetVelocity = 0.0
-                TurretState.SHOOT -> calcTurretState()
-            }
-        }
-
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            setTurretState(TurretState.SHOOT)
-        }
-
-        HotRun.LAZY_INSTANCE.opModeStopEvent += {
-            setTurretState(TurretState.STOP)
-        }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretCurrentRotation::class, {
             it.rotation = Angle(_hardwareTurret.currentRotatePosition)

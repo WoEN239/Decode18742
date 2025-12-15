@@ -85,6 +85,14 @@ class DriveTrain : IModule {
     override val isBusy: Boolean
         get() = _driveJob != null && !_driveJob!!.isCompleted
 
+    override fun opModeStart() {
+        _lookRegulator.start()
+    }
+
+    override fun opModeStop() {
+
+    }
+
     override fun dispose() {
         _driveJob?.cancel()
     }
@@ -169,10 +177,6 @@ class DriveTrain : IModule {
 
             it.addData("targetAngle", _targetAngle)
             it.addData("currentAngle", odometry.odometryOrientation.angl)
-        }
-
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            _lookRegulator.start()
         }
     }
 }

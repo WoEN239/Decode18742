@@ -110,6 +110,14 @@ class Odometry : IModule {
     override val isBusy: Boolean
         get() = _odometryJob != null && !_odometryJob!!.isCompleted
 
+    override fun opModeStart() {
+
+    }
+
+    override fun opModeStop() {
+
+    }
+
     override fun dispose() {
         _odometryJob?.cancel()
     }

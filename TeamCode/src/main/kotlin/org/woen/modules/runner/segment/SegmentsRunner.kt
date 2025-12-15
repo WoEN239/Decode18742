@@ -102,6 +102,18 @@ class SegmentsRunner : IModule {
     override val isBusy: Boolean
         get() = _runnerJob != null && !_runnerJob!!.isCompleted
 
+    override fun opModeStart() {
+        _segmentTimerMutex.smartLock {
+            _segmentTimer.reset()
+        }
+
+        _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
+    }
+
+    override fun opModeStop() {
+
+    }
+
     override fun dispose() {
         _runnerJob?.cancel()
     }
@@ -117,14 +129,6 @@ class SegmentsRunner : IModule {
                 _segmentsQueue.addLast(Pair(it.segment, it.process))
             }
         })
-
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            _segmentTimerMutex.smartLock {
-                _segmentTimer.reset()
-            }
-
-            _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
-        }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData("target", _targetOrientation)
