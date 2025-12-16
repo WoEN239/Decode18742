@@ -14,6 +14,7 @@ import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedTimers
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedBattery
+import org.woen.utils.events.SimpleEmptyEvent
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Orientation
@@ -34,7 +35,7 @@ class HotRun private constructor() {
             }
 
         fun restart() {
-            _nullableInstance?.disposableEvent?.invoke(0)
+            _nullableInstance?.disposableEvent?.invoke()
 
             _instanceMutex.smartLock {
                 _nullableInstance = null
@@ -82,7 +83,7 @@ class HotRun private constructor() {
     val opModeStartEvent = SimpleEvent<LinearOpMode>()
     val opModeUpdateEvent = SimpleEvent<LinearOpMode>()
     val opModeStopEvent = SimpleEvent<LinearOpMode>()
-    val disposableEvent = SimpleEvent<Int>()
+    val disposableEvent = SimpleEmptyEvent()
 
     fun run(opMode: LinearOpMode, runMode: RunMode, isGamepadStart: Boolean = false) {
         try {
