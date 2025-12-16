@@ -34,6 +34,8 @@ class HotRun private constructor() {
             }
 
         fun restart() {
+            _nullableInstance?.disposableEvent?.invoke(0)
+
             _instanceMutex.smartLock {
                 _nullableInstance = null
             }
@@ -80,6 +82,7 @@ class HotRun private constructor() {
     val opModeStartEvent = SimpleEvent<LinearOpMode>()
     val opModeUpdateEvent = SimpleEvent<LinearOpMode>()
     val opModeStopEvent = SimpleEvent<LinearOpMode>()
+    val disposableEvent = SimpleEvent<Int>()
 
     fun run(opMode: LinearOpMode, runMode: RunMode, isGamepadStart: Boolean = false) {
         try {
