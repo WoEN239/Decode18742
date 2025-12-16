@@ -2,11 +2,8 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
-import org.woen.hotRun.HotRun
-import org.woen.threading.ThreadManager
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.HardwareThreads
 
@@ -27,10 +24,6 @@ class HwSortingManager
     {
         subscribeAndHandleColorSensorsEvent()
         addDevices()
-
-        HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            resetParametersAndLogicToDefault()
-        }
     }
 
     private fun subscribeAndHandleColorSensorsEvent()
@@ -68,15 +61,7 @@ class HwSortingManager
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSorting)
         //HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSensors)
     }
-    fun resetParametersAndLogicToDefault()
-    {
-        isAwaitingIntake.set(false)
-
-        ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            fullCalibrate()
-            resumeAwaitingEating()
-        }
-    }
+    fun resetParametersAndLogicToDefault() = stopAwaitingEating(false)
 
 
 

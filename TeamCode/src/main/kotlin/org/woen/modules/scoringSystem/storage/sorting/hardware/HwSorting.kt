@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 
-import org.woen.hotRun.HotRun
 import org.woen.utils.motor.MotorOnly
 
 import org.woen.threading.hardware.ThreadedServo
@@ -64,27 +63,21 @@ class HwSorting : IHardwareDevice
 
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
             gateServo, pushServo, turretGateServo)
-
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            _beltMotors.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            _beltMotors.direction = SORTING_STORAGE_BELT_MOTORS_DIRECTION
-
-            fullCalibrate()
-        }
-    }
-
-    override fun opModeStart() {
-        TODO("Not yet implemented")
-    }
-
-    override fun opModeStop() {
-        TODO("Not yet implemented")
     }
 
     override fun update()
     {
         _beltMotors.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_beltMotorsPower.get())
     }
+
+    override fun opModeStart()
+    {
+        _beltMotors.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        _beltMotors.direction = SORTING_STORAGE_BELT_MOTORS_DIRECTION
+
+        fullCalibrate()
+    }
+    override fun opModeStop()  = stopBeltMotors()
 
 
 
@@ -128,12 +121,11 @@ class HwSorting : IHardwareDevice
 
     fun fullCalibrate()
     {
+        stopBeltMotors()
+
         closeGate()
         closePush()
-
         closeTurretGate()
-
-        stopBeltMotors()
     }
 
 

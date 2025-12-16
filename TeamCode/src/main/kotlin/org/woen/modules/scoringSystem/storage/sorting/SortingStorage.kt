@@ -58,8 +58,9 @@ class SortingStorage
         subscribeToGamepadEvents()
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _storageLogic.resetParametersToDefault()
+            _storageLogic.storageCells.hwSortingM.resetParametersAndLogicToDefault()
             _storageLogic.storageCells.resetParametersToDefault()
+            _storageLogic.resetParametersToDefault()
         }
     }
 

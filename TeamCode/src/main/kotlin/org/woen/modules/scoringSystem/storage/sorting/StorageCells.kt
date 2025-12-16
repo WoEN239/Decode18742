@@ -55,11 +55,8 @@ class StorageCells
 
 
 
-    fun resetParametersToDefault()
-    {
-        fullEmptyStorageCells()
-        hwSortingM.resetParametersAndLogicToDefault()
-    }
+    fun resetParametersToDefault() = fullEmptyStorageCells()
+
     private fun fullEmptyStorageCells()
     {
         _storageCells[StorageSlot.BOTTOM].empty()
