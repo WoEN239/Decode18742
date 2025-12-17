@@ -168,6 +168,21 @@ class SortingStorage
                             iteration++
                     }   }
         }   )   )
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener({ it.ps }, {
+
+                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+
+                        val pattern = arrayOf(BallRequest.Name.PURPLE, BallRequest.Name.GREEN, BallRequest.Name.GREEN)
+
+                        val canInitiate = _storageLogic.canInitiatePredictSort()
+                        ThreadedTelemetry.LAZY_INSTANCE.log("SSM: initiating result: $canInitiate")
+
+                        if (canInitiate)
+                            _storageLogic.safeInitiatePredictSort(pattern)
+                    }
+        }   )   )
     }
     private fun subscribeToTerminateEvents()
     {

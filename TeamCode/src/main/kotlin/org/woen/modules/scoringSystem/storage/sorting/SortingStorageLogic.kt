@@ -54,6 +54,8 @@ class SortingStorageLogic
 
     suspend fun canInitiatePredictSort(): Boolean
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("SSM: Try initiating predict sort")
+
         if (runStatus.isUsedByAnyProcess()) return false
 
         runStatus.addProcessToQueue(PREDICT_SORT)

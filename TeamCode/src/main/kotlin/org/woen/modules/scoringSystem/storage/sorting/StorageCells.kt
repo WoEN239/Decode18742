@@ -200,16 +200,20 @@ class StorageCells
             {
                 doRotations = startRequestId
                 globalMaximum = localMaximum
+
+                ThreadedTelemetry.LAZY_INSTANCE.log("Found new global maximum: $globalMaximum")
             }
 
             startRequestId++
         }
 
+        ThreadedTelemetry.LAZY_INSTANCE.log("CELLS: Done searching, max: $globalMaximum, rotations: $doRotations")
         return PredictSortResult(doRotations, globalMaximum)
     }
     suspend fun initiatePredictSort(requested: Array<BallRequest.Name>,
                                     minValidInSequence: Int = 1): Boolean
     {
+        ThreadedTelemetry.LAZY_INSTANCE.log("CELLS: Start predict sort search")
         val searchResult = predictSortSearch(requested)
 
         if (searchResult.maxValidInSequence >= minValidInSequence)
