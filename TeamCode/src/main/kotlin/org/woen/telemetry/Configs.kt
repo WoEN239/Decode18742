@@ -127,10 +127,10 @@ object Configs {
         var H_REGULATOR_PARAMETERS = RegulatorParameters(kP = 5.5, limitU = MAX_DRIVE_ANGLE_VELOCITY)
 
         @JvmField
-        var X_REGULATOR_PARAMETERS = RegulatorParameters(limitU = MAX_DRIVE_VELOCITY)
+        var X_REGULATOR_PARAMETERS = RegulatorParameters(kP = 3.0, limitU = MAX_DRIVE_VELOCITY)
 
         @JvmField
-        var Y_REGULATOR_PARAMETERS = RegulatorParameters(limitU = MAX_DRIVE_VELOCITY)
+        var Y_REGULATOR_PARAMETERS = RegulatorParameters(kP = 3.0, limitU = MAX_DRIVE_VELOCITY)
 
         @JvmField
         var H_SENS = 0.1
@@ -142,10 +142,10 @@ object Configs {
         var TARGET_TIMER = 0.1
 
         @JvmField
-        var RED_PARKING_ORIENTATION = Orientation.ZERO
+        var RED_PARKING_ORIENTATION = Orientation(Vec2(0.9, -0.93), Angle.ofDeg(90.0))
 
         @JvmField
-        var BLUE_PARKING_ORIENTATION = Orientation.ZERO
+        var BLUE_PARKING_ORIENTATION = Orientation(Vec2(0.9, 0.93), Angle.ofDeg(-90.0))
     }
 
     @Config

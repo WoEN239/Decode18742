@@ -208,9 +208,11 @@ class DriveTrain : IModule {
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             ThreadedGamepad.createClickDownListener(
-            { it.ps },
+            { it.dpad_down },
             {
                 if (_currentMode == DriveMode.DRIVE)
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.PARKING))
+                else if(_currentMode == DriveMode.PARKING)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
             }
         ))
