@@ -184,13 +184,13 @@ class HwSortingManager
         stopAwaitingEating(true)
         closeTurretGate()
 
-        hwForwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
+        //hwForwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
         hwReverseBeltsTime(DELAY.SORTING_REALIGNING_REVERSE_MS)
 
         openGate()
         openPush()
 
-        delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+        delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 4)
         closeGateWithPush()
     }
 }

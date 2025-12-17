@@ -174,7 +174,7 @@ class SortingStorage
 
                     ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
 
-                        val pattern = arrayOf(BallRequest.Name.PURPLE, BallRequest.Name.GREEN, BallRequest.Name.GREEN)
+                        val pattern = arrayOf(BallRequest.Name.PURPLE, BallRequest.Name.GREEN, BallRequest.Name.PURPLE)
 
                         val canInitiate = _storageLogic.canInitiatePredictSort()
                         ThreadedTelemetry.LAZY_INSTANCE.log("SSM: initiating result: $canInitiate")

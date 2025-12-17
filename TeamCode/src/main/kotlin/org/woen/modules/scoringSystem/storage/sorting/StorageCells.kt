@@ -186,10 +186,17 @@ class StorageCells
             var localMaximum = NOTHING
             var requestId = startRequestId
 
+            ThreadedTelemetry.LAZY_INSTANCE.log("search round: $startRequestId")
+
             while (requestId < MAX_BALL_COUNT + startRequestId)
             {
-                if (_storageCells[requestId % MAX_BALL_COUNT].name() ==
-                    BallRequest.toBall(requested[requestId % MAX_BALL_COUNT]))
+                val requestBall = BallRequest.toBall(requested[(requestId - startRequestId) % MAX_BALL_COUNT])
+                val flag = _storageCells[PREFERRED_REQUEST_SLOT_ORDER[requestId % MAX_BALL_COUNT]].name() == requestBall
+
+
+                ThreadedTelemetry.LAZY_INSTANCE.log("> r $requestId, match: $flag, request: $requestBall")
+
+                if (flag)
                      localMaximum++
                 else requestId += MAX_BALL_COUNT
 

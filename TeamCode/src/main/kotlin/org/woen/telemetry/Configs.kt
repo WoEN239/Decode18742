@@ -415,13 +415,13 @@ object Configs {
 
 
         @JvmField
-        var ONE_BALL_PUSHING_MS: Long = 400
+        var ONE_BALL_PUSHING_MS: Long = 350
 
         @JvmField
-        var SORTING_REALIGNING_FORWARD_MS: Long = 70
+        var SORTING_REALIGNING_FORWARD_MS: Long = 35
 
         @JvmField
-        var SORTING_REALIGNING_REVERSE_MS: Long = 70
+        var SORTING_REALIGNING_REVERSE_MS: Long = 65
 
         @JvmField
         var MAX_SHOT_AWAITING_MS: Long = 160

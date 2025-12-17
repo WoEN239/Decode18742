@@ -137,8 +137,8 @@ class BallRequest
         {
             return when (name)
             {
-                Name.PURPLE, Name.PREFER_PURPLE -> Ball.Name.GREEN
-                Name.GREEN,  Name.PREFER_GREEN  -> Ball.Name.PURPLE
+                Name.PURPLE, Name.PREFER_PURPLE -> Ball.Name.PURPLE
+                Name.GREEN,  Name.PREFER_GREEN  -> Ball.Name.GREEN
                 else -> Ball.Name.NONE
             }
         }
