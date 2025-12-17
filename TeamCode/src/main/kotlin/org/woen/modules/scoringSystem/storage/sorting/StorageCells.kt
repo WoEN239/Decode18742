@@ -245,7 +245,8 @@ class StorageCells
             repeat (searchResult.totalRotations)
                 { fullRotate() }
 
-        return searchResult.maxSequenceScore >= MAX_BALL_COUNT
+        return searchResult.maxSequenceScore >= MAX_BALL_COUNT * PSEUDO_MATCH_WEIGHT
+                && searchResult.maxSequenceScore > (MAX_BALL_COUNT - 1) * TRUE_MATCH_WEIGHT
     }
     suspend fun tryInitiatePredictSort(requested: Array<BallRequest.Name>): Boolean
     {

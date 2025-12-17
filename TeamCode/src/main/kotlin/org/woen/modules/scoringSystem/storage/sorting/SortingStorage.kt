@@ -156,22 +156,22 @@ class SortingStorage
 
 
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
-            createClickDownListener(
-                { it.touchpadWasPressed() }, {
-
-                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                        var iteration = NOTHING
-                        while (iteration < 100)
-                        {
-                            _storageLogic.storageCells.fullRotate()
-                            iteration++
-                    }   }
-        }   )   )
-
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
-            createClickDownListener({ it.ps }, {
-
+//        ThreadedGamepad.LAZY_INSTANCE.addListener(
+//            createClickDownListener(
+//                { it.touchpadWasPressed() }, {
+//
+//                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//                        var iteration = NOTHING
+//                        while (iteration < 100)
+//                        {
+//                            _storageLogic.storageCells.fullRotate()
+//                            iteration++
+//                    }   }
+//        }   )   )
+//
+//        ThreadedGamepad.LAZY_INSTANCE.addListener(
+//            createClickDownListener({ it.ps }, {
+//
 //                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
 //
 //                        val pattern = arrayOf(
@@ -185,7 +185,7 @@ class SortingStorage
 //                        if (canInitiate)
 //                            _storageLogic.safeInitiatePredictSort(pattern)
 //                    }
-        }   )   )
+//        }   )   )
     }
     private fun subscribeToTerminateEvents()
     {
