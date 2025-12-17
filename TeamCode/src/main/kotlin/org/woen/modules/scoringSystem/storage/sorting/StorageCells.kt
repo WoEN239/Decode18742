@@ -175,7 +175,7 @@ class StorageCells
         return result
     }
 
-    private fun predictSortSearch(requested: Array<BallRequest.Name>): PredictSortResult
+    private fun predictSortSearch(requested: Array<BallRequest>): PredictSortResult
     {
         var doRotations    = NOTHING
         var globalMaximum  = NOTHING
@@ -190,15 +190,25 @@ class StorageCells
 
             while (requestId < MAX_BALL_COUNT + startRequestId)
             {
-                val requestBall = BallRequest.toBall(requested[(requestId - startRequestId) % MAX_BALL_COUNT])
-                val flag = _storageCells[PREFERRED_REQUEST_SLOT_ORDER[requestId % MAX_BALL_COUNT]].name() == requestBall
+                val curRequest  = requested[(requestId - startRequestId) % MAX_BALL_COUNT]
+                val storageBall = _storageCells[PREFERRED_REQUEST_SLOT_ORDER[requestId % MAX_BALL_COUNT]]
 
+                if (curRequest.isAbstractAny() && storageBall.isFilled())
+                    localMaximum++
+                else
+                {
+                    val requestBall     = curRequest.toBall()
+                    val canMatchRequest = storageBall.name() == requestBall
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("> r $requestId, match: $flag, request: $requestBall")
+                    ThreadedTelemetry.LAZY_INSTANCE.log(
+                        "> requestId: $requestId, match: $canMatchRequest\n"
+                                + "request ball: $requestBall, storage ball: $storageBall")
 
-                if (flag)
-                     localMaximum++
-                else requestId += MAX_BALL_COUNT
+                    if (canMatchRequest) localMaximum++
+                    else requestId += MAX_BALL_COUNT
+                }
+//                else if (storageBall.name() == curRequest.toBall()) localMaximum++
+//                else requestId += MAX_BALL_COUNT
 
                 requestId++
             }
@@ -220,8 +230,10 @@ class StorageCells
     suspend fun initiatePredictSort(requested: Array<BallRequest.Name>,
                                     minValidInSequence: Int = 1): Boolean
     {
+        val requestedFullData = Array(requested.size) { BallRequest(requested[it]) }
+
         ThreadedTelemetry.LAZY_INSTANCE.log("CELLS: Start predict sort search")
-        val searchResult = predictSortSearch(requested)
+        val searchResult = predictSortSearch(requestedFullData)
 
         if (searchResult.maxValidInSequence >= minValidInSequence)
             repeat (searchResult.totalRotations)
