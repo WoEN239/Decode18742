@@ -17,6 +17,10 @@ import org.woen.telemetry.Configs.GENERIC.NOTHING
 import org.woen.telemetry.Configs.GENERIC.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.GENERIC.STORAGE_SLOT_COUNT
 
+import org.woen.telemetry.Configs.SORTING_SETTINGS.TRUE_MATCH_WEIGHT
+import org.woen.telemetry.Configs.SORTING_SETTINGS.PSEUDO_MATCH_WEIGHT
+import org.woen.telemetry.Configs.SORTING_SETTINGS.START_WEIGHT_FOR_PREDICT_SORT
+
 import org.woen.telemetry.Configs.SORTING_SETTINGS.PREFERRED_INTAKE_SLOT_ORDER
 import org.woen.telemetry.Configs.SORTING_SETTINGS.PREFERRED_REQUEST_SLOT_ORDER
 
@@ -25,7 +29,6 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.MINIMAL_VALID_SEQUENCE_FOR_PR
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
-
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -50,7 +53,7 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
  */
 
 
-class PredictSortResult(var totalRotations: Int, var maxValidInSequence: Int)
+class PredictSortResult(var totalRotations: Int, var maxSequenceScore: Double)
 
 
 
@@ -177,13 +180,13 @@ class StorageCells
 
     private fun predictSortSearch(requested: Array<BallRequest>): PredictSortResult
     {
+        var globalMaximum  = START_WEIGHT_FOR_PREDICT_SORT
         var doRotations    = NOTHING
-        var globalMaximum  = NOTHING
         var startRequestId = NOTHING
 
         while (startRequestId < MAX_BALL_COUNT)
         {
-            var localMaximum = NOTHING
+            var localMaximum = START_WEIGHT_FOR_PREDICT_SORT
             var requestId = startRequestId
 
             ThreadedTelemetry.LAZY_INSTANCE.log("search round: $startRequestId")
@@ -193,22 +196,22 @@ class StorageCells
                 val curRequest  = requested[(requestId - startRequestId) % MAX_BALL_COUNT]
                 val storageBall = _storageCells[PREFERRED_REQUEST_SLOT_ORDER[requestId % MAX_BALL_COUNT]]
 
-                if (curRequest.isAbstractAny() && storageBall.isFilled())
-                    localMaximum++
-                else
+                val canMatchRequest = storageBall.name() == curRequest.toBall()
+
+                if (curRequest.isAbstractAny())
                 {
-                    val requestBall     = curRequest.toBall()
-                    val canMatchRequest = storageBall.name() == requestBall
-
-                    ThreadedTelemetry.LAZY_INSTANCE.log(
-                        "> requestId: $requestId, match: $canMatchRequest\n"
-                                + "request ball: $requestBall, storage ball: $storageBall")
-
-                    if (canMatchRequest) localMaximum++
+                    if (canMatchRequest) localMaximum += TRUE_MATCH_WEIGHT
+                    else if (storageBall.isFilled())
+                        localMaximum += if (curRequest.isAny()) TRUE_MATCH_WEIGHT
+                                                         else PSEUDO_MATCH_WEIGHT
                     else requestId += MAX_BALL_COUNT
                 }
-//                else if (storageBall.name() == curRequest.toBall()) localMaximum++
-//                else requestId += MAX_BALL_COUNT
+                else if (canMatchRequest) localMaximum += TRUE_MATCH_WEIGHT
+                else requestId += MAX_BALL_COUNT
+
+                ThreadedTelemetry.LAZY_INSTANCE.log(
+                    "> requestId: $requestId, direct match: $canMatchRequest\n"
+                            + "request ball: ${curRequest.name()}, storage ball: ${storageBall.name()}")
 
                 requestId++
             }
@@ -228,18 +231,21 @@ class StorageCells
         return PredictSortResult(doRotations, globalMaximum)
     }
     suspend fun initiatePredictSort(requested: Array<BallRequest.Name>,
-                                    minValidInSequence: Int = 1): Boolean
+                                    minValidInSequence: Double = 0.75): Boolean
     {
         val requestedFullData = Array(requested.size) { BallRequest(requested[it]) }
 
         ThreadedTelemetry.LAZY_INSTANCE.log("CELLS: Start predict sort search")
         val searchResult = predictSortSearch(requestedFullData)
 
-        if (searchResult.maxValidInSequence >= minValidInSequence)
+        ThreadedTelemetry.LAZY_INSTANCE.log("Best score: ${searchResult.maxSequenceScore}" +
+                ", required min score: $MINIMAL_VALID_SEQUENCE_FOR_PREDICT_SORTING")
+
+        if (searchResult.maxSequenceScore >= minValidInSequence)
             repeat (searchResult.totalRotations)
                 { fullRotate() }
 
-        return searchResult.maxValidInSequence >= MAX_BALL_COUNT
+        return searchResult.maxSequenceScore >= MAX_BALL_COUNT
     }
     suspend fun tryInitiatePredictSort(requested: Array<BallRequest.Name>): Boolean
     {

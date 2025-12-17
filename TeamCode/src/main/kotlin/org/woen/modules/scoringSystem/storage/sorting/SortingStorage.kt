@@ -172,16 +172,19 @@ class SortingStorage
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener({ it.ps }, {
 
-                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-
-                        val pattern = arrayOf(BallRequest.Name.PURPLE, BallRequest.Name.GREEN, BallRequest.Name.PURPLE)
-
-                        val canInitiate = _storageLogic.canInitiatePredictSort()
-                        ThreadedTelemetry.LAZY_INSTANCE.log("SSM: initiating result: $canInitiate")
-
-                        if (canInitiate)
-                            _storageLogic.safeInitiatePredictSort(pattern)
-                    }
+//                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//
+//                        val pattern = arrayOf(
+//                            BallRequest.Name.PREFER_GREEN,
+//                            BallRequest.Name.PREFER_PURPLE,
+//                            BallRequest.Name.PREFER_PURPLE)
+//
+//                        val canInitiate = _storageLogic.canInitiatePredictSort()
+//                        ThreadedTelemetry.LAZY_INSTANCE.log("SSM: initiating result: $canInitiate")
+//
+//                        if (canInitiate)
+//                            _storageLogic.safeInitiatePredictSort(pattern)
+//                    }
         }   )   )
     }
     private fun subscribeToTerminateEvents()

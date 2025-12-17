@@ -129,17 +129,11 @@ class BallRequest
                 Name.PURPLE -> PURPLE
                 Name.GREEN  -> GREEN
 
+                Name.PREFER_PURPLE -> PREFER_PURPLE
+                Name.PREFER_GREEN  -> PREFER_GREEN
+
                 Name.ANY_CLOSEST -> ANY_CLOSEST
                 else -> NONE
-            }
-        }
-        fun toBall(name: Name): Ball.Name
-        {
-            return when (name)
-            {
-                Name.PURPLE, Name.PREFER_PURPLE -> Ball.Name.PURPLE
-                Name.GREEN,  Name.PREFER_GREEN  -> Ball.Name.GREEN
-                else -> Ball.Name.NONE
             }
         }
     }

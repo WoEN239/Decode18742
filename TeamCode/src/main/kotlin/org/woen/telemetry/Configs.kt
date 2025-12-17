@@ -475,7 +475,16 @@ object Configs {
         var ALWAYS_TRY_PREDICT_SORTING = true
 
         @JvmField
-        var MINIMAL_VALID_SEQUENCE_FOR_PREDICT_SORTING = 1
+        var MINIMAL_VALID_SEQUENCE_FOR_PREDICT_SORTING = 0.75
+
+        @JvmField
+        var START_WEIGHT_FOR_PREDICT_SORT = 0.0
+
+        @JvmField
+        var TRUE_MATCH_WEIGHT   = 1.0
+
+        @JvmField
+        var PSEUDO_MATCH_WEIGHT = 0.75
 
 
 
