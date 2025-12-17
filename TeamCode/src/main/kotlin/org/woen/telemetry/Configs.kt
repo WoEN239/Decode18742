@@ -387,6 +387,10 @@ object Configs {
 
         @JvmField
         var SINGLE_REQUEST = 4
+
+
+        @JvmField
+        var PREDICT_SORT = 5
     }
 
 
@@ -399,6 +403,9 @@ object Configs {
 
         @JvmField
         var REQUEST_RACE_CONDITION_MS: Long = 10
+
+        @JvmField
+        var PREDICT_SORT_RACE_CONDITION_MS: Long = 10
 
         @JvmField
         var EVENT_AWAITING_MS: Long = 5
@@ -426,7 +433,6 @@ object Configs {
 
 
 
-    @Config
     internal object GENERIC {
 
         const val MAX_BALL_COUNT = 3
@@ -439,7 +445,48 @@ object Configs {
 
 
     @Config
-    internal object STORAGE {
+    internal object SORTING_SETTINGS {
+
+        @JvmField
+        var ALWAYS_TRY_PREDICT_SORTING = true
+
+        @JvmField
+        var MINIMAL_VALID_SEQUENCE_FOR_PREDICT_SORTING = 1
+
+
+
+        @JvmField
+        var USE_LAZY_VERSION_OF_STREAM_REQUEST = true
+
+        @JvmField
+        var SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS = false
+
+
+
+        @JvmField
+        var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 2000
+
+        @JvmField
+        var MAX_ATTEMPTS_FOR_PATTERN_DETECTION = 2
+
+        @JvmField
+        var TRY_RECALIBRATE_IF_SOMETHING_FAILS = true
+
+
+
+        @JvmField
+        var DEFAULT_SHOOTING_MODE = Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
+
+        @JvmField
+        var DEFAULT_PATTERN = Shooting.StockPattern.Name.USE_DETECTED_PATTERN
+
+        @JvmField
+        var FAILSAFE_SHOOTING_MODE = Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
+
+        @JvmField
+        var FAILSAFE_PATTERN = Shooting.StockPattern.Name.ANY
+
+
 
         @JvmField
         var PREFERRED_INTAKE_SLOT_ORDER = arrayOf(
@@ -454,17 +501,16 @@ object Configs {
             StorageSlot.CENTER,
             StorageSlot.BOTTOM,
             StorageSlot.MOBILE)
+    }
 
 
+
+    @Config
+    internal object STORAGE {
 
         @JvmField
         var SORTING_STORAGE_BELT_MOTORS_DIRECTION = DcMotorSimple.Direction.REVERSE
 
-        @JvmField
-        var USE_LAZY_VERSION_OF_STREAM_REQUEST = true
-
-        @JvmField
-        var SMART_AUTO_ADJUST_FOR_FAILED_SHOTS = false
 
         @JvmField
         var GATE_SERVO_OPEN_VALUE = 0.20
@@ -492,32 +538,6 @@ object Configs {
         var TURRET_GATE_SERVO_CLOSE_VALUE = 0.535
     }
 
-
-    @Config
-    internal object SORTING_AUTO_OPMODE {
-
-        @JvmField
-        var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 2000
-
-        @JvmField
-        var MAX_ATTEMPTS_FOR_PATTERN_DETECTION = 2
-
-        @JvmField
-        var TRY_RECALIBRATE_IF_SOMETHING_FAILS = true
-
-
-        @JvmField
-        var DEFAULT_SHOOTING_MODE = Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
-
-        @JvmField
-        var DEFAULT_PATTERN = Shooting.StockPattern.Name.USE_DETECTED_PATTERN
-
-        @JvmField
-        var FAILSAFE_SHOOTING_MODE = Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
-
-        @JvmField
-        var FAILSAFE_PATTERN = Shooting.StockPattern.Name.ANY
-    }
 
 
     @Config
@@ -551,6 +571,8 @@ object Configs {
         @JvmField
         var PUSH_SERVO = "push_servo"
     }
+
+
 
     @Config
     internal object SIMPLE_STORAGE {

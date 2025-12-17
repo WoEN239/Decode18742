@@ -47,7 +47,7 @@ import org.woen.telemetry.Configs.GENERIC.NOTHING
 import org.woen.telemetry.Configs.GENERIC.MAX_BALL_COUNT
 
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-import org.woen.telemetry.Configs.STORAGE.SMART_AUTO_ADJUST_FOR_FAILED_SHOTS
+import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS
 
 
 
@@ -314,10 +314,10 @@ class ScoringModulesConnector
                 shootingMode,
                 requestPattern,
                 failsafePattern,
-            SMART_AUTO_ADJUST_FOR_FAILED_SHOTS,
-            SMART_AUTO_ADJUST_FOR_FAILED_SHOTS,
-            SMART_AUTO_ADJUST_FOR_FAILED_SHOTS,
-            SMART_AUTO_ADJUST_FOR_FAILED_SHOTS)
+            SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS,
+            SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS,
+            SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS,
+            SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("SMC: FINISHED - SMART drum request")
 

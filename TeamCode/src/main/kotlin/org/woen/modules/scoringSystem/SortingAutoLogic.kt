@@ -25,14 +25,14 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.GENERIC
 
-import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.DEFAULT_PATTERN
-import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.DEFAULT_SHOOTING_MODE
+import org.woen.telemetry.Configs.SORTING_SETTINGS.DEFAULT_PATTERN
+import org.woen.telemetry.Configs.SORTING_SETTINGS.DEFAULT_SHOOTING_MODE
 
-import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.FAILSAFE_PATTERN
-import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.FAILSAFE_SHOOTING_MODE
+import org.woen.telemetry.Configs.SORTING_SETTINGS.FAILSAFE_PATTERN
+import org.woen.telemetry.Configs.SORTING_SETTINGS.FAILSAFE_SHOOTING_MODE
 
-import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.MAX_ATTEMPTS_FOR_PATTERN_DETECTION
-import org.woen.telemetry.Configs.SORTING_AUTO_OPMODE.MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS
+import org.woen.telemetry.Configs.SORTING_SETTINGS.MAX_ATTEMPTS_FOR_PATTERN_DETECTION
+import org.woen.telemetry.Configs.SORTING_SETTINGS.MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS
 import org.woen.telemetry.ThreadedTelemetry
 
 

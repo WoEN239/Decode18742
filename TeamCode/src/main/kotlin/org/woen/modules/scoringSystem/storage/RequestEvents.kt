@@ -15,6 +15,13 @@ class StorageGiveDrumRequest(
     var failsafePattern: Array<BallRequest.Name> = arrayOf())
 
 
+class StorageInitiatePredictSortEvent(
+    var requestedPattern: Array<BallRequest.Name>,
+    var startingResult: Boolean
+)
+
+
+
 class TerminateRequestEvent()
 
 

@@ -23,6 +23,7 @@ import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 
+import org.woen.modules.scoringSystem.storage.StorageInitiatePredictSortEvent
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 
@@ -33,15 +34,15 @@ import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.telemetry.Configs.DELAY
-import org.woen.telemetry.Configs.GENERIC.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.GENERIC.NOTHING
+import org.woen.telemetry.Configs.GENERIC.MAX_BALL_COUNT
 
 import org.woen.telemetry.Configs.PROCESS_ID.INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.SINGLE_REQUEST
 
-import org.woen.telemetry.Configs.STORAGE.USE_LAZY_VERSION_OF_STREAM_REQUEST
+import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
 
 
 
@@ -53,9 +54,10 @@ class SortingStorage
 
     constructor()
     {
-        subscribeToTerminateEvents()
         subscribeToInfoEvents()
+        subscribeToActionEvents()
         subscribeToGamepadEvents()
+        subscribeToTerminateEvents()
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _storageLogic.storageCells.hwSortingM.resetParametersAndLogicToDefault()
@@ -64,66 +66,15 @@ class SortingStorage
         }
     }
 
-    private fun subscribeToTerminateEvents()
-    {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
-
-                val activeIntakeProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
-                ThreadedTelemetry.LAZY_INSTANCE.log("SSM Terminate intake process id: $activeIntakeProcessId")
-
-                if (activeIntakeProcessId == INTAKE ||
-                    activeIntakeProcessId == LAZY_INTAKE)
-                {
-                    _storageLogic.runStatus.addProcessToTerminationList(activeIntakeProcessId)
-                    if (activeIntakeProcessId == LAZY_INTAKE)
-                        _storageLogic.lazyIntakeIsActive.set(false)
-                }
-        }   )
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
-
-                val activeRequestProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
-
-                if (activeRequestProcessId == SINGLE_REQUEST ||
-                    activeRequestProcessId == DRUM_REQUEST)
-                    _storageLogic.runStatus.addProcessToTerminationList(activeRequestProcessId)
-        }   )
-    }
     private fun subscribeToInfoEvents()
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StartLazyIntakeEvent::class, {
-
-                val tryToStartLazyIntake = _storageLogic.canStartIntakeIsNotBusy()
-                it.startingResult = tryToStartLazyIntake
-
-                if (tryToStartLazyIntake != IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY)
-                    startLazyIntake()
-        }   )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StopLazyIntakeEvent::class, {
-
-                _storageLogic.lazyIntakeIsActive.set(false)
-        }   )
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageUpdateAfterLazyIntakeEvent::class, {
-
-                _storageLogic.storageCells.updateAfterLazyIntake(
-                    it.inputFromTurretSlotToBottom)
-        }   )
-
-
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             ShotWasFiredEvent::class, {
-
                 _storageLogic.shotWasFired()
         }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             BallCountInStorageEvent::class, {
-
                 it.count = _storageLogic.storageCells.anyBallCount()
         }   )
 
@@ -138,10 +89,50 @@ class SortingStorage
 
 
 
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            StorageUpdateAfterLazyIntakeEvent::class, {
+
+                _storageLogic.storageCells.updateAfterLazyIntake(
+                    it.inputFromTurretSlotToBottom)
+        }   )
+
         ThreadedEventBus.LAZY_INSTANCE.subscribe(OnPatternDetectedEvent::class, {
 
                 _storageLogic.dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
         }   )
+    }
+    private fun subscribeToActionEvents()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            StartLazyIntakeEvent::class, {
+
+                val tryToStartLazyIntake = _storageLogic.canStartIntakeIsNotBusy()
+                it.startingResult = tryToStartLazyIntake
+
+                if (tryToStartLazyIntake != IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY)
+                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                        startLazyIntake()
+                    }
+        }   )
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            StopLazyIntakeEvent::class, {
+
+                _storageLogic.lazyIntakeIsActive.set(false)
+        }   )
+
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            StorageInitiatePredictSortEvent::class, {
+
+                val canInitiate   = _storageLogic.canInitiatePredictSort()
+                it.startingResult = canInitiate
+
+                if (canInitiate)
+                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                        _storageLogic.safeInitiatePredictSort(it.requestedPattern)
+                    }
+            }
+        )
     }
     private fun subscribeToGamepadEvents()
     {
@@ -177,6 +168,31 @@ class SortingStorage
                             iteration++
                     }   }
         }   )   )
+    }
+    private fun subscribeToTerminateEvents()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
+
+            val activeIntakeProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
+            ThreadedTelemetry.LAZY_INSTANCE.log("SSM Terminate intake process id: $activeIntakeProcessId")
+
+            if (activeIntakeProcessId == INTAKE ||
+                activeIntakeProcessId == LAZY_INTAKE)
+            {
+                _storageLogic.runStatus.addProcessToTerminationList(activeIntakeProcessId)
+                if (activeIntakeProcessId == LAZY_INTAKE)
+                    _storageLogic.lazyIntakeIsActive.set(false)
+            }
+        }   )
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
+
+            val activeRequestProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
+
+            if (activeRequestProcessId == SINGLE_REQUEST ||
+                activeRequestProcessId == DRUM_REQUEST)
+                _storageLogic.runStatus.addProcessToTerminationList(activeRequestProcessId)
+        }   )
     }
 
 

@@ -17,8 +17,11 @@ import org.woen.telemetry.Configs.GENERIC.NOTHING
 import org.woen.telemetry.Configs.GENERIC.MAX_BALL_COUNT
 import org.woen.telemetry.Configs.GENERIC.STORAGE_SLOT_COUNT
 
-import org.woen.telemetry.Configs.STORAGE.PREFERRED_INTAKE_SLOT_ORDER
-import org.woen.telemetry.Configs.STORAGE.PREFERRED_REQUEST_SLOT_ORDER
+import org.woen.telemetry.Configs.SORTING_SETTINGS.PREFERRED_INTAKE_SLOT_ORDER
+import org.woen.telemetry.Configs.SORTING_SETTINGS.PREFERRED_REQUEST_SLOT_ORDER
+
+import org.woen.telemetry.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
+import org.woen.telemetry.Configs.SORTING_SETTINGS.MINIMAL_VALID_SEQUENCE_FOR_PREDICT_SORTING
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
@@ -45,6 +48,9 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
  *      \_____________________________________________________/
  *
  */
+
+
+class PredictSortResult(var totalRotations: Int, var maxValidInSequence: Int)
 
 
 
@@ -167,6 +173,56 @@ class StorageCells
         }
 
         return result
+    }
+
+    private fun predictSortSearch(requested: Array<BallRequest.Name>): PredictSortResult
+    {
+        var doRotations    = NOTHING
+        var globalMaximum  = NOTHING
+        var startRequestId = NOTHING
+
+        while (startRequestId < MAX_BALL_COUNT)
+        {
+            var localMaximum = NOTHING
+            var requestId = startRequestId
+
+            while (requestId < MAX_BALL_COUNT + startRequestId)
+            {
+                if (_storageCells[requestId % MAX_BALL_COUNT].name() ==
+                    BallRequest.toBall(requested[requestId % MAX_BALL_COUNT]))
+                     localMaximum++
+                else requestId += MAX_BALL_COUNT
+
+                requestId++
+            }
+
+            if (localMaximum > globalMaximum)
+            {
+                doRotations = startRequestId
+                globalMaximum = localMaximum
+            }
+
+            startRequestId++
+        }
+
+        return PredictSortResult(doRotations, globalMaximum)
+    }
+    suspend fun initiatePredictSort(requested: Array<BallRequest.Name>,
+                                    minValidInSequence: Int = 1): Boolean
+    {
+        val searchResult = predictSortSearch(requested)
+
+        if (searchResult.maxValidInSequence >= minValidInSequence)
+            repeat (searchResult.totalRotations)
+                { fullRotate() }
+
+        return searchResult.maxValidInSequence >= MAX_BALL_COUNT
+    }
+    suspend fun tryInitiatePredictSort(requested: Array<BallRequest.Name>): Boolean
+    {
+        return if (ALWAYS_TRY_PREDICT_SORTING) initiatePredictSort(requested,
+                MINIMAL_VALID_SEQUENCE_FOR_PREDICT_SORTING)
+        else false
     }
 
 

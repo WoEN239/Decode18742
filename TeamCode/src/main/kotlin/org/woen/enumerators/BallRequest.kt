@@ -133,5 +133,14 @@ class BallRequest
                 else -> NONE
             }
         }
+        fun toBall(name: Name): Ball.Name
+        {
+            return when (name)
+            {
+                Name.PURPLE, Name.PREFER_PURPLE -> Ball.Name.GREEN
+                Name.GREEN,  Name.PREFER_GREEN  -> Ball.Name.PURPLE
+                else -> Ball.Name.NONE
+            }
+        }
     }
 }

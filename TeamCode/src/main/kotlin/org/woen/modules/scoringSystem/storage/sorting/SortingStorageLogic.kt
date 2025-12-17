@@ -25,6 +25,7 @@ import org.woen.telemetry.Configs.GENERIC.MAX_BALL_COUNT
 
 import org.woen.telemetry.Configs.PROCESS_ID.LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
+import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
 
 import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAGE
 
@@ -51,6 +52,26 @@ class SortingStorageLogic
 
 
 
+    suspend fun canInitiatePredictSort(): Boolean
+    {
+        if (runStatus.isUsedByAnyProcess()) return false
+
+        runStatus.addProcessToQueue(PREDICT_SORT)
+        delay(DELAY.PREDICT_SORT_RACE_CONDITION_MS)
+
+        return runStatus.isThisProcessHighestPriority(PREDICT_SORT)
+    }
+    suspend fun safeInitiatePredictSort(requested: Array<BallRequest.Name>)
+    {
+        runStatus.setCurrentActiveProcess(PREDICT_SORT)
+
+        storageCells.initiatePredictSort(requested)
+
+        runStatus.clearCurrentActiveProcess()
+        runStatus.safeRemoveThisProcessIdFromQueue(PREDICT_SORT)
+    }
+
+
 
     suspend fun canStartIntakeIsNotBusy(): IntakeResult.Name
     {
@@ -74,15 +95,12 @@ class SortingStorageLogic
 
     private suspend fun intakeRaceConditionIsPresent(processId: Int):  Boolean
     {
-        if (runStatus.isNotBusy())
-        {
-            ThreadedTelemetry.LAZY_INSTANCE.log("-Added lazy intake to runStatus queue")
-            runStatus.addProcessToQueue(processId)
+        if (runStatus.isUsedByAnyProcess()) return true
 
-            delay(DELAY.INTAKE_RACE_CONDITION_MS)
-            return !runStatus.isThisProcessHighestPriority(processId)
-        }
-        return true
+        runStatus.addProcessToQueue(processId)
+        delay(DELAY.INTAKE_RACE_CONDITION_MS)
+
+        return !runStatus.isThisProcessHighestPriority(processId)
     }
     suspend fun noIntakeRaceConditionProblems(processId: Int): Boolean
     {
@@ -117,10 +135,6 @@ class SortingStorageLogic
                 RequestResult.FAIL_PROCESS_WAS_TERMINATED,
                 RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("custom readjusting")
-        storageCells.hwSortingM.closeTurretGate()
-        storageCells.hwSortingM.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS / 2)
-
         val fullRotations = when (requestResult.name())
         {
             RequestResult.Name.SUCCESS_MOBILE -> 3
@@ -133,8 +147,6 @@ class SortingStorageLogic
         if (fullRotations >= NOTHING)
             repeat(fullRotations)
                 { storageCells.fullRotate() }
-
-        storageCells.hwReAdjustStorage()
 
 
         ThreadedTelemetry.LAZY_INSTANCE.log("sorting finished - success", "Getting ready to shoot")
@@ -167,23 +179,21 @@ class SortingStorageLogic
     private suspend fun requestRaceConditionIsPresent(processId: Int):  Boolean
     {
         if (isForcedToTerminateRequest(processId)) return false
+        else if (runStatus.isUsedByAnotherProcess(processId)) return true
 
-        lazyIntakeIsActive.set(false)
 
-        if (runStatus.isNotBusy())
-        {
-            runStatus.addProcessToQueue(processId)
-            storageCells.pauseAnyIntake()
+        runStatus.addProcessToQueue(processId)
+        storageCells.pauseAnyIntake()
 
-            delay(DELAY.REQUEST_RACE_CONDITION_MS)
-            return !runStatus.isThisProcessHighestPriority(processId)
-        }
-        return true
+        delay(DELAY.REQUEST_RACE_CONDITION_MS)
+        return !runStatus.isThisProcessHighestPriority(processId)
     }
     suspend fun cantHandleRequestRaceCondition(processId: Int): Boolean
     {
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
+
+        lazyIntakeIsActive.set(false)
 
         while (requestRaceConditionIsPresent(processId))
             delay(DELAY.EVENT_AWAITING_MS)
