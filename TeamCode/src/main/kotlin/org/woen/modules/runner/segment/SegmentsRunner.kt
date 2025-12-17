@@ -60,10 +60,14 @@ class SegmentsRunner : IModule {
                     (orientationErr.pos * Vec2(
                         Configs.ROAD_RUNNER.ROAD_RUNNER_POS_X_P,
                         Configs.ROAD_RUNNER.ROAD_RUNNER_POS_Y_P
-                    ) +
-                            _targetTranslateVelocity).turn(-odometry.odometryOrientation.angle),
+                    ) + _targetTranslateVelocity +
+                            (_targetTranslateVelocity - odometry.odometryVelocity) *
+                            Vec2(
+                                Configs.ROAD_RUNNER.ROAD_RUNNER_VEL_X_P,
+                                Configs.ROAD_RUNNER.ROAD_RUNNER_VEL_Y_P
+                            )).turn(-odometry.odometryOrientation.angle),
                     orientationErr.angl.angle * Configs.ROAD_RUNNER.ROAD_RUNNER_POS_H_P +
-                            _targetRotateVelocity
+                            _targetRotateVelocity + (_targetRotateVelocity - odometry.odometryRotateVelocity) * Configs.ROAD_RUNNER.ROAD_RUNNER_VEL_H_P
                 )
             )
 
@@ -121,7 +125,7 @@ class SegmentsRunner : IModule {
     constructor() {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RunSegmentEvent::class, {
             _segmentsMutex.smartLock {
-                if(_segmentsQueue.isEmpty())
+                if (_segmentsQueue.isEmpty())
                     _segmentTimerMutex.smartLock {
                         _segmentTimer.reset()
                     }
@@ -143,7 +147,7 @@ class SegmentsRunner : IModule {
                 }
 
                 startOrientation = if (isSegmentsEmpty) {
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent()).odometryOrientation
+                    _targetOrientation
                 } else {
                     _segmentsMutex.smartLock {
                         val lastSegment = _segmentsQueue.last().first

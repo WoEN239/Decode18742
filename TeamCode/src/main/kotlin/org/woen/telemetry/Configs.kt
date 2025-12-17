@@ -106,10 +106,10 @@ object Configs {
         var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.5, kP = 2.5, kI = 2.0)
 
         @JvmField
-        var DRIVE_VEC_MULTIPLIER = 1.7
+        var MAX_DRIVE_VELOCITY = 1.7
 
         @JvmField
-        var DRIVE_ANGLE_MULTIPLIER = 10.0
+        var MAX_DRIVE_ANGLE_VELOCITY = 10.0
 
         @JvmField
         var POW_MOVE_ENABLED = true
@@ -124,13 +124,28 @@ object Configs {
         var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
         @JvmField
-        var LOOK_REGULATOR_PARAMETERS = RegulatorParameters(kP = 5.5, limitU = DRIVE_ANGLE_MULTIPLIER)
+        var H_REGULATOR_PARAMETERS = RegulatorParameters(kP = 5.5, limitU = MAX_DRIVE_ANGLE_VELOCITY)
 
         @JvmField
-        var LOOK_SENS = 0.1
+        var X_REGULATOR_PARAMETERS = RegulatorParameters(limitU = MAX_DRIVE_VELOCITY)
 
         @JvmField
-        var LOOK_TARGET_TIMER = 0.1
+        var Y_REGULATOR_PARAMETERS = RegulatorParameters(limitU = MAX_DRIVE_VELOCITY)
+
+        @JvmField
+        var H_SENS = 0.1
+
+        @JvmField
+        var POS_SENS = 0.1
+
+        @JvmField
+        var TARGET_TIMER = 0.1
+
+        @JvmField
+        var RED_PARKING_ORIENTATION = Orientation.ZERO
+
+        @JvmField
+        var BLUE_PARKING_ORIENTATION = Orientation.ZERO
     }
 
     @Config
@@ -143,6 +158,15 @@ object Configs {
 
         @JvmField
         var ROAD_RUNNER_POS_H_P = 5.0
+
+        @JvmField
+        var ROAD_RUNNER_VEL_X_P = 0.0
+
+        @JvmField
+        var ROAD_RUNNER_VEL_Y_P = 0.0
+
+        @JvmField
+        var ROAD_RUNNER_VEL_H_P = 0.0
 
         @JvmField
         var ROAD_RUNNER_TRANSLATE_VELOCITY = 1.6
@@ -571,8 +595,6 @@ object Configs {
         @JvmField
         var PUSH_SERVO = "push_servo"
     }
-
-
 
     @Config
     internal object SIMPLE_STORAGE {

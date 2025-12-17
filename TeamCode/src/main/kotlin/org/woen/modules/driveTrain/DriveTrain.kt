@@ -6,7 +6,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
-import org.woen.modules.scoringSystem.turret.RequestTurretCurrentRotation
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
@@ -16,9 +15,9 @@ import org.woen.threading.ThreadedGamepad
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
 import org.woen.utils.regulator.Regulator
-import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Color
+import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 import kotlin.math.abs
 import kotlin.math.pow
@@ -26,9 +25,10 @@ import kotlin.math.sign
 
 data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotationVelocity: Double)
 
-data class RequestLookModeEvent(var lookMode: Boolean = false) : StoppingEvent
+data class RequestDriveModeEvent(var mode: DriveTrain.DriveMode = DriveTrain.DriveMode.DRIVE) :
+    StoppingEvent
 
-data class SetLookModeEvent(val lookMode: Boolean, val process: Process = Process())
+data class SetDriveModeEvent(val mode: DriveTrain.DriveMode, val process: Process = Process())
 
 class DriveTrain : IModule {
     private val _hardwareDriveTrain = HardwareDriveTrain()
@@ -36,15 +36,24 @@ class DriveTrain : IModule {
     private var _targetTranslateVelocity = Vec2.ZERO
     private var _targetRotateVelocity = 0.0
 
-    private val _driveMutex = SmartMutex()
-
     private var _driveJob: Job? = null
 
-    private var _lookMode = false
-    private var _lookProcess = Process()
-    private var _lookRegulator = Regulator(Configs.DRIVE_TRAIN.LOOK_REGULATOR_PARAMETERS)
-    private var _targetAngle = Angle.ZERO
-    private var _lookTargetTimer = ElapsedTime()
+    enum class DriveMode {
+        DRIVE,
+        SHOOTING,
+        PARKING
+    }
+
+    private var _targetOrientation = Orientation.ZERO
+
+    private var _currentMode = DriveMode.DRIVE
+    private var _currentProcess = Process()
+
+    private var _xRegulator = Regulator(Configs.DRIVE_TRAIN.X_REGULATOR_PARAMETERS)
+    private var _yRegulator = Regulator(Configs.DRIVE_TRAIN.Y_REGULATOR_PARAMETERS)
+    private var _hRegulator = Regulator(Configs.DRIVE_TRAIN.H_REGULATOR_PARAMETERS)
+
+    private var _targetTimer = ElapsedTime()
     private var _currentRobotRotation = Angle.ZERO
 
     override suspend fun process() {
@@ -53,32 +62,50 @@ class DriveTrain : IModule {
 
             _currentRobotRotation = odometry.odometryOrientation.angl
 
-            val rotationErr = if (_lookMode) {
-                _targetAngle = Angle(
-                    (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition -
-                            odometry.odometryOrientation.pos).rot()
-                )// + ThreadedEventBus.LAZY_INSTANCE.invoke(RequestTurretCurrentRotation()).rotation
+            when (_currentMode) {
+                DriveMode.DRIVE -> {
+                    if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
+                        _hardwareDriveTrain.drivePowered(
+                            _targetTranslateVelocity,
+                            _targetRotateVelocity
+                        )
+                    else
+                        _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
+                }
 
-                val err = (_targetAngle - odometry.odometryOrientation.angl).angle
+                DriveMode.SHOOTING -> {
+                    _targetOrientation.angl =
+                        Angle(
+                            (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition -
+                                    odometry.odometryOrientation.pos).rot()
+                        )
 
-                if (abs(err) < Configs.DRIVE_TRAIN.LOOK_SENS) {
-                    if (_lookTargetTimer.seconds() > Configs.DRIVE_TRAIN.LOOK_TARGET_TIMER)
-                        _lookProcess.close()
-                } else
-                    _lookTargetTimer.reset()
+                    _hardwareDriveTrain.drive(
+                        _targetTranslateVelocity,
+                        _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
+                    )
+                }
 
-                err
-            } else
-                0.0
-
-            _driveMutex.smartLock {
-                _hardwareDriveTrain.drive(
-                    _targetTranslateVelocity,
-                    if (_lookMode )
-                        _lookRegulator.update(rotationErr)
-                    else _targetRotateVelocity
-                )
+                DriveMode.PARKING -> {
+                    _hardwareDriveTrain.drive(
+                        Vec2(
+                            _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.x),
+                            _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.y)
+                        ).turn(-odometry.odometryOrientation.angle),
+                        _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
+                    )
+                }
             }
+
+            if(((abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS &&
+                abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS) || _currentMode == DriveMode.SHOOTING) &&
+                abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS
+            ){
+                if(_targetTimer.seconds() > Configs.DRIVE_TRAIN.TARGET_TIMER)
+                    _currentProcess.close()
+            }
+            else
+                _targetTimer.reset()
         }
     }
 
@@ -86,7 +113,7 @@ class DriveTrain : IModule {
         get() = _driveJob != null && !_driveJob!!.isCompleted
 
     override fun opModeStart() {
-        _lookRegulator.start()
+
     }
 
     override fun opModeStop() {
@@ -101,14 +128,16 @@ class DriveTrain : IModule {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _lookMode = false
+            _hardwareDriveTrain.currentMode =
+                if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) HardwareDriveTrain.DriveTrainMode.POWER
+                else HardwareDriveTrain.DriveTrainMode.REGULATOR
+
+            _currentMode = DriveMode.DRIVE
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {
-            _driveMutex.smartLock {
-                _targetTranslateVelocity = it.translateVelocity
-                _targetRotateVelocity = it.rotationVelocity
-            }
+            _targetTranslateVelocity = it.translateVelocity
+            _targetRotateVelocity = it.rotationVelocity
         })
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(object : ThreadedGamepad.IListener {
@@ -136,34 +165,58 @@ class DriveTrain : IModule {
                                     Angle.ofDeg(90.0)).angle
                             else
                                 (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle
-                        ) * Vec2(
-                            Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER,
-                            Configs.DRIVE_TRAIN.DRIVE_VEC_MULTIPLIER
                         ),
-                        rx * Configs.DRIVE_TRAIN.DRIVE_ANGLE_MULTIPLIER
+                        rx
                     )
                 )
             }
         })
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(SetLookModeEvent::class, {
-            _lookMode = it.lookMode
-            _lookProcess = it.process
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveModeEvent::class, {
+            _currentMode = it.mode
+            _currentProcess = it.process
 
-            if (it.lookMode) {
-                _lookRegulator.start()
-                _lookRegulator.resetIntegral()
-                _lookTargetTimer.reset()
+            if (it.mode != DriveMode.DRIVE) {
+                _targetTimer.reset()
+
+                _hardwareDriveTrain.currentMode = HardwareDriveTrain.DriveTrainMode.REGULATOR
+
+                if(it.mode == DriveMode.PARKING)
+                    _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.parkingOrientation
+
+                _xRegulator.start()
+                _xRegulator.resetIntegral()
+                _yRegulator.start()
+                _yRegulator.resetIntegral()
+                _hRegulator.start()
+                _hRegulator.resetIntegral()
+            } else {
+                _hardwareDriveTrain.currentMode =
+                    if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) HardwareDriveTrain.DriveTrainMode.POWER
+                    else HardwareDriveTrain.DriveTrainMode.REGULATOR
             }
         })
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(ThreadedGamepad.createClickDownListener({it.circle}, {
-            if(_lookMode)
-                ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false))
-        }))
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            ThreadedGamepad.createClickDownListener(
+                { it.circle },
+                {
+                    if (_currentMode == DriveMode.SHOOTING)
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
+                })
+        )
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestLookModeEvent::class, {
-            it.lookMode = _lookMode
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            ThreadedGamepad.createClickDownListener(
+            { it.ps },
+            {
+                if (_currentMode == DriveMode.DRIVE)
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
+            }
+        ))
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestDriveModeEvent::class, {
+            it.mode = _currentMode
         })
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
@@ -175,8 +228,8 @@ class DriveTrain : IModule {
 
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
-            it.addData("targetAngle", _targetAngle)
-            it.addData("currentAngle", odometry.odometryOrientation.angl)
+            it.addData("targetOrientation", _targetOrientation)
+            it.addData("currentOrientation", odometry.odometryOrientation)
         }
     }
 }

@@ -3,14 +3,13 @@ package org.woen.modules.scoringSystem.simple
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
-import org.woen.modules.driveTrain.SetLookModeEvent
+import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.telemetry.Configs
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -40,7 +39,7 @@ class SimpleStorage : IModule {
         ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.FORWARD))
 
         _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(false))
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.DRIVE))
 
         _isShooting = false
     }
@@ -50,7 +49,7 @@ class SimpleStorage : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
             _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                val process = ThreadedEventBus.LAZY_INSTANCE.invoke(SetLookModeEvent(true)).process
+                val process = ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
 
                 _isShooting = true
 
