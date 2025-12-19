@@ -2,7 +2,8 @@ package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
-import com.qualcomm.robotcore.hardware.Gamepad
+import com.qualcomm.robotcore.util.ElapsedTime
+import kotlinx.coroutines.launch
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.modules.camera.Camera
 import org.woen.modules.runner.actions.ActionRunner
@@ -71,10 +72,20 @@ class HotRun private constructor() {
     }
 
     enum class RunColor(
-        val basketPosition: Vec2, val startOrientation: Orientation, val parkingOrientation: Orientation
+        val basketPosition: Vec2,
+        val startOrientation: Orientation,
+        val parkingOrientation: Orientation
     ) {
-        RED(Configs.TURRET.RED_BASKET_POSITION, Configs.ODOMETRY.START_RED_ORIENTATION, Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION),
-        BLUE(Configs.TURRET.BLUE_BASKET_POSITION, Configs.ODOMETRY.START_BLUE_ORIENTATION, Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION);
+        RED(
+            Configs.TURRET.RED_BASKET_POSITION,
+            Configs.ODOMETRY.START_RED_ORIENTATION,
+            Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION
+        ),
+        BLUE(
+            Configs.TURRET.BLUE_BASKET_POSITION,
+            Configs.ODOMETRY.START_BLUE_ORIENTATION,
+            Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION
+        );
     }
 
     var currentRunColor = RunColor.RED
@@ -114,12 +125,47 @@ class HotRun private constructor() {
 
             opModeStartEvent.invoke(opMode)
 
-            while (opMode.opModeIsActive())
-                opModeUpdateEvent.invoke(opMode)
+            val updateTimer = ElapsedTime()
+
+            while (opMode.opModeIsActive()) {
+                val updateCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                    opModeUpdateEvent.invoke(opMode)
+                }
+
+                updateTimer.reset()
+
+                while (!updateCoroutine.isCompleted){
+                    Thread.sleep(5)
+
+                    if(updateTimer.seconds() > Configs.HOT_RUN.MAX_UPDATE_TIME) {
+                        ThreadedTelemetry.LAZY_INSTANCE.log("update coroutine is killed")
+
+                        updateCoroutine.cancel()
+                        break
+                    }
+                }
+            }
 
             currentRunState = RunState.STOP
 
-            opModeStopEvent.invoke(opMode)
+            val stopCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                opModeStopEvent.invoke(opMode)
+            }
+
+            val stopTimer = ElapsedTime()
+            stopTimer.reset()
+
+            while (!stopCoroutine.isCompleted) {
+                Thread.sleep(5)
+
+                if(stopTimer.seconds() > Configs.HOT_RUN.MAX_STOP_TIME) {
+                    ThreadedTelemetry.LAZY_INSTANCE.log("stop coroutine is killed")
+
+                    stopCoroutine.cancel()
+
+                    break
+                }
+            }
 
             for (i in opMode.hardwareMap.servoController)
                 i.pwmDisable()

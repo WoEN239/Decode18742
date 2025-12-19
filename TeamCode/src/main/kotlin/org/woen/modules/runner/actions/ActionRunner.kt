@@ -52,8 +52,6 @@ class ActionRunner private constructor() : DisposableHandle {
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
-            ThreadedTelemetry.LAZY_INSTANCE.log("run")
-
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 RunSegmentEvent(
                     RRTrajectorySegment(

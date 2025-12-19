@@ -80,6 +80,15 @@ object Configs {
     }
 
     @Config
+    internal object HOT_RUN {
+        @JvmField
+        var MAX_UPDATE_TIME = 0.5
+
+        @JvmField
+        var MAX_STOP_TIME = 0.5
+    }
+
+    @Config
     internal object ODOMETRY {
         @JvmField
         var START_RED_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), 0.91 + 0.38 / 2.0), Angle(PI / 2.0))

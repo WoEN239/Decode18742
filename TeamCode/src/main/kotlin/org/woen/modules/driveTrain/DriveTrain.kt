@@ -81,7 +81,7 @@ class DriveTrain : IModule {
                         )
 
                     _hardwareDriveTrain.drive(
-                        _targetTranslateVelocity,
+                        _targetTranslateVelocity * Vec2(Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY),
                         _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
                     )
                 }
