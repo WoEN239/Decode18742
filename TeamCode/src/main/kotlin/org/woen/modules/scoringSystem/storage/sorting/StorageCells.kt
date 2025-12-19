@@ -285,7 +285,7 @@ class StorageCells
     }
     fun updateAfterRequest()
     {
-        hwSortingM.stopAwaitingEating(true)
+        hwSortingM.stopAwaitingEating(false)
 
         _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
         _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])

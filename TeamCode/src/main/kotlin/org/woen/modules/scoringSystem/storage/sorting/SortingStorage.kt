@@ -287,7 +287,8 @@ class SortingStorage
         ThreadedTelemetry.LAZY_INSTANCE.log("FINISHED searching, result: ${requestResult.name()}")
 
 
-        val shootingResult = _storageLogic.shootRequestFinalPhase(requestResult, SINGLE_REQUEST)
+        val shootingResult = _storageLogic.shootRequestFinalPhase(
+            requestResult, SINGLE_REQUEST)
 
         if (shootingResult == RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
             return _storageLogic.terminateRequest(SINGLE_REQUEST)
@@ -315,7 +316,9 @@ class SortingStorage
         var shotsFired = NOTHING
         while (shotsFired < MAX_BALL_COUNT)
         {
-            if (!_storageLogic.fullWaitForShotFired(DRUM_REQUEST))
+            if (!_storageLogic.fullWaitForShotFired(
+                    DRUM_REQUEST,
+                    false))
                 return RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
 
             ThreadedTelemetry.LAZY_INSTANCE.log("shot finished, updating..")
@@ -341,7 +344,7 @@ class SortingStorage
     suspend fun shootEntireDrumRequest(
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,
-        includeLastUnfinishedPattern:       Boolean = true,
+        includePreviousUnfinishedToRequest: Boolean = true,
         autoUpdateUnfinishedForNextPattern: Boolean = true): RequestResult.Name
     {
         if (_storageLogic.storageCells.isEmpty()) return RequestResult.Name.FAIL_IS_EMPTY
@@ -351,28 +354,38 @@ class SortingStorage
 
         _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
 
-        val patternOrder = if (!includeLastUnfinishedPattern) requestOrder
+
+        val  standardPatternOrder = if (!includePreviousUnfinishedToRequest) requestOrder
         else DynamicPattern.trimPattern(
             _storageLogic.dynamicMemoryPattern.lastUnfinished(),
             requestOrder)
 
         if (autoUpdateUnfinishedForNextPattern)
-            _storageLogic.dynamicMemoryPattern.setTemporary(patternOrder)
+            _storageLogic.dynamicMemoryPattern.setTemporary(standardPatternOrder)
 
         val requestResult =
             when (shootingMode)
             {
                 Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
                     -> _storageLogic.shootEverything()
+
                 Shooting.Mode.FIRE_PATTERN_CAN_SKIP
-                    -> _storageLogic.shootEntireRequestCanSkip(patternOrder)
+                    -> _storageLogic.shootEntireCanSkip(
+                    standardPatternOrder,
+                    autoUpdateUnfinishedForNextPattern)
+
                 Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
-                    -> _storageLogic.shootEntireUntilPatternBreaks(patternOrder)
+                    -> _storageLogic.shootEntireUntilPatternBreaks(
+                    standardPatternOrder,
+                        autoUpdateUnfinishedForNextPattern)
+
                 Shooting.Mode.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
-                    -> _storageLogic.shootEntireRequestIsValid(patternOrder)
+                    -> _storageLogic.shootEntireRequestIsValid(standardPatternOrder)
             }
 
-        _storageLogic.resumeLogicAfterRequest(
+        if  (RequestResult.wasTerminated(requestResult))
+             _storageLogic.terminateRequest(DRUM_REQUEST)
+        else _storageLogic.resumeLogicAfterRequest(
             DRUM_REQUEST,
             _storageLogic.storageCells.isNotEmpty())
         return requestResult
@@ -381,40 +394,38 @@ class SortingStorage
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>? = requestOrder,
-        includeLastUnfinishedPattern:             Boolean = true,
-        includeLastUnfinishedPatternToFailSafe:   Boolean = true,
+        includePreviousUnfinishedToRequest:       Boolean = true,
+        includePreviousUnfinishedToFailsafe:      Boolean = true,
         autoUpdateUnfinishedForNextPattern:       Boolean = true,
-        whenFailedAndSavingLastKeepFailsafeOrder: Boolean = true): RequestResult.Name
+        ifAutoUpdatingUnfinishedUseFailsafeOrder: Boolean = true): RequestResult.Name
     {
         if (failsafeOrder == null || failsafeOrder.isEmpty() ||
             failsafeOrder.contentEquals(requestOrder))
-            return shootEntireDrumRequest(shootingMode, requestOrder, includeLastUnfinishedPattern)
+            return shootEntireDrumRequest(shootingMode, requestOrder, includePreviousUnfinishedToRequest)
 
         if (_storageLogic.storageCells.isEmpty()) return RequestResult.Name.FAIL_IS_EMPTY
         if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
             return _storageLogic.terminateRequest(DRUM_REQUEST)
 
-
-
         _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
 
-        val patternOrder = if (!includeLastUnfinishedPattern) requestOrder
+
+        val  standardPatternOrder = if (!includePreviousUnfinishedToRequest) requestOrder
         else DynamicPattern.trimPattern(
             _storageLogic.dynamicMemoryPattern.lastUnfinished(),
             requestOrder)
 
-        val failsafePatternOrder = if (!includeLastUnfinishedPatternToFailSafe) requestOrder
+        val  failsafePatternOrder = if (!includePreviousUnfinishedToFailsafe) requestOrder
         else DynamicPattern.trimPattern(
             _storageLogic.dynamicMemoryPattern.lastUnfinished(),
             requestOrder)
 
 
-
-        val saveLastUnfinishedFailsafeOrder = autoUpdateUnfinishedForNextPattern
-                && whenFailedAndSavingLastKeepFailsafeOrder
+        val autoUpdateUnfinishedWithFailsafe =
+                autoUpdateUnfinishedForNextPattern &&
+                ifAutoUpdatingUnfinishedUseFailsafeOrder
         if (autoUpdateUnfinishedForNextPattern)
-            _storageLogic.dynamicMemoryPattern.setTemporary(patternOrder)
-
+            _storageLogic.dynamicMemoryPattern.setTemporary(standardPatternOrder)
 
 
         val requestResult =
@@ -424,25 +435,28 @@ class SortingStorage
                     -> _storageLogic.shootEverything()
 
                 Shooting.Mode.FIRE_PATTERN_CAN_SKIP
-                    -> _storageLogic.shootEntireRequestCanSkip(
-                    patternOrder,
+                    -> _storageLogic.shootEntireCanSkip(
+                    standardPatternOrder,
                     failsafePatternOrder,
-                    saveLastUnfinishedFailsafeOrder)
+                    autoUpdateUnfinishedForNextPattern,
+                    autoUpdateUnfinishedWithFailsafe)
 
                 Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
                     -> _storageLogic.shootEntireUntilPatternBreaks(
-                    patternOrder,
+                    standardPatternOrder,
                     failsafePatternOrder,
-                    saveLastUnfinishedFailsafeOrder)
+                    autoUpdateUnfinishedWithFailsafe)
 
                 Shooting.Mode.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
                     -> _storageLogic.shootEntireRequestIsValid(
-                    patternOrder,
+                    standardPatternOrder,
                     failsafePatternOrder,
-                    saveLastUnfinishedFailsafeOrder)
+                    autoUpdateUnfinishedWithFailsafe)
             }
 
-        _storageLogic.resumeLogicAfterRequest(
+        if  (RequestResult.wasTerminated(requestResult))
+            _storageLogic.terminateRequest(DRUM_REQUEST)
+        else _storageLogic.resumeLogicAfterRequest(
             DRUM_REQUEST,
             _storageLogic.storageCells.isNotEmpty())
         return requestResult
