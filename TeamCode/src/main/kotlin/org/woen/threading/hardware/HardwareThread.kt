@@ -40,28 +40,6 @@ class HardwareThread : DisposableHandle {
     private var _currentThreadState = ThreadState.WAIT
     private var _isThreadFree = false
 
-    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
-        var lastJob: Job? = null
-
-        while (!Thread.currentThread().isInterrupted) {
-            if (_currentThreadState == ThreadState.WAIT) {
-                Thread.sleep(5)
-                _isThreadFree = true
-                continue
-            }
-
-            _isThreadFree = false
-
-            for (i in _devices)
-                i.update()
-
-            _updateCounter.update()
-
-            if (lastJob == null || lastJob.isCompleted) {
-                lastJob = link.update()
-            }
-        }
-    })
 
     override fun dispose() {
         for (i in _devices)
@@ -72,10 +50,33 @@ class HardwareThread : DisposableHandle {
 
     val link = HardwareLink()
 
-    constructor() {
+    constructor(threadName: String) {
+        val thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true, name = threadName) {
+            var lastJob: Job? = null
+
+            while (!Thread.currentThread().isInterrupted) {
+                if (_currentThreadState == ThreadState.WAIT) {
+                    Thread.sleep(5)
+                    _isThreadFree = true
+                    continue
+                }
+
+                _isThreadFree = false
+
+                for (i in _devices)
+                    i.update()
+
+                _updateCounter.update()
+
+                if (lastJob == null || lastJob.isCompleted) {
+                    lastJob = link.update()
+                }
+            }
+        })
+
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData(
-                "hardware ups + " + _thread.name,
+                "hardware ups + " + thread.name,
                 String.format("%.1f", _updateCounter.currentUPS)
             )
         }

@@ -52,8 +52,8 @@ class HardwareThreads private constructor() : DisposableHandle {
         }
     }
 
-    val CONTROL = HardwareThread()
-    val EXPANSION = HardwareThread()
+    val CONTROL = HardwareThread("Control Hub")
+    val EXPANSION = HardwareThread("Expansion Hub")
 
     override fun dispose() {
         CONTROL.dispose()

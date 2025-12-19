@@ -39,6 +39,7 @@ class ThreadManager private constructor() : DisposableHandle {
 
     val threadFactory = ThreadFactory { runnable ->
         val thread = register(Thread(runnable))
+        thread.name = "global coroutine scope"
         thread
     }
 
