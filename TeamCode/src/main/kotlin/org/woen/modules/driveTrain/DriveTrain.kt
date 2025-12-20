@@ -81,7 +81,7 @@ class DriveTrain : IModule {
                         )
 
                     _hardwareDriveTrain.drive(
-                        _targetTranslateVelocity * Vec2(Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY),
+                        _targetTranslateVelocity,
                         _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
                     )
                 }
@@ -97,14 +97,13 @@ class DriveTrain : IModule {
                 }
             }
 
-            if(((abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS &&
-                abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS) || _currentMode == DriveMode.SHOOTING) &&
+            if (((abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS &&
+                        abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS) || _currentMode == DriveMode.SHOOTING) &&
                 abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS
-            ){
-                if(_targetTimer.seconds() > Configs.DRIVE_TRAIN.TARGET_TIMER)
+            ) {
+                if (_targetTimer.seconds() > Configs.DRIVE_TRAIN.TARGET_TIMER)
                     _currentProcess.close()
-            }
-            else
+            } else
                 _targetTimer.reset()
         }
     }
@@ -147,6 +146,13 @@ class DriveTrain : IModule {
 
                 var rx = -gamepadData.right_stick_x.toDouble()
 
+                fun calcDeathZone(value: Double, death: Double) = if (abs(value) < death) 0.0 else
+                    (value - sign(value) * death) / (1.0 - death)
+
+                ly = calcDeathZone(ly, Configs.DRIVE_TRAIN.X_DEATH_ZONE)
+                lx = calcDeathZone(lx, Configs.DRIVE_TRAIN.Y_DEATH_ZONE)
+                rx = calcDeathZone(rx, Configs.DRIVE_TRAIN.H_DEATH_ZONE)
+
                 if (Configs.DRIVE_TRAIN.POW_MOVE_ENABLED) {
                     ly = sign(ly) * (4.0 * (abs(ly) - 0.5).pow(3.0) + 0.5)
                     lx = sign(lx) * (4.0 * (abs(lx) - 0.5).pow(3.0) + 0.5)
@@ -165,7 +171,7 @@ class DriveTrain : IModule {
                                     Angle.ofDeg(90.0)).angle
                             else
                                 (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle
-                        ),
+                        ) * Vec2(if (_currentMode == DriveMode.SHOOTING) Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY else 1.0),
                         rx
                     )
                 )
@@ -181,7 +187,7 @@ class DriveTrain : IModule {
 
                 _hardwareDriveTrain.currentMode = HardwareDriveTrain.DriveTrainMode.REGULATOR
 
-                if(it.mode == DriveMode.PARKING)
+                if (it.mode == DriveMode.PARKING)
                     _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.parkingOrientation
 
                 _xRegulator.start()
@@ -208,14 +214,14 @@ class DriveTrain : IModule {
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             ThreadedGamepad.createClickDownListener(
-            { it.dpad_down },
-            {
-                if (_currentMode == DriveMode.DRIVE)
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.PARKING))
-                else if(_currentMode == DriveMode.PARKING)
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
-            }
-        ))
+                { it.dpad_down },
+                {
+                    if (_currentMode == DriveMode.DRIVE)
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.PARKING))
+                    else if (_currentMode == DriveMode.PARKING)
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
+                }
+            ))
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestDriveModeEvent::class, {
             it.mode = _currentMode

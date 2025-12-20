@@ -155,6 +155,15 @@ object Configs {
 
         @JvmField
         var BLUE_PARKING_ORIENTATION = Orientation(Vec2(0.9, 0.93), Angle.ofDeg(-90.0))
+
+        @JvmField
+        var X_DEATH_ZONE = 0.05
+
+        @JvmField
+        var Y_DEATH_ZONE = 0.05
+
+        @JvmField
+        var H_DEATH_ZONE = 0.05
     }
 
     @Config
