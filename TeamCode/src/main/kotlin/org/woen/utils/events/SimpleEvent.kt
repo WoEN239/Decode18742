@@ -1,68 +1,39 @@
 package org.woen.utils.events
 
-import kotlinx.coroutines.runBlocking
-import org.woen.utils.smartMutex.SmartMutex
+import java.util.concurrent.CopyOnWriteArrayList
 
 class SimpleEvent<T> {
-    private val listeners = mutableSetOf<(T) -> Unit>()
-
-    private val _listenersMutex = SmartMutex()
+    private val listeners = CopyOnWriteArrayList<(T) -> Unit>()
 
     operator fun plusAssign(listener: (T) -> Unit) {
-        runBlocking {
-            _listenersMutex.smartLock {
-                listeners.add(listener)
-            }
-        }
+        listeners.add(listener)
     }
 
     operator fun minusAssign(listener: (T) -> Unit) {
-        runBlocking {
-            _listenersMutex.smartLock {
-                if (listeners.contains(listener))
-                    listeners.remove(listener)
-            }
-        }
+        if (listeners.contains(listener))
+            listeners.remove(listener)
     }
 
     operator fun invoke(data: T) {
-        runBlocking {
-            _listenersMutex.smartLock {
-                for (i in listeners)
-                    i.invoke(data)
-            }
-        }
+        for (i in listeners)
+            i.invoke(data)
     }
 }
 
 class SimpleEmptyEvent {
-    private val listeners = mutableSetOf<() -> Unit>()
-
-    private val _listenersMutex = SmartMutex()
+    private val listeners = CopyOnWriteArrayList<() -> Unit>()
 
     operator fun plusAssign(listener: () -> Unit) {
-        runBlocking {
-            _listenersMutex.smartLock {
-                listeners.add(listener)
-            }
-        }
+        listeners.add(listener)
     }
 
     operator fun minusAssign(listener: () -> Unit) {
-        runBlocking {
-            _listenersMutex.smartLock {
-                if (listeners.contains(listener))
-                    listeners.remove(listener)
-            }
-        }
+        if (listeners.contains(listener))
+            listeners.remove(listener)
     }
 
     operator fun invoke() {
-        runBlocking {
-            _listenersMutex.smartLock {
-                for (i in listeners)
-                    i.invoke()
-            }
-        }
+        for (i in listeners)
+            i.invoke()
     }
 }
