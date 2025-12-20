@@ -84,16 +84,12 @@ class Camera : DisposableHandle {
                 OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
 
             HotRun.LAZY_INSTANCE.opModeInitEvent += {
-                val helpCameraProcessor = HelpCameraProcessor()
-
                 _aprilProcessor =
                     AprilTagProcessor.Builder().setDrawAxes(true).build()
 
                 _visionPortal =
                     VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
-                        .addProcessors(_aprilProcessor, helpCameraProcessor).build()
-
-                FtcDashboard.getInstance().startCameraStream(helpCameraProcessor, 10.0)
+                        .addProcessors(_aprilProcessor).build()
             }
 
             HotRun.LAZY_INSTANCE.opModeStopEvent += {

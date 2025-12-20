@@ -625,10 +625,6 @@ object Configs {
 
     @Config
     internal object SIMPLE_STORAGE {
-
-        @JvmField
-        var BELT_PUSH_TIME = 0.15
-
         @JvmField
         var LOOK_DELAY_TIME = 0.09
 
