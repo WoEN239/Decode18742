@@ -112,7 +112,7 @@ class SortingStorage
                 val tryToStartLazyIntake = _storageLogic.canStartIntakeIsNotBusy()
                 it.startingResult = tryToStartLazyIntake
 
-                if (tryToStartLazyIntake != Intake.IS_BUSY)
+                if (tryToStartLazyIntake != Intake.FAIL_IS_BUSY)
                     SmartCoroutineLI.launch {
                         startLazyIntake()
                     }
@@ -228,7 +228,7 @@ class SortingStorage
     suspend fun tryStartLazyIntake()
     {
         if (!_storageLogic.storageCells.alreadyFull()
-            && _storageLogic.canStartIntakeIsNotBusy() != Intake.IS_BUSY)
+            && _storageLogic.canStartIntakeIsNotBusy() != Intake.FAIL_IS_BUSY)
             startLazyIntake()
     }
     suspend fun startLazyIntake()
@@ -256,7 +256,7 @@ class SortingStorage
 
     suspend fun handleIntake(inputBall: Ball.Name):        IntakeResult.Name
     {
-        if (_storageLogic.storageCells.alreadyFull()) return Intake.IS_FULL
+        if (_storageLogic.storageCells.alreadyFull()) return Intake.FAIL_IS_FULL
 
         if (_storageLogic.noIntakeRaceConditionProblems(INTAKE))
         {

@@ -1,6 +1,7 @@
 package org.woen.enumerators
 
-import org.woen.telemetry.Configs.GENERIC
+
+import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
 
 
@@ -73,7 +74,7 @@ class Shooting
 
         fun requestedBallCount(patternId: Name): Int
             = if (patternId == Name.ANY_TWO_IDENTICAL_COLORS) 2
-            else GENERIC.MAX_BALL_COUNT
+            else MAX_BALL_COUNT
 
 
         fun tryConvertToPatternSequence(patternName: Name): Array<BallRequest.Name>?

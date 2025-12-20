@@ -13,7 +13,6 @@ import org.woen.enumerators.RequestResult
 import org.woen.enumerators.Shooting
 
 import org.woen.hotRun.HotRun
-import org.woen.threading.ThreadedEventBus
 
 import org.woen.modules.scoringSystem.storage.sorting.DynamicPattern
 
@@ -22,8 +21,12 @@ import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
+import org.woen.modules.scoringSystem.storage.Alias.Request
+import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
+import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
+import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
+
 import org.woen.telemetry.Configs.DELAY
-import org.woen.telemetry.Configs.GENERIC
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.DEFAULT_PATTERN
 import org.woen.telemetry.Configs.SORTING_SETTINGS.DEFAULT_SHOOTING_MODE
@@ -33,7 +36,7 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.FAILSAFE_SHOOTING_MODE
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.MAX_ATTEMPTS_FOR_PATTERN_DETECTION
 import org.woen.telemetry.Configs.SORTING_SETTINGS.MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS
-import org.woen.telemetry.ThreadedTelemetry
+
 
 
 class DefaultFireEvent()
@@ -61,7 +64,7 @@ class SortingAutoLogic
 
     private fun subscribeToPatternDetectionEvents()
     {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+        EventBusLI.subscribe(
             OnPatternDetectedEvent::class, {
                 _pattern.setPermanent(it.pattern.subsequence)
                 _patternWasDetected.set(true)
@@ -69,7 +72,7 @@ class SortingAutoLogic
     }
     private fun subscribeToDefaultFiringEvent()
     {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+        EventBusLI.subscribe(
             DefaultFireEvent::class, {
                 firePattern()
         }   )
@@ -88,7 +91,7 @@ class SortingAutoLogic
         = _patternDetectionAttempts.get() < MAX_ATTEMPTS_FOR_PATTERN_DETECTION
     private suspend fun tryGetPattern(): Boolean
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Waiting for detected pattern")
+        TelemetryLI.log("SAL - Waiting for detected pattern")
 
         val waitDuration = ElapsedTime()
         _patternDetectionAttempts.getAndAdd(1)
@@ -97,19 +100,19 @@ class SortingAutoLogic
         {
             if (_patternWasDetected.get())
             {
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL: Pattern detected successfully")
+                TelemetryLI.log("SAL: Pattern detected successfully")
 
                 var patternString = "SAL pattern: "
                 for (nextColorInPattern in _pattern.permanent())
                     patternString += "$nextColorInPattern, "
-                ThreadedTelemetry.LAZY_INSTANCE.log(patternString)
+                TelemetryLI.log(patternString)
 
                 return true
             }
             delay(DELAY.EVENT_AWAITING_MS)
         }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("SAL: Failed to get pattern")
+        TelemetryLI.log("SAL: Failed to get pattern")
         return false
     }
 
@@ -117,7 +120,7 @@ class SortingAutoLogic
 
     private suspend fun firePattern()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Choosing default")
+        TelemetryLI.log("SAL - Choosing default")
 
         if (DEFAULT_SHOOTING_MODE == Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE)
             fireEverything()
@@ -126,18 +129,18 @@ class SortingAutoLogic
         {
             Shooting.StockPattern.Name.USE_DETECTED_PATTERN ->
             {
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default trying: fire detected pattern")
+                TelemetryLI.log("SAL - Default trying: fire detected pattern")
                 if (_patternWasDetected.get()
                     || canTryDetectPattern() && tryGetPattern())
                 {
-                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default decided: Fire detected pattern")
+                    TelemetryLI.log("SAL - Default decided: Fire detected pattern")
 
                     var patternString = "SAL pattern: "
                     for (nextColorInPattern in _pattern.permanent())
                         patternString += "$nextColorInPattern, "
-                    ThreadedTelemetry.LAZY_INSTANCE.log(patternString)
+                    TelemetryLI.log(patternString)
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         StorageGiveDrumRequest(
                             DEFAULT_SHOOTING_MODE,
                             _pattern.permanent()
@@ -151,18 +154,18 @@ class SortingAutoLogic
             {
                 val ballCount = Shooting.StockPattern.requestedBallCount(
                     DEFAULT_PATTERN)
-                val storageBalls = ThreadedEventBus.LAZY_INSTANCE.invoke(
+                val storageBalls = EventBusLI.invoke(
                     StorageHandleIdenticalColorsEvent(
                         ballCount, Ball.Name.NONE
                 )   )
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default decided: Fire identical colors: $ballCount")
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - got - identical count: " +
+                TelemetryLI.log("SAL - Default decided: Fire identical colors: $ballCount")
+                TelemetryLI.log("SAL - got - identical count: " +
                         "${storageBalls.maxIdenticalColorCount}, " +
                         "identical color: ${storageBalls.identicalColor}")
 
                 if (storageBalls.maxIdenticalColorCount >= ballCount)
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         StorageGiveDrumRequest(
                             DEFAULT_SHOOTING_MODE,
                             Array(storageBalls.maxIdenticalColorCount)
@@ -178,14 +181,14 @@ class SortingAutoLogic
                 val convertedPattern = Shooting.StockPattern.
                     tryConvertToPatternSequence(DEFAULT_PATTERN)!!
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Default decided: Fire custom pattern")
+                TelemetryLI.log("SAL - Default decided: Fire custom pattern")
 
                 var patternString = "SAL pattern: "
                 for (nextColorInPattern in _pattern.permanent())
                     patternString += "$nextColorInPattern, "
-                ThreadedTelemetry.LAZY_INSTANCE.log(patternString)
+                TelemetryLI.log(patternString)
 
-                ThreadedEventBus.LAZY_INSTANCE.invoke(
+                EventBusLI.invoke(
                     StorageGiveDrumRequest(
                         DEFAULT_SHOOTING_MODE,
                         convertedPattern
@@ -195,7 +198,7 @@ class SortingAutoLogic
     }
     private suspend fun fireFailsafe()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Choosing failsafe")
+        TelemetryLI.log("SAL - Choosing failsafe")
 
         if (FAILSAFE_SHOOTING_MODE == Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE)
             fireEverything()
@@ -204,26 +207,26 @@ class SortingAutoLogic
         {
             Shooting.StockPattern.Name.USE_DETECTED_PATTERN ->
             {
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe trying: fire detected pattern")
+                TelemetryLI.log("SAL - Failsafe trying: fire detected pattern")
 
                 if (_patternWasDetected.get()
                     || canTryDetectPattern() && tryGetPattern())
                 {
-                    ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe decided: Fire detected pattern")
+                    TelemetryLI.log("SAL - Failsafe decided: Fire detected pattern")
 
                     var patternString = "SAL pattern: "
                     for (nextColorInPattern in _pattern.permanent())
                         patternString += "$nextColorInPattern, "
 
-                    ThreadedTelemetry.LAZY_INSTANCE.log(patternString)
+                    TelemetryLI.log(patternString)
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         StorageGiveDrumRequest(
                             FAILSAFE_SHOOTING_MODE,
                             _pattern.permanent()
                     )   )
                 }
-                else sendFinishedFiringEvent(RequestResult.Name.FAIL_COULD_NOT_DETECT_PATTERN)
+                else sendFinishedFiringEvent(Request.COULD_NOT_DETECT_PATTERN)
             }
 
             Shooting.StockPattern.Name.ANY_TWO_IDENTICAL_COLORS,
@@ -231,18 +234,18 @@ class SortingAutoLogic
             {
                 val ballCount = Shooting.StockPattern.requestedBallCount(
                     DEFAULT_PATTERN)
-                val storageBalls = ThreadedEventBus.LAZY_INSTANCE.invoke(
+                val storageBalls = EventBusLI.invoke(
                     StorageHandleIdenticalColorsEvent(
                         0, Ball.Name.NONE
                 )   )
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe decided: Fire identical colors: $ballCount")
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - got - identical count: " +
+                TelemetryLI.log("SAL - Failsafe decided: Fire identical colors: $ballCount")
+                TelemetryLI.log("SAL - got - identical count: " +
                         "${storageBalls.maxIdenticalColorCount}, " +
                         "identical color: ${storageBalls.identicalColor}")
 
                 if (storageBalls.maxIdenticalColorCount >= ballCount)
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         StorageGiveDrumRequest(
                             FAILSAFE_SHOOTING_MODE,
                             Array(storageBalls.maxIdenticalColorCount)
@@ -250,7 +253,7 @@ class SortingAutoLogic
                                 Ball.toBallRequestName(storageBalls.identicalColor)
                             }
                     )   )
-                else sendFinishedFiringEvent(RequestResult.Name.FAIL_NOT_ENOUGH_COLORS)
+                else sendFinishedFiringEvent(Request.NOT_ENOUGH_COLORS)
             }
 
             else ->
@@ -258,15 +261,15 @@ class SortingAutoLogic
                 val convertedPattern = Shooting.StockPattern.
                     tryConvertToPatternSequence(FAILSAFE_PATTERN)!!
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Failsafe decided: Fire custom pattern")
+                TelemetryLI.log("SAL - Failsafe decided: Fire custom pattern")
 
                 var patternString = "SAL pattern: "
                 for (nextColorInPattern in _pattern.permanent())
                     patternString += "$nextColorInPattern, "
 
-                ThreadedTelemetry.LAZY_INSTANCE.log(patternString)
+                TelemetryLI.log(patternString)
 
-                ThreadedEventBus.LAZY_INSTANCE.invoke(
+                EventBusLI.invoke(
                     StorageGiveDrumRequest(
                         DEFAULT_SHOOTING_MODE,
                         convertedPattern
@@ -276,12 +279,12 @@ class SortingAutoLogic
     }
     private fun fireEverything()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - ? Decided: Fire everything")
+        TelemetryLI.log("SAL - ? Decided: Fire everything")
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        EventBusLI.invoke(
             StorageGiveDrumRequest(
                 Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE,
-                Array(GENERIC.MAX_BALL_COUNT)
+                Array(MAX_BALL_COUNT)
                 {
                     BallRequest.Name.ANY_CLOSEST
                 }
@@ -290,9 +293,9 @@ class SortingAutoLogic
 
     private fun sendFinishedFiringEvent(requestResult: RequestResult.Name)
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("SAL - Shooting stopped, fail reason: $requestResult")
+        TelemetryLI.log("SAL - Shooting stopped, fail reason: $requestResult")
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        EventBusLI.invoke(
             FullFinishedFiringEvent(
                 requestResult
         )   )

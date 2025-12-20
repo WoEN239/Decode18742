@@ -82,7 +82,7 @@ class SortingStorageLogic
             return Intake.STARTED_SUCCESSFULLY
 
         resumeLogicAfterIntake(LAZY_INTAKE)
-        return Intake.IS_BUSY
+        return Intake.FAIL_IS_BUSY
     }
     suspend fun safeSortIntake(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
     {

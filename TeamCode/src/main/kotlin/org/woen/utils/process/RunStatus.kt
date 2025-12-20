@@ -2,13 +2,13 @@ package org.woen.utils.process
 
 
 import org.woen.telemetry.Configs
-import org.woen.telemetry.Configs.GENERIC.NOTHING
+import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 
 
 
 class RunStatus
 {
-    private var _prioritySetting: Priority = Priority.PRIORITIZE_HIGH_PROCESS_ID
+    private var _prioritySetting = Priority.PRIORITIZE_HIGH_PROCESS_ID
 
     private var _currentActiveProcessId = Configs.PROCESS_ID.UNDEFINED_PROCESS_ID
     private val _processQueue    = ArrayList<Int>()

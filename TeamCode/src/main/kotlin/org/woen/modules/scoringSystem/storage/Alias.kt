@@ -18,9 +18,10 @@ object Alias
 {
     object Intake
     {
-        val TERMINATED = IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
-        val IS_BUSY = IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
-        val IS_FULL = IntakeResult.Name.FAIL_STORAGE_IS_FULL
+        val TERMINATED   = IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
+        val FAIL_UNKNOWN = IntakeResult.Name.FAIL_UNKNOWN
+        val FAIL_IS_BUSY = IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
+        val FAIL_IS_FULL = IntakeResult.Name.FAIL_STORAGE_IS_FULL
 
         val STARTED_SUCCESSFULLY = IntakeResult.Name.STARTED_SUCCESSFULLY
         val SUCCESS = IntakeResult.Name.SUCCESS
@@ -40,11 +41,13 @@ object Alias
 
         val TERMINATED = RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
 
-        val FAIL_UNKNOWN = RequestResult.Name.FAIL_UNKNOWN
+        val FAIL_UNKNOWN  = RequestResult.Name.FAIL_UNKNOWN
         val FAIL_IS_EMPTY = RequestResult.Name.FAIL_IS_EMPTY
+        val FAIL_IS_BUSY  = RequestResult.Name.FAIL_IS_CURRENTLY_BUSY
         val ILLEGAL_ARGUMENT  = RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
         val COLOR_NOT_PRESENT = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
         val NOT_ENOUGH_COLORS = RequestResult.Name.FAIL_NOT_ENOUGH_COLORS
+        val COULD_NOT_DETECT_PATTERN = RequestResult.Name.FAIL_COULD_NOT_DETECT_PATTERN
 
 
         val SEARCH_ORDER = Configs.SORTING_SETTINGS.PREFERRED_REQUEST_SLOT_SEARCHING_ORDER

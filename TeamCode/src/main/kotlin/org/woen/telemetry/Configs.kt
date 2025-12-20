@@ -457,7 +457,7 @@ object Configs {
 
 
         @JvmField
-        var ONE_BALL_PUSHING_MS: Long = 350
+        var ONE_BALL_PUSHING_MS: Long = 411
 
         @JvmField
         var SORTING_REALIGNING_FORWARD_MS: Long = 35
@@ -474,15 +474,6 @@ object Configs {
     }
 
 
-
-    internal object GENERIC {
-
-        const val MAX_BALL_COUNT = 3
-
-        const val STORAGE_SLOT_COUNT = 4
-
-        const val NOTHING = 0
-    }
 
 
 
@@ -577,10 +568,10 @@ object Configs {
 
 
         @JvmField
-        var POWER_FOR_FAST_BELT_ROTATING = 12.0
+        var POWER_FOR_FAST_BELT_ROTATING = 11.0
 
         @JvmField
-        var POWER_FOR_SLOW_BELT_ROTATING = 9.0
+        var POWER_FOR_SLOW_BELT_ROTATING = 8.0
 
         @JvmField
         var TURRET_GATE_SERVO_OPEN_VALUE = 0.4

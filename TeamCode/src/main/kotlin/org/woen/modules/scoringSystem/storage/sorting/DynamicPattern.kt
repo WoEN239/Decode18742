@@ -4,13 +4,13 @@ package org.woen.modules.scoringSystem.storage.sorting
 import kotlin.math.min
 
 import org.woen.enumerators.BallRequest
-import org.woen.telemetry.Configs.GENERIC
+import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
 
 
 class DynamicPattern
 {
-    private var _permanentPattern = arrayOf<BallRequest.Name>()
+    private var _permanentPattern = arrayOf    <BallRequest.Name>()
     private var _temporaryPattern = arrayListOf<BallRequest.Name>()
 
 
@@ -42,7 +42,7 @@ class DynamicPattern
     fun addToTemporary()
     {
         val tempCount = _temporaryPattern.size
-        if (tempCount >= GENERIC.MAX_BALL_COUNT) _temporaryPattern.clear()
+        if (tempCount >= MAX_BALL_COUNT) _temporaryPattern.clear()
 
         if (tempCount < _permanentPattern.size)
             _temporaryPattern.add(_permanentPattern[tempCount])
@@ -62,7 +62,7 @@ class DynamicPattern
                         pattern: Array<BallRequest.Name>)
             : Array<BallRequest.Name>
         {
-            val newPatternLength = min(GENERIC.MAX_BALL_COUNT, lastUnfinished.size + pattern.size)
+            val newPatternLength = min(MAX_BALL_COUNT, lastUnfinished.size + pattern.size)
             val newPattern = Array(newPatternLength) { BallRequest.Name.NONE }
 
             var curRequestId = 0
