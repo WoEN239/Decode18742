@@ -493,7 +493,7 @@ object Configs {
         var ALWAYS_TRY_PREDICT_SORTING = true
 
         @JvmField
-        var MINIMAL_VALID_SEQUENCE_FOR_PREDICT_SORTING = 0.75
+        var MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING = 0.75
 
         @JvmField
         var START_WEIGHT_FOR_PREDICT_SORT = 0.0
@@ -540,14 +540,14 @@ object Configs {
 
 
         @JvmField
-        var PREFERRED_INTAKE_SLOT_ORDER = arrayOf(
+        var PREFERRED_INTAKE_SLOT_SEARCHING_ORDER = arrayOf(
             StorageSlot.BOTTOM,
             StorageSlot.CENTER,
             StorageSlot.TURRET,
             StorageSlot.MOBILE)
 
         @JvmField
-        var PREFERRED_REQUEST_SLOT_ORDER = arrayOf(
+        var PREFERRED_REQUEST_SLOT_SEARCHING_ORDER = arrayOf(
             StorageSlot.TURRET,
             StorageSlot.CENTER,
             StorageSlot.BOTTOM,

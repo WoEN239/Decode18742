@@ -9,6 +9,10 @@ import org.woen.enumerators.RequestResult
 
 import org.woen.enumerators.StorageSlot
 
+import org.woen.modules.scoringSystem.storage.Alias.Intake
+import org.woen.modules.scoringSystem.storage.Alias.Request
+import org.woen.modules.scoringSystem.storage.Alias.ShortScale
+
 import org.woen.telemetry.ThreadedTelemetry
 
 import org.woen.telemetry.Configs.DELAY
@@ -21,11 +25,8 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.TRUE_MATCH_WEIGHT
 import org.woen.telemetry.Configs.SORTING_SETTINGS.PSEUDO_MATCH_WEIGHT
 import org.woen.telemetry.Configs.SORTING_SETTINGS.START_WEIGHT_FOR_PREDICT_SORT
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.PREFERRED_INTAKE_SLOT_ORDER
-import org.woen.telemetry.Configs.SORTING_SETTINGS.PREFERRED_REQUEST_SLOT_ORDER
-
 import org.woen.telemetry.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
-import org.woen.telemetry.Configs.SORTING_SETTINGS.MINIMAL_VALID_SEQUENCE_FOR_PREDICT_SORTING
+import org.woen.telemetry.Configs.SORTING_SETTINGS.MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
@@ -53,6 +54,8 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
  */
 
 
+
+class CountPGA(var purple: Int, var green: Int, var any: Int = NOTHING)
 class PredictSortResult(var totalRotations: Int, var maxSequenceScore: Double)
 
 
@@ -78,18 +81,15 @@ class StorageCells
 
     fun handleIntake(): IntakeResult
     {
-        val result = IntakeResult(
-            IntakeResult.FAIL_STORAGE_IS_FULL,
-            IntakeResult.Name.FAIL_STORAGE_IS_FULL
-        )
+        val result = Intake.F_IS_FULL
         if (alreadyFull()) return result
 
         var curSlotId = StorageSlot.BOTTOM
         while (curSlotId < MAX_BALL_COUNT)
         {
-            if (_storageCells[PREFERRED_INTAKE_SLOT_ORDER[curSlotId]].isEmpty())
+            if (_storageCells[Intake.SEARCH_ORDER[curSlotId]].isEmpty())
             {
-                result.set(PREFERRED_INTAKE_SLOT_ORDER[curSlotId])
+                result.set(Intake.SEARCH_ORDER[curSlotId])
                 curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
@@ -98,15 +98,10 @@ class StorageCells
         return result
     }
 
-    suspend fun handleRequest(requestName: BallRequest.Name): RequestResult
+    suspend fun handleRequest(name: BallRequest.Name): RequestResult
     {
-        val request = BallRequest(requestName)
-
-        if (request.isNone())
-            return RequestResult(
-                RequestResult.FAIL_ILLEGAL_ARGUMENT,
-                RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
-            )
+        val request = BallRequest(name)
+        if (request.isNone()) return Request.F_ILLEGAL_ARGUMENT
 
         hwReAdjustStorage()
 
@@ -124,25 +119,18 @@ class StorageCells
     }
     private fun requestSearch(requested: Ball.Name): RequestResult
     {
-        if (isEmpty())
-            return RequestResult(
-                RequestResult.FAIL_IS_EMPTY,
-                RequestResult.Name.FAIL_IS_EMPTY)
-
         ThreadedTelemetry.LAZY_INSTANCE.log("starting request search: ${requested}, storage:")
         logAllStorageData()
 
-        val result = RequestResult(
-            RequestResult.FAIL_COLOR_NOT_PRESENT,
-            RequestResult.Name.FAIL_COLOR_NOT_PRESENT
-        )
+        if (isEmpty()) return Request.F_IS_EMPTY
+        val result = Request.F_COLOR_NOT_PRESENT
 
         var curSlotId = StorageSlot.BOTTOM
         while (curSlotId < STORAGE_SLOT_COUNT)
         {
-            if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].name() == requested)
+            if (_storageCells[Request.SEARCH_ORDER[curSlotId]].name() == requested)
             {
-                result.set(PREFERRED_REQUEST_SLOT_ORDER[curSlotId])
+                result.set(Request.SEARCH_ORDER[curSlotId])
                 curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
@@ -152,24 +140,18 @@ class StorageCells
     }
     private fun anyBallRequestSearch(): RequestResult
     {
-        val result = RequestResult(
-            RequestResult.FAIL_IS_EMPTY,
-            RequestResult.Name.FAIL_IS_EMPTY
-        )
-
         ThreadedTelemetry.LAZY_INSTANCE.log("starting request search: ANY_CLOSEST, storage:")
         logAllStorageData()
 
-
+        val result = Request.F_IS_EMPTY
         if (isEmpty()) return result
-
 
         var curSlotId = StorageSlot.BOTTOM
         while (curSlotId < STORAGE_SLOT_COUNT)
         {
-            if (_storageCells[PREFERRED_REQUEST_SLOT_ORDER[curSlotId]].isFilled())
+            if (_storageCells[Request.SEARCH_ORDER[curSlotId]].isFilled())
             {
-                result.set(PREFERRED_REQUEST_SLOT_ORDER[curSlotId])
+                result.set(Request.SEARCH_ORDER[curSlotId])
                 curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
             }
             curSlotId++
@@ -194,7 +176,7 @@ class StorageCells
             while (requestId < MAX_BALL_COUNT + startRequestId)
             {
                 val curRequest  = requested[(requestId - startRequestId) % MAX_BALL_COUNT]
-                val storageBall = _storageCells[PREFERRED_REQUEST_SLOT_ORDER[requestId % MAX_BALL_COUNT]]
+                val storageBall = _storageCells[Request.SEARCH_ORDER[requestId % MAX_BALL_COUNT]]
 
                 val canMatchRequest = storageBall.name() == curRequest.toBall()
 
@@ -239,7 +221,7 @@ class StorageCells
         val searchResult = predictSortSearch(requestedFullData)
 
         ThreadedTelemetry.LAZY_INSTANCE.log("Best score: ${searchResult.maxSequenceScore}" +
-                ", required min score: $MINIMAL_VALID_SEQUENCE_FOR_PREDICT_SORTING")
+                ", required min score: $MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING")
 
         if (searchResult.maxSequenceScore >= minValidInSequence)
             repeat (searchResult.totalRotations)
@@ -250,8 +232,9 @@ class StorageCells
     }
     suspend fun tryInitiatePredictSort(requested: Array<BallRequest.Name>): Boolean
     {
-        return if (ALWAYS_TRY_PREDICT_SORTING) initiatePredictSort(requested,
-                MINIMAL_VALID_SEQUENCE_FOR_PREDICT_SORTING)
+        return if (ALWAYS_TRY_PREDICT_SORTING)
+            initiatePredictSort(requested,
+                MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING)
         else false
     }
 
@@ -366,6 +349,7 @@ class StorageCells
     suspend fun hwReAdjustStorage()
     {
         hwSortingM.stopAwaitingEating(true)
+
         while (swReAdjustStorage())
             hwSortingM.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS)
     }
@@ -392,7 +376,7 @@ class StorageCells
         var count = NOTHING
         var curSlotId = StorageSlot.BOTTOM
 
-        while (curSlotId < StorageSlot.MOBILE)
+        while (curSlotId < STORAGE_SLOT_COUNT)
         {
             if (_storageCells[curSlotId].isFilled()) count++
             curSlotId++
@@ -430,31 +414,43 @@ class StorageCells
 
         return count
     }
-    fun ballColorCountPG(): IntArray
+    fun ballCountPG(): CountPGA
     {
-        val countPG = intArrayOf(NOTHING, NOTHING, NOTHING)
+        val intPG     = intArrayOf(NOTHING, NOTHING, NOTHING)
         var curSlotId = StorageSlot.BOTTOM
 
         while (curSlotId < StorageSlot.MOBILE)
         {
-            countPG[_storageCells[curSlotId].id()]++
+            intPG[_storageCells[curSlotId].id()]++
             curSlotId++
         }
 
-        return intArrayOf(countPG[Ball.PURPLE], countPG[Ball.GREEN])
+        return toCountPGA(intPG, false)
+    }
+    fun toCountPGA(array: IntArray,
+        includeAbstractAny: Boolean = true) : CountPGA
+    {
+        val abstractAny = if (includeAbstractAny)
+            array[ShortScale.ABSTRACT_ANY] else NOTHING
+
+        return CountPGA(
+            array[ShortScale.PURPLE_ID],
+            array[ShortScale.GREEN_ID],
+                    abstractAny)
     }
 
 
     fun handleIdenticalColorRequest(): StorageHandleIdenticalColorsEvent
     {
-        val currentStorage = ballColorCountPG()
-        val purpleCount = currentStorage[BallRequest.ShortScale.PURPLE]
-        val greenCount  = currentStorage[BallRequest.ShortScale.GREEN]
+        val curStorage  = ballCountPG()
+        val purpleCount = curStorage.purple
+        val greenCount  = curStorage.green
 
         return if (greenCount > purpleCount)
              StorageHandleIdenticalColorsEvent(
                  greenCount,
                  Ball.Name.GREEN)
+
         else StorageHandleIdenticalColorsEvent(
                  purpleCount,
                  Ball.Name.PURPLE)
