@@ -9,17 +9,15 @@ import org.woen.enumerators.RequestResult
 
 import org.woen.enumerators.StorageSlot
 
+import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.ShortScale
+import org.woen.modules.scoringSystem.storage.Alias.NOTHING
+import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
+import org.woen.modules.scoringSystem.storage.Alias.STORAGE_SLOT_COUNT
 
-import org.woen.telemetry.ThreadedTelemetry
-
-import org.woen.telemetry.Configs.DELAY
-
-import org.woen.telemetry.Configs.GENERIC.NOTHING
-import org.woen.telemetry.Configs.GENERIC.MAX_BALL_COUNT
-import org.woen.telemetry.Configs.GENERIC.STORAGE_SLOT_COUNT
+import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRUE_MATCH_WEIGHT
 import org.woen.telemetry.Configs.SORTING_SETTINGS.PSEUDO_MATCH_WEIGHT
@@ -30,6 +28,7 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.MIN_SEQUENCE_SCORE_FOR_PREDIC
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
+
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -119,7 +118,7 @@ class StorageCells
     }
     private fun requestSearch(requested: Ball.Name): RequestResult
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("starting request search: ${requested}, storage:")
+        TelemetryLI.log("starting request search: ${requested}, storage:")
         logAllStorageData()
 
         if (isEmpty()) return Request.F_IS_EMPTY
@@ -140,7 +139,7 @@ class StorageCells
     }
     private fun anyBallRequestSearch(): RequestResult
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("starting request search: ANY_CLOSEST, storage:")
+        TelemetryLI.log("starting request search: ANY_CLOSEST, storage:")
         logAllStorageData()
 
         val result = Request.F_IS_EMPTY
@@ -171,7 +170,7 @@ class StorageCells
             var localMaximum = START_WEIGHT_FOR_PREDICT_SORT
             var requestId = startRequestId
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("search round: $startRequestId")
+            TelemetryLI.log("search round: $startRequestId")
 
             while (requestId < MAX_BALL_COUNT + startRequestId)
             {
@@ -191,7 +190,7 @@ class StorageCells
                 else if (canMatchRequest) localMaximum += TRUE_MATCH_WEIGHT
                 else requestId += MAX_BALL_COUNT
 
-                ThreadedTelemetry.LAZY_INSTANCE.log(
+                TelemetryLI.log(
                     "> requestId: $requestId, direct match: $canMatchRequest\n"
                             + "request ball: ${curRequest.name()}, storage ball: ${storageBall.name()}")
 
@@ -203,13 +202,13 @@ class StorageCells
                 doRotations = startRequestId
                 globalMaximum = localMaximum
 
-                ThreadedTelemetry.LAZY_INSTANCE.log("Found new global maximum: $globalMaximum")
+                TelemetryLI.log("Found new global maximum: $globalMaximum")
             }
 
             startRequestId++
         }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("CELLS: Done searching, max: $globalMaximum, rotations: $doRotations")
+        TelemetryLI.log("CELLS: Done searching, max: $globalMaximum, rotations: $doRotations")
         return PredictSortResult(doRotations, globalMaximum)
     }
     suspend fun initiatePredictSort(requested: Array<BallRequest.Name>,
@@ -217,10 +216,10 @@ class StorageCells
     {
         val requestedFullData = Array(requested.size) { BallRequest(requested[it]) }
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("CELLS: Start predict sort search")
+        TelemetryLI.log("CELLS: Start predict sort search")
         val searchResult = predictSortSearch(requestedFullData)
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("Best score: ${searchResult.maxSequenceScore}" +
+        TelemetryLI.log("Best score: ${searchResult.maxSequenceScore}" +
                 ", required min score: $MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING")
 
         if (searchResult.maxSequenceScore >= minValidInSequence)
@@ -255,13 +254,13 @@ class StorageCells
     {
         hwSortingM.stopAwaitingEating(true)
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("before intake:")
+        TelemetryLI.log("before intake:")
         logAllStorageData()
 
         _storageCells[StorageSlot.BOTTOM].set(inputBall)
         hwReAdjustStorage()
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("finished cells intake, new storage:")
+        TelemetryLI.log("finished cells intake, new storage:")
         logAllStorageData()
 
         hwSortingM.resumeAwaitingEating()
@@ -292,7 +291,7 @@ class StorageCells
 
     suspend fun fullRotate()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("storage before full rotation:")
+        TelemetryLI.log("storage before full rotation:")
         logAllStorageData()
 
         hwSortingM.stopAwaitingEating(true)
@@ -305,14 +304,14 @@ class StorageCells
 
         hwReAdjustStorage()
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("finished full rotation, new storage:")
+        TelemetryLI.log("finished full rotation, new storage:")
         logAllStorageData()
     }
 
 
     private fun swReAdjustStorage(): Boolean
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("SwReadjust start")
+        TelemetryLI.log("SwReadjust start")
         if (_storageCells[StorageSlot.TURRET].isEmpty()
             && isNotEmpty())
         {
@@ -342,7 +341,7 @@ class StorageCells
         }
         else
         {
-            ThreadedTelemetry.LAZY_INSTANCE.log("finished readjusting")
+            TelemetryLI.log("finished readjusting")
             return false
         }
     }
@@ -351,7 +350,7 @@ class StorageCells
         hwSortingM.stopAwaitingEating(true)
 
         while (swReAdjustStorage())
-            hwSortingM.hwForwardBeltsTime(DELAY.ONE_BALL_PUSHING_MS)
+            hwSortingM.hwForwardBeltsTime(Delay.FULL_PUSH)
     }
 
 
@@ -362,7 +361,7 @@ class StorageCells
 
     private fun logAllStorageData()
     {
-        ThreadedTelemetry.LAZY_INSTANCE.log("" +
+        TelemetryLI.log("" +
                 "B:  ${_storageCells[StorageSlot.BOTTOM].name()}; "
               + "C:  ${_storageCells[StorageSlot.CENTER].name()}; "
               + "MO: ${_storageCells[StorageSlot.TURRET].name()}; "

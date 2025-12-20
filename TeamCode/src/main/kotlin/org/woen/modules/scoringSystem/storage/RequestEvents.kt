@@ -5,6 +5,9 @@ import org.woen.enumerators.Shooting
 import org.woen.enumerators.BallRequest
 import org.woen.enumerators.RequestResult
 
+import org.woen.threading.StoppingEvent
+
+
 
 class StorageGiveSingleRequest(
     var ballRequest: BallRequest.Name)
@@ -17,8 +20,7 @@ class StorageGiveDrumRequest(
 
 class StorageInitiatePredictSortEvent(
     var requestedPattern: Array<BallRequest.Name>,
-    var startingResult: Boolean
-)
+    var startingResult: Boolean) : StoppingEvent
 
 
 

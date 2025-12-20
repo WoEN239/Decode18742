@@ -4,6 +4,9 @@ package org.woen.modules.scoringSystem.storage
 import org.woen.enumerators.Ball
 import org.woen.enumerators.IntakeResult
 
+import org.woen.threading.StoppingEvent
+
+
 
 class TerminateIntakeEvent()
 class StorageGetReadyForIntakeEvent(
@@ -11,7 +14,7 @@ class StorageGetReadyForIntakeEvent(
 
 
 data class StartLazyIntakeEvent(
-    var startingResult: IntakeResult.Name)
+    var startingResult: IntakeResult.Name) : StoppingEvent
 class StopLazyIntakeEvent()
 
 class StorageUpdateAfterLazyIntakeEvent(

@@ -4,8 +4,14 @@ package org.woen.modules.scoringSystem.storage
 import org.woen.enumerators.BallRequest
 import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
-import org.woen.telemetry.Configs
+
+import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
+
+import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadedGamepad
+
 
 
 object Alias
@@ -89,11 +95,23 @@ object Alias
 
     object ShortScale
     {
-        const val PURPLE_ID = BallRequest.ShortScale.PURPLE
-        const val GREEN_ID  = BallRequest.ShortScale.GREEN
-        const val ABSTRACT_ANY = BallRequest.ShortScale.ABSTRACT_ANY
+        val PURPLE_ID = BallRequest.ShortScale.PURPLE
+        val GREEN_ID  = BallRequest.ShortScale.GREEN
+        val ABSTRACT_ANY = BallRequest.ShortScale.ABSTRACT_ANY
 
 
         fun to(name: BallRequest.Name) = BallRequest.ShortScale.toShortScale(name)
     }
+
+
+    val GamepadLI   = ThreadedGamepad.LAZY_INSTANCE
+    val EventBusLI  = ThreadedEventBus.LAZY_INSTANCE
+    val TelemetryLI = ThreadedTelemetry.LAZY_INSTANCE
+    val SmartCoroutineLI = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
+
+
+
+    const val NOTHING            = 0
+    const val MAX_BALL_COUNT     = 3
+    const val STORAGE_SLOT_COUNT = 4
 }
