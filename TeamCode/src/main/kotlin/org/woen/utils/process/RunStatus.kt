@@ -1,8 +1,8 @@
 package org.woen.utils.process
 
 
+import kotlin.math.abs
 import org.woen.telemetry.Configs
-import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 
 
 
@@ -23,7 +23,12 @@ class RunStatus
     {
         PRIORITIZE_LOW_PROCESS_ID,
         PRIORITIZE_HIGH_PROCESS_ID,
-        USE_CUSTOM_PRIORITY
+
+        PRIORITIZE_CLOSER_TO_ZERO_FIRST_POSITIVE,
+        PRIORITIZE_CLOSER_TO_ZERO_FIRST_NEGATIVE,
+
+        PRIORITIZE_FARTHER_FROM_ZERO_FIRST_POSITIVE,
+        PRIORITIZE_FARTHER_FROM_ZERO_FIRST_NEGATIVE,
     }
 
 
@@ -72,8 +77,10 @@ class RunStatus
 
     fun isThisProcessHighestPriority(processId: Int): Boolean
     {
-        var maxId = NOTHING
+        var maxId = Int.MIN_VALUE
         var minId = Int.MAX_VALUE
+        var zeroPositive = Int.MAX_VALUE
+        var zeroNegative = Int.MIN_VALUE
         var containsRequestedId = false
 
         for (curProcess in _processQueue)
@@ -82,27 +89,61 @@ class RunStatus
 
             if (curProcess > maxId) maxId = curProcess
             if (curProcess < minId) minId = curProcess
+
+            if (curProcess > 0 && curProcess < zeroPositive)
+                zeroPositive = curProcess
+            if (curProcess < 0 && curProcess > zeroNegative)
+                zeroNegative = curProcess
         }
 
         return containsRequestedId &&
-                (
-                    isPrioritizingLowId()  && processId <= minId
-                    ||
-                    isPrioritizingHighId() && processId >= maxId
-                )
+            processId == returnPrioritized(maxId, minId, zeroPositive, zeroNegative)
     }
     fun getHighestPriorityProcessId(): Int
     {
-        var maxId = NOTHING
+        var maxId = Int.MIN_VALUE
         var minId = Int.MAX_VALUE
+        var zeroPositive = Int.MAX_VALUE
+        var zeroNegative = Int.MIN_VALUE
 
         for (curProcess in _processQueue)
         {
             if (curProcess > maxId) maxId = curProcess
             if (curProcess < minId) minId = curProcess
+
+            if (curProcess > 0 && curProcess < zeroPositive)
+                zeroPositive = curProcess
+            if (curProcess < 0 && curProcess > zeroNegative)
+                zeroNegative = curProcess
         }
-        return if (isPrioritizingHighId()) maxId else minId
+        return returnPrioritized(maxId, minId, zeroPositive, zeroNegative)
     }
+    private fun returnPrioritized(
+        maxId: Int, minId: Int, zeroPositive: Int, zeroNegative: Int): Int
+    {
+        return when (_prioritySetting)
+        {
+            Priority.PRIORITIZE_LOW_PROCESS_ID  -> minId
+            Priority.PRIORITIZE_HIGH_PROCESS_ID -> maxId
+
+            Priority.PRIORITIZE_CLOSER_TO_ZERO_FIRST_POSITIVE ->
+                if  (zeroPositive <= abs(zeroNegative))
+                    zeroPositive
+                else zeroNegative
+            Priority.PRIORITIZE_CLOSER_TO_ZERO_FIRST_NEGATIVE ->
+                if  (abs(zeroNegative) <= zeroPositive)
+                    zeroNegative
+                else zeroPositive
+
+            Priority.PRIORITIZE_FARTHER_FROM_ZERO_FIRST_POSITIVE ->
+                if  (maxId >= abs(minId)) maxId
+                else minId
+            Priority.PRIORITIZE_FARTHER_FROM_ZERO_FIRST_NEGATIVE ->
+                if  (abs(minId) >= maxId) minId
+                else maxId
+        }
+    }
+
 
 
     fun isForcedToTerminateThisProcess(processId: Int) = _terminationList.contains(processId)
@@ -124,8 +165,6 @@ class RunStatus
     fun clearAllTermination() = _terminationList.clear()
 
 
-    fun isPrioritizingLowId()  = _prioritySetting == Priority.PRIORITIZE_LOW_PROCESS_ID
-    fun isPrioritizingHighId() = _prioritySetting == Priority.PRIORITIZE_HIGH_PROCESS_ID
     fun changePrioritySetting(newPrioritySetting: Priority)
     {
         _prioritySetting = newPrioritySetting
