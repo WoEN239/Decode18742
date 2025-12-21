@@ -525,7 +525,7 @@ class SortingStorageLogic
         var timePassedWaiting: Long = NOTHING.toLong()
 
         while (!shotWasFired.get() &&
-            timePassedWaiting < DELAY.MAX_SHOT_AWAITING_MS)
+            timePassedWaiting < DELAY.MAX_SHOT_AWAITING_MS * 2)
         {
             delay(DELAY.EVENT_AWAITING_MS)
             timePassedWaiting += DELAY.EVENT_AWAITING_MS

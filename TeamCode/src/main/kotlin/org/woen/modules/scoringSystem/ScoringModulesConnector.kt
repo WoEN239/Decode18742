@@ -11,6 +11,8 @@ import org.woen.enumerators.BallRequest
 import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.Shooting
+import org.woen.modules.driveTrain.DriveTrain
+import org.woen.modules.driveTrain.SetDriveModeEvent
 
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
@@ -122,7 +124,7 @@ class ScoringModulesConnector
         EventBusLI.subscribe(
             StorageRequestIsReadyEvent::class, {
 
-                currentlyShootingRequestsProcess()
+                readyUpForShooting()
         }   )
 
 
@@ -323,10 +325,8 @@ class ScoringModulesConnector
 
         TelemetryLI.log("SMC: FINISHED - SMART drum request")
 
-        tryRestartBrushes()
-        setIdle()
-        _isAlreadyFiring.set(false)
-        sendFinishedFiringEvent(requestResult)
+
+        resumeLogicAfterShooting(requestResult)
         return requestResult
     }
     private suspend fun startLazyStreamDrumRequest(): RequestResult.Name
@@ -337,14 +337,15 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
+        EventBusLI.invoke(SetDriveModeEvent(
+                DriveTrain.DriveMode.SHOOTING))
+
         TelemetryLI.log("SMC: Started - LazySTREAM drum request")
         val requestResult = _storage.streamDrumRequest()
         TelemetryLI.log("SMC: FINISHED - LazySTREAM drum request")
 
-        tryRestartBrushes()
-        setIdle()
-        _isAlreadyFiring.set(false)
-        sendFinishedFiringEvent(requestResult)
+
+        resumeLogicAfterShooting(requestResult)
         return requestResult
     }
     private suspend fun startSingleRequest(ballRequest: BallRequest.Name): RequestResult.Name
@@ -360,39 +361,28 @@ class ScoringModulesConnector
         val requestResult = _storage.handleRequest(ballRequest)
         TelemetryLI.log("SMC: FINISHED - Single request")
 
-        tryRestartBrushes()
-        setIdle()
-        _isAlreadyFiring.set(false)
-        sendFinishedFiringEvent(requestResult)
+
+        resumeLogicAfterShooting(requestResult)
         return requestResult
     }
 
 
-    private suspend fun currentlyShootingRequestsProcess()
+    private suspend fun readyUpForShooting()
     {
-//        var turretHasAccelerated = EventBusLI.invoke(
-//            RequestTurretAtTargetEvent() ).atTarget
-//
-//        TelemetryLI.log("[&] SMC: Waiting for turret speed")
-//        while (!turretHasAccelerated)
-//        {
-//            delay(EVENT_AWAITING_MS)
-//
-//            turretHasAccelerated = EventBusLI.invoke(
-//                RequestTurretAtTargetEvent() ).atTarget
-//        }
+        EventBusLI.invoke(SetDriveModeEvent(
+            DriveTrain.DriveMode.SHOOTING)).process.wait()
 
-        TelemetryLI.log("[&] SMC: Turret accelerated successfully")
-        awaitSuccessfulRequestShot()
+        TelemetryLI.log("[&] SMC: Drivetrain rotated successfully")
+        awaitShotFiring()
     }
-    private suspend fun awaitSuccessfulRequestShot()
+    private suspend fun awaitShotFiring()
     {
         TelemetryLI.log("SMC - SEND - AWAITING SHOT")
         EventBusLI.invoke(CurrentlyShooting())
         _storage.hwStartBelts()
 
 
-        var timePassedWaitingForShot: Long = NOTHING.toLong()
+        var timePassedWaitingForShot = NOTHING.toLong()
         while (!_shotWasFired.get() && !_requestWasTerminated.get()
             && timePassedWaitingForShot < DELAY.MAX_SHOT_AWAITING_MS)
         {
@@ -421,6 +411,13 @@ class ScoringModulesConnector
         )   )
 
         _storage.tryStartLazyIntake()
+    }
+    private suspend fun resumeLogicAfterShooting(requestResult: RequestResult.Name)
+    {
+        tryRestartBrushes()
+        setIdle()
+        _isAlreadyFiring.set(false)
+        sendFinishedFiringEvent(requestResult)
     }
 
 
