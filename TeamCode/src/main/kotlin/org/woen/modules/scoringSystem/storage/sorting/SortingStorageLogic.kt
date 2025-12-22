@@ -14,7 +14,6 @@ import org.woen.enumerators.RequestResult
 import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
-import org.woen.modules.scoringSystem.storage.Alias.ShortScale
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
@@ -279,9 +278,9 @@ class SortingStorageLogic
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = true): RequestResult.Name
     {
-        var shootingResult = Request.COLOR_NOT_PRESENT
+        var shootingResult  = Request.COLOR_NOT_PRESENT
+        var curRequestId    = NOTHING
 
-        var curRequestId = NOTHING
         while (curRequestId < MAX_BALL_COUNT)
         {
             if (isForcedToTerminate(DRUM_REQUEST))
@@ -341,9 +340,9 @@ class SortingStorageLogic
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = true): RequestResult.Name
     {
-        var shootingResult = Request.COLOR_NOT_PRESENT
+        var shootingResult  = Request.COLOR_NOT_PRESENT
+        var curRequestId    = NOTHING
 
-        var curRequestId = NOTHING
         while (curRequestId < MAX_BALL_COUNT)
         {
             if (isForcedToTerminate(DRUM_REQUEST))
@@ -375,7 +374,7 @@ class SortingStorageLogic
         autoUpdatePatternWhenSucceed: Boolean = true
     ): RequestResult.Name
     {
-        val curStoragePG = storageCells.ballCountPG()
+        val curStoragePG = storageCells.ballCountPGA()
         val requestPGA   = countPGA(requested)
 
         if (canCompleteEntireRequest(curStoragePG, requestPGA))
@@ -394,7 +393,7 @@ class SortingStorageLogic
         autoUpdateUnfinishedWithFailsafe: Boolean = true
     ): RequestResult.Name
     {
-        val curStoragePG = storageCells.ballCountPG()
+        val curStoragePG = storageCells.ballCountPGA()
         var requestPGA   = countPGA(requested)
 
         if (canCompleteEntireRequest(curStoragePG, requestPGA))  //  All good
@@ -426,9 +425,16 @@ class SortingStorageLogic
 
         var curRequestId = NOTHING
         val ballCountInRequest = min(order.size, MAX_BALL_COUNT)
+
         while (curRequestId < ballCountInRequest)
         {
-            intPGAN[ShortScale.to(order[curRequestId])]++
+            intPGAN[
+                BallRequest.toAbstractBallId
+                (
+                    order[curRequestId]
+                )
+            ]++
+
             curRequestId++
         }
         return storageCells.toCountPGA(intPGAN)
@@ -437,21 +443,24 @@ class SortingStorageLogic
     {
         val futureStorage = CountPGA(
             curStoragePG.purple - requestPGA.purple,
-            curStoragePG.green  - requestPGA.green)
+            curStoragePG.green  - requestPGA.green,
+              curStoragePG.any)
 
         return futureStorage.purple >= NOTHING
             && futureStorage.green  >= NOTHING
 
-            && futureStorage.purple + futureStorage.green >= requestPGA.any
+            && futureStorage.purple +
+               futureStorage.green  +
+               futureStorage.any   >= requestPGA.any
     }
     suspend fun shootEntireValidRequestLogic(
         requested: Array<BallRequest.Name>,
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean): RequestResult.Name
     {
-        var shootingResult = Request.FAIL_UNKNOWN
+        var shootingResult  = Request.FAIL_UNKNOWN
+        var curRequestId    = NOTHING
 
-        var curRequestId = NOTHING
         while (curRequestId < MAX_BALL_COUNT)
         {
             if (isForcedToTerminate(DRUM_REQUEST))

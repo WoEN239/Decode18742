@@ -15,37 +15,14 @@ class BallRequest
 
     enum class Name
     {
-        NONE,
         PURPLE,
         GREEN,
 
         PREFER_PURPLE,
         PREFER_GREEN,
-        ANY_CLOSEST
-    }
+        ANY_CLOSEST,
 
-    class ShortScale
-    {
-        companion object
-        {
-            const val PURPLE:       Int = 0
-            const val GREEN:        Int = 1
-            const val ABSTRACT_ANY: Int = 2
-            const val NONE:         Int = 3
-
-            fun toShortScale(name: Name): Int
-            {
-                return when (name)
-                {
-                    Name.PURPLE -> PURPLE
-                    Name.GREEN  -> GREEN
-                    Name.ANY_CLOSEST,
-                    Name.PREFER_PURPLE,
-                    Name.PREFER_GREEN -> ABSTRACT_ANY
-                    Name.NONE -> NONE
-                }
-            }
-        }
+        NONE
     }
 
 
@@ -65,9 +42,7 @@ class BallRequest
 
     fun isNone() = _id == NONE
     fun isAny()  = _id == ANY_CLOSEST
-
-    fun isAbstractAny() = _id > GREEN
-    fun isPreferred()   = _id == PREFER_PURPLE || _id == PREFER_GREEN
+    fun isAbstractAny() = _id > GREEN && _id < NONE
 
 
     fun toBall(): Ball.Name
@@ -76,36 +51,32 @@ class BallRequest
         {
             PURPLE, PREFER_PURPLE -> Ball.Name.PURPLE
             GREEN,  PREFER_GREEN  -> Ball.Name.GREEN
-            else -> Ball.Name.NONE
+
+            ANY_CLOSEST -> Ball.Name.UNKNOWN_COLOR
+            else        -> Ball.Name.NONE
         }
     }
-    fun toInverseBall(): Ball.Name
-    {
-        return when (_id)
-        {
-            PURPLE, PREFER_PURPLE -> Ball.Name.GREEN
-            GREEN,  PREFER_GREEN  -> Ball.Name.PURPLE
-            else -> Ball.Name.NONE
-        }
-    }
+
 
 
     companion object
     {
-        const val NONE:   Int = 0
-        const val PURPLE: Int = 1
-        const val GREEN:  Int = 2
+        const val PURPLE: Int = 0
+        const val GREEN:  Int = 1
 
-        const val PREFER_PURPLE: Int = 3
-        const val PREFER_GREEN:  Int = 4
-        const val ANY_CLOSEST:   Int = 5
+        const val PREFER_PURPLE: Int = 2
+        const val PREFER_GREEN:  Int = 3
+        const val ANY_CLOSEST:   Int = 4
+
+        const val NONE: Int = 5
 
 
-        fun isAbstractAny(id:   Int)  = id > GREEN
+        fun isAbstractAny(id:   Int)  = id > GREEN && id < NONE
         fun isAbstractAny(name: Name) = isAbstractAny(toInt(name))
 
-        fun isPreferred(id:   Int)  = id == PREFER_PURPLE || id == PREFER_GREEN
-        fun isPreferred(name: Name) = isPreferred(toInt(name))
+
+        fun isNone(id:   Int)  = id   == NONE
+        fun isNone(name: Name) = name == Name.NONE
 
 
         fun toName(id:  Int): Name
@@ -119,7 +90,7 @@ class BallRequest
                 PREFER_GREEN  -> Name.PREFER_GREEN
 
                 ANY_CLOSEST -> Name.ANY_CLOSEST
-                else -> Name.NONE
+                else        -> Name.NONE
             }
         }
         fun toInt(name: Name): Int
@@ -133,7 +104,45 @@ class BallRequest
                 Name.PREFER_GREEN  -> PREFER_GREEN
 
                 Name.ANY_CLOSEST -> ANY_CLOSEST
-                else -> NONE
+                Name.NONE        -> NONE
+            }
+        }
+
+        fun toBall(id: Int): Ball.Name
+        {
+            return when (id)
+            {
+                PURPLE, PREFER_PURPLE -> Ball.Name.PURPLE
+                GREEN,  PREFER_GREEN  -> Ball.Name.GREEN
+
+                ANY_CLOSEST -> Ball.Name.UNKNOWN_COLOR
+                else        -> Ball.Name.NONE
+            }
+        }
+        fun toBall(name: Name): Ball.Name
+        {
+            return when (name)
+            {
+                Name.PURPLE, Name.PREFER_PURPLE -> Ball.Name.PURPLE
+                Name.GREEN,  Name.PREFER_GREEN  -> Ball.Name.GREEN
+
+                Name.ANY_CLOSEST -> Ball.Name.UNKNOWN_COLOR
+                Name.NONE        -> Ball.Name.NONE
+            }
+        }
+
+        fun toAbstractBallId(name: Name): Int
+        {
+            return when (name)
+            {
+                Name.PURPLE -> Ball.PURPLE
+                Name.GREEN  -> Ball.GREEN
+
+                Name.PREFER_PURPLE,
+                Name.PREFER_GREEN,
+                Name.ANY_CLOSEST -> Ball.UNKNOWN_COLOR
+
+                Name.NONE        -> Ball.NONE
             }
         }
     }

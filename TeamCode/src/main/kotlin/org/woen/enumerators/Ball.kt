@@ -1,6 +1,10 @@
 package org.woen.enumerators
 
 
+import org.woen.enumerators.BallRequest.Companion.toBall
+import org.woen.enumerators.BallRequest.Companion.isAbstractAny
+
+
 
 class Ball
 {
@@ -15,9 +19,11 @@ class Ball
 
     enum class Name
     {
-        NONE,
         PURPLE,
         GREEN,
+
+        UNKNOWN_COLOR,
+        NONE
     }
 
 
@@ -48,12 +54,28 @@ class Ball
     fun hasBall(name: Name) = _name == name
 
 
+    fun doesMatch(id:  Int)
+        = !isEmpty() &&
+            (
+                isAbstractAny(id) ||
+                hasBall(toBall(id))
+            )
+    fun doesMatch(name: BallRequest.Name)
+        = !isEmpty() &&
+            (
+                isAbstractAny(name) ||
+                hasBall(toBall(name))
+            )
+
+
 
     companion object
     {
-        const val NONE:   Int = 0
-        const val PURPLE: Int = 1
-        const val GREEN:  Int = 2
+        const val PURPLE: Int = 0
+        const val GREEN:  Int = 1
+
+        const val UNKNOWN_COLOR: Int = 2
+        const val NONE:          Int = 3
 
 
         fun toName(id:  Int): Name
@@ -62,7 +84,9 @@ class Ball
             {
                 PURPLE -> Name.PURPLE
                 GREEN  -> Name.GREEN
-                else   -> Name.NONE
+
+                UNKNOWN_COLOR -> Name.UNKNOWN_COLOR
+                else          -> Name.NONE
             }
         }
         fun toInt(name: Name): Int
@@ -71,10 +95,11 @@ class Ball
             {
                 Name.PURPLE -> PURPLE
                 Name.GREEN  -> GREEN
-                Name.NONE   -> NONE
+
+                Name.UNKNOWN_COLOR -> UNKNOWN_COLOR
+                Name.NONE          -> NONE
             }
         }
-
 
         fun toBallRequestName(name: Name): BallRequest.Name
         {
@@ -82,7 +107,9 @@ class Ball
             {
                 Name.PURPLE -> BallRequest.Name.PURPLE
                 Name.GREEN  -> BallRequest.Name.GREEN
-                Name.NONE   -> BallRequest.Name.NONE
+
+                Name.UNKNOWN_COLOR -> BallRequest.Name.ANY_CLOSEST
+                Name.NONE          -> BallRequest.Name.NONE
             }
         }
     }

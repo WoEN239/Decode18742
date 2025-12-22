@@ -1,7 +1,6 @@
 package org.woen.modules.scoringSystem.storage
 
 
-import org.woen.enumerators.BallRequest
 import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 
@@ -96,15 +95,6 @@ object Alias
         val HALF_PUSH = Configs.DELAY.ONE_BALL_PUSHING_MS / 2
     }
 
-    object ShortScale
-    {
-        val PURPLE_ID = BallRequest.ShortScale.PURPLE
-        val GREEN_ID  = BallRequest.ShortScale.GREEN
-        val ABSTRACT_ANY = BallRequest.ShortScale.ABSTRACT_ANY
-
-
-        fun to(name: BallRequest.Name) = BallRequest.ShortScale.toShortScale(name)
-    }
 
 
     val GamepadLI   = ThreadedGamepad.LAZY_INSTANCE
