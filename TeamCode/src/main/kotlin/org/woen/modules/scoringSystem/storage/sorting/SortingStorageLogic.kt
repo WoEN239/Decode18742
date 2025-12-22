@@ -124,7 +124,6 @@ class SortingStorageLogic
 
 
 
-
     private suspend fun rotateToFoundBall(
         requestResult: RequestResult,
         processId: Int): RequestResult
@@ -245,6 +244,7 @@ class SortingStorageLogic
     ): RequestResult.Name
         = shootEntireCanSkipLogic(
             requested,
+            min(requested.size, MAX_BALL_COUNT),
             storageCells
                 .tryInitiatePredictSort(requested),
             autoUpdatePatternWhenSucceed)
@@ -256,10 +256,12 @@ class SortingStorageLogic
     ): RequestResult.Name
     {
         var isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
+        var trimmedRequestSize   = min(requested.size, MAX_BALL_COUNT)
 
         val shootingResult = shootEntireCanSkipLogic(
-            requested, isNowPerfectlySorted,
-            autoUpdatePatternWhenSucceed)
+                requested, trimmedRequestSize,
+                isNowPerfectlySorted,
+                autoUpdatePatternWhenSucceed)
 
         if (Request.didSucceed(shootingResult) ||
             Request.wasTerminated(shootingResult))
@@ -267,21 +269,23 @@ class SortingStorageLogic
         else if (autoUpdateUnfinishedWithFailsafe) dynamicMemoryPattern.setTemporary(failsafe)
 
         isNowPerfectlySorted = storageCells.tryInitiatePredictSort(failsafe)
+        trimmedRequestSize   = min(failsafe.size, MAX_BALL_COUNT)
 
         return shootEntireCanSkipLogic(
-            failsafe,
-            isNowPerfectlySorted,
-            autoUpdateUnfinishedWithFailsafe)
+                failsafe, trimmedRequestSize,
+                isNowPerfectlySorted,
+                autoUpdateUnfinishedWithFailsafe)
     }
     suspend fun shootEntireCanSkipLogic(
         requested: Array<BallRequest.Name>,
+        trimmedRequestSize: Int,
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = true): RequestResult.Name
     {
         var shootingResult  = Request.COLOR_NOT_PRESENT
         var curRequestId    = NOTHING
 
-        while (curRequestId < MAX_BALL_COUNT)
+        while (curRequestId < trimmedRequestSize)
         {
             if (isForcedToTerminate(DRUM_REQUEST))
                 return Request.TERMINATED
@@ -307,6 +311,7 @@ class SortingStorageLogic
     ): RequestResult.Name
         = shootEntireUntilBreaksLogic(
             requested,
+            min(requested.size, MAX_BALL_COUNT),
             storageCells
                 .tryInitiatePredictSort(requested),
             autoUpdatePatternWhenSucceed)
@@ -318,10 +323,12 @@ class SortingStorageLogic
     ): RequestResult.Name
     {
         var isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
+        var trimmedRequestSize   = min(requested.size, MAX_BALL_COUNT)
 
         val shootingResult = shootEntireUntilBreaksLogic(
-            requested, isNowPerfectlySorted,
-            autoUpdatePatternWhenSucceed)
+                requested, trimmedRequestSize,
+                isNowPerfectlySorted,
+                autoUpdatePatternWhenSucceed)
 
         if (Request.didSucceed   (shootingResult) ||
             Request.wasTerminated(shootingResult))
@@ -330,20 +337,23 @@ class SortingStorageLogic
             dynamicMemoryPattern.setTemporary(failsafe)
 
         isNowPerfectlySorted = storageCells.tryInitiatePredictSort(failsafe)
+        trimmedRequestSize   = min(failsafe.size, MAX_BALL_COUNT)
 
         return shootEntireUntilBreaksLogic(
-            failsafe, isNowPerfectlySorted,
-            autoUpdateUnfinishedWithFailsafe)
+                failsafe, trimmedRequestSize,
+                isNowPerfectlySorted,
+                autoUpdateUnfinishedWithFailsafe)
     }
     suspend fun shootEntireUntilBreaksLogic(
         requested: Array<BallRequest.Name>,
+        trimmedRequestSize: Int,
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = true): RequestResult.Name
     {
         var shootingResult  = Request.COLOR_NOT_PRESENT
         var curRequestId    = NOTHING
 
-        while (curRequestId < MAX_BALL_COUNT)
+        while (curRequestId < trimmedRequestSize)
         {
             if (isForcedToTerminate(DRUM_REQUEST))
                 return Request.TERMINATED
@@ -380,6 +390,7 @@ class SortingStorageLogic
         if (canCompleteEntireRequest(curStoragePG, requestPGA))
             return shootEntireValidRequestLogic(
                 requested,
+                min(requested.size, MAX_BALL_COUNT),
                 storageCells
                     .tryInitiatePredictSort(requested),
                 autoUpdatePatternWhenSucceed)
@@ -399,6 +410,7 @@ class SortingStorageLogic
         if (canCompleteEntireRequest(curStoragePG, requestPGA))  //  All good
             return shootEntireValidRequestLogic(
                 requested,
+                min(requested.size, MAX_BALL_COUNT),
                 storageCells
                     .tryInitiatePredictSort(requested),
                 autoUpdatePatternWhenSucceed)
@@ -411,6 +423,7 @@ class SortingStorageLogic
         if (canCompleteEntireRequest(curStoragePG, requestPGA))  //  Failsafe good
             return shootEntireValidRequestLogic(
                 failsafe,
+                min(failsafe.size, MAX_BALL_COUNT),
                 storageCells
                     .tryInitiatePredictSort(failsafe),
                 autoUpdateUnfinishedWithFailsafe)
@@ -455,13 +468,14 @@ class SortingStorageLogic
     }
     suspend fun shootEntireValidRequestLogic(
         requested: Array<BallRequest.Name>,
+        trimmedRequestSize: Int,
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean): RequestResult.Name
     {
         var shootingResult  = Request.FAIL_UNKNOWN
         var curRequestId    = NOTHING
 
-        while (curRequestId < MAX_BALL_COUNT)
+        while (curRequestId < trimmedRequestSize)
         {
             if (isForcedToTerminate(DRUM_REQUEST))
                 return Request.TERMINATED
