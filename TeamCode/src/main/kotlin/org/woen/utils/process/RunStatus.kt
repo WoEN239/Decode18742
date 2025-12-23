@@ -2,7 +2,7 @@ package org.woen.utils.process
 
 
 import kotlin.math.abs
-import org.woen.telemetry.Configs
+import org.woen.telemetry.Configs.PROCESS_ID.UNDEFINED_PROCESS_ID
 
 
 
@@ -10,9 +10,9 @@ class RunStatus
 {
     private var _prioritySetting = Priority.PRIORITIZE_HIGH_PROCESS_ID
 
-    private var _currentActiveProcessId = Configs.PROCESS_ID.UNDEFINED_PROCESS_ID
     private val _processQueue    = ArrayList<Int>()
     private val _terminationList = ArrayList<Int>()
+    private var _currentActiveProcessId = UNDEFINED_PROCESS_ID
 
 
     constructor(prioritySetting: Priority = Priority.PRIORITIZE_HIGH_PROCESS_ID)
@@ -43,7 +43,7 @@ class RunStatus
     fun getCurrentActiveProcess() = _currentActiveProcessId
     fun clearCurrentActiveProcess()
     {
-        _currentActiveProcessId = Configs.PROCESS_ID.UNDEFINED_PROCESS_ID
+        _currentActiveProcessId = UNDEFINED_PROCESS_ID
     }
     fun setCurrentActiveProcess(processId: Int)
     {
@@ -77,6 +77,8 @@ class RunStatus
 
     fun isThisProcessHighestPriority(processId: Int): Boolean
     {
+        if (_processQueue.isEmpty()) return false
+
         var maxId = Int.MIN_VALUE
         var minId = Int.MAX_VALUE
         var zeroPositive = Int.MAX_VALUE
@@ -101,6 +103,8 @@ class RunStatus
     }
     fun getHighestPriorityProcessId(): Int
     {
+        if (_processQueue.isEmpty()) return UNDEFINED_PROCESS_ID
+
         var maxId = Int.MIN_VALUE
         var minId = Int.MAX_VALUE
         var zeroPositive = Int.MAX_VALUE
@@ -156,7 +160,7 @@ class RunStatus
     {
         do
         {
-            val position = _terminationList.indexOf(processId)
+            val position  =     _terminationList.indexOf(processId)
             if (position != -1) _terminationList.removeAt(position)
         }
         while (position != -1)
