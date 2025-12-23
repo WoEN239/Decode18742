@@ -3,6 +3,7 @@ package org.woen.modules.scoringSystem.storage.sorting
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
@@ -28,6 +29,7 @@ import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
+import org.woen.modules.scoringSystem.storage.StopAnyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
@@ -52,7 +54,7 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_RE
 class SortingStorage
 {
     private val _storageLogic = SortingStorageLogic()
-    
+    private val _isCurrentlyKillingIntake = AtomicBoolean(false)
 
 
     constructor()
@@ -213,6 +215,35 @@ class SortingStorage
             if (activeRequestProcessId == SINGLE_REQUEST ||
                 activeRequestProcessId == DRUM_REQUEST)
                 _storageLogic.runStatus.addProcessToTerminationList(activeRequestProcessId)
+        }  )
+
+        EventBusLI.subscribe(StopAnyIntakeEvent::class, {
+
+            if (!_isCurrentlyKillingIntake.get())
+            {
+                _isCurrentlyKillingIntake.set(true)
+                val activeProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
+
+                if (activeProcessId != LAZY_INTAKE &&
+                    activeProcessId != INTAKE)
+                {
+                    _isCurrentlyKillingIntake.set(false)
+                    return@subscribe
+                }
+
+                _storageLogic.lazyIntakeIsActive.set(false)
+
+                if (!_storageLogic.pleaseWaitForIntakeEnd.get())
+                    _storageLogic.runStatus
+                        .addProcessToTerminationList(activeProcessId)
+
+                while (_storageLogic.runStatus
+                        .isUsedByThisProcess(activeProcessId))
+                    delay(DELAY.EVENT_AWAITING_MS)
+
+                _isCurrentlyKillingIntake.set(false)
+                it.intakeStoppingResult = true
+            }
         }   )
     }
 

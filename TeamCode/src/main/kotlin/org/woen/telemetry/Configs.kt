@@ -469,8 +469,13 @@ object Configs {
         var MAX_SHOT_AWAITING_MS: Long = 160
 
 
+
         @JvmField
-        var BETWEEN_INTAKES_MS: Long = 1111
+        var IGNORE_BELTS_CURRENT_AFTER_START_MS: Long = 200
+
+
+        @JvmField
+        var BETWEEN_SHOTS_MS: Long = 333
     }
 
 
@@ -551,7 +556,11 @@ object Configs {
     internal object STORAGE {
 
         @JvmField
-        var SORTING_STORAGE_BELT_MOTORS_DIRECTION = DcMotorSimple.Direction.REVERSE
+        var STORAGE_IS_FULL_BELTS_CURRENT = 8.1
+
+
+        @JvmField
+        var BELT_MOTORS_DIRECTION = DcMotorSimple.Direction.REVERSE
 
 
         @JvmField

@@ -17,5 +17,9 @@ data class StartLazyIntakeEvent(
     var startingResult: IntakeResult.Name) : StoppingEvent
 class StopLazyIntakeEvent()
 
+class StopAnyIntakeEvent(
+    var intakeStoppingResult: Boolean = false) : StoppingEvent
+
+
 class StorageUpdateAfterLazyIntakeEvent(
     var inputFromTurretSlotToBottom: Array<Ball.Name>)

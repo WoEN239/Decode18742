@@ -10,8 +10,7 @@ import org.woen.threading.hardware.HardwareThreads
 
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
-import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
-
+import org.woen.modules.scoringSystem.storage.StopAnyIntakeEvent
 
 
 class HwSortingManager
@@ -20,7 +19,7 @@ class HwSortingManager
     //private val _hwSensors = HwSortingSensors()
 
     val isAwaitingIntake   = AtomicBoolean(false)
-
+    val isStoppingBelts    = AtomicBoolean(false)
 
 
     constructor()
@@ -57,6 +56,18 @@ class HwSortingManager
 //                }
 //            }
 //        }
+
+        _hwSorting.beltsCurrentPeakedEvent +=
+        {
+            if (!isStoppingBelts.get())
+            {
+                isStoppingBelts.set(true)
+
+                EventBusLI.invoke(StopAnyIntakeEvent())
+
+                isStoppingBelts.set(false)
+            }
+        }
     }
     private fun addDevices()
     {

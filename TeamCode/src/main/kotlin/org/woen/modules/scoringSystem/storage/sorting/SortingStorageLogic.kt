@@ -33,11 +33,12 @@ import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAG
 
 class SortingStorageLogic
 {
-    val storageCells = StorageCells()
-    val dynamicMemoryPattern = DynamicPattern()
+    val storageCells           = StorageCells()
+    val dynamicMemoryPattern   = DynamicPattern()
 
-    val shotWasFired       = AtomicBoolean(false)
-    val lazyIntakeIsActive = AtomicBoolean(false)
+    val shotWasFired           = AtomicBoolean(false)
+    val lazyIntakeIsActive     = AtomicBoolean(false)
+    val pleaseWaitForIntakeEnd = AtomicBoolean(false)
 
     val runStatus = RunStatus(PRIORITY_SETTING_FOR_SORTING_STORAGE)
 
@@ -87,7 +88,9 @@ class SortingStorageLogic
     {
         if (intakeResult.didFail()) return intakeResult.name()   //  Intake failed
 
+        pleaseWaitForIntakeEnd.set(true)
         TelemetryLI.log("SSM - Sorting intake")
+
         storageCells.hwReAdjustStorage()
         storageCells.hwSortingM.hwForwardBeltsTime(Delay.HALF_PUSH)
 
@@ -528,6 +531,7 @@ class SortingStorageLogic
     }
     fun resumeLogicAfterIntake(processId: Int)
     {
+        pleaseWaitForIntakeEnd.set(false)
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
         runStatus.clearCurrentActiveProcess()

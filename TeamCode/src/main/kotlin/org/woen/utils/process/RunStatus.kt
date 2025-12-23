@@ -53,12 +53,19 @@ class RunStatus
 
     fun isNotBusy()          =  _processQueue.isEmpty()
     fun isUsedByAnyProcess() = !_processQueue.isEmpty()
-    fun isUsedByAnotherProcess(ourProcessId: Int): Boolean
+    fun isUsedByThisProcess(targetProcessId: Int): Boolean
     {
         for (curProcess in _processQueue)
-            if (curProcess != ourProcessId) return false
+            if (curProcess == targetProcessId) return true
 
-        return true
+        return false
+    }
+    fun isUsedByAnotherProcess(exceptionProcessId: Int): Boolean
+    {
+        for (curProcess in _processQueue)
+            if (curProcess != exceptionProcessId) return true
+
+        return false
     }
 
 

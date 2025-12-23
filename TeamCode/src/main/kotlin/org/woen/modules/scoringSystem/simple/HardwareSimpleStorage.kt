@@ -77,7 +77,7 @@ class HardwareSimpleStorage : IHardwareDevice {
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-            _beltMotor.direction = Configs.STORAGE.SORTING_STORAGE_BELT_MOTORS_DIRECTION
+            _beltMotor.direction = Configs.STORAGE.BELT_MOTORS_DIRECTION
         }
 
 
