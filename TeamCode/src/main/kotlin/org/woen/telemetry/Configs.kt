@@ -564,16 +564,16 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO_OPEN_VALUE = 0.20
+        var GATE_SERVO_OPEN_VALUE = 0.34
 
         @JvmField
-        var GATE_SERVO_CLOSE_VALUE = 1.0
+        var GATE_SERVO_CLOSE_VALUE = 0.71
 
         @JvmField
-        var PUSH_SERVO_OPEN_VALUE = 0.67
+        var PUSH_SERVO_OPEN_VALUE = 0.52
 
         @JvmField
-        var PUSH_SERVO_CLOSE_VALUE = 0.45
+        var PUSH_SERVO_CLOSE_VALUE = 0.65
 
 
         @JvmField
@@ -583,10 +583,10 @@ object Configs {
         var POWER_FOR_SLOW_BELT_ROTATING = 8.0
 
         @JvmField
-        var TURRET_GATE_SERVO_OPEN_VALUE = 0.4
+        var TURRET_GATE_SERVO_OPEN_VALUE = 0.78
 
         @JvmField
-        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.535
+        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.62
     }
 
 
@@ -609,7 +609,7 @@ object Configs {
 
 
         @JvmField
-        var TURRET_GATE_SERVO = "turret_gate_servo"
+        var TURRET_GATE_SERVO = "turretGateServo"
 
 
         @JvmField
@@ -617,7 +617,7 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO = "gate_servo"
+        var GATE_SERVO = "gateServo"
 
         @JvmField
         var PUSH_SERVO = "push_servo"

@@ -11,7 +11,7 @@ import woen239.FixColorSensor.fixSensor
 @TeleOp
 class ColorSensorTest : LinearOpMode() {
     override fun runOpMode() {
-        var sensor = fixSensor(hardwareMap.get("color2") as AdafruitI2cColorSensor)
+        var sensor = fixSensor(hardwareMap.get("colorSensorRight") as AdafruitI2cColorSensor)
 
         val maximumReading =
             (65535.coerceAtMost(1024 * (256 - AMSColorSensor.Parameters.atimeFromMs(24f)))).toDouble()
