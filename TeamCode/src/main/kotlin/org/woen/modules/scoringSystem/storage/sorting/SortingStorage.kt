@@ -17,9 +17,6 @@ import org.woen.modules.camera.OnPatternDetectedEvent
 
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
-import org.woen.modules.scoringSystem.storage.Alias.NOTHING
-import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-
 import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
@@ -251,7 +248,8 @@ class SortingStorage
 
 
 
-    fun hwStartBelts() = _storageLogic.storageCells.hwSortingM.startBelts()
+    suspend fun hwSmartPushNextBall()
+        = _storageLogic.storageCells.hwSortingM.hwSmartPushNextBall()
     fun alreadyFull()  = _storageLogic.storageCells.alreadyFull()
 
 
@@ -336,31 +334,20 @@ class SortingStorage
     suspend fun streamDrumRequest():              RequestResult.Name
     {
         return if (USE_LAZY_VERSION_OF_STREAM_REQUEST)
-             lazyShootEverything()
+             lazyDrumRequest()
         else shootEntireDrumRequest()
     }
-    private suspend fun lazyShootEverything():    RequestResult.Name
+    private suspend fun lazyDrumRequest():       RequestResult.Name
     {
         if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
             return _storageLogic.terminateRequest(DRUM_REQUEST)
 
-        TelemetryLI.log("MODE: Lazy shoot everything")
         _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
-
-        var shotsFired = NOTHING
-        while (shotsFired < MAX_BALL_COUNT)
-        {
-            if (!_storageLogic.fullWaitForShotFired(
-                    DRUM_REQUEST,
-                    false))
-                return Request.TERMINATED
-
-            TelemetryLI.log("shot finished, updating..")
-            shotsFired++
-        }
+        TelemetryLI.log("MODE: LAZY SHOOT EVERYTHING")
+        val requestResult = _storageLogic.lazyShootEverything()
 
         _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
-        return Request.SUCCESS_NOW_EMPTY
+        return requestResult
     }
     private suspend fun shootEntireDrumRequest(): RequestResult.Name
     {

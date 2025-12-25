@@ -170,6 +170,9 @@ class SortingStorageLogic
 
         return if (updateResult.didSucceed())
         {
+            storageCells.hwSortingM.helpPushLastBall.set(
+                storageCells.onlyOneBallLeft())
+
             if (!fullWaitForShotFired(processId, autoUpdatePatternWhenSucceed))
                  Request.TERMINATED
             else if (storageCells.isNotEmpty())
@@ -221,6 +224,25 @@ class SortingStorageLogic
 
 
 
+    suspend fun lazyShootEverything():    RequestResult.Name
+    {
+        var shotsFired = NOTHING
+        while (shotsFired < MAX_BALL_COUNT)
+        {
+            storageCells.hwSortingM.helpPushLastBall.set(
+                shotsFired == MAX_BALL_COUNT - 1)
+
+            if (!fullWaitForShotFired(
+                    DRUM_REQUEST,
+                    false))
+                return Request.TERMINATED
+
+            TelemetryLI.log("shot finished, updating..")
+            shotsFired++
+        }
+
+        return Request.SUCCESS_NOW_EMPTY
+    }
     suspend fun shootEverything(): RequestResult.Name
     {
         var ballCount = storageCells.anyBallCount()
@@ -228,6 +250,8 @@ class SortingStorageLogic
 
         while (ballCount > NOTHING)
         {
+            storageCells.hwSortingM.helpPushLastBall.set(ballCount == 1)
+
             if (!fullWaitForShotFired(
                     DRUM_REQUEST,
                     false))

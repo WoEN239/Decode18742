@@ -20,6 +20,8 @@ class HwSortingManager
 
     val isAwaitingIntake   = AtomicBoolean(false)
     val isStoppingBelts    = AtomicBoolean(false)
+    val helpPushLastBall   = AtomicBoolean(false)
+
 
 
     constructor()
@@ -91,6 +93,7 @@ class HwSortingManager
 
         while (!_hwSorting.gateServo.atTargetAngle
             || !_hwSorting.pushServo.atTargetAngle
+            || !_hwSorting.kickServo.atTargetAngle
             || !_hwSorting.turretGateServo.atTargetAngle)
                 delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
@@ -115,6 +118,26 @@ class HwSortingManager
             delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         TelemetryLI.log("HWSMM: OPENED push")
+    }
+    suspend fun openKick()
+    {
+        TelemetryLI.log("HWSMM: Started OPENING kick")
+        _hwSorting.openKick()
+
+        while (!_hwSorting.kickServo.atTargetAngle)
+            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+
+        TelemetryLI.log("HWSMM: OPENED kick")
+    }
+    suspend fun closeKick()
+    {
+        TelemetryLI.log("HWSMM: Started CLOSING kick")
+        _hwSorting.closeKick()
+
+        while (!_hwSorting.kickServo.atTargetAngle)
+            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+
+        TelemetryLI.log("HWSMM: CLOSED kick")
     }
     suspend fun closeGateWithPush()
     {
@@ -205,5 +228,16 @@ class HwSortingManager
 
         delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 4)
         closeGateWithPush()
+    }
+
+    suspend fun hwSmartPushNextBall()
+    {
+        startBelts()
+
+        if (helpPushLastBall.get())
+        {
+            openKick()
+            helpPushLastBall.set(false)
+        }
     }
 }

@@ -359,6 +359,7 @@ class StorageCells
         return count
     }
     fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT
+    fun onlyOneBallLeft() = anyBallCount() == 1
     fun isEmpty(): Boolean
     {
         return _storageCells[StorageSlot.BOTTOM].isEmpty()

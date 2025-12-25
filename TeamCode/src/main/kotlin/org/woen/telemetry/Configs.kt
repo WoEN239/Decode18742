@@ -565,15 +565,19 @@ object Configs {
 
         @JvmField
         var GATE_SERVO_OPEN_VALUE = 0.34
-
         @JvmField
         var GATE_SERVO_CLOSE_VALUE = 0.71
 
         @JvmField
         var PUSH_SERVO_OPEN_VALUE = 0.52
-
         @JvmField
         var PUSH_SERVO_CLOSE_VALUE = 0.65
+
+        @JvmField
+        var KICK_SERVO_OPEN_VALUE = 0.5
+        @JvmField
+        var KICK_SERVO_CLOSE_VALUE = 0.5
+
 
 
         @JvmField
@@ -617,10 +621,13 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO = "gateServo"
+        var GATE_SERVO = "gate_servo"
 
         @JvmField
         var PUSH_SERVO = "push_servo"
+
+        @JvmField
+        var KICK_SERVO = "kick_servo"
     }
 
     @Config

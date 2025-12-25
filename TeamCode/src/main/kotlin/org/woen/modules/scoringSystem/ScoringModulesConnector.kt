@@ -379,7 +379,7 @@ class ScoringModulesConnector
     {
         TelemetryLI.log("SMC - SEND - AWAITING SHOT")
         EventBusLI.invoke(CurrentlyShooting())
-        _storage.hwStartBelts()
+        _storage.hwSmartPushNextBall()
 
 
         var timePassedWaitingForShot = NOTHING.toLong()
