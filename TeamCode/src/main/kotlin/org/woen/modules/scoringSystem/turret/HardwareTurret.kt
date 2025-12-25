@@ -153,7 +153,7 @@ class HardwareTurret :
         _motor = hardwareMap.get("pulleyMotor") as DcMotorEx
         _angleSevo = hardwareMap.get("turretAngleServo") as Servo
 
-        _rotateEncoder = EncoderOnly(hardwareMap.get("turretRotateEncoder") as DcMotorEx)
+        _rotateEncoder = EncoderOnly(hardwareMap.get("brushMotor") as DcMotorEx)
 
         _rotateServo = hardwareMap.get("turretRotateServo") as Servo
 
