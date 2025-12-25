@@ -28,6 +28,7 @@ class Ball
 
 
     fun empty() = set(NONE, Name.NONE)
+    fun setUnknown() = set(UNKNOWN_COLOR, Name.UNKNOWN_COLOR)
 
     fun set(name: Name,  id: Int  = toInt(name)) = set(id, name)
     fun set(id:   Int, name: Name = toName(id))

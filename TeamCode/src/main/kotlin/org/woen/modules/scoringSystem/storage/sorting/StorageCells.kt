@@ -218,25 +218,36 @@ class StorageCells
 
 
 
-    fun updateAfterLazyIntake(inputBalls: Array<Ball.Name>)
+    suspend fun safeFillWithUnknown()
     {
-        if (inputBalls.size > MAX_BALL_COUNT) return
+        hwReAdjustStorage()
+
+        var curSlot = StorageSlot.BOTTOM
+        while (_storageCells[curSlot].isEmpty())
+        {
+            _storageCells[curSlot].setUnknown()
+            curSlot++
+        }
+    }
+    fun safeUpdateAfterLazyIntake(inputFromTurretSlotToBottom: Array<Ball.Name>)
+    {
+        if (inputFromTurretSlotToBottom.size > MAX_BALL_COUNT) return
 
         var curSlot = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.TURRET)
         {
-            _storageCells[curSlot].set(inputBalls[curSlot])
+            _storageCells[curSlot].set(inputFromTurretSlotToBottom[curSlot])
             curSlot++
         }
     }
-    suspend fun updateAfterIntake(inputBall: Ball.Name)
+    suspend fun updateAfterIntake(inputToBottomSlot: Ball.Name)
     {
         hwSortingM.stopAwaitingEating(true)
 
         TelemetryLI.log("before intake:")
         logAllStorageData()
 
-        _storageCells[StorageSlot.BOTTOM].set(inputBall)
+        _storageCells[StorageSlot.BOTTOM].set(inputToBottomSlot)
         hwReAdjustStorage()
 
         TelemetryLI.log("finished cells intake, new storage:")

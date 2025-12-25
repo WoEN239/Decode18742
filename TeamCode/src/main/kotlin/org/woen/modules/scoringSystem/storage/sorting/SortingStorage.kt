@@ -24,6 +24,7 @@ import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
+import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
 
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopAnyIntakeEvent
@@ -41,8 +42,11 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.PROCESS_ID.INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.LAZY_INTAKE
+import org.woen.telemetry.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.SINGLE_REQUEST
+import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
+import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
 
@@ -52,6 +56,7 @@ class SortingStorage
 {
     private val _storageLogic = SortingStorageLogic()
     private val _isCurrentlyKillingIntake = AtomicBoolean(false)
+
 
 
     constructor()
@@ -90,14 +95,6 @@ class SortingStorage
         }   )
 
 
-
-        EventBusLI.subscribe(
-            StorageUpdateAfterLazyIntakeEvent::class, {
-
-                _storageLogic.storageCells.updateAfterLazyIntake(
-                    it.inputFromTurretSlotToBottom)
-        }   )
-
         EventBusLI.subscribe(OnPatternDetectedEvent::class, {
 
                 _storageLogic.dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
@@ -108,19 +105,36 @@ class SortingStorage
         EventBusLI.subscribe(
             StartLazyIntakeEvent::class, {
 
-                val tryToStartLazyIntake = _storageLogic.canStartIntakeIsNotBusy()
-                it.startingResult = tryToStartLazyIntake
+                val canStartLazyIntake = _storageLogic
+                    .noIntakeRaceConditionProblems(LAZY_INTAKE)
+                it.startingResult = canStartLazyIntake
 
-                if (tryToStartLazyIntake != Intake.FAIL_IS_BUSY)
+                if (canStartLazyIntake)
                     SmartCoroutineLI.launch {
                         startLazyIntake()
                     }
+
+                else _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
         }   )
         EventBusLI.subscribe(
             StopLazyIntakeEvent::class, {
 
                 _storageLogic.lazyIntakeIsActive.set(false)
         }   )
+
+        EventBusLI.subscribe(
+            StorageUpdateAfterLazyIntakeEvent::class, {
+
+                val canStartUpdateAfterLazyIntake = _storageLogic.canStartUpdateAfterLazyIntake()
+                it.startingResult = canStartUpdateAfterLazyIntake
+
+                if (canStartUpdateAfterLazyIntake)
+                    _storageLogic.trySafeStartUpdateAfterLazyIntake(
+                        it.inputFromTurretSlotToBottom)
+
+                else _storageLogic.resumeLogicAfterIntake(UPDATE_AFTER_LAZY_INTAKE)
+        }   )
+
 
 
         EventBusLI.subscribe(
@@ -133,8 +147,25 @@ class SortingStorage
                     SmartCoroutineLI.launch {
                         _storageLogic.safeInitiatePredictSort(it.requestedPattern)
                     }
-            }
-        )
+
+                else _storageLogic.runStatus
+                    .safeRemoveThisProcessIdFromQueue(PREDICT_SORT)
+        }   )
+        EventBusLI.subscribe(
+            FillStorageWithUnknownColorsEvent::class, {
+
+                val canStartStorageCalibration = _storageLogic
+                   .canStartStorageCalibrationWithCurrent()
+                it.startingResult = canStartStorageCalibration
+
+                if (canStartStorageCalibration)
+                    SmartCoroutineLI.launch {
+                        _storageLogic.safeStartStorageCalibrationWithCurrent()
+                    }
+
+                else _storageLogic.runStatus
+                    .safeRemoveThisProcessIdFromQueue(STORAGE_CALIBRATION)
+        }   )
     }
     private fun subscribeToGamepadEvents()
     {
@@ -257,8 +288,9 @@ class SortingStorage
     suspend fun tryStartLazyIntake()
     {
         if (!_storageLogic.storageCells.alreadyFull()
-            && _storageLogic.canStartIntakeIsNotBusy() != Intake.FAIL_IS_BUSY)
+            && _storageLogic.noIntakeRaceConditionProblems(LAZY_INTAKE))
             startLazyIntake()
+        else _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
     }
     suspend fun startLazyIntake()
     {
@@ -283,7 +315,7 @@ class SortingStorage
 
 
 
-    suspend fun handleIntake(inputBall: Ball.Name):        IntakeResult.Name
+    suspend fun handleIntake(inputToBottomSlot: Ball.Name):        IntakeResult.Name
     {
         if (_storageLogic.storageCells.alreadyFull()) return Intake.FAIL_IS_FULL
 
@@ -298,7 +330,8 @@ class SortingStorage
             val storageCanHandle = _storageLogic.storageCells.handleIntake()
             TelemetryLI.log("SSM - DONE Searching, result: " + storageCanHandle.name())
 
-            val intakeResult = _storageLogic.safeSortIntake(storageCanHandle, inputBall)
+            val intakeResult = _storageLogic.safeSortIntake(
+                storageCanHandle, inputToBottomSlot)
 
             _storageLogic.resumeLogicAfterIntake(INTAKE)
             return intakeResult

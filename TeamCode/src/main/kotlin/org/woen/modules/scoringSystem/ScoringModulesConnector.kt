@@ -89,7 +89,7 @@ class ScoringModulesConnector
     {
         EventBusLI.subscribe(
             StorageGetReadyForIntakeEvent::class, {
-                startIntakeProcess(it.inputBall)
+                startIntakeProcess(it.inputToBottomSlot)
         }   )
 
 
@@ -142,8 +142,7 @@ class ScoringModulesConnector
                 { it.dpad_up }, {
 
                     val startingResult = EventBusLI.invoke(
-                        StartLazyIntakeEvent(
-                            Intake.FAIL_UNKNOWN))
+                        StartLazyIntakeEvent())
 
                     TelemetryLI.log(
                         "\nSMC: try start LazyIntake: ${startingResult.startingResult}")
@@ -242,7 +241,7 @@ class ScoringModulesConnector
 
 
 
-    private suspend fun startIntakeProcess(inputBall: Ball.Name): IntakeResult.Name
+    private suspend fun startIntakeProcess(inputToBottomSlot: Ball.Name): IntakeResult.Name
     {
         if (isBusy())
         {
@@ -254,8 +253,8 @@ class ScoringModulesConnector
 
         setBusy()
 
-        TelemetryLI.log("SMC: Started - Intake, INPUT BALL: $inputBall")
-        val intakeResult = _storage.handleIntake(inputBall)
+        TelemetryLI.log("SMC: Started - Intake, INPUT BALL: $inputToBottomSlot")
+        val intakeResult = _storage.handleIntake(inputToBottomSlot)
 
 
         if (_storage.alreadyFull())

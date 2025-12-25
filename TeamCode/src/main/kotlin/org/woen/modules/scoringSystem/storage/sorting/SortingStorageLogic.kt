@@ -23,9 +23,10 @@ import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
 import org.woen.utils.process.RunStatus
 
 import org.woen.telemetry.Configs.DELAY
-import org.woen.telemetry.Configs.PROCESS_ID.LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
+import org.woen.telemetry.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
+import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
 import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAGE
 
@@ -75,16 +76,52 @@ class SortingStorageLogic
     }
 
 
-
-    suspend fun canStartIntakeIsNotBusy(): IntakeResult.Name
+    suspend fun canStartStorageCalibrationWithCurrent(): Boolean
     {
-        if (noIntakeRaceConditionProblems(LAZY_INTAKE))
-            return Intake.STARTED_SUCCESSFULLY
+        TelemetryLI.log("SSM: Try starting storage calibration with current")
 
-        resumeLogicAfterIntake(LAZY_INTAKE)
-        return Intake.FAIL_IS_BUSY
+        if (runStatus.isUsedByAnyProcess()) return false
+
+        runStatus.addProcessToQueue(STORAGE_CALIBRATION)
+        delay(DELAY.STORAGE_CALIBRATION_RACE_CONDITION_MS)
+
+        return runStatus.isThisProcessHighestPriority(STORAGE_CALIBRATION)
     }
-    suspend fun safeSortIntake(intakeResult: IntakeResult, inputBall: Ball.Name): IntakeResult.Name
+    suspend fun safeStartStorageCalibrationWithCurrent()
+    {
+        runStatus.setCurrentActiveProcess(STORAGE_CALIBRATION)
+
+        storageCells.safeFillWithUnknown()
+
+        runStatus.clearCurrentActiveProcess()
+        runStatus.safeRemoveThisProcessIdFromQueue(STORAGE_CALIBRATION)
+    }
+
+
+    suspend fun canStartUpdateAfterLazyIntake(): Boolean
+    {
+        TelemetryLI.log("SSM: Try starting updating after lazy intake")
+
+        if (runStatus.isUsedByAnyProcess()) return false
+
+        runStatus.addProcessToQueue(UPDATE_AFTER_LAZY_INTAKE)
+        delay(DELAY.LAZY_INTAKE_RACE_CONDITION_MS)
+
+        return runStatus.isThisProcessHighestPriority(UPDATE_AFTER_LAZY_INTAKE)
+    }
+    fun trySafeStartUpdateAfterLazyIntake(inputFromTurretSlotToBottom: Array<Ball.Name>)
+    {
+        runStatus.setCurrentActiveProcess(UPDATE_AFTER_LAZY_INTAKE)
+
+        storageCells.safeUpdateAfterLazyIntake(inputFromTurretSlotToBottom)
+
+        runStatus.clearCurrentActiveProcess()
+        runStatus.safeRemoveThisProcessIdFromQueue(UPDATE_AFTER_LAZY_INTAKE)
+    }
+
+
+
+    suspend fun safeSortIntake(intakeResult: IntakeResult, inputToBottomSlot: Ball.Name): IntakeResult.Name
     {
         if (intakeResult.didFail()) return intakeResult.name()   //  Intake failed
 
@@ -94,7 +131,7 @@ class SortingStorageLogic
         storageCells.hwReAdjustStorage()
         storageCells.hwSortingM.hwForwardBeltsTime(Delay.HALF_PUSH)
 
-        storageCells.updateAfterIntake(inputBall)
+        storageCells.updateAfterIntake(inputToBottomSlot)
         return Intake.SUCCESS
     }
 

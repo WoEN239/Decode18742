@@ -433,6 +433,12 @@ object Configs {
 
         @JvmField
         var PREDICT_SORT = 5
+
+        @JvmField
+        var STORAGE_CALIBRATION = 6
+
+        @JvmField
+        var UPDATE_AFTER_LAZY_INTAKE = 7
     }
 
 
@@ -442,12 +448,20 @@ object Configs {
 
         @JvmField
         var INTAKE_RACE_CONDITION_MS: Long = 15
+        @JvmField
+        var LAZY_INTAKE_RACE_CONDITION_MS: Long = 15
 
         @JvmField
         var REQUEST_RACE_CONDITION_MS: Long = 10
 
+
         @JvmField
         var PREDICT_SORT_RACE_CONDITION_MS: Long = 10
+
+        @JvmField
+        var STORAGE_CALIBRATION_RACE_CONDITION_MS: Long = 10
+
+
 
         @JvmField
         var EVENT_AWAITING_MS: Long = 5
@@ -508,6 +522,15 @@ object Configs {
         @JvmField
         var SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS = false
 
+
+
+        @JvmField
+        var USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS = true
+
+        @JvmField
+        var SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION = false
+        @JvmField
+        var TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS = false
 
 
         @JvmField
