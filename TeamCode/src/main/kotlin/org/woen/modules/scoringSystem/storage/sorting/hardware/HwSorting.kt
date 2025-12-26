@@ -33,6 +33,8 @@ import org.woen.telemetry.Configs.STORAGE.KICK_SERVO_CLOSE_VALUE
 import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
 
+import org.woen.telemetry.Configs.STORAGE.BELT_MOTORS_DIRECTION
+
 import org.woen.telemetry.Configs.STORAGE.POWER_FOR_SLOW_BELT_ROTATING
 import org.woen.telemetry.Configs.STORAGE.POWER_FOR_FAST_BELT_ROTATING
 
@@ -40,15 +42,13 @@ import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.KICK_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
-
-import org.woen.telemetry.Configs.STORAGE.BELT_MOTORS_DIRECTION
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTORS
+
 
 
 class HwSorting : IHardwareDevice
 {
     private lateinit var _beltMotors : MotorOnly
-
     private val _beltMotorsPower = AtomicReference(0.0)
 
     val beltsCurrentPeakedEvent  = SimpleEmptyEvent()

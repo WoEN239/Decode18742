@@ -2,21 +2,26 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
-
-import org.woen.telemetry.Configs.DELAY
 
 import org.woen.threading.hardware.HardwareThreads
 
+import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
+import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 
 import org.woen.modules.scoringSystem.storage.StopAnyIntakeEvent
+import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
+import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
 
+import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION
+
 
 
 class HwSortingManager
@@ -38,28 +43,29 @@ class HwSortingManager
 
     private fun subscribeToHwEvents()
     {
-//        _hwSensors.colorSensorsTriggerAutoIntakeEvent +=
+//        _hwSensors.colorSensorsDetectedIntakeEvent +=
 //        {
 //            if (isAwaitingIntake.get())
 //            {
 //                SmartCoroutineLI.launch {
 //
 //                    val storageCanHandleInput = EventBusLI.invoke(
-//                        BallCountInStorageEvent()).count + 1 < MAX_BALL_COUNT
+//                        BallCountInStorageEvent()
+//                    ).count + 1 < MAX_BALL_COUNT
 //
 //                    if (storageCanHandleInput)
 //                    {
 //                        EventBusLI.invoke(StorageGetReadyForIntakeEvent(it))
 //
 //                        TelemetryLI.log("", "COLOR SENSORS - START INTAKE")
-//                        delay(DELAY_BETWEEN_INTAKES_MS)
+//                        delay(DELAY.BETWEEN_INTAKES_MS)
 //
 //                        resumeAwaitingEating()
 //                    }
 //                    else
 //                    {
 //                        stopAwaitingEating(true)
-//                        delay(DELAY_BETWEEN_INTAKES_MS)
+//                        delay(DELAY.BETWEEN_INTAKES_MS)
 //                    }
 //                }
 //            }

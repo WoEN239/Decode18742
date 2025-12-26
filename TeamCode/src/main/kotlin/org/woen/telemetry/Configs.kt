@@ -344,7 +344,7 @@ object Configs {
     internal object STORAGE_SENSORS {
 
         @JvmField
-        var OPTIC_PARE_SEES_NOT_BLACK = 0.4
+        var OPTIC_SEES_NOT_BLACK = 0.4
 
 
         @JvmField
@@ -489,6 +489,8 @@ object Configs {
 
 
         @JvmField
+        var BETWEEN_INTAKES_MS: Long = 444
+        @JvmField
         var BETWEEN_SHOTS_MS: Long = 333
     }
 
@@ -629,10 +631,10 @@ object Configs {
 
 
         @JvmField
-        var TURRET_OPTIC_PARE_1 = "turret_optic_pare_1"
+        var TURRET_OPTIC_1 = "turret_optic_1"
 
         @JvmField
-        var TURRET_OPTIC_PARE_2 = "turret_optic_pare_2"
+        var TURRET_OPTIC_2 = "turret_optic_2"
 
 
         @JvmField
