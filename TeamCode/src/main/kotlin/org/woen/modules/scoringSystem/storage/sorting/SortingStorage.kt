@@ -169,39 +169,37 @@ class SortingStorage
     }
     private fun subscribeToGamepadEvents()
     {
-        GamepadLI.addListener(
-        createClickDownListener({ it.triangle }, {
-
-                    _storageLogic.dynamicMemoryPattern.resetTemporary()
-        }   )   )
-
-        GamepadLI.addListener(
-        createClickDownListener({ it.square },   {
-
-                    _storageLogic.dynamicMemoryPattern.addToTemporary()
-        }   )   )
-
-        GamepadLI.addListener(
-        createClickDownListener({ it.circle },   {
-
-                    _storageLogic.dynamicMemoryPattern.removeFromTemporary()
-        }   )   )
-
-
-
 //        GamepadLI.addListener(
-//            createClickDownListener(
-//                { it.touchpadWasPressed() }, {
+//        createClickDownListener({ it.triangle }, {
 //
-//                    SmartCoroutineLI.launch {
-//                        var iteration = NOTHING
-//                        while (iteration < 100)
-//                        {
-//                            _storageLogic.storageCells.fullRotate()
-//                            iteration++
-//                    }   }
+//                    _storageLogic.dynamicMemoryPattern.resetTemporary()
 //        }   )   )
 //
+//        GamepadLI.addListener(
+//        createClickDownListener({ it.square },   {
+//
+//                    _storageLogic.dynamicMemoryPattern.addToTemporary()
+//        }   )   )
+//
+//        GamepadLI.addListener(
+//        createClickDownListener({ it.circle },   {
+//
+//                    _storageLogic.dynamicMemoryPattern.removeFromTemporary()
+//        }   )   )
+
+
+
+        GamepadLI.addListener(
+            createClickDownListener(
+                { it.touchpadWasPressed() }, {
+
+                    TelemetryLI.log("SSM: Touchpad start 100 rotation test")
+
+                    SmartCoroutineLI.launch {
+                        unsafeTestSorting()
+                }   }
+        )   )
+
 //        GamepadLI.addListener(
 //            createClickDownListener({ it.ps }, {
 //
@@ -279,6 +277,21 @@ class SortingStorage
 
 
 
+    fun unsafeTestSorting()
+    {
+        val fill = arrayOf(Ball.Name.PURPLE, Ball.Name.GREEN, Ball.Name.PURPLE)
+        _storageLogic.storageCells.safeUpdateAfterLazyIntake(fill)
+
+        SmartCoroutineLI.launch {
+            var iteration = 0
+            while (iteration < 100)
+            {
+                TelemetryLI.log("\nIteration: $iteration")
+
+                _storageLogic.storageCells.fullRotate()
+                iteration++
+        }   }
+    }
     suspend fun hwSmartPushNextBall()
         = _storageLogic.storageCells.hwSortingM.hwSmartPushNextBall()
     fun alreadyFull()  = _storageLogic.storageCells.alreadyFull()

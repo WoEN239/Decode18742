@@ -525,7 +525,7 @@ object Configs {
 
 
         @JvmField
-        var USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS = true
+        var USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS = false
 
         @JvmField
         var SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION = false
@@ -587,19 +587,19 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO_OPEN_VALUE = 0.34
+        var GATE_SERVO_OPEN_VALUE = 0.36
         @JvmField
-        var GATE_SERVO_CLOSE_VALUE = 0.71
+        var GATE_SERVO_CLOSE_VALUE = 0.76
 
         @JvmField
-        var PUSH_SERVO_OPEN_VALUE = 0.52
+        var PUSH_SERVO_OPEN_VALUE = 0.53
         @JvmField
         var PUSH_SERVO_CLOSE_VALUE = 0.65
 
         @JvmField
-        var KICK_SERVO_OPEN_VALUE = 0.5
+        var KICK_SERVO_OPEN_VALUE = 0.4
         @JvmField
-        var KICK_SERVO_CLOSE_VALUE = 0.5
+        var KICK_SERVO_CLOSE_VALUE = 0.75
 
 
 
@@ -644,13 +644,13 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO = "gate_servo"
+        var GATE_SERVO = "gateServo"
 
         @JvmField
-        var PUSH_SERVO = "push_servo"
+        var PUSH_SERVO = "pushServo"
 
         @JvmField
-        var KICK_SERVO = "kick_servo"
+        var KICK_SERVO = "launchServo"
     }
 
     @Config
