@@ -509,7 +509,7 @@ object Configs {
 
 
         @JvmField
-        var ONE_BALL_PUSHING_MS: Long = 411
+        var ONE_BALL_PUSHING_MS: Long = 444
 
         @JvmField
         var SORTING_REALIGNING_FORWARD_MS: Long = 35
