@@ -63,15 +63,8 @@ class DriveTrain : IModule {
             _currentRobotRotation = odometry.odometryOrientation.angl
 
             when (_currentMode) {
-                DriveMode.DRIVE -> {
-//                    if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
-//                        _hardwareDriveTrain.drivePowered(
-//                            _targetTranslateVelocity,
-//                            _targetRotateVelocity
-//                        )
-//                    else
-                        _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
-                }
+                DriveMode.DRIVE ->
+                    _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
 
                 DriveMode.SHOOTING -> {
                     _targetOrientation.angl =
@@ -126,10 +119,6 @@ class DriveTrain : IModule {
     constructor() {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
 
-        HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _hardwareDriveTrain.currentMode = HardwareDriveTrain.DriveTrainMode.REGULATOR
-        }
-
         ThreadedEventBus.LAZY_INSTANCE.subscribe(FullFinishedFiringEvent::class, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
         })
@@ -154,9 +143,6 @@ class DriveTrain : IModule {
                 rx = calcDeathZone(rx, Configs.DRIVE_TRAIN.H_DEATH_ZONE)
 
                 if (Configs.DRIVE_TRAIN.POW_MOVE_ENABLED) {
-//                    ly = sign(ly) * (4.0 * (abs(ly) - 0.5).pow(3.0) + 0.5)
-//                    lx = sign(lx) * (4.0 * (abs(lx) - 0.5).pow(3.0) + 0.5)
-//                    rx = sign(rx) * (4.0 * (abs(rx) - 0.5).pow(3.0) + 0.5)
                     ly *= abs(ly)
                     lx *= abs(lx)
                     rx *= abs(rx)
@@ -174,7 +160,7 @@ class DriveTrain : IModule {
                                     Angle.ofDeg(90.0)).angle
                             else
                                 (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle
-                        )  * /* Vec2(if (_currentMode == DriveMode.SHOOTING)*/ Vec2(Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY/* else 1.0*/),
+                        ) * /* Vec2(if (_currentMode == DriveMode.SHOOTING)*/ Vec2(Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY/* else 1.0*/),
                         rx * Configs.DRIVE_TRAIN.MAX_DRIVE_ANGLE_VELOCITY
                     )
                 )
@@ -187,8 +173,6 @@ class DriveTrain : IModule {
 
             if (it.mode != DriveMode.DRIVE) {
                 _targetTimer.reset()
-
-                _hardwareDriveTrain.currentMode = HardwareDriveTrain.DriveTrainMode.REGULATOR
 
                 if (it.mode == DriveMode.PARKING)
                     _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.parkingOrientation

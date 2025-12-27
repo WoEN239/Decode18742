@@ -18,11 +18,6 @@ import kotlin.math.abs
 import kotlin.math.max
 
 class HardwareDriveTrain : IHardwareDevice {
-    enum class DriveTrainMode {
-        REGULATOR,
-        POWER
-    }
-
     private lateinit var _leftForwardMotor: MotorOnly
     private lateinit var _leftBackMotor: MotorOnly
     private lateinit var _rightBackMotor: MotorOnly
@@ -37,58 +32,34 @@ class HardwareDriveTrain : IHardwareDevice {
     private var _targetTranslateVelocity = Vec2.ZERO
     private var _targetRotateVelocity = 0.0
 
-    private var _translatePower = Vec2.ZERO
-    private var _rotatePower = 0.0
-
     private val _driveTrainMutex = SmartMutex()
 
-    var currentMode = DriveTrainMode.REGULATOR
-        set(value) {
-            field = value
+    override fun update() {
+        val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+        val currentVelocity = odometry.odometryVelocity
+        val currentRotationVelocity = odometry.odometryRotateVelocity
 
-            if (value == DriveTrainMode.REGULATOR) {
-                _regulatorMutex.smartLock {
-                    _forwardRegulator.start()
-                    _forwardRegulator.resetIntegral()
-                    _sideRegulator.start()
-                    _sideRegulator.resetIntegral()
-                    _rotateRegulator.start()
-                    _rotateRegulator.resetIntegral()
-                }
-            }
+        var targetTranslateVelocity = Vec2.ZERO
+        var targetRotateVelocity = 0.0
+
+        _driveTrainMutex.smartLock {
+            targetTranslateVelocity = _targetTranslateVelocity
+            targetRotateVelocity = _targetRotateVelocity
         }
 
-    override fun update() {
-        if (currentMode == DriveTrainMode.REGULATOR) {
-            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
-            val currentVelocity = odometry.odometryVelocity
-            val currentRotationVelocity = odometry.odometryRotateVelocity
+        val velocityErr = targetTranslateVelocity - currentVelocity
 
-            var targetTranslateVelocity = Vec2.ZERO
-            var targetRotateVelocity = 0.0
+        val velocityRotateErr = targetRotateVelocity - currentRotationVelocity
 
-            _driveTrainMutex.smartLock {
-                targetTranslateVelocity = _targetTranslateVelocity
-                targetRotateVelocity = _targetRotateVelocity
-            }
-
-            val velocityErr = targetTranslateVelocity - currentVelocity
-
-            val velocityRotateErr = targetRotateVelocity - currentRotationVelocity
-
-            _regulatorMutex.smartLock {
-                setVoltage(
-                    Vec2(
-                        _forwardRegulator.update(velocityErr.x, targetTranslateVelocity.x),
-                        _sideRegulator.update(velocityErr.y, targetTranslateVelocity.y)
-                    ),
-                    _rotateRegulator.update(velocityRotateErr, targetRotateVelocity)
-                )
-            }
-        } else
-            _driveTrainMutex.smartLock {
-                setPower(_translatePower, _rotatePower)
-            }
+        _regulatorMutex.smartLock {
+            setVoltage(
+                Vec2(
+                    _forwardRegulator.update(velocityErr.x, targetTranslateVelocity.x),
+                    _sideRegulator.update(velocityErr.y, targetTranslateVelocity.y)
+                ),
+                _rotateRegulator.update(velocityRotateErr, targetRotateVelocity)
+            )
+        }
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -141,13 +112,6 @@ class HardwareDriveTrain : IHardwareDevice {
         }
     }
 
-    fun drivePowered(translatePower: Vec2, rotatePower: Double) {
-        _driveTrainMutex.smartLock {
-            _translatePower = translatePower
-            _rotatePower = rotatePower
-        }
-    }
-
     private fun setPowers(
         leftFrontPower: Double,
         rightBackPower: Double,
@@ -189,15 +153,6 @@ class HardwareDriveTrain : IHardwareDevice {
             ThreadedBattery.LAZY_INSTANCE.voltageToPower(direction.x - direction.y + rotate),
             ThreadedBattery.LAZY_INSTANCE.voltageToPower(direction.x + direction.y - rotate),
             ThreadedBattery.LAZY_INSTANCE.voltageToPower(direction.x + direction.y + rotate)
-        )
-    }
-
-    private fun setPower(direction: Vec2, rotate: Double) {
-        setPowers(
-            direction.x - direction.y - rotate,
-            direction.x - direction.y + rotate,
-            direction.x + direction.y - rotate,
-            direction.x + direction.y + rotate
         )
     }
 
