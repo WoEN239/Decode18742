@@ -12,6 +12,7 @@ import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.Shooting
 import org.woen.modules.driveTrain.DriveTrain
+import org.woen.modules.driveTrain.DriveTrain.DriveMode
 import org.woen.modules.driveTrain.SetDriveModeEvent
 
 import org.woen.modules.scoringSystem.brush.Brush
@@ -132,6 +133,10 @@ class ScoringModulesConnector
 
                 startBrushesAfterDelay(it.reverseTime)
         }   )
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(FullFinishedFiringEvent::class, {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
+        })
     }
     private fun subscribeToGamepad()
     {
