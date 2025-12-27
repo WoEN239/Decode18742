@@ -112,7 +112,7 @@ object Configs {
         var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kI = 2.0, kP = 8.0)
 
         @JvmField
-        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 2.0, kI = 1.5)
+        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 2.0, kI = 0.5)
 
         @JvmField
         var MAX_DRIVE_VELOCITY = 2.0

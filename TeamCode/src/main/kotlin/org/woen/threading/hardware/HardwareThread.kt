@@ -56,8 +56,8 @@ class HardwareThread : DisposableHandle {
 
             while (!Thread.currentThread().isInterrupted) {
                 if (_currentThreadState == ThreadState.WAIT) {
-                    Thread.sleep(5)
                     _isThreadFree = true
+                    Thread.sleep(5)
                     continue
                 }
 
@@ -72,6 +72,8 @@ class HardwareThread : DisposableHandle {
                     lastJob = link.update()
                 }
             }
+
+            _isThreadFree = true
         })
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
