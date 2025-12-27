@@ -49,7 +49,7 @@ import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
 import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
-
+import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION
 
 
 class SortingStorage
@@ -169,26 +169,6 @@ class SortingStorage
     }
     private fun subscribeToGamepadEvents()
     {
-//        GamepadLI.addListener(
-//        createClickDownListener({ it.triangle }, {
-//
-//                    _storageLogic.dynamicMemoryPattern.resetTemporary()
-//        }   )   )
-//
-//        GamepadLI.addListener(
-//        createClickDownListener({ it.square },   {
-//
-//                    _storageLogic.dynamicMemoryPattern.addToTemporary()
-//        }   )   )
-//
-//        GamepadLI.addListener(
-//        createClickDownListener({ it.circle },   {
-//
-//                    _storageLogic.dynamicMemoryPattern.removeFromTemporary()
-//        }   )   )
-
-
-
         GamepadLI.addListener(
             createClickDownListener(
                 { it.touchpadWasPressed() }, {
@@ -271,6 +251,31 @@ class SortingStorage
                 it.intakeStoppingResult = true
             }
         }   )
+    }
+    private fun subscribeToSecondDriverPatternRecalibration()
+    {
+        if (USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION)
+        {
+//            GamepadLI.addListener(
+//            createClickDownListener({ it.triangle }, {
+//
+//                        _storageLogic.dynamicMemoryPattern.resetTemporary()
+//            }   )   )
+//
+//            GamepadLI.addListener(
+//            createClickDownListener({ it.square },   {
+//
+//                        _storageLogic.dynamicMemoryPattern.addToTemporary()
+//            }   )   )
+//
+//            GamepadLI.addListener(
+//            createClickDownListener({ it.circle },   {
+//
+//                        _storageLogic.dynamicMemoryPattern.removeFromTemporary()
+//            }   )   )
+            TelemetryLI.log("SSM Init settings: USE SECOND DRIVER")
+        }
+        else TelemetryLI.log("SSM Init settings: DON'T use second driver")
     }
 
 

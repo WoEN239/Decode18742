@@ -2,19 +2,14 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.woen.threading.hardware.HardwareThreads
 
-import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
-import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 
 import org.woen.modules.scoringSystem.storage.StopAnyIntakeEvent
-import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
-import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
 
 import org.woen.telemetry.Configs.DELAY
@@ -57,7 +52,7 @@ class HwSortingManager
 //                    {
 //                        EventBusLI.invoke(StorageGetReadyForIntakeEvent(it))
 //
-//                        TelemetryLI.log("", "COLOR SENSORS - START INTAKE")
+//                        TelemetryLI.log("COLOR SENSORS - START INTAKE")
 //                        delay(DELAY.BETWEEN_INTAKES_MS)
 //
 //                        resumeAwaitingEating()
@@ -118,7 +113,7 @@ class HwSortingManager
 
         while (!_hwSorting.gateServo.atTargetAngle
             || !_hwSorting.pushServo.atTargetAngle
-            || !_hwSorting.kickServo.atTargetAngle
+            || !_hwSorting.launchServo.atTargetAngle
             || !_hwSorting.turretGateServo.atTargetAngle)
                 delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
@@ -144,22 +139,22 @@ class HwSortingManager
 
         TelemetryLI.log("HWSMM: OPENED push")
     }
-    suspend fun openKick()
+    suspend fun openLaunch()
     {
         TelemetryLI.log("HWSMM: Started OPENING kick")
-        _hwSorting.openKick()
+        _hwSorting.openLaunch()
 
-        while (!_hwSorting.kickServo.atTargetAngle)
+        while (!_hwSorting.launchServo.atTargetAngle)
             delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         TelemetryLI.log("HWSMM: OPENED kick")
     }
-    suspend fun closeKick()
+    suspend fun closeLaunch()
     {
         TelemetryLI.log("HWSMM: Started CLOSING kick")
-        _hwSorting.closeKick()
+        _hwSorting.closeLaunch()
 
-        while (!_hwSorting.kickServo.atTargetAngle)
+        while (!_hwSorting.launchServo.atTargetAngle)
             delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         TelemetryLI.log("HWSMM: CLOSED kick")
@@ -243,7 +238,7 @@ class HwSortingManager
     {
         TelemetryLI.log("HWSMM: Rotating mobile slot")
         stopAwaitingEating(true)
-        closeKick()
+        closeLaunch()
         closeTurretGate()
 
         //hwForwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
@@ -262,7 +257,7 @@ class HwSortingManager
 
         if (helpPushLastBall.get())
         {
-            openKick()
+            openLaunch()
             helpPushLastBall.set(false)
         }
     }

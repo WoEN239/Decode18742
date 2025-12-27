@@ -30,8 +30,8 @@ class SimpleStorage : IModule {
         startPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
     )
 
-    private val _launchServo = ThreadedServo(Configs.HARDWARE_DEVICES_NAMES.KICK_SERVO,
-        startPosition = Configs.STORAGE.KICK_SERVO_CLOSE_VALUE)
+    private val _launchServo = ThreadedServo(Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO,
+        startPosition = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE)
 
     private var _currentShootCoroutine: Job? = null
     private var _isShooting = false
@@ -75,7 +75,7 @@ class SimpleStorage : IModule {
 
                 delay(1600)
 
-                _launchServo.targetPosition = Configs.STORAGE.KICK_SERVO_OPEN_VALUE
+                _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
 
                 while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)
@@ -84,7 +84,7 @@ class SimpleStorage : IModule {
 
                 ThreadedGamepad.LAZY_INSTANCE.rumble(0.5)
 
-                _launchServo.targetPosition = Configs.STORAGE.KICK_SERVO_CLOSE_VALUE
+                _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
 
                 while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)

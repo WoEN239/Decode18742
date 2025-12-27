@@ -27,8 +27,8 @@ import org.woen.telemetry.Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
 import org.woen.telemetry.Configs.STORAGE.PUSH_SERVO_OPEN_VALUE
 import org.woen.telemetry.Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.STORAGE.KICK_SERVO_OPEN_VALUE
-import org.woen.telemetry.Configs.STORAGE.KICK_SERVO_CLOSE_VALUE
+import org.woen.telemetry.Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
+import org.woen.telemetry.Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
 
 import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
@@ -40,7 +40,7 @@ import org.woen.telemetry.Configs.STORAGE.POWER_FOR_FAST_BELT_ROTATING
 
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.KICK_SERVO
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTORS
 
@@ -64,9 +64,9 @@ class HwSorting : IHardwareDevice
         PUSH_SERVO,
         startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE)
 
-    val kickServo = ThreadedServo(
-        KICK_SERVO,
-        startAngle = 1.5 * PI * KICK_SERVO_CLOSE_VALUE)
+    val launchServo = ThreadedServo(
+        LAUNCH_SERVO,
+        startAngle = 1.5 * PI * LAUNCH_SERVO_CLOSE_VALUE)
 
     val turretGateServo = ThreadedServo(
         TURRET_GATE_SERVO,
@@ -79,7 +79,7 @@ class HwSorting : IHardwareDevice
         _beltMotors = MotorOnly(hardwareMap.get(SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
 
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
-            gateServo, pushServo, kickServo, turretGateServo)
+            gateServo, pushServo, launchServo, turretGateServo)
     }
 
     override fun update()
@@ -135,13 +135,13 @@ class HwSorting : IHardwareDevice
         pushServo.targetAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE
     }
 
-    fun openKick()
+    fun openLaunch()
     {
-        kickServo.targetAngle = 1.5 * PI * KICK_SERVO_OPEN_VALUE
+        launchServo.targetAngle = 1.5 * PI * LAUNCH_SERVO_OPEN_VALUE
     }
-    fun closeKick()
+    fun closeLaunch()
     {
-        kickServo.targetAngle = 1.5 * PI * KICK_SERVO_CLOSE_VALUE
+        launchServo.targetAngle = 1.5 * PI * LAUNCH_SERVO_CLOSE_VALUE
     }
 
 
@@ -163,7 +163,7 @@ class HwSorting : IHardwareDevice
 
         closeGate()
         closePush()
-        closeKick()
+        closeLaunch()
         closeTurretGate()
     }
 

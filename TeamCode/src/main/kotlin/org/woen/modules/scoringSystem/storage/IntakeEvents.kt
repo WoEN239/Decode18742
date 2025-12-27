@@ -23,7 +23,7 @@ class StopAnyIntakeEvent(
 
 class StorageUpdateAfterLazyIntakeEvent(
     var inputFromTurretSlotToBottom: Array<Ball.Name>,
-    var startingResult: Boolean = false)
+    var startingResult: Boolean = false) : StoppingEvent
 
 class FillStorageWithUnknownColorsEvent(
     var startingResult: Boolean = false) : StoppingEvent

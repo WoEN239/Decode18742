@@ -559,6 +559,9 @@ object Configs {
 
 
         @JvmField
+        var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = false
+
+        @JvmField
         var PREFERRED_INTAKE_SLOT_SEARCHING_ORDER = arrayOf(
             StorageSlot.BOTTOM,
             StorageSlot.CENTER,
@@ -597,9 +600,9 @@ object Configs {
         var PUSH_SERVO_CLOSE_VALUE = 0.84
 
         @JvmField
-        var KICK_SERVO_OPEN_VALUE = 0.37
+        var LAUNCH_SERVO_OPEN_VALUE = 0.37
         @JvmField
-        var KICK_SERVO_CLOSE_VALUE = 0.75
+        var LAUNCH_SERVO_CLOSE_VALUE = 0.75
 
 
 
@@ -650,7 +653,7 @@ object Configs {
         var PUSH_SERVO = "pushServo"
 
         @JvmField
-        var KICK_SERVO = "launchServo"
+        var LAUNCH_SERVO = "launchServo"
     }
 
     @Config
