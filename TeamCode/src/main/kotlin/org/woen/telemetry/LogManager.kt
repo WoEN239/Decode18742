@@ -1,5 +1,6 @@
 package org.woen.telemetry
 
+import org.woen.telemetry.Configs.DEBUG_LEVELS.SHOW_DEBUG_LEVEL_WARNINGS
 
 
 class LogManager
@@ -21,6 +22,7 @@ class LogManager
 
     enum class DebugSetting
     {
+        SHOW_EVERYTHING,
         SHOW_SELECTED_LEVELS,
 
         SHOW_ABOVE_SELECTED_INCLUSIVE,
@@ -51,16 +53,25 @@ class LogManager
     {
         if (allowedToShow(debugLevel))
             ThreadedTelemetry.LAZY_INSTANCE.log(s)
+        else if (SHOW_DEBUG_LEVEL_WARNINGS)
+            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
+                "Debug level $debugLevel is turned off", "Warning")
     }
     fun logMd (s: String, debugLevel: UInt)
     {
         if (allowedToShow(debugLevel))
             ThreadedTelemetry.LAZY_INSTANCE.log(toMdString(s))
+        else if (SHOW_DEBUG_LEVEL_WARNINGS)
+            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
+                toMdString("Debug level $debugLevel is turned off"), "Warning")
     }
     fun logTag(s: String, tag: String, debugLevel: UInt)
     {
         if (allowedToShow(debugLevel))
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(s, tag)
+        else if (SHOW_DEBUG_LEVEL_WARNINGS)
+            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
+                "Debug level $debugLevel is turned off", "Warning")
     }
 
 
@@ -72,6 +83,7 @@ class LogManager
     {
         return when (_debugShowSetting)
         {
+            DebugSetting.SHOW_EVERYTHING      -> true
             DebugSetting.SHOW_SELECTED_LEVELS -> customSelected(debugLevel)
 
             DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE -> aboveInclusive(debugLevel)

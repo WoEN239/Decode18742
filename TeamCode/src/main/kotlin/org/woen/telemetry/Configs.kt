@@ -444,6 +444,8 @@ object Configs {
 
     object DEBUG_LEVELS
     {
+        var SHOW_DEBUG_LEVEL_WARNINGS = false
+
         val HARDWARE = 0u
 
         val GAMEPAD_FEEDBACK = 1u
