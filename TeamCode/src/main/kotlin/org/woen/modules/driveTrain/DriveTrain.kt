@@ -128,7 +128,7 @@ class DriveTrain : IModule {
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _hardwareDriveTrain.currentMode = HardwareDriveTrain.DriveTrainMode.REGULATOR
 
-//            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.SHOOTING))
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.SHOOTING))
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {

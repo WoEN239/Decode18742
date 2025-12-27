@@ -32,7 +32,7 @@ class HardwareSimpleStorage : IHardwareDevice {
 
     private lateinit var _beltMotor: MotorOnly
 
-    var beltState = BeltState.STOP
+    var beltState = BeltState.RUN_FAST
     var beltsCurrent = 0.0
 
     val currentTriggerEvent = SimpleEvent<Int>()

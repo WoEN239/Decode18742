@@ -1,6 +1,5 @@
 package org.woen.modules.runner.actions
 
-import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.Vector2d
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.runBlocking
@@ -10,7 +9,6 @@ import org.woen.modules.runner.segment.RequireRRBuilderEvent
 import org.woen.modules.runner.segment.RunSegmentEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.smartMutex.SmartMutex
@@ -76,9 +74,10 @@ class ActionRunner private constructor() : DisposableHandle {
                         ).trajectoryBuilder!!.strafeToLinearHeading(
                             Vector2d(-0.314, -0.716),
                             -PI / 2.0
-                        ).strafeTo(Vector2d(-0.314, -1.3))
-                            .splineToLinearHeading(
-                                Pose2d(Vector2d(-0.05, -1.43), PI / 2.0),
+                        ).strafeTo(Vector2d(-0.314, -1.15))
+                            .setReversed(true)
+                            .splineTo(
+                                Vector2d(-0.05, -1.35),
                                 -PI / 2.0
                             )
                             .build()
@@ -109,7 +108,7 @@ class ActionRunner private constructor() : DisposableHandle {
                             RequireRRBuilderEvent()
                         ).trajectoryBuilder!!
                             .strafeToLinearHeading(Vector2d(0.353, -0.712), -PI / 2.0)
-                            .strafeTo(Vector2d(0.353, -1.3))
+                            .strafeTo(Vector2d(0.353, -1.15))
                             .strafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
                             .build()
                     )
@@ -124,8 +123,8 @@ class ActionRunner private constructor() : DisposableHandle {
                         ThreadedEventBus.LAZY_INSTANCE.invoke(
                             RequireRRBuilderEvent()
                         ).trajectoryBuilder!!
-                            .strafeToLinearHeading(Vector2d(0.937, -0.803), -PI / 2.0)
-                            .strafeTo(Vector2d(0.937, -1.3))
+                            .strafeToLinearHeading(Vector2d(0.9, -0.712), -PI / 2.0)
+                            .strafeTo(Vector2d(0.9, -1.15))
                             .strafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
                             .build()
                     )

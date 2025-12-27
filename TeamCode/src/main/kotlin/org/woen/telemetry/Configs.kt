@@ -172,7 +172,7 @@ object Configs {
         var ROAD_RUNNER_POS_X_P = 1.0
 
         @JvmField
-        var ROAD_RUNNER_POS_Y_P = 1.5
+        var ROAD_RUNNER_POS_Y_P = 1.0
 
         @JvmField
         var ROAD_RUNNER_POS_H_P = 5.0
@@ -187,19 +187,19 @@ object Configs {
         var ROAD_RUNNER_VEL_H_P = 0.0
 
         @JvmField
-        var ROAD_RUNNER_TRANSLATE_VELOCITY = 1.6
+        var ROAD_RUNNER_TRANSLATE_VELOCITY = 1.8
 
         @JvmField
-        var ROAD_RUNNER_ROTATE_VELOCITY = 9.0
+        var ROAD_RUNNER_ROTATE_VELOCITY = 7.0
 
         @JvmField
-        var ROAD_RUNNER_ROTATE_ACCEL = 6.0
+        var ROAD_RUNNER_ROTATE_ACCEL = 14.0
 
         @JvmField
-        var ROAD_RUNNER_MIN_TRANSLATION_ACCEL = -1.0
+        var ROAD_RUNNER_MIN_TRANSLATION_ACCEL = -2.0
 
         @JvmField
-        var ROAD_RUNNER_MAX_TRANSLATION_ACCEL = 1.0
+        var ROAD_RUNNER_MAX_TRANSLATION_ACCEL = 2.0
     }
 
     @Config
@@ -232,7 +232,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.015, kF = 0.005, kI = 0.01)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.0001, kF = 0.0045, kI = 0.000001)
 
         @JvmField
         var PULLEY_TARGET_SENS = 0.4
@@ -244,10 +244,10 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 - 0.22, -3.66 / 2.0)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0, -3.66 / 2.0)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 - 0.22, 3.66 / 2.0)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0, 3.66 / 2.0)
 
         @JvmField
         var TURRET_HEIGHT = 0.35
@@ -280,7 +280,7 @@ object Configs {
         var MAX_TURRET_ANGLE = 45.0 / 180.0 * PI
 
         @JvmField
-        var PULLEY_U = 0.33
+        var PULLEY_U = 0.308
 
         @JvmField
         var AIR_FORCE_K = 0.0
