@@ -148,8 +148,10 @@ class ScoringModulesConnector
                     val startingResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StartLazyIntakeEvent())
 
-                    TelemetryLI.log(
-                        "\nSMC: try start LazyIntake: ${startingResult.startingResult}")
+                    if (startingResult.startingResult) startBrushes()
+                    else reverseBrushes(TIME_FOR_BRUSH_REVERSING)
+
+                    TelemetryLI.log("\nSMC: try start LazyIntake: ${startingResult.startingResult}")
         }   )   )
 
 
@@ -183,6 +185,7 @@ class ScoringModulesConnector
 
                     _intakeWasTerminated.set(true)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
+                    reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
 
                     TelemetryLI.log("\nSMC: STOP  - INTAKE - GAMEPAD")
                     TelemetryLI.log("SMC isBusy: " + isBusy())
@@ -264,12 +267,7 @@ class ScoringModulesConnector
         if (_storage.alreadyFull())
         {
             _canRestartBrushes.set(false)
-
-            ThreadedEventBus.LAZY_INSTANCE.invoke(
-                SwitchBrushStateEvent(
-                    Brush.BrushState.REVERSE,
-                    TIME_FOR_BRUSH_REVERSING
-            )   )
+            reverseBrushes(TIME_FOR_BRUSH_REVERSING)
         }
 
         TelemetryLI.log("SMC: FINISHED - INTAKE, result: $intakeResult")
@@ -277,15 +275,26 @@ class ScoringModulesConnector
         return intakeResult
     }
 
-    private fun reverseAndThenStartBrushesAfterTimePeriod(reverseTime: Long)
-    {
-        _canRestartBrushes.set(true)
 
+
+    private fun startBrushes()
+    {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SwitchBrushStateEvent(
+                Brush.BrushState.FORWARD))
+    }
+    private fun reverseBrushes(reverseTime: Long)
+    {
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             SwitchBrushStateEvent(
                 Brush.BrushState.REVERSE,
                 reverseTime
         )   )
+    }
+    private fun reverseAndThenStartBrushesAfterTimePeriod(reverseTime: Long)
+    {
+        _canRestartBrushes.set(true)
+        reverseBrushes(reverseTime)
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             ReverseAndThenStartBrushesAgain(
@@ -295,11 +304,7 @@ class ScoringModulesConnector
     private suspend fun startBrushesAfterDelay(delay: Long)
     {
         delay(delay)
-
-        if (_canRestartBrushes.get())
-            ThreadedEventBus.LAZY_INSTANCE.invoke(
-                SwitchBrushStateEvent(
-                    Brush.BrushState.FORWARD))
+        if (_canRestartBrushes.get()) startBrushes()
     }
 
 
@@ -341,7 +346,7 @@ class ScoringModulesConnector
         setBusy()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
-                DriveTrain.DriveMode.SHOOTING))
+                DriveMode.SHOOTING))
 
         TelemetryLI.log("SMC: Started - LazySTREAM drum request")
         val requestResult = _storage.streamDrumRequest()
