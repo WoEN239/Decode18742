@@ -108,11 +108,11 @@ class HardwareTurret :
 
         _angleSevo.position = _anglePosition
 
-        if(_isServoZeroed) {
-            targetRotatePosition = 0.0
-            _currentRotate = _rotateEncoder.currentPosition.toDouble()
-            _rotateServo.position = _targetRotationPosition
-        }
+//        if(_isServoZeroed) {
+////            targetRotatePosition = 0.0
+//            _currentRotate = _rotateEncoder.currentPosition.toDouble()
+//            _rotateServo.position = _targetRotationPosition
+//        }
 
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
@@ -134,16 +134,16 @@ class HardwareTurret :
         val err = _targetTicksVelocity - _motorVelocity
 
         _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
-            if(err < Configs.TURRET.ACCEL_THRESHOLD)
+//            if(err < Configs.TURRET.ACCEL_THRESHOLD)
             _regulator.update(
                 err,
                 _targetTicksVelocity
             )
-            else{
-                _regulator.start()
-
-                Configs.TURRET.ACCEL_K
-            }
+//            else{
+//                _regulator.start()
+//
+//                Configs.TURRET.ACCEL_K
+//            }
         )
 
         _deltaTime.reset()
@@ -186,17 +186,7 @@ class HardwareTurret :
         _velocityFilter.start()
         _regulator.start()
 
-        ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            _isServoZeroed = false
-
-            _rotateServo.position = Configs.TURRET.ZERO_ROTATE_POS
-
-            delay((Configs.TURRET.ZEROING_TIME * 1000.0).toLong())
-
-            _rotateEncoder.resetEncoder()
-
-            _isServoZeroed = true
-        }
+        _rotateServo.position = Configs.TURRET.ZERO_ROTATE_POS
     }
 
     override fun opModeStop() {

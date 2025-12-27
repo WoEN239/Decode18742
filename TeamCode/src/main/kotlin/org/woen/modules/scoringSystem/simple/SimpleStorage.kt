@@ -30,6 +30,9 @@ class SimpleStorage : IModule {
         startPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
     )
 
+    private val _launchServo = ThreadedServo(Configs.HARDWARE_DEVICES_NAMES.KICK_SERVO,
+        startPosition = Configs.STORAGE.KICK_SERVO_CLOSE_VALUE)
+
     private var _currentShootCoroutine: Job? = null
     private var _isShooting = false
 
@@ -45,7 +48,7 @@ class SimpleStorage : IModule {
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareStorage, _gateServo)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareStorage, _gateServo, _launchServo)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
             _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -72,7 +75,19 @@ class SimpleStorage : IModule {
 
                 delay(1600)
 
+                _launchServo.targetPosition = Configs.STORAGE.KICK_SERVO_OPEN_VALUE
+
+                while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
+                    delay(5)
+
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+
                 ThreadedGamepad.LAZY_INSTANCE.rumble(0.5)
+
+                _launchServo.targetPosition = Configs.STORAGE.KICK_SERVO_CLOSE_VALUE
+
+                while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
+                    delay(5)
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE_FAST
 

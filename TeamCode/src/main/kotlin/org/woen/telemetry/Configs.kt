@@ -106,19 +106,19 @@ object Configs {
     @Config
     internal object DRIVE_TRAIN {
         @JvmField
-        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 3.0, kP = 10.0)
+        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 4.0, kP = 12.0)
 
         @JvmField
         var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kI = 2.0, kP = 8.0)
 
         @JvmField
-        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.5, kP = 2.5, kI = 2.0)
+        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 2.0, kI = 1.5)
 
         @JvmField
-        var MAX_DRIVE_VELOCITY = 1.7
+        var MAX_DRIVE_VELOCITY = 2.0
 
         @JvmField
-        var MAX_DRIVE_ANGLE_VELOCITY = 10.0
+        var MAX_DRIVE_ANGLE_VELOCITY = 7.0
 
         @JvmField
         var POW_MOVE_ENABLED = true
@@ -268,10 +268,10 @@ object Configs {
         var APPROXIMATION_MAX_ITERATIONS = 100
 
         @JvmField
-        var MIN_TURRET_ANGLE_SERVO = 0.0
+        var MIN_TURRET_ANGLE_SERVO = 0.3
 
         @JvmField
-        var MAX_TURRET_ANGLE_SERVO = 0.6
+        var MAX_TURRET_ANGLE_SERVO = 0.85
 
         @JvmField
         var MIN_TURRET_ANGLE = 45.0 / 180.0 * PI
@@ -310,19 +310,19 @@ object Configs {
         var MAX_MOTOR_RPS = 85.0
 
         @JvmField
-        var ZERO_ROTATE_POS = 0.51
+        var ZERO_ROTATE_POS = 0.68
 
         @JvmField
         var ZEROING_TIME = 0.1
 
         @JvmField
-        var ROTATE_SERVO_RATIO = 36.0 / 110.0
+        var ROTATE_SERVO_RATIO = (25.0 / 20.0) * (40.0 / 110.0)
 
         @JvmField
         var ROTATE_SERVO_TURNS = PI * 2.0 * 5.0
 
         @JvmField
-        var ROTATE_ENCODER_RATIO = 17.0 / 110.0
+        var ROTATE_ENCODER_RATIO = 40.0 / 110.0
 
         @JvmField
         var ENCODER_TICKS_IN_REVOLUTION = 8192.0
@@ -344,7 +344,7 @@ object Configs {
     internal object STORAGE_SENSORS {
 
         @JvmField
-        var OPTIC_SEES_NOT_BLACK = 0.4
+        var OPTIC_PARE_SEES_NOT_BLACK = 0.4
 
 
         @JvmField
@@ -489,8 +489,6 @@ object Configs {
 
 
         @JvmField
-        var BETWEEN_INTAKES_MS: Long = 444
-        @JvmField
         var BETWEEN_SHOTS_MS: Long = 333
     }
 
@@ -527,7 +525,7 @@ object Configs {
 
 
         @JvmField
-        var USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS = false
+        var USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS = true
 
         @JvmField
         var SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION = false
@@ -589,17 +587,17 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO_OPEN_VALUE = 0.36
+        var GATE_SERVO_OPEN_VALUE = 0.38
         @JvmField
-        var GATE_SERVO_CLOSE_VALUE = 0.76
+        var GATE_SERVO_CLOSE_VALUE = 0.765
 
         @JvmField
-        var PUSH_SERVO_OPEN_VALUE = 0.53
+        var PUSH_SERVO_OPEN_VALUE = 0.58
         @JvmField
-        var PUSH_SERVO_CLOSE_VALUE = 0.65
+        var PUSH_SERVO_CLOSE_VALUE = 0.84
 
         @JvmField
-        var KICK_SERVO_OPEN_VALUE = 0.4
+        var KICK_SERVO_OPEN_VALUE = 0.37
         @JvmField
         var KICK_SERVO_CLOSE_VALUE = 0.75
 
@@ -612,7 +610,7 @@ object Configs {
         var POWER_FOR_SLOW_BELT_ROTATING = 8.0
 
         @JvmField
-        var TURRET_GATE_SERVO_OPEN_VALUE = 0.78
+        var TURRET_GATE_SERVO_OPEN_VALUE = 0.775
 
         @JvmField
         var TURRET_GATE_SERVO_CLOSE_VALUE = 0.62
@@ -631,10 +629,10 @@ object Configs {
 
 
         @JvmField
-        var TURRET_OPTIC_1 = "turret_optic_1"
+        var TURRET_OPTIC_PARE_1 = "turret_optic_pare_1"
 
         @JvmField
-        var TURRET_OPTIC_2 = "turret_optic_2"
+        var TURRET_OPTIC_PARE_2 = "turret_optic_pare_2"
 
 
         @JvmField
