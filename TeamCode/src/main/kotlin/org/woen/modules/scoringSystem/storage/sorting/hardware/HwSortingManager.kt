@@ -2,20 +2,32 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
+import org.woen.telemetry.LogManager
+import org.woen.threading.ThreadManager
+import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 
-import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
+import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
+import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 
 import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
+import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
+import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
+import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE_LOW
+import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE
+import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE_HIGH
+import org.woen.telemetry.Configs.DEBUG_LEVELS.HSM_DEBUG_LEVELS
+import org.woen.telemetry.Configs.DEBUG_LEVELS.HSM_DEBUG_SETTING
 
 import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION
-import org.woen.threading.ThreadedEventBus
+
 
 
 class HwSortingManager
@@ -23,9 +35,12 @@ class HwSortingManager
     private val _hwSorting = HwSorting()
     //private val _hwSensors = HwSortingSensors()
 
-    val isAwaitingIntake   = AtomicBoolean(false)
-    val isStoppingBelts    = AtomicBoolean(false)
-    val helpPushLastBall   = AtomicBoolean(false)
+    val logM = LogManager(HSM_DEBUG_SETTING,
+        HSM_DEBUG_LEVELS, "HSM")
+
+    val isAwaitingIntake = AtomicBoolean(false)
+    val isStoppingBelts  = AtomicBoolean(false)
+    val helpPushLastBall = AtomicBoolean(false)
 
 
 
@@ -39,19 +54,21 @@ class HwSortingManager
     {
 //        _hwSensors.colorSensorsDetectedIntakeEvent +=
 //        {
+//            logM.logTag("Color sensors sees $it input", "StorageSensors", HARDWARE_LOW)
+//
 //            if (isAwaitingIntake.get())
 //            {
-//                SmartCoroutineLI.launch {
+//                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
 //
-//                    val storageCanHandleInput = EventBusLI.invoke(
-//                        BallCountInStorageEvent()
-//                    ).count + 1 < MAX_BALL_COUNT
+//                    val storageCanHandleInput = ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        BallCountInStorageEvent()).count + 1 < MAX_BALL_COUNT
 //
 //                    if (storageCanHandleInput)
 //                    {
-//                        EventBusLI.invoke(StorageGetReadyForIntakeEvent(it))
+//                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                            StorageGetReadyForIntakeEvent(it))
 //
-//                        TelemetryLI.log("COLOR SENSORS - START INTAKE")
+//                        logM.logMd("COLOR SENSORS - Start intake", HARDWARE_HIGH)
 //                        delay(DELAY.BETWEEN_INTAKES_MS)
 //
 //                        resumeAwaitingEating()
@@ -67,9 +84,12 @@ class HwSortingManager
 
         _hwSorting.beltsCurrentPeakedEvent +=
         {
+            logM.logTag("BELTS - Current peaked", "StorageSensors", HARDWARE_LOW)
+
             if (!isStoppingBelts.get())
             {
                 isStoppingBelts.set(true)
+                logM.logMd("BELTS - Initiating current protection", HARDWARE_HIGH)
 
                 if (USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(WaitForTerminateIntakeEvent())
@@ -78,6 +98,8 @@ class HwSortingManager
                 {
                     do
                     {
+                        logM.logMd("Belt current protection - attempting storage recalibration", HARDWARE_LOW)
+
                         val recalibrateResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
                             FillStorageWithUnknownColorsEvent()
                         ).startingResult
@@ -92,6 +114,7 @@ class HwSortingManager
     }
     private fun addDevices()
     {
+        logM.logMd("INITIALISATION - Adding HwDevices", HARDWARE_HIGH)
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSorting)
         //HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSensors)
     }
@@ -102,12 +125,13 @@ class HwSortingManager
     fun resumeAwaitingEating() = isAwaitingIntake.set(true)
     fun stopAwaitingEating(stopBelts: Boolean)
     {
+        logM.logMd("Stopped auto intake awaiting", GENERIC_INFO)
         isAwaitingIntake.set(false)
         if (stopBelts) stopBelts()
     }
     suspend fun fullCalibrate()
     {
-        TelemetryLI.log("HWSMM: STARTED full calibration")
+        logM.logMd("STARTED full calibration", HARDWARE_HIGH)
         _hwSorting.fullCalibrate()
 
         while (!_hwSorting.gateServo.atTargetAngle
@@ -116,51 +140,51 @@ class HwSortingManager
             || !_hwSorting.turretGateServo.atTargetAngle)
                 delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
-        TelemetryLI.log("HWSMM: Full calibration completed")
+        logM.logMd("Full calibration completed", HARDWARE_HIGH)
     }
     suspend fun openGate()
     {
-        TelemetryLI.log("HWSMM: Started OPENING sorting gate")
+        logM.logMd("Started OPENING sorting gate", HARDWARE)
         _hwSorting.openGate()
 
         while (!_hwSorting.gateServo.atTargetAngle)
             delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
-        TelemetryLI.log("HWSMM: OPENED sorting gate")
+        logM.logMd("OPENED sorting gate", HARDWARE)
     }
     suspend fun openPush()
     {
-        TelemetryLI.log("HWSMM: Started OPENING push")
+        logM.logMd("Started OPENING push", HARDWARE)
         _hwSorting.openPush()
 
         while (!_hwSorting.pushServo.atTargetAngle)
             delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
-        TelemetryLI.log("HWSMM: OPENED push")
+        logM.logMd("OPENED push", HARDWARE)
     }
     suspend fun openLaunch()
     {
-        TelemetryLI.log("HWSMM: Started OPENING kick")
+        logM.logMd("Started OPENING kick", HARDWARE)
         _hwSorting.openLaunch()
 
         while (!_hwSorting.launchServo.atTargetAngle)
             delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
-        TelemetryLI.log("HWSMM: OPENED kick")
+        logM.logMd("OPENED kick", HARDWARE)
     }
     suspend fun closeLaunch()
     {
-        TelemetryLI.log("HWSMM: Started CLOSING kick")
+        logM.logMd("Started CLOSING kick", HARDWARE)
         _hwSorting.closeLaunch()
 
         while (!_hwSorting.launchServo.atTargetAngle)
             delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
-        TelemetryLI.log("HWSMM: CLOSED kick")
+        logM.logMd("CLOSED kick", HARDWARE)
     }
     suspend fun closeGateWithPush()
     {
-        TelemetryLI.log("HWSMM: Started CLOSING sorting gate & push")
+        logM.logMd("Started CLOSING sorting gate & push", HARDWARE)
         _hwSorting.closeGate()
         _hwSorting.closePush()
 
@@ -168,52 +192,52 @@ class HwSortingManager
             || !_hwSorting.gateServo.atTargetAngle)
             delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
-        TelemetryLI.log("HWSMM: CLOSED sorting gate & push")
+        logM.logMd("CLOSED sorting gate & push", HARDWARE)
     }
 
 
     suspend fun openTurretGate()
     {
-        TelemetryLI.log("HWSMM: Started OPENING turret gate")
+        logM.logMd("Started OPENING turret gate", HARDWARE)
         _hwSorting.openTurretGate()
 
         while (!_hwSorting.turretGateServo.atTargetAngle)
             delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
-        TelemetryLI.log("HWSMM: OPENED turret gate successfully")
+        logM.logMd("OPENED turret gate successfully", HARDWARE)
     }
     suspend fun closeTurretGate()
     {
-        TelemetryLI.log("HWSMM: Started CLOSING turret gate")
+        logM.logMd("Started CLOSING turret gate", HARDWARE)
         _hwSorting.closeTurretGate()
 
         while (!_hwSorting.turretGateServo.atTargetAngle)
             delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
-        TelemetryLI.log("HWSMM: CLOSED turret gate successfully")
+        logM.logMd("CLOSED turret gate successfully", HARDWARE)
     }
 
 
 
     fun slowStartBelts()
     {
-        TelemetryLI.log("HWSMM: SLOW Started hw belts")
+        logM.logMd("SLOW Started hw belts", HARDWARE)
         _hwSorting.slowStartBeltMotors()
     }
     fun startBelts()
     {
-        TelemetryLI.log("HWSMM: Started hw belts")
+        logM.logMd("Started hw belts", HARDWARE)
         _hwSorting.startBeltMotors()
     }
     fun reverseBelts()
     {
-        TelemetryLI.log("HWSMM: Reversing hw belts")
+        logM.logMd("Reversing hw belts", HARDWARE)
         _hwSorting.reverseBeltMotors()
     }
 
     fun stopBelts()
     {
-        TelemetryLI.log("HWSMM: Stopped hw belts")
+        logM.logMd("Stopped hw belts", HARDWARE)
         _hwSorting.stopBeltMotors()
     }
 
@@ -221,6 +245,7 @@ class HwSortingManager
 
     suspend fun hwForwardBeltsTime(timeMs: Long)
     {
+        logM.logMd("Chosen time period: $timeMs", HARDWARE)
         stopAwaitingEating(false)
         startBelts()
         delay(timeMs)
@@ -228,6 +253,7 @@ class HwSortingManager
     }
     suspend fun hwReverseBeltsTime(timeMs: Long)
     {
+        logM.logMd("Chosen time period: $timeMs", HARDWARE)
         stopAwaitingEating(false)
         reverseBelts()
         delay(timeMs)
@@ -235,7 +261,7 @@ class HwSortingManager
     }
     suspend fun hwRotateMobileSlot()
     {
-        TelemetryLI.log("HWSMM: Rotating mobile slot")
+        logM.logMd("ROTATING MOBILE SLOT", HARDWARE_HIGH)
         stopAwaitingEating(true)
         closeLaunch()
         closeTurretGate()
@@ -253,6 +279,7 @@ class HwSortingManager
 
     suspend fun hwSmartPushNextBall()
     {
+        logM.logMd("STARTED Smart ball push for shot", HARDWARE_HIGH)
         startBelts()
 
         if (helpPushLastBall.get())

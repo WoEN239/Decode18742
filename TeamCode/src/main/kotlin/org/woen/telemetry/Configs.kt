@@ -446,26 +446,49 @@ object Configs {
     {
         var SHOW_DEBUG_LEVEL_WARNINGS = false
 
-        val HARDWARE = 0u
+        val HARDWARE_LOW  = 0u
+        val HARDWARE      = 1u
+        val HARDWARE_HIGH = 2u
 
-        val GAMEPAD_FEEDBACK = 1u
-        val EVENTS_FEEDBACK  = 2u
+        val GAMEPAD_FEEDBACK = 3u
+        val EVENTS_FEEDBACK  = 4u
 
-        val ATTEMPTING_LOGIC = 3u
-        val PROCESS_STARTING = 4u
-        val PROCESS_ENDING   = 5u
+        val ATTEMPTING_LOGIC = 5u
+        val PROCESS_STARTING = 6u
+        val PROCESS_ENDING   = 7u
 
-        val GENERIC_INFO = 6u
-        val LOGIC_STEPS  = 7u
+        val GENERIC_INFO = 8u
+        val LOGIC_STEPS  = 9u
 
-        val PROCESS_NAME = 8u
-        val TERMINATION  = 9u
+        val PROCESS_NAME = 10u
+        val TERMINATION  = 11u
 
 
         //  Sorting Storage Logic
         var SSL_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
         var SSL_DEBUG_LEVELS  = arrayListOf(
             HARDWARE,
+            HARDWARE_HIGH,
+
+            GAMEPAD_FEEDBACK,
+            EVENTS_FEEDBACK,
+
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
+
+            GENERIC_INFO,
+            LOGIC_STEPS,
+
+            PROCESS_NAME,
+            TERMINATION)
+
+
+        //  Hardware sorting manager
+        var HSM_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+        var HSM_DEBUG_LEVELS  = arrayListOf(
+            HARDWARE,
+            HARDWARE_HIGH,
 
             GAMEPAD_FEEDBACK,
             EVENTS_FEEDBACK,
@@ -531,7 +554,9 @@ object Configs {
 
 
         @JvmField
-        var BETWEEN_SHOTS_MS: Long = 300
+        var BETWEEN_SHOTS_MS:   Long = 300
+        @JvmField
+        var BETWEEN_INTAKES_MS: Long = 500
     }
 
 

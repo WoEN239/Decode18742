@@ -11,11 +11,11 @@ class LogManager
 
 
     constructor(showSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
-        debugShowSettings: ArrayList<UInt> = arrayListOf(0u),
+        showLevels: ArrayList<UInt> = arrayListOf(0u),
         moduleName: String = "")
     {
         updateDebugSetting(showSetting)
-        setShowedDebugLevels(debugShowSettings)
+        setShowedDebugLevels(showLevels)
         setModuleName(moduleName)
     }
 
