@@ -3,7 +3,6 @@ package org.woen.modules.scoringSystem.storage.sorting
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicBoolean
 
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
@@ -27,7 +26,6 @@ import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
 
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
-import org.woen.modules.scoringSystem.storage.StopAnyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
@@ -36,6 +34,7 @@ import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 import org.woen.modules.scoringSystem.storage.StorageInitiatePredictSortEvent
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
+import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
 
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
@@ -52,10 +51,10 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_RE
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION
 
 
+
 class SortingStorage
 {
     private val _storageLogic = SortingStorageLogic()
-    private val _isCurrentlyKillingIntake = AtomicBoolean(false)
 
 
 
@@ -65,11 +64,17 @@ class SortingStorage
         subscribeToActionEvents()
         subscribeToGamepadEvents()
         subscribeToTerminateEvents()
+        subscribeToSecondDriverPatternRecalibration()
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _storageLogic.storageCells.hwSortingM.resetParametersAndLogicToDefault()
-            _storageLogic.storageCells.resetParametersToDefault()
-            _storageLogic.resetParametersToDefault()
+            SmartCoroutineLI.launch {
+                terminateIntake()
+                terminateRequest()
+
+                _storageLogic.storageCells.hwSortingM.resetParametersAndLogicToDefault()
+                _storageLogic.storageCells.resetParametersToDefault()
+                _storageLogic.resetParametersToDefault()
+            }
         }
     }
 
@@ -111,6 +116,7 @@ class SortingStorage
 
                 if (canStartLazyIntake)
                     SmartCoroutineLI.launch {
+                        TelemetryLI.log("SSM Is idle: starting lazy intake")
                         startLazyIntake()
                     }
 
@@ -202,54 +208,16 @@ class SortingStorage
     {
         EventBusLI.subscribe(TerminateIntakeEvent::class, {
 
-            val activeIntakeProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
-            TelemetryLI.log("SSM Terminate intake process id: $activeIntakeProcessId")
+                terminateIntake()
+        }   )
+        EventBusLI.subscribe(WaitForTerminateIntakeEvent::class, {
 
-            if (activeIntakeProcessId == INTAKE ||
-                activeIntakeProcessId == LAZY_INTAKE)
-            {
-                _storageLogic.runStatus.addProcessToTerminationList(activeIntakeProcessId)
-                if (activeIntakeProcessId == LAZY_INTAKE)
-                    _storageLogic.lazyIntakeIsActive.set(false)
-            }
+                terminateIntake()
         }   )
 
         EventBusLI.subscribe(TerminateRequestEvent::class, {
 
-            val activeRequestProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
-
-            if (activeRequestProcessId == SINGLE_REQUEST ||
-                activeRequestProcessId == DRUM_REQUEST)
-                _storageLogic.runStatus.addProcessToTerminationList(activeRequestProcessId)
-        }  )
-
-        EventBusLI.subscribe(StopAnyIntakeEvent::class, {
-
-            if (!_isCurrentlyKillingIntake.get())
-            {
-                _isCurrentlyKillingIntake.set(true)
-                val activeProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
-
-                if (activeProcessId != LAZY_INTAKE &&
-                    activeProcessId != INTAKE)
-                {
-                    _isCurrentlyKillingIntake.set(false)
-                    return@subscribe
-                }
-
-                _storageLogic.lazyIntakeIsActive.set(false)
-
-                if (!_storageLogic.pleaseWaitForIntakeEnd.get())
-                    _storageLogic.runStatus
-                        .addProcessToTerminationList(activeProcessId)
-
-                while (_storageLogic.runStatus
-                        .isUsedByThisProcess(activeProcessId))
-                    delay(DELAY.EVENT_AWAITING_MS)
-
-                _isCurrentlyKillingIntake.set(false)
-                it.intakeStoppingResult = true
-            }
+                terminateRequest()
         }   )
     }
     private fun subscribeToSecondDriverPatternRecalibration()
@@ -282,6 +250,41 @@ class SortingStorage
 
 
 
+    fun terminateRequest()
+    {
+        TelemetryLI.log("attempting request termination")
+        val activeRequestProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
+
+        if (activeRequestProcessId == SINGLE_REQUEST ||
+            activeRequestProcessId == DRUM_REQUEST)
+        {
+            TelemetryLI.log("\n\tTerminating all requests\n")
+
+            _storageLogic.runStatus.addProcessToTerminationList(activeRequestProcessId)
+        }
+    }
+    suspend fun terminateIntake()
+    {
+        TelemetryLI.log("attempting intake termination")
+
+        val activeProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
+        _storageLogic.lazyIntakeIsActive.set(false)
+
+        if (activeProcessId == LAZY_INTAKE &&
+            activeProcessId == INTAKE)
+        {
+            TelemetryLI.log("\n\tTerminating all intakes")
+
+            if (!_storageLogic.pleaseWaitForIntakeEnd.get())
+                _storageLogic.runStatus
+                    .addProcessToTerminationList(activeProcessId)
+
+            while (_storageLogic.runStatus
+                    .isUsedByThisProcess(activeProcessId))
+                delay(DELAY.EVENT_AWAITING_MS)
+        }
+    }
+
     fun unsafeTestSorting()
     {
         val fill = arrayOf(Ball.Name.PURPLE, Ball.Name.GREEN, Ball.Name.PURPLE)
@@ -310,7 +313,7 @@ class SortingStorage
             startLazyIntake()
         else _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
     }
-    suspend fun startLazyIntake()
+    private suspend fun startLazyIntake()
     {
         TelemetryLI.log("Started LazyIntake")
         _storageLogic.runStatus.setCurrentActiveProcess(LAZY_INTAKE)
@@ -333,7 +336,7 @@ class SortingStorage
 
 
 
-    suspend fun handleIntake(inputToBottomSlot: Ball.Name):        IntakeResult.Name
+    suspend fun handleIntake(inputToBottomSlot: Ball.Name): IntakeResult.Name
     {
         if (_storageLogic.storageCells.alreadyFull()) return Intake.FAIL_IS_FULL
 
@@ -358,7 +361,7 @@ class SortingStorage
         _storageLogic.resumeLogicAfterIntake(INTAKE)
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
-    suspend fun handleRequest(request: BallRequest.Name): RequestResult.Name
+    suspend fun handleRequest(request: BallRequest.Name):  RequestResult.Name
     {
         if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
         if (_storageLogic.cantHandleRequestRaceCondition(SINGLE_REQUEST))
@@ -388,7 +391,7 @@ class SortingStorage
              lazyDrumRequest()
         else shootEntireDrumRequest()
     }
-    private suspend fun lazyDrumRequest():       RequestResult.Name
+    private suspend fun lazyDrumRequest():        RequestResult.Name
     {
         if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
             return _storageLogic.terminateRequest(DRUM_REQUEST)
@@ -417,7 +420,7 @@ class SortingStorage
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,
         includePreviousUnfinishedToRequest: Boolean = true,
-        autoUpdateUnfinishedForNextPattern: Boolean = true): RequestResult.Name
+        autoUpdateUnfinishedForNextPattern: Boolean = true):       RequestResult.Name
     {
         if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
         if (requestOrder.isEmpty())  return Request.ILLEGAL_ARGUMENT

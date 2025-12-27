@@ -51,7 +51,7 @@ import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
 import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS
-
+import org.woen.threading.ThreadedGamepad
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -137,10 +137,11 @@ class ScoringModulesConnector
     }
     private fun subscribeToGamepad()
     {
-        GamepadLI.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-                { it.dpad_up }, {
+                { it.triangle }, {
 
+                    TelemetryLI.log("SMC: Gamepad try start lazy intake")
                     val startingResult = EventBusLI.invoke(
                         StartLazyIntakeEvent())
 
@@ -149,9 +150,9 @@ class ScoringModulesConnector
         }   )   )
 
 
-        GamepadLI.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-            { it.dpad_right }, {
+            { it.square }, {
 
                     EventBusLI.invoke(
                         StorageGetReadyForIntakeEvent(
@@ -161,9 +162,9 @@ class ScoringModulesConnector
                     TelemetryLI.log("SMC isBusy: " + isBusy())
         }   )   )
 
-        GamepadLI.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-            { it.dpad_left }, {
+            { it.circle }, {
 
                     EventBusLI.invoke(
                         StorageGetReadyForIntakeEvent(
@@ -173,9 +174,9 @@ class ScoringModulesConnector
                     TelemetryLI.log("SMC isBusy: " + isBusy())
         }   )   )
 
-        GamepadLI.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-            { it.dpad_down }, {
+            { it.cross }, {
 
                     _intakeWasTerminated.set(true)
                     EventBusLI.invoke(TerminateIntakeEvent())
@@ -186,9 +187,20 @@ class ScoringModulesConnector
 
 
 
-        GamepadLI.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-            { it.right_bumper }, {
+                { it.right_bumper }, {
+
+                    _requestWasTerminated.set(true)
+                    EventBusLI.invoke(TerminateRequestEvent())
+
+                    TelemetryLI.log("", "SMC: STOP  - ANY Request - GAMEPAD")
+                    TelemetryLI.log("SMC isBusy: " + isBusy())
+        }   )   )
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener(
+            { it.left_bumper }, {
 
                     EventBusLI.invoke(StorageGiveStreamDrumRequest())
 
@@ -196,9 +208,10 @@ class ScoringModulesConnector
                     TelemetryLI.log("SMC isBusy: " + isBusy())
         }   )   )
 
-        GamepadLI.addListener(
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-            { it.right_trigger > 0.75 }, {
+            { it.left_trigger > 0.75 }, {
 
                     EventBusLI.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 
@@ -206,25 +219,13 @@ class ScoringModulesConnector
                     TelemetryLI.log("SMC isBusy: " + isBusy())
         }   )   )
 
-        GamepadLI.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-            { it.left_trigger > 0.75 }, {
+            { it.right_trigger > 0.75 }, {
 
                     EventBusLI.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 
                     TelemetryLI.log("\nSMC: START - GREEN Request - GAMEPAD")
-                    TelemetryLI.log("SMC isBusy: " + isBusy())
-        }   )   )
-
-
-        GamepadLI.addListener(
-            createClickDownListener(
-            { it.left_bumper }, {
-
-                    _requestWasTerminated.set(true)
-                    EventBusLI.invoke(TerminateRequestEvent())
-
-                    TelemetryLI.log("", "SMC: STOP  - ANY Request - GAMEPAD")
                     TelemetryLI.log("SMC isBusy: " + isBusy())
         }   )   )
     }

@@ -9,7 +9,7 @@ import org.woen.threading.hardware.HardwareThreads
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
 
-import org.woen.modules.scoringSystem.storage.StopAnyIntakeEvent
+import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
 
 import org.woen.telemetry.Configs.DELAY
@@ -73,7 +73,7 @@ class HwSortingManager
                 isStoppingBelts.set(true)
 
                 if (USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS)
-                    EventBusLI.invoke(StopAnyIntakeEvent())
+                    EventBusLI.invoke(WaitForTerminateIntakeEvent())
 
                 if (SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION)
                 {

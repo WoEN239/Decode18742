@@ -8,6 +8,9 @@ import org.woen.threading.StoppingEvent
 
 
 class TerminateIntakeEvent()
+class WaitForTerminateIntakeEvent() : StoppingEvent
+
+
 class StorageGetReadyForIntakeEvent(
     var inputToBottomSlot: Ball.Name = Ball.Name.NONE)
 
@@ -15,9 +18,6 @@ class StorageGetReadyForIntakeEvent(
 data class StartLazyIntakeEvent(
     var startingResult: Boolean = false) : StoppingEvent
 class StopLazyIntakeEvent()
-
-class StopAnyIntakeEvent(
-    var intakeStoppingResult: Boolean = false) : StoppingEvent
 
 
 
