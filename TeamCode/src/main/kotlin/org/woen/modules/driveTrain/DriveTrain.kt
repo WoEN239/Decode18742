@@ -119,10 +119,6 @@ class DriveTrain : IModule {
     constructor() {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(FullFinishedFiringEvent::class, {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
-        })
-
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {
             _targetTranslateVelocity = it.translateVelocity
             _targetRotateVelocity = it.rotationVelocity
