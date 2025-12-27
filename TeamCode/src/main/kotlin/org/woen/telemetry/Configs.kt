@@ -46,7 +46,7 @@ object Configs {
         var TIME_FOR_BRUSH_REVERSING: Long = 1500
 
         @JvmField
-        var BRUSH_POWER = 10.0
+        var BRUSH_POWER = 11.0
     }
 
     @Config
@@ -91,10 +91,10 @@ object Configs {
     @Config
     internal object ODOMETRY {
         @JvmField
-        var START_RED_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), 0.91 + 0.38 / 2.0 - 0.045), Angle(PI / 2.0))
+        var START_RED_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), 0.91 + 0.38 / 2.0 - 0.045), Angle(PI))
 
         @JvmField
-        var START_BLUE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), -0.91 - 0.38 / 2.0 + 0.045), Angle(-PI / 2.0))
+        var START_BLUE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), -0.91 - 0.38 / 2.0 + 0.045), Angle(PI))
 
         @JvmField
         var X_ODOMETER_POSITION = -0.09

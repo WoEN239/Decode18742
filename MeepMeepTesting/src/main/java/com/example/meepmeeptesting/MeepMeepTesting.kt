@@ -49,6 +49,7 @@ object MeepMeepTesting {
                 .meterStrafeToLinearHeading(Vector2d(0.9, -0.712), -PI / 2.0)
                 .meterStrafeTo(Vector2d(0.9, -1.15))
                 .meterStrafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
+                .meterStrafeTo(Vector2d(-0.2, -0.656))
                 .build()
         )
 

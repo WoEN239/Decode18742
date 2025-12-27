@@ -1,34 +1,29 @@
 package org.woen.modules.runner.actions
 
 
-import kotlin.math.PI
-import kotlin.concurrent.thread
+import com.acmerobotics.roadrunner.Vector2d
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.DisposableHandle
-import java.util.concurrent.atomic.AtomicBoolean
-
-import com.acmerobotics.roadrunner.Vector2d
 import org.woen.enumerators.Ball
-
-import org.woen.modules.runner.segment.RunSegmentEvent
+import org.woen.hotRun.HotRun
 import org.woen.modules.runner.segment.RRTrajectorySegment
 import org.woen.modules.runner.segment.RequireRRBuilderEvent
-
-import org.woen.threading.ThreadManager
-import org.woen.threading.ThreadedEventBus
-
-import org.woen.hotRun.HotRun
+import org.woen.modules.runner.segment.RunSegmentEvent
 import org.woen.modules.scoringSystem.DefaultFireEvent
-import org.woen.utils.smartMutex.SmartMutex
-import org.woen.telemetry.Configs.DELAY
-
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
+import org.woen.telemetry.Configs.DELAY
+import org.woen.threading.ThreadManager
+import org.woen.threading.ThreadedEventBus
+import org.woen.utils.smartMutex.SmartMutex
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
+import kotlin.math.PI
 
 
 class ActionRunner private constructor() : DisposableHandle {
@@ -66,6 +61,11 @@ class ActionRunner private constructor() : DisposableHandle {
         }
     }
 
+    private val _yColorMultiplier
+        get() = if (HotRun.LAZY_INSTANCE.currentRunColor == HotRun.RunColor.BLUE) 1.0 else -1.0
+
+    private val _hColorMultiplier
+        get() = if (HotRun.LAZY_INSTANCE.currentRunColor == HotRun.RunColor.BLUE) 1.0 else -1.0
 
     private suspend fun sortingAuto()
     {
@@ -81,7 +81,18 @@ class ActionRunner private constructor() : DisposableHandle {
         moveIntakeZonePhase3()
         fireAutoDrum()
 
-        TODO("ДОБАВИТЬ СЮДА ОТЪЕЗД")
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeTo(
+                        Vector2d(-0.2, -0.656 * _yColorMultiplier)
+                    )
+                        .build()
+                )
+            )
+        ).process.wait()
     }
     private suspend fun simpleAuto()
     {
@@ -91,8 +102,8 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeToLinearHeading(
-                        Vector2d(-0.776, -0.656),
-                        -PI * 0.75
+                        Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                        -PI * 0.75 * _hColorMultiplier
                     )
                         .build()
                 )
@@ -107,13 +118,13 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeToLinearHeading(
-                        Vector2d(-0.314, -0.716),
-                        -PI / 2.0
-                    ).strafeTo(Vector2d(-0.314, -1.15))
+                        Vector2d(-0.314, -0.716 * _yColorMultiplier),
+                        -PI / 2.0 * _hColorMultiplier
+                    ).strafeTo(Vector2d(-0.314, -1.15 * _yColorMultiplier))
                         .setReversed(true)
                         .splineTo(
-                            Vector2d(-0.05, -1.35),
-                            -PI / 2.0
+                            Vector2d(-0.05, -1.35 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
                         )
                         .build()
                 )
@@ -128,7 +139,10 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
-                        .strafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
+                        .strafeToLinearHeading(
+                            Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                            -PI * 0.75 * _hColorMultiplier
+                        )
                         .build()
                 )
             )
@@ -142,9 +156,15 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
-                        .strafeToLinearHeading(Vector2d(0.353, -0.712), -PI / 2.0)
-                        .strafeTo(Vector2d(0.353, -1.15))
-                        .strafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
+                        .strafeToLinearHeading(
+                            Vector2d(0.353, -0.712 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
+                        )
+                        .strafeTo(Vector2d(0.353, -1.15 * _yColorMultiplier))
+                        .strafeToLinearHeading(
+                            Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                            -PI * 0.75 * _hColorMultiplier
+                        )
                         .build()
                 )
             )
@@ -158,15 +178,29 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
-                        .strafeToLinearHeading(Vector2d(0.9, -0.712), -PI / 2.0)
-                        .strafeTo(Vector2d(0.9, -1.15))
-                        .strafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
+                        .strafeToLinearHeading(Vector2d(0.9, -0.712 * _yColorMultiplier), -PI / 2.0 * _hColorMultiplier)
+                        .strafeTo(Vector2d(0.9, -1.15 * _yColorMultiplier))
+                        .strafeToLinearHeading(
+                            Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                            -PI * 0.75 * _hColorMultiplier
+                        )
                         .build()
                 )
             )
         ).process.wait()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeTo(Vector2d(-0.2, -0.656 * _yColorMultiplier))
+                        .build()
+                )
+            )
+        ).process.wait()
     }
 
 
@@ -179,8 +213,8 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeToLinearHeading(
-                        Vector2d(-0.776, -0.656),
-                        -PI * 0.75
+                        Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                        -PI * 0.75 * _hColorMultiplier
                     )
                         .build()
                 )
@@ -197,13 +231,13 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeToLinearHeading(
-                        Vector2d(-0.314, -0.716),
-                        -PI / 2.0
-                    ).strafeTo(Vector2d(-0.314, -1.15))
+                        Vector2d(-0.314, -0.716 * _yColorMultiplier),
+                        -PI / 2.0 * _hColorMultiplier
+                    ).strafeTo(Vector2d(-0.314, -1.15 * _yColorMultiplier))
                         .setReversed(true)
                         .splineTo(
-                            Vector2d(-0.05, -1.35),
-                            -PI / 2.0
+                            Vector2d(-0.05, -1.35 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
                         )
                         .build()
                 )
@@ -218,7 +252,10 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
-                        .strafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
+                        .strafeToLinearHeading(
+                            Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                            -PI * 0.75 * _hColorMultiplier
+                        )
                         .build()
                 )
             )
@@ -238,9 +275,15 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
-                        .strafeToLinearHeading(Vector2d(0.353, -0.712), -PI / 2.0)
-                        .strafeTo(Vector2d(0.353, -1.15))
-                        .strafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
+                        .strafeToLinearHeading(
+                            Vector2d(0.353, -0.712 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
+                        )
+                        .strafeTo(Vector2d(0.353, -1.15 * _yColorMultiplier))
+                        .strafeToLinearHeading(
+                            Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                            -PI * 0.75 * _hColorMultiplier
+                        )
                         .build()
                 )
             )
@@ -260,9 +303,12 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
-                        .strafeToLinearHeading(Vector2d(0.9, -0.712), -PI / 2.0)
-                        .strafeTo(Vector2d(0.9, -1.15))
-                        .strafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
+                        .strafeToLinearHeading(Vector2d(0.9, -0.712 * _yColorMultiplier), -PI / 2.0 * _hColorMultiplier)
+                        .strafeTo(Vector2d(0.9, -1.15 * _yColorMultiplier))
+                        .strafeToLinearHeading(
+                            Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                            -PI * 0.75 * _hColorMultiplier
+                        )
                         .build()
                 )
             )
