@@ -91,10 +91,10 @@ object Configs {
     @Config
     internal object ODOMETRY {
         @JvmField
-        var START_RED_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), 0.91 + 0.38 / 2.0), Angle(PI / 2.0))
+        var START_RED_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), 0.91 + 0.38 / 2.0 - 0.045), Angle(PI / 2.0))
 
         @JvmField
-        var START_BLUE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), -0.91 - 0.38 / 2.0), Angle(-PI / 2.0))
+        var START_BLUE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), -0.91 - 0.38 / 2.0 + 0.045), Angle(-PI / 2.0))
 
         @JvmField
         var X_ODOMETER_POSITION = -0.09
@@ -232,7 +232,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.018, kF = 0.0042)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.015, kF = 0.005, kI = 0.01)
 
         @JvmField
         var PULLEY_TARGET_SENS = 0.4
@@ -274,13 +274,13 @@ object Configs {
         var MAX_TURRET_ANGLE_SERVO = 0.85
 
         @JvmField
-        var MIN_TURRET_ANGLE = 45.0 / 180.0 * PI
+        var MIN_TURRET_ANGLE = 30.0 / 180.0 * PI
 
         @JvmField
-        var MAX_TURRET_ANGLE = 55.0 / 180.0 * PI
+        var MAX_TURRET_ANGLE = 45.0 / 180.0 * PI
 
         @JvmField
-        var PULLEY_U = 0.3365
+        var PULLEY_U = 0.33
 
         @JvmField
         var AIR_FORCE_K = 0.0

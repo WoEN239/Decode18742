@@ -20,7 +20,6 @@ import org.woen.utils.units.Color
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 import kotlin.math.abs
-import kotlin.math.pow
 import kotlin.math.sign
 
 data class SetDriveTargetVelocityEvent(val translateVelocity: Vec2, val rotationVelocity: Double)
@@ -127,12 +126,9 @@ class DriveTrain : IModule {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareDriveTrain)
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _hardwareDriveTrain.currentMode =
-//                if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) HardwareDriveTrain.DriveTrainMode.POWER
-//                else
-                    HardwareDriveTrain.DriveTrainMode.REGULATOR
+            _hardwareDriveTrain.currentMode = HardwareDriveTrain.DriveTrainMode.REGULATOR
 
-//            _currentMode = DriveMode.DRIVE
+//            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.SHOOTING))
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {
@@ -200,10 +196,6 @@ class DriveTrain : IModule {
                 _yRegulator.resetIntegral()
                 _hRegulator.start()
                 _hRegulator.resetIntegral()
-            } else {
-                _hardwareDriveTrain.currentMode =
-                    if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) HardwareDriveTrain.DriveTrainMode.POWER
-                    else HardwareDriveTrain.DriveTrainMode.REGULATOR
             }
         })
 
