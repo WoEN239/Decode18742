@@ -128,44 +128,44 @@ class HotRun private constructor() {
             val updateTimer = ElapsedTime()
 
             while (opMode.opModeIsActive()) {
-//                val updateCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                val updateCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
                     opModeUpdateEvent.invoke(opMode)
-//                }
+                }
 
-//                updateTimer.reset()
-//
-//                while (!updateCoroutine.isCompleted){
-//                    Thread.sleep(5)
-//
-//                    if(updateTimer.seconds() > Configs.HOT_RUN.MAX_UPDATE_TIME) {
-//                        ThreadedTelemetry.LAZY_INSTANCE.log("update coroutine is killed")
-//
-//                        updateCoroutine.cancel()
-//                        break
-//                    }
-//                }
+                updateTimer.reset()
+
+                while (!updateCoroutine.isCompleted) {
+                    Thread.sleep(5)
+
+                    if (updateTimer.seconds() > Configs.HOT_RUN.MAX_UPDATE_TIME) {
+                        ThreadedTelemetry.LAZY_INSTANCE.log("update coroutine is killed")
+
+                        updateCoroutine.cancel()
+                        break
+                    }
+                }
             }
 
             currentRunState = RunState.STOP
 
-//            val stopCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            val stopCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
                 opModeStopEvent.invoke(opMode)
-//            }
+            }
 
-//            val stopTimer = ElapsedTime()
-//            stopTimer.reset()
+            val stopTimer = ElapsedTime()
+            stopTimer.reset()
 
-//            while (!stopCoroutine.isCompleted) {
+            while (!stopCoroutine.isCompleted) {
                 Thread.sleep(5)
 
-//                if(stopTimer.seconds() > Configs.HOT_RUN.MAX_STOP_TIME) {
-//                    ThreadedTelemetry.LAZY_INSTANCE.log("stop coroutine is killed")
-//
-//                    stopCoroutine.cancel()
-//
-//                    break
-//                }
-//            }
+                if (stopTimer.seconds() > Configs.HOT_RUN.MAX_STOP_TIME) {
+                    ThreadedTelemetry.LAZY_INSTANCE.log("stop coroutine is killed")
+
+                    stopCoroutine.cancel()
+
+                    break
+                }
+            }
 
             for (i in opMode.hardwareMap.servoController)
                 i.pwmDisable()

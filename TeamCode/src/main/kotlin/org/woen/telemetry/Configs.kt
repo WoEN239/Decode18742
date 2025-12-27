@@ -747,4 +747,40 @@ object Configs {
         @JvmField
         var BELTS_FAST_FAST_POWER = 10.0
     }
+
+    @Config
+    internal object BATTERY{
+        @JvmField
+        var LOW_VOLTAGE = 8.5
+    }
+
+    @Config
+    internal object LIGHT{
+        @JvmField
+        var BLUE_R_POWER = 0.0
+
+        @JvmField
+        var BLUE_G_POWER = 1.0
+
+        @JvmField
+        var BLUE_B_POWER = 1.0
+
+        @JvmField
+        var GREEN_R_POWER = 0.0
+
+        @JvmField
+        var GREEN_G_POWER = 1.0
+
+        @JvmField
+        var GREEN_B_POWER = 0.0
+
+        @JvmField
+        var ORANGE_R_POWER = 1.0
+
+        @JvmField
+        var ORANGE_G_POWER = 0.5
+
+        @JvmField
+        var ORANGE_B_POWER = 0.0
+    }
 }
