@@ -2,18 +2,23 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
 /*
-import org.woen.threading.hardware.IHardwareDevice
-import com.qualcomm.robotcore.hardware.HardwareMap
 
 import woen239.FixColorSensor.fixSensor
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
 
-import org.woen.utils.events.SimpleEvent
-import org.woen.utils.events.SimpleEmptyEvent
+import com.qualcomm.robotcore.hardware.HardwareMap
+import org.woen.threading.hardware.IHardwareDevice
 
 import org.woen.enumerators.Ball
-import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
+import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE
+import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE_LOW
+import org.woen.telemetry.Configs.DEBUG_LEVELS.SENSORS_DEBUG_LEVELS
+import org.woen.telemetry.Configs.DEBUG_LEVELS.SENSORS_DEBUG_SETTING
+
+import org.woen.telemetry.LogManager
+import org.woen.utils.events.SimpleEvent
+import org.woen.utils.events.SimpleEmptyEvent
 
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_OPTIC_1
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_OPTIC_2
@@ -49,6 +54,9 @@ class HwSortingSensors(): IHardwareDevice
 
     private lateinit var _turretOptic1 : AnalogInput
     private lateinit var _turretOptic2 : AnalogInput
+    
+    val logM = LogManager(SENSORS_DEBUG_SETTING, 
+        SENSORS_DEBUG_LEVELS, "SENSORS")
 
 
     val opticDetectedShotFiringEvent    = SimpleEmptyEvent()
@@ -90,9 +98,9 @@ class HwSortingSensors(): IHardwareDevice
         {
             colorSensorsDetectedIntakeEvent.invoke(Ball.Name.GREEN)
 
-            TelemetryLI.logWithTag(
-                "[!!] - GREEN BALL DETECTED",
-                "ColorSensors")
+            logM.logTag(
+                "GREEN BALL DETECTED",
+                "StorageSensors", HARDWARE)
         }
         else if (r1 > THRESHOLD_PURPLE_BALL_MIN_R_S1 &&
                  g1 < THRESHOLD_PURPLE_BALL_MAX_G_S1 &&
@@ -100,9 +108,9 @@ class HwSortingSensors(): IHardwareDevice
         {
             colorSensorsDetectedIntakeEvent.invoke(Ball.Name.PURPLE)
 
-            TelemetryLI.logWithTag(
+            logM.logTag(
                 "[!!] - PURPLE BALL DETECTED",
-                "ColorSensors")
+                "StorageSensors", HARDWARE)
         }
 
 
@@ -117,9 +125,9 @@ class HwSortingSensors(): IHardwareDevice
         {
             colorSensorsDetectedIntakeEvent.invoke(Ball.Name.GREEN)
 
-            TelemetryLI.logWithTag(
+            logM.logTag(
                 "[!!] - GREEN BALL DETECTED",
-                "ColorSensors")
+                "StorageSensors", HARDWARE)
         }
         else if (r2 > THRESHOLD_PURPLE_BALL_MIN_R_S2 &&
                  g2 < THRESHOLD_PURPLE_BALL_MAX_G_S2 &&
@@ -127,15 +135,15 @@ class HwSortingSensors(): IHardwareDevice
         {
             colorSensorsDetectedIntakeEvent.invoke(Ball.Name.PURPLE)
 
-            TelemetryLI.logWithTag(
+            logM.logTag(
                 "[!!] - PURPLE BALL DETECTED",
-                "ColorSensors")
+                "StorageSensors", HARDWARE)
         }
 
 
-//        TelemetryLI.logWithTag("---  UPDATED COLORS  ---", "ColorSensors")
-//        TelemetryLI.logWithTag("r1 = $r1, g1 = $g1, b1 = $b1", "ColorSensors")
-//        TelemetryLI.logWithTag("r2 = $r2, g2 = $g2, b2 = $b2", "ColorSensors")
+//        logM.logTag("---  UPDATED COLORS  ---",     "StorageSensors", HARDWARE_LOW)
+//        logM.logTag("r1 = $r1, g1 = $g1, b1 = $b1", "StorageSensors", HARDWARE_LOW)
+//        logM.logTag("r2 = $r2, g2 = $g2, b2 = $b2", "StorageSensors", HARDWARE_LOW)
     }
 
 

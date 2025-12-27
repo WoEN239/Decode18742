@@ -344,7 +344,7 @@ object Configs {
     internal object STORAGE_SENSORS {
 
         @JvmField
-        var OPTIC_PARE_SEES_NOT_BLACK = 0.4
+        var OPTIC_SEES_NOT_BLACK = 0.4
 
 
         @JvmField
@@ -502,6 +502,11 @@ object Configs {
 
             PROCESS_NAME,
             TERMINATION)
+
+
+        //  Color sensors and optics - storage sensors
+        var SENSORS_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+        var SENSORS_DEBUG_LEVELS  = arrayListOf(HARDWARE, HARDWARE_HIGH)
     }
 
 
@@ -693,16 +698,14 @@ object Configs {
 
         @JvmField
         var INTAKE_COLOR_SENSOR_1 = "color1"
-
         @JvmField
         var INTAKE_COLOR_SENSOR_2 = "color2"
 
 
         @JvmField
-        var TURRET_OPTIC_PARE_1 = "turret_optic_pare_1"
-
+        var TURRET_OPTIC_1 = "optic1"
         @JvmField
-        var TURRET_OPTIC_PARE_2 = "turret_optic_pare_2"
+        var TURRET_OPTIC_2 = "optic2"
 
 
         @JvmField
@@ -715,10 +718,8 @@ object Configs {
 
         @JvmField
         var GATE_SERVO = "gateServo"
-
         @JvmField
         var PUSH_SERVO = "pushServo"
-
         @JvmField
         var LAUNCH_SERVO = "launchServo"
     }
