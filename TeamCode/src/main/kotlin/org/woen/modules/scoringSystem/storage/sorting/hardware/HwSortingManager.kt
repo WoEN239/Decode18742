@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import org.woen.threading.hardware.HardwareThreads
 
-import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
 
 import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
@@ -16,7 +15,7 @@ import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION
-
+import org.woen.threading.ThreadedEventBus
 
 
 class HwSortingManager
@@ -73,13 +72,13 @@ class HwSortingManager
                 isStoppingBelts.set(true)
 
                 if (USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS)
-                    EventBusLI.invoke(WaitForTerminateIntakeEvent())
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(WaitForTerminateIntakeEvent())
 
                 if (SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION)
                 {
                     do
                     {
-                        val recalibrateResult = EventBusLI.invoke(
+                        val recalibrateResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
                             FillStorageWithUnknownColorsEvent()
                         ).startingResult
                     }

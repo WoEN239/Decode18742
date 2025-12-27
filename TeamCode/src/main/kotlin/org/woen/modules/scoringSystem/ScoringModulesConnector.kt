@@ -43,14 +43,12 @@ import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-
-import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
-import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
 
 import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS
+import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
 
 
@@ -87,24 +85,24 @@ class ScoringModulesConnector
 
     private fun subscribeToEvents()
     {
-        EventBusLI.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGetReadyForIntakeEvent::class, {
                 startIntakeProcess(it.inputToBottomSlot)
         }   )
 
 
 
-        EventBusLI.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveSingleRequest::class, {
 
                 startSingleRequest(it.ballRequest)
         }   )
-        EventBusLI.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveStreamDrumRequest::class, {
 
                 startLazyStreamDrumRequest()
         }   )
-        EventBusLI.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveDrumRequest::class, {
 
                 startDrumRequest(
@@ -114,14 +112,14 @@ class ScoringModulesConnector
         }   )
 
 
-        EventBusLI.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             TurretCurrentPeaked::class, {
 
                 _shotWasFired.set(true)
         }   )
 
 
-        EventBusLI.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageRequestIsReadyEvent::class, {
 
                 readyUpForShooting()
@@ -129,7 +127,7 @@ class ScoringModulesConnector
 
 
 
-        EventBusLI.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             ReverseAndThenStartBrushesAgain::class, {
 
                 startBrushesAfterDelay(it.reverseTime)
@@ -142,7 +140,7 @@ class ScoringModulesConnector
                 { it.triangle }, {
 
                     TelemetryLI.log("SMC: Gamepad try start lazy intake")
-                    val startingResult = EventBusLI.invoke(
+                    val startingResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StartLazyIntakeEvent())
 
                     TelemetryLI.log(
@@ -154,7 +152,7 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.square }, {
 
-                    EventBusLI.invoke(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGetReadyForIntakeEvent(
                             Ball.Name.PURPLE))
 
@@ -166,7 +164,7 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.circle }, {
 
-                    EventBusLI.invoke(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGetReadyForIntakeEvent(
                             Ball.Name.GREEN))
 
@@ -179,7 +177,7 @@ class ScoringModulesConnector
             { it.cross }, {
 
                     _intakeWasTerminated.set(true)
-                    EventBusLI.invoke(TerminateIntakeEvent())
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
 
                     TelemetryLI.log("\nSMC: STOP  - INTAKE - GAMEPAD")
                     TelemetryLI.log("SMC isBusy: " + isBusy())
@@ -192,7 +190,7 @@ class ScoringModulesConnector
                 { it.right_bumper }, {
 
                     _requestWasTerminated.set(true)
-                    EventBusLI.invoke(TerminateRequestEvent())
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
 
                     TelemetryLI.log("", "SMC: STOP  - ANY Request - GAMEPAD")
                     TelemetryLI.log("SMC isBusy: " + isBusy())
@@ -202,7 +200,7 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.left_bumper }, {
 
-                    EventBusLI.invoke(StorageGiveStreamDrumRequest())
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDrumRequest())
 
                     TelemetryLI.log("\nSMC: START - STREAM Drum request - GAMEPAD")
                     TelemetryLI.log("SMC isBusy: " + isBusy())
@@ -213,7 +211,7 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.left_trigger > 0.75 }, {
 
-                    EventBusLI.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 
                     TelemetryLI.log("\nSMC: START - PURPLE Request - GAMEPAD")
                     TelemetryLI.log("SMC isBusy: " + isBusy())
@@ -223,7 +221,7 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.right_trigger > 0.75 }, {
 
-                    EventBusLI.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 
                     TelemetryLI.log("\nSMC: START - GREEN Request - GAMEPAD")
                     TelemetryLI.log("SMC isBusy: " + isBusy())
@@ -262,7 +260,7 @@ class ScoringModulesConnector
         {
             _canRestartBrushes.set(false)
 
-            EventBusLI.invoke(
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SwitchBrushStateEvent(
                     Brush.BrushState.REVERSE,
                     TIME_FOR_BRUSH_REVERSING
@@ -278,13 +276,13 @@ class ScoringModulesConnector
     {
         _canRestartBrushes.set(true)
 
-        EventBusLI.invoke(
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
             SwitchBrushStateEvent(
                 Brush.BrushState.REVERSE,
                 reverseTime
         )   )
 
-        EventBusLI.invoke(
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
             ReverseAndThenStartBrushesAgain(
                 reverseTime
         )   )
@@ -294,7 +292,7 @@ class ScoringModulesConnector
         delay(delay)
 
         if (_canRestartBrushes.get())
-            EventBusLI.invoke(
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SwitchBrushStateEvent(
                     Brush.BrushState.FORWARD))
     }
@@ -337,7 +335,7 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
-        EventBusLI.invoke(SetDriveModeEvent(
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
                 DriveTrain.DriveMode.SHOOTING))
 
         TelemetryLI.log("SMC: Started - LazySTREAM drum request")
@@ -369,7 +367,7 @@ class ScoringModulesConnector
 
     private suspend fun readyUpForShooting()
     {
-        EventBusLI.invoke(SetDriveModeEvent(
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
             DriveTrain.DriveMode.SHOOTING)).process.wait()
 
         TelemetryLI.log("[&] SMC: Drivetrain rotated successfully")
@@ -378,7 +376,7 @@ class ScoringModulesConnector
     private suspend fun awaitShotFiring()
     {
         TelemetryLI.log("SMC - SEND - AWAITING SHOT")
-        EventBusLI.invoke(CurrentlyShooting())
+        ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
         _storage.hwSmartPushNextBall()
 
 
@@ -395,7 +393,7 @@ class ScoringModulesConnector
         else TelemetryLI.log("\n\n\nSMC - RECEIVED - SHOT FIRED\n")
 
 
-        if (_shotWasFired.get()) EventBusLI.invoke(ShotWasFiredEvent())
+        if (_shotWasFired.get()) ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
 
         _shotWasFired.set(false)
         _requestWasTerminated.set(false)
@@ -405,7 +403,7 @@ class ScoringModulesConnector
     {
         TelemetryLI.log("SMC: FINISHED all firing, event send")
 
-        EventBusLI.invoke(
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
             FullFinishedFiringEvent(
                 requestResult
         )   )
@@ -431,7 +429,7 @@ class ScoringModulesConnector
     private fun tryRestartBrushes()
     {
         if (BallCountInStorageEvent(NOTHING).count < MAX_BALL_COUNT)
-            EventBusLI.invoke(
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
                 SwitchBrushStateEvent(Brush.BrushState.FORWARD))
     }
 }

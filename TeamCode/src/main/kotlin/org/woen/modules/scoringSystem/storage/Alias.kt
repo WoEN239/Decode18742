@@ -94,10 +94,7 @@ object Alias
 
 
 
-    val GamepadLI   = ThreadedGamepad.LAZY_INSTANCE
-    val EventBusLI  = ThreadedEventBus.LAZY_INSTANCE
     val TelemetryLI = ThreadedTelemetry.LAZY_INSTANCE
-    val SmartCoroutineLI = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
 
 
 

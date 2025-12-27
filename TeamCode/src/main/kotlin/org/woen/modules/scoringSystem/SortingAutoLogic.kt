@@ -23,7 +23,6 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
 
 import org.woen.telemetry.Configs.DELAY
@@ -36,7 +35,7 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.FAILSAFE_SHOOTING_MODE
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.MAX_ATTEMPTS_FOR_PATTERN_DETECTION
 import org.woen.telemetry.Configs.SORTING_SETTINGS.MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS
-
+import org.woen.threading.ThreadedEventBus
 
 
 class DefaultFireEvent()
@@ -64,7 +63,7 @@ class SortingAutoLogic
 
     private fun subscribeToPatternDetectionEvents()
     {
-        EventBusLI.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             OnPatternDetectedEvent::class, {
                 _pattern.setPermanent(it.pattern.subsequence)
                 _patternWasDetected.set(true)
@@ -72,7 +71,7 @@ class SortingAutoLogic
     }
     private fun subscribeToDefaultFiringEvent()
     {
-        EventBusLI.subscribe(
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
             DefaultFireEvent::class, {
                 firePattern()
         }   )
@@ -140,7 +139,7 @@ class SortingAutoLogic
                         patternString += "$nextColorInPattern, "
                     TelemetryLI.log(patternString)
 
-                    EventBusLI.invoke(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             DEFAULT_SHOOTING_MODE,
                             _pattern.permanent()
@@ -154,7 +153,7 @@ class SortingAutoLogic
             {
                 val ballCount = Shooting.StockPattern.requestedBallCount(
                     DEFAULT_PATTERN)
-                val storageBalls = EventBusLI.invoke(
+                val storageBalls = ThreadedEventBus.LAZY_INSTANCE.invoke(
                     StorageHandleIdenticalColorsEvent(
                         ballCount, Ball.Name.NONE
                 )   )
@@ -165,7 +164,7 @@ class SortingAutoLogic
                         "identical color: ${storageBalls.identicalColor}")
 
                 if (storageBalls.maxIdenticalColorCount >= ballCount)
-                    EventBusLI.invoke(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             DEFAULT_SHOOTING_MODE,
                             Array(storageBalls.maxIdenticalColorCount)
@@ -188,7 +187,7 @@ class SortingAutoLogic
                     patternString += "$nextColorInPattern, "
                 TelemetryLI.log(patternString)
 
-                EventBusLI.invoke(
+                ThreadedEventBus.LAZY_INSTANCE.invoke(
                     StorageGiveDrumRequest(
                         DEFAULT_SHOOTING_MODE,
                         convertedPattern
@@ -220,7 +219,7 @@ class SortingAutoLogic
 
                     TelemetryLI.log(patternString)
 
-                    EventBusLI.invoke(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             FAILSAFE_SHOOTING_MODE,
                             _pattern.permanent()
@@ -234,7 +233,7 @@ class SortingAutoLogic
             {
                 val ballCount = Shooting.StockPattern.requestedBallCount(
                     DEFAULT_PATTERN)
-                val storageBalls = EventBusLI.invoke(
+                val storageBalls = ThreadedEventBus.LAZY_INSTANCE.invoke(
                     StorageHandleIdenticalColorsEvent(
                         0, Ball.Name.NONE
                 )   )
@@ -245,7 +244,7 @@ class SortingAutoLogic
                         "identical color: ${storageBalls.identicalColor}")
 
                 if (storageBalls.maxIdenticalColorCount >= ballCount)
-                    EventBusLI.invoke(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGiveDrumRequest(
                             FAILSAFE_SHOOTING_MODE,
                             Array(storageBalls.maxIdenticalColorCount)
@@ -269,7 +268,7 @@ class SortingAutoLogic
 
                 TelemetryLI.log(patternString)
 
-                EventBusLI.invoke(
+                ThreadedEventBus.LAZY_INSTANCE.invoke(
                     StorageGiveDrumRequest(
                         DEFAULT_SHOOTING_MODE,
                         convertedPattern
@@ -281,7 +280,7 @@ class SortingAutoLogic
     {
         TelemetryLI.log("SAL - ? Decided: Fire everything")
 
-        EventBusLI.invoke(
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
             StorageGiveDrumRequest(
                 Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE,
                 Array(MAX_BALL_COUNT)
@@ -295,7 +294,7 @@ class SortingAutoLogic
     {
         TelemetryLI.log("SAL - Shooting stopped, fail reason: $requestResult")
 
-        EventBusLI.invoke(
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
             FullFinishedFiringEvent(
                 requestResult
         )   )

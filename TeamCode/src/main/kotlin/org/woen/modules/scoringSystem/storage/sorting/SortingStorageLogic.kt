@@ -16,7 +16,6 @@ import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 
 import org.woen.telemetry.LogManager
 import org.woen.telemetry.Configs.DELAY
@@ -39,7 +38,7 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
-
+import org.woen.threading.ThreadedEventBus
 
 
 class SortingStorageLogic
@@ -151,11 +150,16 @@ class SortingStorageLogic
 
     private suspend fun intakeRaceConditionIsPresent(processId: Int):  Boolean
     {
+        logM.logMd("CHECKING RACE CONDITION", PROCESS_NAME)
         if (runStatus.isUsedByAnyProcess()) return true
 
+        logM.logMd("Currently not busy", GENERIC_INFO)
         runStatus.addProcessToQueue(processId)
         delay(DELAY.INTAKE_RACE_CONDITION_MS)
 
+        logM.logMd("Highest processId: " +
+                "${runStatus.getHighestPriorityProcessId()}",
+            GENERIC_INFO)
         return !runStatus.isThisProcessHighestPriority(processId)
     }
     suspend fun noIntakeRaceConditionProblems(processId: Int): Boolean
@@ -628,7 +632,7 @@ class SortingStorageLogic
     {
         storageCells.hwSortingM.openTurretGate()
         logM.logMd("waiting for shot - event send", EVENTS_FEEDBACK)
-        EventBusLI.invoke(Request.IsReadyEvent)
+        ThreadedEventBus.LAZY_INSTANCE.invoke(Request.IsReadyEvent)
 
         var timePassedWaiting: Long = NOTHING.toLong()
 
