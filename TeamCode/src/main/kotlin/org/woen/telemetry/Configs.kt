@@ -484,6 +484,20 @@ object Configs {
             TERMINATION)
 
 
+        //  Sorting Auto Logic
+        var SAL_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+        var SAL_DEBUG_LEVELS  = arrayListOf(
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
+
+            GENERIC_INFO,
+            LOGIC_STEPS,
+
+            PROCESS_NAME,
+            TERMINATION)
+
+
         //  Hardware sorting manager
         var HSM_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
         var HSM_DEBUG_LEVELS  = arrayListOf(
