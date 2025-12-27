@@ -16,19 +16,29 @@ import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
-import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
 
+import org.woen.telemetry.LogManager
+import org.woen.telemetry.Configs.DELAY
 import org.woen.utils.process.RunStatus
 
-import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
 import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
 import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAGE
+
+import org.woen.telemetry.Configs.DEBUG_LEVELS.SSL_DEBUG_LEVELS
+import org.woen.telemetry.Configs.DEBUG_LEVELS.SSL_DEBUG_SETTING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
+import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
+import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
+import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
+import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
+import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
 
 
 
@@ -42,6 +52,8 @@ class SortingStorageLogic
     val pleaseWaitForIntakeEnd = AtomicBoolean(false)
 
     val runStatus = RunStatus(PRIORITY_SETTING_FOR_SORTING_STORAGE)
+    val logM = LogManager(SSL_DEBUG_SETTING,
+        SSL_DEBUG_LEVELS, "SSL")
 
 
     fun resetParametersToDefault()
@@ -50,13 +62,15 @@ class SortingStorageLogic
         shotWasFired.set(false)
 
         runStatus.fullResetToActiveState()
+        logM.updateDebugSetting(SSL_DEBUG_SETTING)
+        logM.setShowedDebugLevels(SSL_DEBUG_LEVELS)
     }
 
 
 
     suspend fun canInitiatePredictSort(): Boolean
     {
-        TelemetryLI.log("SSM: Try initiating predict sort")
+        logM.logMd("Try initiating predict sort", ATTEMPTING_LOGIC)
 
         if (runStatus.isUsedByAnyProcess()) return false
 
@@ -78,7 +92,7 @@ class SortingStorageLogic
 
     suspend fun canStartStorageCalibrationWithCurrent(): Boolean
     {
-        TelemetryLI.log("SSM: Try starting storage calibration with current")
+        logM.logMd("Try starting storage calibration with current", ATTEMPTING_LOGIC)
 
         if (runStatus.isUsedByAnyProcess()) return false
 
@@ -100,7 +114,7 @@ class SortingStorageLogic
 
     suspend fun canStartUpdateAfterLazyIntake(): Boolean
     {
-        TelemetryLI.log("SSM: Try starting updating after lazy intake")
+        logM.logMd("Try starting updating after lazy intake", ATTEMPTING_LOGIC)
 
         if (runStatus.isUsedByAnyProcess()) return false
 
@@ -126,7 +140,7 @@ class SortingStorageLogic
         if (intakeResult.didFail()) return intakeResult.name()   //  Intake failed
 
         pleaseWaitForIntakeEnd.set(true)
-        TelemetryLI.log("SSM - Sorting intake")
+        logM.logMd("Sorting intake", PROCESS_NAME)
 
         storageCells.hwReAdjustStorage()
         storageCells.hwSortingM.hwForwardBeltsTime(Delay.HALF_PUSH)
@@ -153,7 +167,7 @@ class SortingStorageLogic
 
     fun terminateIntake(processId: Int): IntakeResult.Name
     {
-        TelemetryLI.log("[!] Intake is being terminated..")
+        logM.logMd("Intake is being terminated", TERMINATION)
 
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
@@ -180,13 +194,14 @@ class SortingStorageLogic
             else -> -1
         }
 
-        TelemetryLI.log("updating: rotating cur slot")
+        logM.logMd("rotating cur slot", LOGIC_STEPS)
         if (fullRotations >= NOTHING)
             repeat(fullRotations)
                 { storageCells.fullRotate() }
 
 
-        TelemetryLI.log("sorting finished - success", "Getting ready to shoot")
+        logM.logMd("sorting finished - success", PROCESS_ENDING)
+        logM.logMd("Getting ready to shoot",     PROCESS_STARTING)
         return Request.F_SUCCESS
     }
     suspend fun shootRequestFinalPhase(
@@ -203,7 +218,7 @@ class SortingStorageLogic
             rotateToFoundBall(requestResult, processId)
         else Request.TURRET_SLOT
 
-        TelemetryLI.log("SSML: Finished updating")
+        logM.logMd("Finished updating", PROCESS_ENDING)
 
         return if (updateResult.didSucceed())
         {
@@ -246,7 +261,7 @@ class SortingStorageLogic
 
     suspend fun terminateRequest(processId: Int): RequestResult.Name
     {
-        TelemetryLI.log("[!] Request is being terminated..")
+        logM.logMd("Request is being terminated", TERMINATION)
 
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
@@ -274,7 +289,7 @@ class SortingStorageLogic
                     false))
                 return Request.TERMINATED
 
-            TelemetryLI.log("shot finished, updating..")
+            logM.logMd("shot finished, updating..", PROCESS_ENDING)
             shotsFired++
         }
 
@@ -294,7 +309,7 @@ class SortingStorageLogic
                     false))
                 return Request.TERMINATED
 
-            TelemetryLI.log("shot finished, updating..")
+            logM.logMd("shot finished, updating..", PROCESS_ENDING)
             ballCount--
         }
         return Request.SUCCESS_NOW_EMPTY
@@ -571,24 +586,29 @@ class SortingStorageLogic
         processId: Int,
         doAutoCalibration: Boolean = true)
     {
-        TelemetryLI.log("SSM: RESUME AFTER REQUEST, process: $processId")
+        logM.logMd("RESUME AFTER REQUEST, process: $processId", PROCESS_NAME)
 
         if (doAutoCalibration)
         {
-            TelemetryLI.log("SSM: REVERSING BELTS AFTER SHOT")
+            logM.logMd("Reversing belts for calibration", PROCESS_STARTING)
             storageCells.hwSortingM.hwReverseBeltsTime(Delay.HALF_PUSH)
-            TelemetryLI.log("SSM: FINISHED REVERSING")
+            logM.logMd("Finished reversing", PROCESS_ENDING)
 
+            logM.logMd("Starting calibration", PROCESS_STARTING)
             storageCells.hwSortingM.fullCalibrate()
             storageCells.hwSortingM.hwForwardBeltsTime(Delay.HALF_PUSH)
         }
         else storageCells.hwSortingM.fullCalibrate()
 
-        TelemetryLI.log("SSM: phase 2 RESUME AFTER REQUEST, process: $processId")
+
+        logM.logMd("Phase 2 - RESUME AFTER REQUEST, process: $processId", LOGIC_STEPS)
+
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
         runStatus.clearCurrentActiveProcess()
         storageCells.resumeIntakes()
+
+        logM.logMd("FINISHED resume logic", PROCESS_ENDING)
     }
     fun resumeLogicAfterIntake(processId: Int)
     {
@@ -607,7 +627,7 @@ class SortingStorageLogic
     ): Boolean
     {
         storageCells.hwSortingM.openTurretGate()
-        TelemetryLI.log("SSM waiting for shot - event send")
+        logM.logMd("waiting for shot - event send", EVENTS_FEEDBACK)
         EventBusLI.invoke(Request.IsReadyEvent)
 
         var timePassedWaiting: Long = NOTHING.toLong()
@@ -620,9 +640,9 @@ class SortingStorageLogic
             if (isForcedToTerminate(processId)) return false
         }
 
-        TelemetryLI.log("SSM - DONE waiting for shot")
-        TelemetryLI.log("SSM: fired? ${shotWasFired.get()}," +
-                " delta time: $timePassedWaiting")
+        logM.logMd("DONE waiting for shot", PROCESS_ENDING)
+        logM.logMd("fired? ${shotWasFired.get()}," +
+                " delta time: $timePassedWaiting", GENERIC_INFO)
 
         shotWasFired.set(false)
         storageCells.hwSortingM.hwReverseBeltsTime(Delay.FULL_PUSH)

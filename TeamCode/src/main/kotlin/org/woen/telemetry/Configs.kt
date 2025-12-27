@@ -442,6 +442,44 @@ object Configs {
     }
 
 
+    object DEBUG_LEVELS
+    {
+        val HARDWARE = 0u
+
+        val GAMEPAD_FEEDBACK = 1u
+        val EVENTS_FEEDBACK  = 2u
+
+        val ATTEMPTING_LOGIC = 3u
+        val PROCESS_STARTING = 4u
+        val PROCESS_ENDING   = 5u
+
+        val GENERIC_INFO = 6u
+        val LOGIC_STEPS  = 7u
+
+        val PROCESS_NAME = 8u
+        val TERMINATION  = 9u
+
+
+        //  Sorting Storage Logic
+        var SSL_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+        var SSL_DEBUG_LEVELS  = arrayListOf(
+            HARDWARE,
+
+            GAMEPAD_FEEDBACK,
+            EVENTS_FEEDBACK,
+
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
+
+            GENERIC_INFO,
+            LOGIC_STEPS,
+
+            PROCESS_NAME,
+            TERMINATION)
+    }
+
+
 
     @Config
     internal object DELAY {

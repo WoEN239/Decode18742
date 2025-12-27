@@ -18,11 +18,8 @@ object Alias
     object Intake
     {
         val TERMINATED   = IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
-        val FAIL_UNKNOWN = IntakeResult.Name.FAIL_UNKNOWN
         val FAIL_IS_BUSY = IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
         val FAIL_IS_FULL = IntakeResult.Name.FAIL_STORAGE_IS_FULL
-
-        val STARTED_SUCCESSFULLY = IntakeResult.Name.STARTED_SUCCESSFULLY
         val SUCCESS = IntakeResult.Name.SUCCESS
 
 
