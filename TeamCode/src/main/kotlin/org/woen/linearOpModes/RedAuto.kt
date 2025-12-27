@@ -7,12 +7,12 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
 
 @Autonomous
-class AutoOpModeBlue : LinearOpMode() {
+class RedAuto : LinearOpMode() {
     override fun runOpMode() {
-        HotRun.LAZY_INSTANCE.currentRunColor = HotRun.RunColor.BLUE
+        HotRun.LAZY_INSTANCE.currentRunColor = HotRun.RunColor.RED
         HotRun.LAZY_INSTANCE.run(this, HotRun.RunMode.AUTO)
 
         OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity)
-            .initOpMode("TeleOpMode")
+            .initOpMode("TeleOp")
     }
 }

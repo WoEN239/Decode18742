@@ -18,6 +18,6 @@ class EmptyRedAuto : LinearOpMode() {
         }
 
         OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity)
-            .initOpMode("TeleOpMode")
+            .initOpMode("TeleOp")
     }
 }

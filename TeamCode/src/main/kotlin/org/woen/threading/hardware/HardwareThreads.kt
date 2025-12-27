@@ -6,6 +6,7 @@ import org.woen.utils.smartMutex.SmartMutex
 
 import org.woen.modules.driveTrain.Odometry
 import org.woen.modules.driveTrain.DriveTrain
+import org.woen.modules.light.Light
 
 import org.woen.modules.runner.actions.ActionRunner
 import org.woen.modules.runner.segment.SegmentsRunner
@@ -62,12 +63,11 @@ class HardwareThreads private constructor() : DisposableHandle {
     }
 
     private fun initModules() {
-        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
+        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner(), Light())
         EXPANSION.link.addModules(Turret(), Brush(), /*SimpleStorage()*/)
         ActionRunner.LAZY_INSTANCE
 
         ScoringModulesConnector()
         SortingAutoLogic()
-
     }
 }
