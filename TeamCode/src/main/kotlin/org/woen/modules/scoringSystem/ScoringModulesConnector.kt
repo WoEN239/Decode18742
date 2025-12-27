@@ -382,13 +382,13 @@ class ScoringModulesConnector
 
         var timePassedWaitingForShot = NOTHING.toLong()
         while (!_shotWasFired.get() && !_requestWasTerminated.get()
-            && timePassedWaitingForShot < DELAY.MAX_SHOT_AWAITING_MS)
+            && timePassedWaitingForShot < DELAY.SMC_MAX_SHOT_AWAITING_MS)
         {
             delay(DELAY.EVENT_AWAITING_MS)
             timePassedWaitingForShot += DELAY.EVENT_AWAITING_MS
         }
 
-        if (timePassedWaitingForShot >= DELAY.MAX_SHOT_AWAITING_MS)
+        if (timePassedWaitingForShot >= DELAY.SMC_MAX_SHOT_AWAITING_MS)
              TelemetryLI.log("\n\n\nSMC - Shot timeout, assume success\n")
         else TelemetryLI.log("\n\n\nSMC - RECEIVED - SHOT FIRED\n")
 

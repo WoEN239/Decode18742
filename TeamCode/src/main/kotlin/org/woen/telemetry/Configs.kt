@@ -112,7 +112,7 @@ object Configs {
         var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kI = 2.0, kP = 8.0)
 
         @JvmField
-        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 2.0, kI = 0.5)
+        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 2.0, kI = 1.5)
 
         @JvmField
         var MAX_DRIVE_VELOCITY = 2.0
@@ -518,7 +518,9 @@ object Configs {
         var SORTING_REALIGNING_REVERSE_MS: Long = 65
 
         @JvmField
-        var MAX_SHOT_AWAITING_MS: Long = 160
+        var SMC_MAX_SHOT_AWAITING_MS: Long = 350
+        @JvmField
+        var SSM_MAX_SHOT_AWAITING_MS: Long = 700
 
 
 
@@ -527,7 +529,7 @@ object Configs {
 
 
         @JvmField
-        var BETWEEN_SHOTS_MS: Long = 333
+        var BETWEEN_SHOTS_MS: Long = 300
     }
 
 
@@ -654,7 +656,7 @@ object Configs {
         var TURRET_GATE_SERVO_OPEN_VALUE = 0.775
 
         @JvmField
-        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.62
+        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.601
     }
 
 

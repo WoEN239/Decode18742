@@ -63,7 +63,7 @@ class HardwareThreads private constructor() : DisposableHandle {
 
     private fun initModules() {
         CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner())
-        EXPANSION.link.addModules(/*Turret(),*/ Brush(), /*SimpleStorage()*/)
+        EXPANSION.link.addModules(Turret(), Brush(), /*SimpleStorage()*/)
         ActionRunner.LAZY_INSTANCE
 
         ScoringModulesConnector()

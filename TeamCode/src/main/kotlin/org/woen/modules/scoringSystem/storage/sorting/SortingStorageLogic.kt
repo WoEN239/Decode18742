@@ -637,7 +637,7 @@ class SortingStorageLogic
         var timePassedWaiting: Long = NOTHING.toLong()
 
         while (!shotWasFired.get() &&
-            timePassedWaiting < DELAY.MAX_SHOT_AWAITING_MS * 2)
+            timePassedWaiting < DELAY.SSM_MAX_SHOT_AWAITING_MS)
         {
             delay(DELAY.EVENT_AWAITING_MS)
             timePassedWaiting += DELAY.EVENT_AWAITING_MS
@@ -649,7 +649,7 @@ class SortingStorageLogic
                 " delta time: $timePassedWaiting", GENERIC_INFO)
 
         shotWasFired.set(false)
-        storageCells.hwSortingM.hwReverseBeltsTime(Delay.FULL_PUSH)
+        //storageCells.hwSortingM.hwReverseBeltsTime(Delay.FULL_PUSH)
         storageCells.updateAfterRequest()
 
         if (autoUpdatePatternWhenSucceed)

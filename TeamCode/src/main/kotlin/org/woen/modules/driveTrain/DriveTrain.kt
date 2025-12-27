@@ -6,6 +6,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
@@ -127,9 +128,11 @@ class DriveTrain : IModule {
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _hardwareDriveTrain.currentMode = HardwareDriveTrain.DriveTrainMode.REGULATOR
-
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.SHOOTING))
         }
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(FullFinishedFiringEvent::class, {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
+        })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveTargetVelocityEvent::class, {
             _targetTranslateVelocity = it.translateVelocity
