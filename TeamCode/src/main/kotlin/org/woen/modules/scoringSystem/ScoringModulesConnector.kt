@@ -147,7 +147,7 @@ class ScoringModulesConnector
     {
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-                { it.triangle }, {
+                { it.right_trigger > 0.5 }, {
 
                     TelemetryLI.log("SMC: Gamepad try start lazy intake")
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
@@ -169,39 +169,39 @@ class ScoringModulesConnector
         }   )   )
 
 
+//        ThreadedGamepad.LAZY_INSTANCE.addListener(
+//            createClickDownListener(
+//            { it.square }, {
+//
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        SetLightColorEvent(Light.LightColor.ORANGE))
+//
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        StorageGetReadyForIntakeEvent(
+//                            Ball.Name.PURPLE))
+//
+//                    TelemetryLI.log("\nSMC: START - PURPLE Intake - GAMEPAD")
+//                    TelemetryLI.log("SMC isBusy: " + isBusy())
+//        }   )   )
+//
+//        ThreadedGamepad.LAZY_INSTANCE.addListener(
+//            createClickDownListener(
+//            { it.circle }, {
+//
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        SetLightColorEvent(Light.LightColor.ORANGE))
+//
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        StorageGetReadyForIntakeEvent(
+//                            Ball.Name.GREEN))
+//
+//                    TelemetryLI.log("\nSMC: START - GREEN Intake - GAMEPAD")
+//                    TelemetryLI.log("SMC isBusy: " + isBusy())
+//        }   )   )
+
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-            { it.square }, {
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.ORANGE))
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        StorageGetReadyForIntakeEvent(
-                            Ball.Name.PURPLE))
-
-                    TelemetryLI.log("\nSMC: START - PURPLE Intake - GAMEPAD")
-                    TelemetryLI.log("SMC isBusy: " + isBusy())
-        }   )   )
-
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
-            createClickDownListener(
-            { it.circle }, {
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.ORANGE))
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        StorageGetReadyForIntakeEvent(
-                            Ball.Name.GREEN))
-
-                    TelemetryLI.log("\nSMC: START - GREEN Intake - GAMEPAD")
-                    TelemetryLI.log("SMC isBusy: " + isBusy())
-        }   )   )
-
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
-            createClickDownListener(
-            { it.cross }, {
+            { it.left_trigger > 0.5 }, {
 
                     _intakeWasTerminated.set(true)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
@@ -218,7 +218,7 @@ class ScoringModulesConnector
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-                { it.right_bumper }, {
+                { it.left_bumper }, {
 
                     _requestWasTerminated.set(true)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
@@ -229,7 +229,7 @@ class ScoringModulesConnector
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
-            { it.left_bumper }, {
+            { it.right_bumper }, {
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         SetLightColorEvent(Light.LightColor.GREEN))
@@ -241,31 +241,31 @@ class ScoringModulesConnector
         }   )   )
 
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
-            createClickDownListener(
-            { it.left_trigger > 0.75 }, {
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.GREEN))
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
-
-                    TelemetryLI.log("\nSMC: START - PURPLE Request - GAMEPAD")
-                    TelemetryLI.log("SMC isBusy: " + isBusy())
-        }   )   )
-
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
-            createClickDownListener(
-            { it.right_trigger > 0.75 }, {
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.GREEN))
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
-
-                    TelemetryLI.log("\nSMC: START - GREEN Request - GAMEPAD")
-                    TelemetryLI.log("SMC isBusy: " + isBusy())
-        }   )   )
+//        ThreadedGamepad.LAZY_INSTANCE.addListener(
+//            createClickDownListener(
+//            { it.left_trigger > 0.75 }, {
+//
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        SetLightColorEvent(Light.LightColor.GREEN))
+//
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
+//
+//                    TelemetryLI.log("\nSMC: START - PURPLE Request - GAMEPAD")
+//                    TelemetryLI.log("SMC isBusy: " + isBusy())
+//        }   )   )
+//
+//        ThreadedGamepad.LAZY_INSTANCE.addListener(
+//            createClickDownListener(
+//            { it.right_trigger > 0.75 }, {
+//
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        SetLightColorEvent(Light.LightColor.GREEN))
+//
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
+//
+//                    TelemetryLI.log("\nSMC: START - GREEN Request - GAMEPAD")
+//                    TelemetryLI.log("SMC isBusy: " + isBusy())
+//        }   )   )
     }
     private fun resetParametersToDefault()
     {

@@ -71,9 +71,11 @@ class ActionRunner private constructor() : DisposableHandle {
     private val _hColorMultiplier
         get() = if (HotRun.LAZY_INSTANCE.currentRunColor == HotRun.RunColor.BLUE) 1.0 else -1.0
 
+    private val _isULT = false
+
     private val _eatVelConstant = MinVelConstraint(
         listOf(
-            TranslationalVelConstraint(1.0),
+            TranslationalVelConstraint(0.8),
             AngularVelConstraint(5.0)
         )
     )
@@ -123,91 +125,96 @@ class ActionRunner private constructor() : DisposableHandle {
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            RunSegmentEvent(
-                RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!.strafeToLinearHeading(
-                        Vector2d(-0.314, -0.716 * _yColorMultiplier),
-                        -PI / 2.0 * _hColorMultiplier
-                    ).strafeTo(Vector2d(-0.314, -1.25 * _yColorMultiplier), _eatVelConstant)
-                        .setReversed(true)
-                        .splineTo(
-                            Vector2d(-0.05, -1.35 * _yColorMultiplier),
+        if(!_isULT) {
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                RunSegmentEvent(
+                    RRTrajectorySegment(
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                            RequireRRBuilderEvent()
+                        ).trajectoryBuilder!!.strafeToLinearHeading(
+                            Vector2d(-0.314, -0.716 * _yColorMultiplier),
                             -PI / 2.0 * _hColorMultiplier
-                        )
-                        .build()
+                        ).strafeTo(Vector2d(-0.314, -1.25 * _yColorMultiplier), _eatVelConstant)
+                            .setReversed(true)
+                            .splineTo(
+                                Vector2d(-0.05, -1.35 * _yColorMultiplier),
+                                -PI / 2.0 * _hColorMultiplier
+                            )
+                            .build()
+                    )
                 )
-            )
-        ).process.wait()
+            ).process.wait()
 
-        Thread.sleep(900)
+            Thread.sleep(900)
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                RunSegmentEvent(
+                    RRTrajectorySegment(
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                            RequireRRBuilderEvent()
+                        ).trajectoryBuilder!!
+                            .strafeToLinearHeading(
+                                Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                                -PI * 0.75 * _hColorMultiplier
+                            )
+                            .build()
+                    )
+                )
+            ).process.wait()
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                RunSegmentEvent(
+                    RRTrajectorySegment(
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                            RequireRRBuilderEvent()
+                        ).trajectoryBuilder!!
+                            .strafeToLinearHeading(
+                                Vector2d(0.353, -0.712 * _yColorMultiplier),
+                                -PI / 2.0 * _hColorMultiplier
+                            )
+                            .strafeTo(Vector2d(0.353, -1.25 * _yColorMultiplier), _eatVelConstant)
+                            .strafeToLinearHeading(
+                                Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                                -PI * 0.75 * _hColorMultiplier
+                            )
+                            .build()
+                    )
+                )
+            ).process.wait()
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                RunSegmentEvent(
+                    RRTrajectorySegment(
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                            RequireRRBuilderEvent()
+                        ).trajectoryBuilder!!
+                            .strafeToLinearHeading(
+                                Vector2d(0.95, -0.712 * _yColorMultiplier),
+                                -PI / 2.0 * _hColorMultiplier
+                            )
+                            .strafeTo(Vector2d(1.0, -1.25 * _yColorMultiplier), _eatVelConstant)
+                            .strafeToLinearHeading(
+                                Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                                -PI * 0.75 * _hColorMultiplier
+                            )
+                            .build()
+                    )
+                )
+            ).process.wait()
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+        }
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!
-                        .strafeToLinearHeading(
-                            Vector2d(-0.776, -0.656 * _yColorMultiplier),
-                            -PI * 0.75 * _hColorMultiplier
-                        )
-                        .build()
-                )
-            )
-        ).process.wait()
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            RunSegmentEvent(
-                RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!
-                        .strafeToLinearHeading(
-                            Vector2d(0.353, -0.712 * _yColorMultiplier),
-                            -PI / 2.0 * _hColorMultiplier
-                        )
-                        .strafeTo(Vector2d(0.353, -1.25 * _yColorMultiplier), _eatVelConstant)
-                        .strafeToLinearHeading(
-                            Vector2d(-0.776, -0.656 * _yColorMultiplier),
-                            -PI * 0.75 * _hColorMultiplier
-                        )
-                        .build()
-                )
-            )
-        ).process.wait()
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            RunSegmentEvent(
-                RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!
-                        .strafeToLinearHeading(Vector2d(0.9, -0.712 * _yColorMultiplier), -PI / 2.0 * _hColorMultiplier)
-                        .strafeTo(Vector2d(0.9, -1.25 * _yColorMultiplier), _eatVelConstant)
-                        .strafeToLinearHeading(
-                            Vector2d(-0.776, -0.656 * _yColorMultiplier),
-                            -PI * 0.75 * _hColorMultiplier
-                        )
-                        .build()
-                )
-            )
-        ).process.wait()
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            RunSegmentEvent(
-                RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!.strafeTo(Vector2d(-0.2, -0.656 * _yColorMultiplier))
+                    ).trajectoryBuilder!!.strafeTo(Vector2d(-1.2, -0.656 * _yColorMultiplier))
                         .build()
                 )
             )

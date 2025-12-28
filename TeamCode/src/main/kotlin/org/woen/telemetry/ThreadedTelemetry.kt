@@ -33,8 +33,7 @@ class ThreadedTelemetry : DisposableHandle {
         @JvmStatic
         val LAZY_INSTANCE: ThreadedTelemetry
             get() = _instanceMutex.smartLock {
-                if (_nullableInstance == null)
-                    _nullableInstance = ThreadedTelemetry()
+                if (_nullableInstance == null) _nullableInstance = ThreadedTelemetry()
 
                 return@smartLock _nullableInstance!!
             }
@@ -88,17 +87,14 @@ class ThreadedTelemetry : DisposableHandle {
         mutableSetOf<Pair<ReversedElapsedTime, (ThreadedTelemetry) -> Unit>>()
 
     fun startTemporarySender(
-        timer: ReversedElapsedTime,
-        sender: (ThreadedTelemetry) -> Unit
-    ) =
-        _temporarySendersMutex.smartLock {
-            _temporarySenders.add(
-                Pair(
-                    timer,
-                    sender
-                )
+        timer: ReversedElapsedTime, sender: (ThreadedTelemetry) -> Unit
+    ) = _temporarySendersMutex.smartLock {
+        _temporarySenders.add(
+            Pair(
+                timer, sender
             )
-        }
+        )
+    }
 
     private val _temporarySendersMutex = SmartMutex()
 
@@ -123,13 +119,11 @@ class ThreadedTelemetry : DisposableHandle {
                 val telemetry = this
 
                 _temporarySendersMutex.smartLock {
-                    for (i in _temporarySenders)
-                        i.second.invoke(telemetry)
+                    for (i in _temporarySenders) i.second.invoke(telemetry)
 
-                    _temporarySenders =
-                        _temporarySenders.filter {
-                            it.first.seconds() > 0.0
-                        }.toMutableSet()
+                    _temporarySenders = _temporarySenders.filter {
+                        it.first.seconds() > 0.0
+                    }.toMutableSet()
                 }
 
                 _dashboardPacket.addLine("\n")
@@ -140,13 +134,10 @@ class ThreadedTelemetry : DisposableHandle {
                 }
 
                 FtcDashboard.getInstance().sendTelemetryPacket(_dashboardPacket)
-
-                _dashboardPacket = TelemetryPacket()
-            } else {
+            } else
                 _driveTelemetryMutex.smartLock {
-                    _driverTelemetry?.clearAll()
+                    _driverTelemetry?.clear()
                 }
-            }
 
             _dashboardPacket = TelemetryPacket()
 
@@ -209,15 +200,14 @@ class ThreadedTelemetry : DisposableHandle {
 
     fun drawPolygon(points: Array<Vec2>, color: Color) = drawPolygon(points, color.toString())
 
-    fun drawRect(center: Vec2, size: Vec2, rot: Double = 0.0, color: String) =
-        drawPolygon(
-            arrayOf(
-                center + Vec2(-size.x / 2, size.y / 2).turn(rot),
-                center + Vec2(size.x / 2, size.y / 2).turn(rot),
-                center + Vec2(size.x / 2, -size.y / 2).turn(rot),
-                center + Vec2(-size.x / 2, -size.y / 2).turn(rot)
-            ), color
-        )
+    fun drawRect(center: Vec2, size: Vec2, rot: Double = 0.0, color: String) = drawPolygon(
+        arrayOf(
+            center + Vec2(-size.x / 2, size.y / 2).turn(rot),
+            center + Vec2(size.x / 2, size.y / 2).turn(rot),
+            center + Vec2(size.x / 2, -size.y / 2).turn(rot),
+            center + Vec2(-size.x / 2, -size.y / 2).turn(rot)
+        ), color
+    )
 
     fun drawRect(center: Vec2, size: Vec2, rot: Double = 0.0, color: Color) =
         drawRect(center, size, rot, color.toString())

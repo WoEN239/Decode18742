@@ -2,8 +2,6 @@ package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
-import com.qualcomm.robotcore.util.ElapsedTime
-import kotlinx.coroutines.launch
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.modules.camera.Camera
 import org.woen.modules.runner.actions.ActionRunner
@@ -97,39 +95,38 @@ class HotRun private constructor() {
     val disposableEvent = SimpleEmptyEvent()
 
     fun run(opMode: LinearOpMode, runMode: RunMode, isGamepadStart: Boolean = false) {
-        try {
-            currentRunMode = runMode
-            currentRunState = RunState.INIT
+        currentRunMode = runMode
+        currentRunState = RunState.INIT
 
-            ThreadManager.LAZY_INSTANCE
-            ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
-            ThreadedGamepad.LAZY_INSTANCE.init(opMode.gamepad1)
-            HardwareThreads.LAZY_INSTANCE
-            ActionRunner.LAZY_INSTANCE
-            Camera.LAZY_INSTANCE
+        ThreadManager.LAZY_INSTANCE
+        ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
+        ThreadedGamepad.LAZY_INSTANCE.init(opMode.gamepad1)
+        HardwareThreads.LAZY_INSTANCE
+        ActionRunner.LAZY_INSTANCE
+        Camera.LAZY_INSTANCE
 
-            opModeInitEvent.invoke(opMode)
+        opModeInitEvent.invoke(opMode)
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("init completed")
+        ThreadedTelemetry.LAZY_INSTANCE.log("init completed")
 
-            while (!opMode.isStarted()) {
-                if (isGamepadStart && ThreadedGamepad.LAZY_INSTANCE.getIsGamepadTriggered())
-                    OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity)
-                        .startActiveOpMode()
-            }
-            opMode.resetRuntime()
+        while (!opMode.isStarted()) {
+            if (isGamepadStart && ThreadedGamepad.LAZY_INSTANCE.getIsGamepadTriggered())
+                OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity)
+                    .startActiveOpMode()
+        }
+        opMode.resetRuntime()
 
-            ThreadedTelemetry.LAZY_INSTANCE.log("start")
+        ThreadedTelemetry.LAZY_INSTANCE.log("start")
 
-            currentRunState = RunState.RUN
+        currentRunState = RunState.RUN
 
-            opModeStartEvent.invoke(opMode)
+        opModeStartEvent.invoke(opMode)
 
-            val updateTimer = ElapsedTime()
+//            val updateTimer = ElapsedTime()
 
-            while (opMode.opModeIsActive()) {
+        while (opMode.opModeIsActive()) {
 //                val updateCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                    opModeUpdateEvent.invoke(opMode)
+            opModeUpdateEvent.invoke(opMode)
 //                }
 //
 //                updateTimer.reset()
@@ -144,12 +141,12 @@ class HotRun private constructor() {
 //                        break
 //                    }
 //                }
-            }
+        }
 
-            currentRunState = RunState.STOP
+        currentRunState = RunState.STOP
 
 //            val stopCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                opModeStopEvent.invoke(opMode)
+        opModeStopEvent.invoke(opMode)
 //            }
 
 //            val stopTimer = ElapsedTime()
@@ -167,10 +164,7 @@ class HotRun private constructor() {
 //                }
 //            }
 
-            for (i in opMode.hardwareMap.servoController)
-                i.pwmDisable()
-        } catch (e: Exception) {
-            throw e
-        }
+        for (i in opMode.hardwareMap.servoController)
+            i.pwmDisable()
     }
 }

@@ -53,10 +53,7 @@ class Brush : IModule {
                 if (!hwBrush.isSafe && !f11) {
                     f11 = true; tmr2.reset()
                 }
-               if(!hwBrush.isSafe1){
-                   turnOn.set(BrushState.STOP_ON_TIME)
-                   tmr3.reset()
-               }
+
                 if (!hwBrush.isSafe && startTmr && errTime) {
                     turnOn.set(BrushState.SAFE); tmr.reset()
                 }

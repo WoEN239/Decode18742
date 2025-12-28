@@ -35,10 +35,10 @@ object Configs {
         var BRUSH_DEF_TIME = 1.5
 
         @JvmField
-        var BRUSH_TARGET_CURRENT = 5.0
+        var BRUSH_TARGET_CURRENT = 2.5
 
         @JvmField
-        var BRUSH_BIG_TARGET_CURRENT = 7.0
+        var BRUSH_BIG_TARGET_CURRENT = 1000.0
 
         @JvmField
         var BRUSH_STOP_TIME =0.5
@@ -92,9 +92,11 @@ object Configs {
     internal object ODOMETRY {
         @JvmField
         var START_RED_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), 0.91 + 0.38 / 2.0 - 0.045), Angle(PI))
+        //1.63, 0.39, PI
 
         @JvmField
         var START_BLUE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), -0.91 - 0.38 / 2.0 + 0.045), Angle(PI))
+        //1.631, -0.39, PI
 
         @JvmField
         var X_ODOMETER_POSITION = -0.09
@@ -232,7 +234,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.0004, kF = 0.0045, kI = 0.00001)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.00055, kF = 0.0045, kI = 0.00001)
 
         @JvmField
         var PULLEY_TARGET_SENS = 0.4
@@ -280,7 +282,7 @@ object Configs {
         var MAX_TURRET_ANGLE = 45.0 / 180.0 * PI
 
         @JvmField
-        var PULLEY_U = 0.308
+        var PULLEY_U = 0.302
 
         @JvmField
         var AIR_FORCE_K = 0.0
@@ -334,10 +336,10 @@ object Configs {
         var MIN_ROTATE = (0.405 - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
 
         @JvmField
-        var ACCEL_K = 10.5
+        var ACCEL_K = 10.0
 
         @JvmField
-        var ACCEL_THRESHOLD = 0.55
+        var ACCEL_THRESHOLD = 0.3
     }
 
     @Config
@@ -696,7 +698,7 @@ object Configs {
         var POWER_FOR_FAST_BELT_ROTATING = 11.0
 
         @JvmField
-        var POWER_FOR_SLOW_BELT_ROTATING = 8.0
+        var POWER_FOR_SLOW_BELT_ROTATING = 9.0
 
         @JvmField
         var TURRET_GATE_SERVO_OPEN_VALUE = 0.775
@@ -747,7 +749,7 @@ object Configs {
         var REVERS_TIME = 0.2
 
         @JvmField
-        var BELTS_FULL_CURRENT = 8.1
+        var BELTS_FULL_CURRENT = 8.9
 
         @JvmField
         var BELTS_FULL_TIMER = 0.1
@@ -756,7 +758,7 @@ object Configs {
         var BELTS_POWER = 5.0
 
         @JvmField
-        var BELTS_FAST_POWER = 7.5
+        var BELTS_FAST_POWER = 8.1
 
         @JvmField
         var BELTS_FAST_FAST_POWER = 10.0

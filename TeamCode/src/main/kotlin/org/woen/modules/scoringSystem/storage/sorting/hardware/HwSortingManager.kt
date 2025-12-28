@@ -280,7 +280,7 @@ class HwSortingManager
     suspend fun hwSmartPushNextBall()
     {
         logM.logMd("STARTED Smart ball push for shot", HARDWARE_HIGH)
-        startBelts()
+        slowStartBelts()
 
         if (helpPushLastBall.get())
         {

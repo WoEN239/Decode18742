@@ -30,8 +30,10 @@ class SimpleStorage : IModule {
         startPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
     )
 
-    private val _launchServo = ThreadedServo(Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO,
-        startPosition = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE)
+    private val _launchServo = ThreadedServo(
+        Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO,
+        startPosition = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
+    )
 
     private var _currentShootCoroutine: Job? = null
     private var _isShooting = false
@@ -48,11 +50,16 @@ class SimpleStorage : IModule {
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareStorage, _gateServo, _launchServo)
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(
+            _hardwareStorage,
+            _gateServo,
+            _launchServo
+        )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
             _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                val process = ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
+                val process =
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
 
                 _isShooting = true
 
@@ -73,7 +80,7 @@ class SimpleStorage : IModule {
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
 
-                delay(1200)
+                delay(900)
 
                 _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
 
@@ -100,15 +107,13 @@ class SimpleStorage : IModule {
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateSimpleShootEvent::class, {
-            if (_currentShootCoroutine != null) {
-                _currentShootCoroutine?.cancel()
+            _currentShootCoroutine?.cancel()
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE
+            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE
 
-                delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
+            delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
 
-                terminateShoot()
-            }
+            terminateShoot()
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(StopBeltEvent::class, {
