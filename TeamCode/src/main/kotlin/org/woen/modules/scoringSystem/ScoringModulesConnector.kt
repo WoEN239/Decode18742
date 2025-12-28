@@ -11,7 +11,6 @@ import org.woen.enumerators.BallRequest
 import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.Shooting
-import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.DriveTrain.DriveMode
 import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.light.Light
@@ -137,6 +136,10 @@ class ScoringModulesConnector
         }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(FullFinishedFiringEvent::class, {
+
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                SetLightColorEvent(Light.LightColor.BLUE))
+
             ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
         })
     }
@@ -157,7 +160,7 @@ class ScoringModulesConnector
                     else
                     {
                         ThreadedEventBus.LAZY_INSTANCE.invoke(
-                            SetLightColorEvent(Light.LightColor.GREEN))
+                            SetLightColorEvent(Light.LightColor.BLUE))
 
                         reverseBrushes(TIME_FOR_BRUSH_REVERSING)
                     }
@@ -171,6 +174,9 @@ class ScoringModulesConnector
             { it.square }, {
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.ORANGE))
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGetReadyForIntakeEvent(
                             Ball.Name.PURPLE))
 
@@ -181,6 +187,9 @@ class ScoringModulesConnector
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
             { it.circle }, {
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.ORANGE))
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StorageGetReadyForIntakeEvent(
@@ -197,7 +206,7 @@ class ScoringModulesConnector
                     _intakeWasTerminated.set(true)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.GREEN))
+                        SetLightColorEvent(Light.LightColor.BLUE))
 
                     reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
 
@@ -223,7 +232,7 @@ class ScoringModulesConnector
             { it.left_bumper }, {
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.BLUE))
+                        SetLightColorEvent(Light.LightColor.GREEN))
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDrumRequest())
 
@@ -237,7 +246,7 @@ class ScoringModulesConnector
             { it.left_trigger > 0.75 }, {
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.BLUE))
+                        SetLightColorEvent(Light.LightColor.GREEN))
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 
@@ -250,7 +259,7 @@ class ScoringModulesConnector
             { it.right_trigger > 0.75 }, {
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.BLUE))
+                        SetLightColorEvent(Light.LightColor.GREEN))
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 
@@ -401,7 +410,7 @@ class ScoringModulesConnector
     private suspend fun readyUpForShooting()
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
-            DriveTrain.DriveMode.SHOOTING)).process.wait()
+            DriveMode.SHOOTING)).process.wait()
 
         TelemetryLI.log("[&] SMC: Drivetrain rotated successfully")
         awaitShotFiring()

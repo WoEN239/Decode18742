@@ -34,7 +34,10 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
 
-import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
+import org.woen.threading.ThreadManager
+import org.woen.threading.ThreadedEventBus
+//import org.woen.threading.ThreadedGamepad
+//import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.PROCESS_ID.INTAKE
@@ -47,9 +50,7 @@ import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION
-import org.woen.threading.ThreadManager
-import org.woen.threading.ThreadedEventBus
-import org.woen.threading.ThreadedGamepad
+
 
 
 class SortingStorage
@@ -176,17 +177,17 @@ class SortingStorage
     }
     private fun subscribeToGamepadEvents()
     {
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
-            createClickDownListener(
-                { it.touchpadWasPressed() }, {
-
-                    TelemetryLI.log("SSM: Touchpad start 100 rotation test")
-
-                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                        unsafeTestSorting()
-                }   }
-        )   )
-
+//        ThreadedGamepad.LAZY_INSTANCE.addListener(
+//            createClickDownListener(
+//                { it.touchpadWasPressed() }, {
+//
+//                    TelemetryLI.log("SSM: Touchpad start 100 rotation test")
+//
+//                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//                        unsafeTestSorting()
+//                }   }
+//        )   )
+//
 //        GamepadLI.addListener(
 //            createClickDownListener({ it.ps }, {
 //
