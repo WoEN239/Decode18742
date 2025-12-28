@@ -1,6 +1,9 @@
 package org.woen.modules.runner.actions
 
 
+import com.acmerobotics.roadrunner.AngularVelConstraint
+import com.acmerobotics.roadrunner.MinVelConstraint
+import com.acmerobotics.roadrunner.TranslationalVelConstraint
 import com.acmerobotics.roadrunner.Vector2d
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.delay
@@ -17,6 +20,7 @@ import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
+import org.woen.telemetry.Configs
 import org.woen.telemetry.Configs.DELAY
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -66,6 +70,13 @@ class ActionRunner private constructor() : DisposableHandle {
 
     private val _hColorMultiplier
         get() = if (HotRun.LAZY_INSTANCE.currentRunColor == HotRun.RunColor.BLUE) 1.0 else -1.0
+
+    private val _eatVelConstant = MinVelConstraint(
+        listOf(
+            TranslationalVelConstraint(1.0),
+            AngularVelConstraint(5.0)
+        )
+    )
 
     private suspend fun sortingAuto()
     {
@@ -120,7 +131,7 @@ class ActionRunner private constructor() : DisposableHandle {
                     ).trajectoryBuilder!!.strafeToLinearHeading(
                         Vector2d(-0.314, -0.716 * _yColorMultiplier),
                         -PI / 2.0 * _hColorMultiplier
-                    ).strafeTo(Vector2d(-0.314, -1.15 * _yColorMultiplier))
+                    ).strafeTo(Vector2d(-0.314, -1.25 * _yColorMultiplier), _eatVelConstant)
                         .setReversed(true)
                         .splineTo(
                             Vector2d(-0.05, -1.35 * _yColorMultiplier),
@@ -160,7 +171,7 @@ class ActionRunner private constructor() : DisposableHandle {
                             Vector2d(0.353, -0.712 * _yColorMultiplier),
                             -PI / 2.0 * _hColorMultiplier
                         )
-                        .strafeTo(Vector2d(0.353, -1.15 * _yColorMultiplier))
+                        .strafeTo(Vector2d(0.353, -1.25 * _yColorMultiplier), _eatVelConstant)
                         .strafeToLinearHeading(
                             Vector2d(-0.776, -0.656 * _yColorMultiplier),
                             -PI * 0.75 * _hColorMultiplier
@@ -179,7 +190,7 @@ class ActionRunner private constructor() : DisposableHandle {
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
                         .strafeToLinearHeading(Vector2d(0.9, -0.712 * _yColorMultiplier), -PI / 2.0 * _hColorMultiplier)
-                        .strafeTo(Vector2d(0.9, -1.15 * _yColorMultiplier))
+                        .strafeTo(Vector2d(0.9, -1.25 * _yColorMultiplier), _eatVelConstant)
                         .strafeToLinearHeading(
                             Vector2d(-0.776, -0.656 * _yColorMultiplier),
                             -PI * 0.75 * _hColorMultiplier
@@ -351,8 +362,8 @@ class ActionRunner private constructor() : DisposableHandle {
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
-//            simpleAuto()
-            sortingAuto()
+            simpleAuto()
+//            sortingAuto()
         }
     })
 

@@ -232,7 +232,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.0001, kF = 0.0045, kI = 0.000001)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.0004, kF = 0.0045, kI = 0.00001)
 
         @JvmField
         var PULLEY_TARGET_SENS = 0.4

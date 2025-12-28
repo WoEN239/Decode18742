@@ -40,22 +40,23 @@ class Light: IModule {
     }
 
     override suspend fun process() {
-        _lightJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if (ThreadedBattery.LAZY_INSTANCE.currentVoltage < Configs.BATTERY.LOW_VOLTAGE) {
-                _expansionLed.color = LightColor.ORANGE
-                _controlLed.color = LightColor.ORANGE
-            } else {
-                _expansionLed.color = _currentLightColor
-                _controlLed.color = _currentLightColor
-            }
-        }
+//        _lightJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//            if (ThreadedBattery.LAZY_INSTANCE.currentVoltage < Configs.BATTERY.LOW_VOLTAGE) {
+//                _expansionLed.color = LightColor.ORANGE
+//                _controlLed.color = LightColor.ORANGE
+//            } else {
+//                _expansionLed.color = _currentLightColor
+//                _controlLed.color = _currentLightColor
+//            }
+//        }
     }
 
     override val isBusy: Boolean
         get() = _lightJob != null && !_lightJob!!.isCompleted
 
     override fun opModeStart() {
-
+        _expansionLed.color = _currentLightColor
+        _controlLed.color = _currentLightColor
     }
 
     override fun opModeStop() {
