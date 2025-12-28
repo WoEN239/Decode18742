@@ -1,6 +1,10 @@
 package com.example.meepmeeptesting
 
+import com.acmerobotics.roadrunner.AngularVelConstraint
+import com.acmerobotics.roadrunner.MinVelConstraint
 import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder
+import com.acmerobotics.roadrunner.TranslationalVelConstraint
 import com.acmerobotics.roadrunner.Vector2d
 import com.noahbres.meepmeep.MeepMeep
 import com.noahbres.meepmeep.MeepMeep.Background
@@ -14,22 +18,43 @@ object MeepMeepTesting {
 
         val myBot =
             DefaultBotBuilder(meepMeep) // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
-                .setConstraints(2.0 / 0.0254, 2.0 / 0.0254 * 2.5, 12.0, 12.0, (0.38) / 0.0254)
+                .setConstraints(1.9 / 0.0254, 4.0 / 0.0254 * 2.5, 7.0, 14.0, (0.38) / 0.0254)
                 .build()
 
-        val shootTime = 3.0
+        val eatVelConstraint = MinVelConstraint(
+            listOf(
+                TranslationalVelConstraint(0.8 / 0.0254),
+                AngularVelConstraint(7.0)
+            )
+        )
+
+        val shootTime = 1.0
+
+        fun TrajectoryActionBuilder.circle() =
+            setTangent(0.0)
+                .meterSplineToLinearHeading(Pose2d(0.2, -1.4, -PI * 0.7), -PI * 0.5)
+            .waitSeconds(0.8)
+                .setTangent(PI / 2.0)
+                .meterSplineToLinearHeading(Pose2d(-0.776, -0.656, -PI * 0.75), -PI)
+            .waitSeconds(shootTime)
 
         myBot.runAction(
-            myBot.drive.actionBuilder(Pose2d(-(1.215 + 0.38 / 2.0) / 0.0254, (-0.91 - 0.38 / 2.0) / 0.0254, -PI / 2.0))
+            myBot.drive.actionBuilder(
+                Pose2d(
+                    -(1.215 + 0.38 / 2.0) / 0.0254,
+                    (-0.91 - 0.38 / 2.0) / 0.0254,
+                    -PI / 2.0
+                )
+            )
                 .meterStrafeToLinearHeading(
                     Vector2d(-0.776, -0.656),
                     -PI * 0.75
                 )
                 .waitSeconds(shootTime)
                 .meterStrafeToLinearHeading(
-                    Vector2d(-0.314, -0.716),
+                    Vector2d(-0.314, -0.79),
                     -PI / 2.0
-                ).meterStrafeTo(Vector2d(-0.314, -1.15))
+                ).meterStrafeTo(Vector2d(-0.314, -1.15), eatVelConstraint)
                 .setReversed(true)
                 .meterSplineTo(
                     Vector2d(-0.05, -1.35),
@@ -42,14 +67,20 @@ object MeepMeepTesting {
                     -PI * 0.75
                 )
                 .waitSeconds(shootTime)
-                .meterStrafeToLinearHeading(Vector2d(0.3, -0.712), -PI / 2.0)
-                .meterStrafeTo(Vector2d(0.3, -1.15))
+                .circle()
+                .circle()
+                .circle()
+                .circle()
+                .setTangent(0.0)
+                .meterStrafeToLinearHeading(Vector2d(0.3, -0.79), -PI / 2.0)
+                .meterStrafeTo(Vector2d(0.3, -1.15), eatVelConstraint)
                 .meterStrafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
                 .waitSeconds(shootTime)
-                .meterStrafeToLinearHeading(Vector2d(0.9, -0.712), -PI / 2.0)
-                .meterStrafeTo(Vector2d(0.9, -1.15))
+                .meterStrafeToLinearHeading(Vector2d(0.9, -0.79), -PI / 2.0)
+                .meterStrafeTo(Vector2d(0.9, -1.15), eatVelConstraint)
                 .meterStrafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
-                .meterStrafeTo(Vector2d(-0.2, -0.656))
+                .waitSeconds(shootTime)
+                .meterStrafeTo(Vector2d(-1.2, -0.656))
                 .build()
         )
 
