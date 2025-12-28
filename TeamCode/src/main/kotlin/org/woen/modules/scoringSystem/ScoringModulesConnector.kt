@@ -14,6 +14,8 @@ import org.woen.enumerators.Shooting
 import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.DriveTrain.DriveMode
 import org.woen.modules.driveTrain.SetDriveModeEvent
+import org.woen.modules.light.Light
+import org.woen.modules.light.SetLightColorEvent
 
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
@@ -145,11 +147,20 @@ class ScoringModulesConnector
                 { it.triangle }, {
 
                     TelemetryLI.log("SMC: Gamepad try start lazy intake")
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.ORANGE))
+
                     val startingResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StartLazyIntakeEvent())
 
                     if (startingResult.startingResult) startBrushes()
-                    else reverseBrushes(TIME_FOR_BRUSH_REVERSING)
+                    else
+                    {
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                            SetLightColorEvent(Light.LightColor.GREEN))
+
+                        reverseBrushes(TIME_FOR_BRUSH_REVERSING)
+                    }
 
                     TelemetryLI.log("\nSMC: try start LazyIntake: ${startingResult.startingResult}")
         }   )   )
@@ -185,6 +196,9 @@ class ScoringModulesConnector
 
                     _intakeWasTerminated.set(true)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.GREEN))
+
                     reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
 
                     TelemetryLI.log("\nSMC: STOP  - INTAKE - GAMEPAD")
@@ -208,6 +222,9 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.left_bumper }, {
 
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.BLUE))
+
                     ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDrumRequest())
 
                     TelemetryLI.log("\nSMC: START - STREAM Drum request - GAMEPAD")
@@ -219,6 +236,9 @@ class ScoringModulesConnector
             createClickDownListener(
             { it.left_trigger > 0.75 }, {
 
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.BLUE))
+
                     ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 
                     TelemetryLI.log("\nSMC: START - PURPLE Request - GAMEPAD")
@@ -228,6 +248,9 @@ class ScoringModulesConnector
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
             { it.right_trigger > 0.75 }, {
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.BLUE))
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 
