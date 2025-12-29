@@ -20,7 +20,6 @@ import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
-import org.woen.telemetry.Configs
 import org.woen.telemetry.Configs.DELAY
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -36,7 +35,6 @@ class ActionRunner private constructor() : DisposableHandle {
 
         private val _instanceMutex = SmartMutex()
         private val _ssmFinishedFiring = AtomicBoolean(false)
-
 
 
         @JvmStatic
@@ -80,8 +78,7 @@ class ActionRunner private constructor() : DisposableHandle {
         )
     )
 
-    private suspend fun sortingAuto()
-    {
+    private suspend fun sortingAuto() {
         moveToCloseShootingZone()
         fireStreamDrumRequest()
 
@@ -107,8 +104,8 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
     }
-    private suspend fun simpleAuto()
-    {
+
+    private suspend fun simpleAuto() {
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
@@ -125,7 +122,7 @@ class ActionRunner private constructor() : DisposableHandle {
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
 
-        if(!_isULT) {
+        if (!_isULT) {
             ThreadedEventBus.LAZY_INSTANCE.invoke(
                 RunSegmentEvent(
                     RRTrajectorySegment(
@@ -222,9 +219,7 @@ class ActionRunner private constructor() : DisposableHandle {
     }
 
 
-
-    private suspend fun moveToCloseShootingZone()
-    {
+    private suspend fun moveToCloseShootingZone() {
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
@@ -239,8 +234,8 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
     }
-    private suspend fun moveIntakeDoorZonePhase1()
-    {
+
+    private suspend fun moveIntakeDoorZonePhase1() {
         tryStartLazyIntake()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
@@ -280,11 +275,12 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
         stopLazyIntake()
-        val inputFromTurretSlotToBottom = arrayOf(Ball.Name.PURPLE, Ball.Name.PURPLE, Ball.Name.GREEN)
+        val inputFromTurretSlotToBottom =
+            arrayOf(Ball.Name.PURPLE, Ball.Name.PURPLE, Ball.Name.GREEN)
         updateAfterLazyIntake(inputFromTurretSlotToBottom)
     }
-    private suspend fun moveIntakeZonePhase2()
-    {
+
+    private suspend fun moveIntakeZonePhase2() {
         tryStartLazyIntake()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
@@ -308,11 +304,12 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
         stopLazyIntake()
-        val inputFromTurretSlotToBottom = arrayOf(Ball.Name.PURPLE, Ball.Name.GREEN, Ball.Name.PURPLE)
+        val inputFromTurretSlotToBottom =
+            arrayOf(Ball.Name.PURPLE, Ball.Name.GREEN, Ball.Name.PURPLE)
         updateAfterLazyIntake(inputFromTurretSlotToBottom)
     }
-    private suspend fun moveIntakeZonePhase3()
-    {
+
+    private suspend fun moveIntakeZonePhase3() {
         tryStartLazyIntake()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
@@ -321,7 +318,10 @@ class ActionRunner private constructor() : DisposableHandle {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
-                        .strafeToLinearHeading(Vector2d(0.9, -0.712 * _yColorMultiplier), -PI / 2.0 * _hColorMultiplier)
+                        .strafeToLinearHeading(
+                            Vector2d(0.9, -0.712 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
+                        )
                         .strafeTo(Vector2d(0.9, -1.15 * _yColorMultiplier))
                         .strafeToLinearHeading(
                             Vector2d(-0.776, -0.656 * _yColorMultiplier),
@@ -333,43 +333,74 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
         stopLazyIntake()
-        val inputFromTurretSlotToBottom = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
+        val inputFromTurretSlotToBottom =
+            arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
         updateAfterLazyIntake(inputFromTurretSlotToBottom)
     }
 
-    private suspend fun fireStreamDrumRequest()
-    {
+    private suspend fun fireStreamDrumRequest() {
         ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDrumRequest())
 
         while (!_ssmFinishedFiring.get())
             delay(DELAY.EVENT_AWAITING_MS)
     }
-    private suspend fun fireAutoDrum()
-    {
+
+    private suspend fun fireAutoDrum() {
         ThreadedEventBus.LAZY_INSTANCE.invoke(DefaultFireEvent())
 
         while (!_ssmFinishedFiring.get())
             delay(DELAY.EVENT_AWAITING_MS)
     }
 
-    private fun tryStartLazyIntake()
-        = ThreadedEventBus.LAZY_INSTANCE.invoke(StartLazyIntakeEvent())
-    private fun stopLazyIntake()
-        = ThreadedEventBus.LAZY_INSTANCE.invoke(StopLazyIntakeEvent())
-    private fun updateAfterLazyIntake(inputFromTurretSlotToBottom: Array<Ball.Name>)
-    {
+    private fun tryStartLazyIntake() = ThreadedEventBus.LAZY_INSTANCE.invoke(StartLazyIntakeEvent())
+    private fun stopLazyIntake() = ThreadedEventBus.LAZY_INSTANCE.invoke(StopLazyIntakeEvent())
+    private fun updateAfterLazyIntake(inputFromTurretSlotToBottom: Array<Ball.Name>) {
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             StorageUpdateAfterLazyIntakeEvent(
-                        inputFromTurretSlotToBottom))
+                inputFromTurretSlotToBottom
+            )
+        )
     }
 
 
+    suspend fun auto21() {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeToLinearHeading(
+                        Vector2d(-0.776, -0.656 * _yColorMultiplier),
+                        -PI * 0.75 * _hColorMultiplier
+                    )
+                        .build()
+                )
+            )
+        ).process.wait()
 
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeToLinearHeading(
+                        Vector2d(0.3, -0.79 * _yColorMultiplier), -PI / 2.0 * _hColorMultiplier
+                    )
+                        .strafeTo(Vector2d(0.3, -1.15 * _yColorMultiplier), _eatVelConstant)
+                        .strafeTo(Vector2d(0.1, -1.35 * _yColorMultiplier))
+                        .build()
+                )
+            )
+        ).process.wait()
+    }
 
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
-            simpleAuto()
+            auto21()
+//            simpleAuto()
 //            sortingAuto()
         }
     })
@@ -389,5 +420,6 @@ class ActionRunner private constructor() : DisposableHandle {
             _thread.interrupt()
         }
     }
-    override fun dispose() { }
+
+    override fun dispose() {}
 }

@@ -228,7 +228,7 @@ object Configs {
     @Config
     internal object TURRET {
         @JvmField
-        var PULLEY_RADIUS = 0.05
+        var PULLEY_RADIUS = 0.0425
 
         @JvmField
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
