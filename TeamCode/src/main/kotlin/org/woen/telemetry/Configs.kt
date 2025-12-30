@@ -457,6 +457,27 @@ object Configs {
         val TERMINATION  = 11u
 
 
+
+        //  Sorting cells
+        var SC_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+        var SC_DEBUG_LEVELS  = arrayListOf(
+            HARDWARE,
+            HARDWARE_HIGH,
+
+            GAMEPAD_FEEDBACK,
+            EVENTS_FEEDBACK,
+
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
+
+            GENERIC_INFO,
+            LOGIC_STEPS,
+
+            PROCESS_NAME,
+            TERMINATION)
+
+
         //  Sorting Storage Logic
         var SSL_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
         var SSL_DEBUG_LEVELS  = arrayListOf(

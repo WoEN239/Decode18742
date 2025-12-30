@@ -11,6 +11,8 @@ import org.woen.enumerators.RequestResult
 
 import org.woen.enumerators.StorageSlot
 
+import org.woen.telemetry.LogManager
+
 import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
@@ -18,7 +20,11 @@ import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.Alias.STORAGE_SLOT_COUNT
 
-import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
+import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
+import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.SC_DEBUG_LEVELS
+import org.woen.telemetry.Configs.DEBUG_LEVELS.SC_DEBUG_SETTING
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRUE_MATCH_WEIGHT
 import org.woen.telemetry.Configs.SORTING_SETTINGS.PSEUDO_MATCH_WEIGHT
@@ -64,6 +70,7 @@ class StorageCells
 {
     private val _storageCells = Array(STORAGE_SLOT_COUNT) { Ball() }
     val hwSortingM = HwSortingManager()
+    val logM = LogManager(SC_DEBUG_SETTING, SC_DEBUG_LEVELS, "SC")
 
 
 
@@ -110,7 +117,7 @@ class StorageCells
     }
     private fun requestSearch(requested: BallRequest.Name): RequestResult
     {
-        TelemetryLI.log("starting request search: ${requested}, storage:")
+        logM.logMd("starting request search: ${requested}, storage:", PROCESS_STARTING)
         logAllStorageData()
 
         val result = Request.F_COLOR_NOT_PRESENT
@@ -144,7 +151,7 @@ class StorageCells
             var localMaximum  = START_WEIGHT_FOR_PREDICT_SORT
             var requestId     = startRequestId
 
-            TelemetryLI.log("search round: $startRequestId")
+            logM.logMd("search round: $startRequestId", GENERIC_INFO)
 
             while  (requestId   <  trimmedRequestSize + startRequestId)
             {
@@ -165,9 +172,9 @@ class StorageCells
                 else if (canMatchRequest) localMaximum += TRUE_MATCH_WEIGHT
                 else requestId += trimmedRequestSize
 
-                TelemetryLI.log(
-                    "> requestId: $requestId, direct match: $canMatchRequest\n"
-                           + "request ball: ${curRequest.name()}, storage ball: ${storageBall.name()}")
+                logM.logMd("> requestId: $requestId, direct match: $canMatchRequest\n"
+                      + "request ball: ${curRequest.name()}, storage ball: ${storageBall.name()}",
+                    GENERIC_INFO)
 
                 requestId++
             }
@@ -177,13 +184,13 @@ class StorageCells
                 doRotations = startRequestId
                 globalMaximum = localMaximum
 
-                TelemetryLI.log("Found new global maximum: $globalMaximum")
+                logM.logMd("Found new global maximum: $globalMaximum", GENERIC_INFO)
             }
 
             startRequestId++
         }
 
-        TelemetryLI.log("CELLS: Done searching, max: $globalMaximum, rotations: $doRotations")
+        logM.logMd("Done searching, max: $globalMaximum, rotations: $doRotations", PROCESS_ENDING)
         return PredictSortResult(doRotations, globalMaximum)
     }
     suspend fun initiatePredictSort(requested: Array<BallRequest.Name>,
@@ -194,12 +201,12 @@ class StorageCells
 
         hwReAdjustStorage()
 
-        TelemetryLI.log("CELLS: Start predict sort search")
+        logM.logMd("Start predict sort search", PROCESS_STARTING)
         val requestedFullData  = Array(requested.size) { BallRequest(requested[it]) }
         val searchResult = predictSortSearch(requestedFullData, trimmedRequestSize)
 
-        TelemetryLI.log("Best score: ${searchResult.maxSequenceScore}" +
-                               ", required >= $minValidInSequence")
+        logM.logMd("Best score: ${searchResult.maxSequenceScore}" +
+                       ", required >= $minValidInSequence", GENERIC_INFO)
 
         if (searchResult.maxSequenceScore >= minValidInSequence)
             repeat (searchResult.totalRotations)
@@ -244,13 +251,13 @@ class StorageCells
     {
         hwSortingM.stopAwaitingEating(true)
 
-        TelemetryLI.log("before intake:")
+        logM.logMd("before intake:", GENERIC_INFO)
         logAllStorageData()
 
         _storageCells[StorageSlot.BOTTOM].set(inputToBottomSlot)
         hwReAdjustStorage()
 
-        TelemetryLI.log("finished cells intake, new storage:")
+        logM.logMd("finished cells intake, new storage:", GENERIC_INFO)
         logAllStorageData()
 
         hwSortingM.resumeAwaitingEating()
@@ -277,7 +284,7 @@ class StorageCells
 
     suspend fun fullRotate()
     {
-        TelemetryLI.log("storage before full rotation:")
+        logM.logMd("storage before full rotation:", GENERIC_INFO)
         logAllStorageData()
 
         hwSortingM.stopAwaitingEating(true)
@@ -290,14 +297,14 @@ class StorageCells
 
         hwReAdjustStorage()
 
-        TelemetryLI.log("finished full rotation, new storage:")
+        logM.logMd("finished full rotation, new storage:", PROCESS_ENDING)
         logAllStorageData()
     }
 
 
     private fun swReAdjustStorage(): Boolean
     {
-        TelemetryLI.log("SwReadjust start")
+        logM.logMd("SwReadjust start", PROCESS_STARTING)
         if (_storageCells[StorageSlot.TURRET].isEmpty()
             && isNotEmpty())
         {
@@ -327,7 +334,7 @@ class StorageCells
         }
         else
         {
-            TelemetryLI.log("finished readjusting")
+            logM.logMd("finished readjusting", PROCESS_ENDING)
             return false
         }
     }
@@ -347,12 +354,12 @@ class StorageCells
 
     private fun logAllStorageData()
     {
-        TelemetryLI.log("" +
+        logM.logMd("" +
                 "B:  ${_storageCells[StorageSlot.BOTTOM].name()}; "
               + "C:  ${_storageCells[StorageSlot.CENTER].name()}; "
               + "MO: ${_storageCells[StorageSlot.TURRET].name()}; "
-              + "MI: ${_storageCells[StorageSlot.MOBILE].name()}\n"
-        )
+              + "MI: ${_storageCells[StorageSlot.MOBILE].name()}\n",
+            GENERIC_INFO)
     }
     fun storageData() = _storageCells
 
