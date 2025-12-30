@@ -477,6 +477,26 @@ object Configs {
             TERMINATION)
 
 
+        //  Sorting storage module
+        var SSM_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+        var SSM_DEBUG_LEVELS  = arrayListOf(
+            HARDWARE,
+            HARDWARE_HIGH,
+
+            GAMEPAD_FEEDBACK,
+            EVENTS_FEEDBACK,
+
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
+
+            GENERIC_INFO,
+            LOGIC_STEPS,
+
+            PROCESS_NAME,
+            TERMINATION)
+
+
         //  Sorting Auto Logic
         var SAL_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
         var SAL_DEBUG_LEVELS  = arrayListOf(

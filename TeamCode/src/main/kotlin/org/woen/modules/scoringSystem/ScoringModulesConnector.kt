@@ -150,9 +150,6 @@ class ScoringModulesConnector
                 { it.right_trigger > 0.5 }, {
 
                     TelemetryLI.log("SMC: Gamepad try start lazy intake")
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.ORANGE))
-
                     val startingResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StartLazyIntakeEvent())
 
