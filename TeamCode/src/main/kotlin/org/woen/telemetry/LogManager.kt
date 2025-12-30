@@ -1,6 +1,8 @@
 package org.woen.telemetry
 
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SHOW_DEBUG_LEVEL_WARNINGS
+
+import org.woen.telemetry.Configs.DEBUG_LEVELS.SHOW_DEBUG_SUPPRESS_WARNINGS
+
 
 
 class LogManager
@@ -53,7 +55,7 @@ class LogManager
     {
         if (allowedToShow(debugLevel))
             ThreadedTelemetry.LAZY_INSTANCE.log(s)
-        else if (SHOW_DEBUG_LEVEL_WARNINGS)
+        else if (SHOW_DEBUG_SUPPRESS_WARNINGS)
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
                 "Debug level $debugLevel is turned off", "Warning")
     }
@@ -61,7 +63,7 @@ class LogManager
     {
         if (allowedToShow(debugLevel))
             ThreadedTelemetry.LAZY_INSTANCE.log(toMdString(s))
-        else if (SHOW_DEBUG_LEVEL_WARNINGS)
+        else if (SHOW_DEBUG_SUPPRESS_WARNINGS)
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
                 toMdString("Debug level $debugLevel is turned off"), "Warning")
     }
@@ -69,7 +71,7 @@ class LogManager
     {
         if (allowedToShow(debugLevel))
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(s, tag)
-        else if (SHOW_DEBUG_LEVEL_WARNINGS)
+        else if (SHOW_DEBUG_SUPPRESS_WARNINGS)
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
                 "Debug level $debugLevel is turned off", "Warning")
     }

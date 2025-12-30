@@ -23,8 +23,8 @@ import org.woen.modules.scoringSystem.storage.Alias.STORAGE_SLOT_COUNT
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SC_DEBUG_LEVELS
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SC_DEBUG_SETTING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.CELLS_DEBUG_LEVELS
+import org.woen.telemetry.Configs.DEBUG_LEVELS.CELLS_DEBUG_SETTING
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRUE_MATCH_WEIGHT
 import org.woen.telemetry.Configs.SORTING_SETTINGS.PSEUDO_MATCH_WEIGHT
@@ -70,7 +70,7 @@ class StorageCells
 {
     private val _storageCells = Array(STORAGE_SLOT_COUNT) { Ball() }
     val hwSortingM = HwSortingManager()
-    val logM = LogManager(SC_DEBUG_SETTING, SC_DEBUG_LEVELS, "SC")
+    val logM = LogManager(CELLS_DEBUG_SETTING, CELLS_DEBUG_LEVELS, "CELLS")
 
 
 

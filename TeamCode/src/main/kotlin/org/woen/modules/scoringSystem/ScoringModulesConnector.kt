@@ -11,14 +11,20 @@ import org.woen.enumerators.BallRequest
 import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.Shooting
-import org.woen.modules.driveTrain.DriveTrain.DriveMode
-import org.woen.modules.driveTrain.SetDriveModeEvent
+
 import org.woen.modules.light.Light
 import org.woen.modules.light.SetLightColorEvent
+
+import org.woen.modules.driveTrain.DriveTrain.DriveMode
+import org.woen.modules.driveTrain.SetDriveModeEvent
 
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
 
+import org.woen.telemetry.LogManager
+import org.woen.telemetry.Configs.DELAY
+import org.woen.threading.ThreadedEventBus
+import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
@@ -28,7 +34,6 @@ import org.woen.modules.scoringSystem.turret.TurretCurrentPeaked
 
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
-
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
@@ -45,13 +50,19 @@ import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-import org.woen.modules.scoringSystem.storage.Alias.TelemetryLI
 
-import org.woen.telemetry.Configs.DELAY
+import org.woen.telemetry.Configs.DEBUG_LEVELS.SMC_DEBUG_LEVELS
+import org.woen.telemetry.Configs.DEBUG_LEVELS.SMC_DEBUG_SETTING
+
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
+import org.woen.telemetry.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
+import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
+import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
+import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS
-import org.woen.threading.ThreadedEventBus
-import org.woen.threading.ThreadedGamepad
+
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -61,6 +72,7 @@ class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
 class ScoringModulesConnector
 {
     private val _storage = SortingStorage()
+    val logM = LogManager(SMC_DEBUG_SETTING, SMC_DEBUG_LEVELS, "SMC")
 
 
     private val _isBusy          = AtomicBoolean(false)
@@ -149,7 +161,7 @@ class ScoringModulesConnector
             createClickDownListener(
                 { it.right_trigger > 0.5 }, {
 
-                    TelemetryLI.log("SMC: Gamepad try start lazy intake")
+                    logM.logMd("Gamepad try start lazy intake", GAMEPAD_FEEDBACK)
                     val startingResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
                         StartLazyIntakeEvent())
 
@@ -162,7 +174,7 @@ class ScoringModulesConnector
                         reverseBrushes(TIME_FOR_BRUSH_REVERSING)
                     }
 
-                    TelemetryLI.log("\nSMC: try start LazyIntake: ${startingResult.startingResult}")
+                    logM.logMd("\ntry start LazyIntake: ${startingResult.startingResult}", PROCESS_STARTING)
         }   )   )
 
 
@@ -177,8 +189,8 @@ class ScoringModulesConnector
 //                        StorageGetReadyForIntakeEvent(
 //                            Ball.Name.PURPLE))
 //
-//                    TelemetryLI.log("\nSMC: START - PURPLE Intake - GAMEPAD")
-//                    TelemetryLI.log("SMC isBusy: " + isBusy())
+//                    logM.logMd("\nSMC: START - PURPLE Intake - GAMEPAD")
+//                    logM.logMd("SMC isBusy: " + isBusy())
 //        }   )   )
 //
 //        ThreadedGamepad.LAZY_INSTANCE.addListener(
@@ -192,8 +204,8 @@ class ScoringModulesConnector
 //                        StorageGetReadyForIntakeEvent(
 //                            Ball.Name.GREEN))
 //
-//                    TelemetryLI.log("\nSMC: START - GREEN Intake - GAMEPAD")
-//                    TelemetryLI.log("SMC isBusy: " + isBusy())
+//                    logM.logMd("\nSMC: START - GREEN Intake - GAMEPAD")
+//                    logM.logMd("SMC isBusy: " + isBusy())
 //        }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
@@ -207,8 +219,8 @@ class ScoringModulesConnector
 
                     reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
 
-                    TelemetryLI.log("\nSMC: STOP  - INTAKE - GAMEPAD")
-                    TelemetryLI.log("SMC isBusy: " + isBusy())
+                    logM.logMd("\nSTOP  - INTAKE - GAMEPAD", GAMEPAD_FEEDBACK)
+                    logM.logMd("isBusy: " + isBusy(), GENERIC_INFO)
         }   )   )
 
 
@@ -220,8 +232,8 @@ class ScoringModulesConnector
                     _requestWasTerminated.set(true)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
 
-                    TelemetryLI.log("", "SMC: STOP  - ANY Request - GAMEPAD")
-                    TelemetryLI.log("SMC isBusy: " + isBusy())
+                    logM.logMd("STOP  - ANY Request - GAMEPAD", GAMEPAD_FEEDBACK)
+                    logM.logMd("isBusy: " + isBusy(), GENERIC_INFO)
         }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
@@ -233,8 +245,8 @@ class ScoringModulesConnector
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDrumRequest())
 
-                    TelemetryLI.log("\nSMC: START - STREAM Drum request - GAMEPAD")
-                    TelemetryLI.log("SMC isBusy: " + isBusy())
+                    logM.logMd("\nSTART - STREAM Drum request - GAMEPAD", GAMEPAD_FEEDBACK)
+                    logM.logMd("SMC isBusy: " + isBusy(), GENERIC_INFO)
         }   )   )
 
 
@@ -247,8 +259,8 @@ class ScoringModulesConnector
 //
 //                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 //
-//                    TelemetryLI.log("\nSMC: START - PURPLE Request - GAMEPAD")
-//                    TelemetryLI.log("SMC isBusy: " + isBusy())
+//                    logM.logMd("\nSMC: START - PURPLE Request - GAMEPAD")
+//                    logM.logMd("SMC isBusy: " + isBusy())
 //        }   )   )
 //
 //        ThreadedGamepad.LAZY_INSTANCE.addListener(
@@ -260,8 +272,8 @@ class ScoringModulesConnector
 //
 //                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 //
-//                    TelemetryLI.log("\nSMC: START - GREEN Request - GAMEPAD")
-//                    TelemetryLI.log("SMC isBusy: " + isBusy())
+//                    logM.logMd("\nSMC: START - GREEN Request - GAMEPAD")
+//                    logM.logMd("SMC isBusy: " + isBusy())
 //        }   )   )
     }
     private fun resetParametersToDefault()
@@ -289,7 +301,7 @@ class ScoringModulesConnector
 
         setBusy()
 
-        TelemetryLI.log("SMC: Started - Intake, INPUT BALL: $inputToBottomSlot")
+        logM.logMd("Started - Intake, INPUT BALL: $inputToBottomSlot", PROCESS_STARTING)
         val intakeResult = _storage.handleIntake(inputToBottomSlot)
 
 
@@ -299,7 +311,7 @@ class ScoringModulesConnector
             reverseBrushes(TIME_FOR_BRUSH_REVERSING)
         }
 
-        TelemetryLI.log("SMC: FINISHED - INTAKE, result: $intakeResult")
+        logM.logMd("FINISHED - INTAKE, result: $intakeResult", PROCESS_ENDING)
         setIdle()
         return intakeResult
     }
@@ -350,7 +362,7 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
-        TelemetryLI.log("SMC: Started - SMART drum request")
+        logM.logMd("Started - SMART drum request", PROCESS_STARTING)
         val requestResult = _storage.shootEntireDrumRequest(
                 shootingMode,
                 requestPattern,
@@ -360,7 +372,7 @@ class ScoringModulesConnector
             SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS,
             SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS)
 
-        TelemetryLI.log("SMC: FINISHED - SMART drum request")
+        logM.logMd("FINISHED - SMART drum request", PROCESS_ENDING)
 
 
         resumeLogicAfterShooting(requestResult)
@@ -377,9 +389,9 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
                 DriveMode.SHOOTING))
 
-        TelemetryLI.log("SMC: Started - LazySTREAM drum request")
+        logM.logMd("Started - LazySTREAM drum request", PROCESS_STARTING)
         val requestResult = _storage.streamDrumRequest()
-        TelemetryLI.log("SMC: FINISHED - LazySTREAM drum request")
+        logM.logMd("FINISHED - LazySTREAM drum request", PROCESS_ENDING)
 
 
         resumeLogicAfterShooting(requestResult)
@@ -393,10 +405,10 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
-        TelemetryLI.log("SMC: Started - Single request")
+        logM.logMd("Started - Single request", PROCESS_STARTING)
 
         val requestResult = _storage.handleRequest(ballRequest)
-        TelemetryLI.log("SMC: FINISHED - Single request")
+        logM.logMd("FINISHED - Single request", PROCESS_ENDING)
 
 
         resumeLogicAfterShooting(requestResult)
@@ -406,15 +418,16 @@ class ScoringModulesConnector
 
     private suspend fun readyUpForShooting()
     {
+        logM.logMd("Starting Drivetrain rotation", PROCESS_STARTING)
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
             DriveMode.SHOOTING)).process.wait()
 
-        TelemetryLI.log("[&] SMC: Drivetrain rotated successfully")
+        logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
         awaitShotFiring()
     }
     private suspend fun awaitShotFiring()
     {
-        TelemetryLI.log("SMC - SEND - AWAITING SHOT")
+        logM.logMd("SEND - AWAITING SHOT", EVENTS_FEEDBACK)
         ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
         _storage.hwSmartPushNextBall()
 
@@ -428,8 +441,8 @@ class ScoringModulesConnector
         }
 
         if (timePassedWaitingForShot >= DELAY.SMC_MAX_SHOT_AWAITING_MS)
-             TelemetryLI.log("\n\n\nSMC - Shot timeout, assume success\n")
-        else TelemetryLI.log("\n\n\nSMC - RECEIVED - SHOT FIRED\n")
+             logM.logMd("\n\n\nShot timeout, assume success\n", LOGIC_STEPS)
+        else logM.logMd("\n\n\nRECEIVED - SHOT FIRED\n", LOGIC_STEPS)
 
 
         if (_shotWasFired.get()) ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
@@ -440,7 +453,8 @@ class ScoringModulesConnector
 
     private suspend fun sendFinishedFiringEvent(requestResult: RequestResult.Name)
     {
-        TelemetryLI.log("SMC: FINISHED all firing, event send")
+        logM.logMd("FINISHED all firing", PROCESS_ENDING)
+        logM.logMd("Send finished firing EVENT", PROCESS_ENDING)
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             FullFinishedFiringEvent(

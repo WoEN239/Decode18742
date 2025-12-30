@@ -94,10 +94,6 @@ object Alias
 
 
 
-    val TelemetryLI = ThreadedTelemetry.LAZY_INSTANCE
-
-
-
     const val NOTHING            = 0
     const val MAX_BALL_COUNT     = 3
     const val STORAGE_SLOT_COUNT = 4

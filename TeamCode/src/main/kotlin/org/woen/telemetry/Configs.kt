@@ -437,7 +437,7 @@ object Configs {
 
     object DEBUG_LEVELS
     {
-        var SHOW_DEBUG_LEVEL_WARNINGS = false
+        var SHOW_DEBUG_SUPPRESS_WARNINGS = true
 
         val HARDWARE_LOW  = 0u
         val HARDWARE      = 1u
@@ -459,8 +459,8 @@ object Configs {
 
 
         //  Sorting cells
-        var SC_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-        var SC_DEBUG_LEVELS  = arrayListOf(
+        var CELLS_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+        var CELLS_DEBUG_LEVELS  = arrayListOf(
             HARDWARE,
             HARDWARE_HIGH,
 
@@ -521,6 +521,23 @@ object Configs {
         //  Sorting Auto Logic
         var SAL_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
         var SAL_DEBUG_LEVELS  = arrayListOf(
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
+
+            GENERIC_INFO,
+            LOGIC_STEPS,
+
+            PROCESS_NAME,
+            TERMINATION)
+
+
+        //  Scoring modules connector
+        var SMC_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+        var SMC_DEBUG_LEVELS  = arrayListOf(
+            GAMEPAD_FEEDBACK,
+            EVENTS_FEEDBACK,
+
             ATTEMPTING_LOGIC,
             PROCESS_STARTING,
             PROCESS_ENDING,
@@ -611,8 +628,6 @@ object Configs {
         @JvmField
         var BETWEEN_INTAKES_MS: Long = 500
     }
-
-
 
 
 
