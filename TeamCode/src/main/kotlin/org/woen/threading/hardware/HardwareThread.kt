@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.ThreadedTelemetry
@@ -75,6 +77,8 @@ class HardwareThread : DisposableHandle {
 
             _isThreadFree = true
         })
+
+        ThreadedTelemetry.LAZY_INSTANCE.log("$threadName created")
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData(

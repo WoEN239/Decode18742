@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.PwmControl
 import com.qualcomm.robotcore.hardware.Servo
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
 
 class HardwareLight(private val _rName: String, private val _gName: String, private val _bName: String): IHardwareDevice {

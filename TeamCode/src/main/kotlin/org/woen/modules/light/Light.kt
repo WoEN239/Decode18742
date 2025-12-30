@@ -4,6 +4,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads

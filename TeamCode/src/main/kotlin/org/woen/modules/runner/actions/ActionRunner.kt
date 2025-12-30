@@ -407,17 +407,14 @@ class ActionRunner private constructor() : DisposableHandle {
 
 
     fun init() {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(FullFinishedFiringEvent::class, {
-//            ThreadedEventBus.LAZY_INSTANCE.invoke(DisableSortingModuleEvent())
-        })
-
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)
                 _thread.start()
         }
 
         HotRun.LAZY_INSTANCE.opModeStopEvent += {
-            _thread.interrupt()
+            if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)
+                _thread.interrupt()
         }
     }
 

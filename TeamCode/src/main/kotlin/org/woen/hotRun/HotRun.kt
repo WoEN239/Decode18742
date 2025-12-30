@@ -2,6 +2,7 @@ package org.woen.hotRun
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
+import kotlinx.coroutines.launch
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.modules.camera.Camera
 import org.woen.modules.runner.actions.ActionRunner
@@ -27,8 +28,7 @@ class HotRun private constructor() {
 
         val LAZY_INSTANCE: HotRun
             get() = _instanceMutex.smartLock {
-                if (_nullableInstance == null)
-                    _nullableInstance = HotRun()
+                if (_nullableInstance == null) _nullableInstance = HotRun()
 
                 return@smartLock _nullableInstance!!
             }
@@ -59,14 +59,11 @@ class HotRun private constructor() {
         private set
 
     enum class RunState {
-        INIT,
-        STOP,
-        RUN
+        INIT, STOP, RUN
     }
 
     enum class RunMode {
-        MANUAL,
-        AUTO
+        MANUAL, AUTO
     }
 
     enum class RunColor(
@@ -88,10 +85,10 @@ class HotRun private constructor() {
 
     var currentRunColor = RunColor.BLUE
 
-    val opModeInitEvent = SimpleEvent<LinearOpMode>()
-    val opModeStartEvent = SimpleEvent<LinearOpMode>()
-    val opModeUpdateEvent = SimpleEvent<LinearOpMode>()
-    val opModeStopEvent = SimpleEvent<LinearOpMode>()
+    val opModeInitEvent = SimpleEmptyEvent()
+    val opModeStartEvent = SimpleEmptyEvent()
+    val opModeUpdateEvent = SimpleEmptyEvent()
+    val opModeStopEvent = SimpleEmptyEvent()
     val disposableEvent = SimpleEmptyEvent()
 
     fun run(opMode: LinearOpMode, runMode: RunMode, isGamepadStart: Boolean = false) {
@@ -105,66 +102,34 @@ class HotRun private constructor() {
         ActionRunner.LAZY_INSTANCE
         Camera.LAZY_INSTANCE
 
-        opModeInitEvent.invoke(opMode)
+        opModeInitEvent.invoke()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("init completed")
 
         while (!opMode.isStarted()) {
-            if (isGamepadStart && ThreadedGamepad.LAZY_INSTANCE.getIsGamepadTriggered())
-                OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity)
-                    .startActiveOpMode()
+            if (isGamepadStart && ThreadedGamepad.LAZY_INSTANCE.getIsGamepadTriggered()) OpModeManagerImpl.getOpModeManagerOfActivity(
+                AppUtil.getInstance().activity
+            ).startActiveOpMode()
         }
         opMode.resetRuntime()
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("start")
+        ThreadedTelemetry.LAZY_INSTANCE.log("op mode start")
 
         currentRunState = RunState.RUN
 
-        opModeStartEvent.invoke(opMode)
+        opModeStartEvent.invoke()
 
-//            val updateTimer = ElapsedTime()
-
-        while (opMode.opModeIsActive()) {
-//                val updateCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            opModeUpdateEvent.invoke(opMode)
-//                }
-//
-//                updateTimer.reset()
-//
-//                while (!updateCoroutine.isCompleted) {
-//                    Thread.sleep(5)
-//
-//                    if (updateTimer.seconds() > Configs.HOT_RUN.MAX_UPDATE_TIME) {
-//                        ThreadedTelemetry.LAZY_INSTANCE.log("update coroutine is killed")
-//
-//                        updateCoroutine.cancel()
-//                        break
-//                    }
-//                }
-        }
+        while (opMode.opModeIsActive())
+            opModeUpdateEvent.invoke()
 
         currentRunState = RunState.STOP
 
-//            val stopCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-        opModeStopEvent.invoke(opMode)
-//            }
+        ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            opModeStopEvent.invoke()
 
-//            val stopTimer = ElapsedTime()
-//            stopTimer.reset()
+            for (i in opMode.hardwareMap.servoController) i.pwmDisable()
 
-//            while (!stopCoroutine.isCompleted) {
-//                Thread.sleep(5)
-//
-//                if (stopTimer.seconds() > Configs.HOT_RUN.MAX_STOP_TIME) {
-//                    ThreadedTelemetry.LAZY_INSTANCE.log("stop coroutine is killed")
-//
-//                    stopCoroutine.cancel()
-//
-//                    break
-//                }
-//            }
-
-        for (i in opMode.hardwareMap.servoController)
-            i.pwmDisable()
+            ThreadedTelemetry.LAZY_INSTANCE.log("op mode stoped")
+        }
     }
 }

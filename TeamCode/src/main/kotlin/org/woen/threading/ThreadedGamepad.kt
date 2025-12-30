@@ -10,7 +10,7 @@ import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.abs
 
-class ThreadedGamepad private constructor() {
+class ThreadedGamepad {
     companion object {
         private var _nullableInstance: ThreadedGamepad? = null
 
@@ -128,19 +128,21 @@ class ThreadedGamepad private constructor() {
                 _gamepad.left_bumper || _gamepad.right_bumper || _gamepad.ps || _gamepad.touchpad || _gamepad.dpad_up || _gamepad.dpad_down || _gamepad.dpad_left || _gamepad.dpad_right ||
                 _gamepad.circle || _gamepad.square || _gamepad.triangle || _gamepad.cross
 
-    fun rumble(duration: Double){
-        if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
+    fun rumble(duration: Double) {
+        if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
             _gamepad.rumble((duration * 1000.0).toInt())
     }
 
     fun init(gamepad: Gamepad) {
         _gamepad = gamepad
+    }
 
-        if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
-            HotRun.LAZY_INSTANCE.opModeUpdateEvent += {
+    private constructor() {
+        HotRun.LAZY_INSTANCE.opModeUpdateEvent += {
+            if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
                 runBlocking {
                     for (i in _allListeners)
-                        i.update(it.gamepad1)
+                        i.update(_gamepad)
                 }
             }
         }

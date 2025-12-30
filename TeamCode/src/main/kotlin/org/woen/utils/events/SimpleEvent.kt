@@ -18,6 +18,9 @@ class SimpleEvent<T> {
         for (i in listeners)
             i.invoke(data)
     }
+
+    val listenersCount
+        get() = listeners.size
 }
 
 class SimpleEmptyEvent {
@@ -36,4 +39,7 @@ class SimpleEmptyEvent {
         for (i in listeners)
             i.invoke()
     }
+
+    val listenersCount
+        get() = listeners.size
 }
