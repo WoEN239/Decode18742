@@ -111,16 +111,19 @@ class HotRun private constructor() {
                 AppUtil.getInstance().activity
             ).startActiveOpMode()
         }
-        opMode.resetRuntime()
 
-        ThreadedTelemetry.LAZY_INSTANCE.log("op mode start")
+        if(opMode.opModeIsActive()) {
+            opMode.resetRuntime()
 
-        currentRunState = RunState.RUN
+            ThreadedTelemetry.LAZY_INSTANCE.log("op mode start")
 
-        opModeStartEvent.invoke()
+            currentRunState = RunState.RUN
 
-        while (opMode.opModeIsActive())
-            opModeUpdateEvent.invoke()
+            opModeStartEvent.invoke()
+
+            while (opMode.opModeIsActive())
+                opModeUpdateEvent.invoke()
+        }
 
         currentRunState = RunState.STOP
 
