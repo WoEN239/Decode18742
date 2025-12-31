@@ -198,7 +198,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = false
+        var CAMERA_ENABLE = true
         @JvmField
         var CAMERA_H_RED_DOWN=4.0
         @JvmField
@@ -214,6 +214,11 @@ object Configs {
         @JvmField
         var CAMERA_KSIZE=22.0
 
+        @JvmField
+        var CRASH_TIME = 1.0
+
+        @JvmField
+        var CRASH_FPS_THRESHOLD = 0.00001
     }
 
     @Config

@@ -2,6 +2,7 @@ package org.woen.threading.hardware
 
 
 import kotlinx.coroutines.DisposableHandle
+import org.woen.modules.camera.Camera
 import org.woen.utils.smartMutex.SmartMutex
 
 import org.woen.modules.driveTrain.Odometry
@@ -63,9 +64,11 @@ class HardwareThreads private constructor() : DisposableHandle {
     }
 
     private fun initModules() {
-        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner(), Light())
-        EXPANSION.link.addModules(Turret(), Brush(), SimpleStorage())
-        ActionRunner.LAZY_INSTANCE
+//        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner(), Light())
+//        EXPANSION.link.addModules(Turret(), Brush(), SimpleStorage())
+//        ActionRunner.LAZY_INSTANCE
+
+        Camera.LAZY_INSTANCE
 
 //        ScoringModulesConnector()
 //        SortingAutoLogic()

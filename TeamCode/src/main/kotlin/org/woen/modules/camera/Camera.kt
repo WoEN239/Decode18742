@@ -2,18 +2,21 @@ package org.woen.modules.camera
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.DisposableHandle
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 import org.woen.hotRun.HotRun
 import org.woen.modules.scoringSystem.turret.Pattern
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.smartMutex.SmartMutex
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
 data class OnPatternDetectedEvent(val pattern: Pattern)
@@ -47,32 +50,98 @@ class Camera : DisposableHandle {
 
     var currentPattern: Pattern? = null
 
-    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
-        while (!Thread.currentThread().isInterrupted && Configs.CAMERA.CAMERA_ENABLE) {
-            if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN || _aprilProcessor == null) {
-                Thread.sleep(5)
-                continue
-            }
+    private var _oldFPS = 0.0
 
-            val detections = _aprilProcessor?.freshDetections
+    private val _crashTimer = ElapsedTime()
 
-            if (detections == null) {
-                Thread.sleep(5)
-                continue
-            }
-
-            for (detection in detections) {
-                if (currentPattern == null) {
-                    val pattern = Pattern.patterns.find { it.cameraTagId == detection.id }
-
-                    if (pattern != null) {
-                        currentPattern = pattern
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(OnPatternDetectedEvent(pattern))
+    private val _thread =
+        ThreadManager.LAZY_INSTANCE.register(thread(start = true, name = "Camera thread") {
+            while (!Thread.currentThread().isInterrupted && Configs.CAMERA.CAMERA_ENABLE) {
+                if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN ||
+                    _aprilProcessor == null ||
+                    _visionPortal?.cameraState != VisionPortal.CameraState.STREAMING
+                ) {
+                    if (_visionPortal?.cameraState == VisionPortal.CameraState.ERROR) {
+                        reCreateCamera()
+                        ThreadedTelemetry.LAZY_INSTANCE.log("camera restarted cause: err")
                     }
+
+                    Thread.sleep(5)
+                    continue
                 }
+
+//                _visionPortal?.let {
+//                    val fps = it.fps.toDouble()
+//
+//                    if (abs(_oldFPS - fps) > Configs.CAMERA.CRASH_FPS_THRESHOLD)
+//                        _crashTimer.reset()
+//                    else if (_crashTimer.seconds() > Configs.CAMERA.CRASH_TIME) {
+//                        reCreateCamera()
+//                        ThreadedTelemetry.LAZY_INSTANCE.log("camera restarted cause: fps")
+//                    }
+//
+//                    _oldFPS = fps
+//                }
+
+                val detections = _aprilProcessor?.freshDetections
+
+                if (detections == null) {
+                    Thread.sleep(5)
+                    continue
+                }
+
+                if (currentPattern == null)
+                    for (i in detections) {
+                        currentPattern = Pattern.patterns.find { it.cameraTagId == i.id }
+
+                        if (currentPattern != null) {
+                            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                                OnPatternDetectedEvent(
+                                    currentPattern!!
+                                )
+                            )
+
+                            ThreadedTelemetry.LAZY_INSTANCE.log("motiv detected: " +
+                                    "${currentPattern!!.subsequence[0]} ${currentPattern!!.subsequence[1]} ${currentPattern!!.subsequence[2]}")
+                        }
+                    }
             }
+        })
+
+    fun reCreateCamera() {
+        if (_visionPortal?.cameraState == VisionPortal.CameraState.STREAMING) {
+            FtcDashboard.getInstance().stopCameraStream()
+            _visionPortal?.close()
+
+            while (_visionPortal?.cameraState != VisionPortal.CameraState.CAMERA_DEVICE_CLOSED)
+                Thread.sleep(5)
         }
-    })
+
+        val hardwareMap =
+            OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
+
+        _aprilProcessor =
+            AprilTagProcessor.Builder()
+                .setDrawAxes(true)
+                .setDrawTagID(true)
+                .setDrawTagOutline(true)
+                .setDrawCubeProjection(true)
+                .setDrawTagID(true)
+                .setNumThreads(4)
+                .setOutputUnits(DistanceUnit.METER, AngleUnit.RADIANS)
+                .build()
+
+        val dashboardCameraProcessor = DashboardCameraProcessor()
+
+        _visionPortal =
+            VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
+                .addProcessors(_aprilProcessor, dashboardCameraProcessor).build()
+
+        FtcDashboard.getInstance().startCameraStream(
+            dashboardCameraProcessor,
+            Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.get().toDouble()
+        )
+    }
 
     override fun dispose() {
 
@@ -80,16 +149,14 @@ class Camera : DisposableHandle {
 
     private constructor() {
         if (Configs.CAMERA.CAMERA_ENABLE) {
-            val hardwareMap =
-                OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
-
             HotRun.LAZY_INSTANCE.opModeInitEvent += {
-                _aprilProcessor =
-                    AprilTagProcessor.Builder().setDrawAxes(true).build()
+                reCreateCamera()
+            }
 
-                _visionPortal =
-                    VisionPortal.Builder().setCamera(hardwareMap.get("Webcam 1") as WebcamName)
-                        .addProcessors(_aprilProcessor).build()
+            ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+                _visionPortal?.let { it1 ->
+                    it.addData("camera fps", it1.fps.toString())
+                }
             }
 
             HotRun.LAZY_INSTANCE.opModeStopEvent += {

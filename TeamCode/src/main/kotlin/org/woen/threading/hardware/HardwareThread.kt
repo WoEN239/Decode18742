@@ -82,7 +82,7 @@ class HardwareThread : DisposableHandle {
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData(
-                "hardware ups + " + thread.name,
+                thread.name + " ups",
                 String.format("%.1f", _updateCounter.currentUPS)
             )
         }
