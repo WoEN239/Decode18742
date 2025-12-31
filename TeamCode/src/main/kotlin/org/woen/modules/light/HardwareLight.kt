@@ -6,43 +6,40 @@ import com.qualcomm.robotcore.hardware.Servo
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
+import org.woen.utils.drivers.LEDLine
 
 class HardwareLight(private val _rName: String, private val _gName: String, private val _bName: String): IHardwareDevice {
-    private lateinit var _rPort: Servo
-    private lateinit var _gPort: Servo
-    private lateinit var _bPort: Servo
+    private lateinit var _rPort: LEDLine
+    private lateinit var _gPort: LEDLine
+    private lateinit var _bPort: LEDLine
 
     var color = Light.LightColor.GREEN
 
     override fun update() {
         when(color){
             Light.LightColor.GREEN -> {
-                _rPort.position = Configs.LIGHT.GREEN_R_POWER
-                _gPort.position = Configs.LIGHT.GREEN_G_POWER
-                _bPort.position = Configs.LIGHT.GREEN_B_POWER
+                _rPort.power = Configs.LIGHT.GREEN_R_POWER
+                _gPort.power = Configs.LIGHT.GREEN_G_POWER
+                _bPort.power = Configs.LIGHT.GREEN_B_POWER
             }
             Light.LightColor.BLUE -> {
-                _rPort.position = Configs.LIGHT.BLUE_R_POWER
-                _gPort.position = Configs.LIGHT.BLUE_G_POWER
-                _bPort.position = Configs.LIGHT.BLUE_B_POWER
+                _rPort.power = Configs.LIGHT.BLUE_R_POWER
+                _gPort.power = Configs.LIGHT.BLUE_G_POWER
+                _bPort.power = Configs.LIGHT.BLUE_B_POWER
             }
 
             Light.LightColor.ORANGE -> {
-                _rPort.position = Configs.LIGHT.ORANGE_R_POWER
-                _gPort.position = Configs.LIGHT.ORANGE_G_POWER
-                _bPort.position = Configs.LIGHT.ORANGE_B_POWER
+                _rPort.power = Configs.LIGHT.ORANGE_R_POWER
+                _gPort.power = Configs.LIGHT.ORANGE_G_POWER
+                _bPort.power = Configs.LIGHT.ORANGE_B_POWER
             }
         }
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _rPort = hardwareMap.get(_rName) as Servo
-        _gPort = hardwareMap.get(_gName) as Servo
-        _bPort = hardwareMap.get(_bName) as Servo
-
-        (_rPort as PwmControl).pwmRange = PwmControl.PwmRange(0.0, 20000.0)
-        (_gPort as PwmControl).pwmRange = PwmControl.PwmRange(0.0, 20000.0)
-        (_bPort as PwmControl).pwmRange = PwmControl.PwmRange(0.0, 20000.0)
+        _rPort = LEDLine(hardwareMap, _rName)
+        _gPort = LEDLine(hardwareMap, _gName)
+        _bPort = LEDLine(hardwareMap, _bName)
     }
 
     override fun opModeStart() {
