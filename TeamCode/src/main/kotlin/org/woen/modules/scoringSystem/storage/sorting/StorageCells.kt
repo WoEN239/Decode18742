@@ -76,7 +76,7 @@ class StorageCells
 
     fun resetParametersToDefault() = fullEmptyStorageCells()
 
-    private fun fullEmptyStorageCells()
+    fun fullEmptyStorageCells()
     {
         _storageCells[StorageSlot.BOTTOM].empty()
         _storageCells[StorageSlot.CENTER].empty()

@@ -288,4 +288,11 @@ class HwSortingManager
             helpPushLastBall.set(false)
         }
     }
+    suspend fun pushLastBallForShotFast()
+    {
+        openLaunch()
+        closeLaunch()
+        stopBelts()
+        helpPushLastBall.set(false)
+    }
 }

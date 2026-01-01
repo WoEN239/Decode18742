@@ -39,7 +39,7 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
-
+import org.woen.telemetry.Configs.DELAY.FIRE_THREE_BALLS_FOR_SHOOTING_MS
 
 
 class SortingStorageLogic
@@ -281,7 +281,18 @@ class SortingStorageLogic
 
 
 
-    suspend fun lazyShootEverything():    RequestResult.Name
+    suspend fun lazyShootEverything(): RequestResult.Name
+    {
+        logM.logMd("Starting Lazy stream shooting", PROCESS_STARTING)
+
+        storageCells.hwSortingM.slowStartBelts()
+        delay(FIRE_THREE_BALLS_FOR_SHOOTING_MS)
+        storageCells.hwSortingM.pushLastBallForShotFast()
+
+        storageCells.fullEmptyStorageCells()
+        return Request.SUCCESS_NOW_EMPTY
+    }
+    suspend fun easyShootEverything(): RequestResult.Name
     {
         var shotsFired = NOTHING
         while (shotsFired < MAX_BALL_COUNT)
@@ -300,7 +311,7 @@ class SortingStorageLogic
 
         return Request.SUCCESS_NOW_EMPTY
     }
-    suspend fun shootEverything(): RequestResult.Name
+    suspend fun shootEverything():     RequestResult.Name
     {
         var ballCount = storageCells.anyBallCount()
         if (ballCount == NOTHING) return Request.FAIL_IS_EMPTY

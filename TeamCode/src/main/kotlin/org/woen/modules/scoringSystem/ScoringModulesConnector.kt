@@ -61,6 +61,8 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
+
+import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS
 
 
@@ -114,7 +116,9 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveStreamDrumRequest::class, {
 
-                startLazyStreamDrumRequest()
+                if (USE_LAZY_VERSION_OF_STREAM_REQUEST)
+                     startLazyStreamDrumRequest()
+                else startStreamDrumRequest()
         }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGiveDrumRequest::class, {
@@ -387,11 +391,30 @@ class ScoringModulesConnector
         setBusy()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
+            DriveMode.SHOOTING)).process.wait()
+
+        logM.logMd("Started - Lazy stream drum request", PROCESS_STARTING)
+        val requestResult = _storage.lazyDrumRequest()
+        logM.logMd("FINISHED - Lazy stream drum request", PROCESS_ENDING)
+
+
+        resumeLogicAfterShooting(requestResult)
+        return requestResult
+    }
+    private suspend fun startStreamDrumRequest():     RequestResult.Name
+    {
+        if (_isAlreadyFiring.get()) return Request.FAIL_IS_BUSY
+        _isAlreadyFiring.set(true)
+
+        while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
+        setBusy()
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
                 DriveMode.SHOOTING))
 
-        logM.logMd("Started - LazySTREAM drum request", PROCESS_STARTING)
+        logM.logMd("Started - stream drum request", PROCESS_STARTING)
         val requestResult = _storage.streamDrumRequest()
-        logM.logMd("FINISHED - LazySTREAM drum request", PROCESS_ENDING)
+        logM.logMd("FINISHED - stream drum request", PROCESS_ENDING)
 
 
         resumeLogicAfterShooting(requestResult)
@@ -451,7 +474,7 @@ class ScoringModulesConnector
         _requestWasTerminated.set(false)
     }
 
-    private suspend fun sendFinishedFiringEvent(requestResult: RequestResult.Name)
+    private suspend fun sendFinishedFiringEvent (requestResult: RequestResult.Name)
     {
         logM.logMd("FINISHED all firing", PROCESS_ENDING)
         logM.logMd("Send finished firing EVENT", PROCESS_ENDING)

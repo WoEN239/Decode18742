@@ -610,12 +610,15 @@ object Configs {
 
         @JvmField
         var ONE_BALL_PUSHING_MS: Long = 444
+        @JvmField
+        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 1000
+
 
         @JvmField
         var SORTING_REALIGNING_FORWARD_MS: Long = 35
-
         @JvmField
         var SORTING_REALIGNING_REVERSE_MS: Long = 65
+
 
         @JvmField
         var SMC_MAX_SHOT_AWAITING_MS: Long = 350
@@ -658,6 +661,9 @@ object Configs {
 
         @JvmField
         var USE_LAZY_VERSION_OF_STREAM_REQUEST = true
+        @JvmField
+        var USE_EASY_VERSION_OF_STREAM_REQUEST = true
+
 
         @JvmField
         var SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS = false

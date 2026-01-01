@@ -60,7 +60,7 @@ import org.woen.telemetry.Configs.PROCESS_ID.SINGLE_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
 import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
+import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_EASY_VERSION_OF_STREAM_REQUEST
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION
 
 
@@ -403,13 +403,7 @@ class SortingStorage
 
 
 
-    suspend fun streamDrumRequest():              RequestResult.Name
-    {
-        return if (USE_LAZY_VERSION_OF_STREAM_REQUEST)
-             lazyDrumRequest()
-        else shootEntireDrumRequest()
-    }
-    private suspend fun lazyDrumRequest():        RequestResult.Name
+    suspend fun lazyDrumRequest():                RequestResult.Name
     {
         if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
             return _storageLogic.terminateRequest(DRUM_REQUEST)
@@ -417,6 +411,24 @@ class SortingStorage
         _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
         logM.logMd("MODE: LAZY SHOOT EVERYTHING", PROCESS_NAME)
         val requestResult = _storageLogic.lazyShootEverything()
+
+        _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
+        return requestResult
+    }
+    suspend fun streamDrumRequest():              RequestResult.Name
+    {
+        return if (USE_EASY_VERSION_OF_STREAM_REQUEST)
+             easyDrumRequest()
+        else shootEntireDrumRequest()
+    }
+    private suspend fun easyDrumRequest():        RequestResult.Name
+    {
+        if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
+            return _storageLogic.terminateRequest(DRUM_REQUEST)
+
+        _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
+        logM.logMd("MODE: EASY SHOOT EVERYTHING", PROCESS_NAME)
+        val requestResult = _storageLogic.easyShootEverything()
 
         _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
         return requestResult
