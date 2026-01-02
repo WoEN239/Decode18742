@@ -19,6 +19,7 @@ import org.woen.utils.process.RunStatus
 
 import org.woen.utils.regulator.RegulatorParameters
 import kotlin.jvm.JvmField
+import kotlin.math.atan2
 
 
 object Configs {
@@ -126,13 +127,16 @@ object Configs {
         var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
         @JvmField
-        var H_REGULATOR_PARAMETERS = RegulatorParameters(kP = 5.5, limitU = MAX_DRIVE_ANGLE_VELOCITY)
+        var H_REGULATOR_PARAMETERS = RegulatorParameters(kP = 8.0, limitU = MAX_DRIVE_ANGLE_VELOCITY)
 
         @JvmField
-        var X_REGULATOR_PARAMETERS = RegulatorParameters(kP = 3.0, limitU = MAX_DRIVE_VELOCITY)
+        var X_REGULATOR_PARAMETERS = RegulatorParameters(kP = 6.0, kD = 0.5, limitU = MAX_DRIVE_VELOCITY)
 
         @JvmField
-        var Y_REGULATOR_PARAMETERS = RegulatorParameters(kP = 3.0, limitU = MAX_DRIVE_VELOCITY)
+        var Y_REGULATOR_PARAMETERS = RegulatorParameters(kP = 6.0, kD = 0.5, limitU = MAX_DRIVE_VELOCITY)
+
+        @JvmField
+        var SHOOTING_P = 4.0
 
         @JvmField
         var H_SENS = 0.1
@@ -248,13 +252,13 @@ object Configs {
         var RED_BASKET_POSITION = Vec2(-3.66 / 2.0, 3.66 / 2.0)
 
         @JvmField
-        var TURRET_HEIGHT = 0.35
+        var TURRET_HEIGHT = 0.32
 
         @JvmField
         var BALL_MASS = 0.075
 
         @JvmField
-        var BASKET_TARGET_HEIGHT = 1.08
+        var BASKET_TARGET_HEIGHT = 1.0
 
         @JvmField
         var TIME_STEP = 0.05
@@ -266,16 +270,16 @@ object Configs {
         var APPROXIMATION_MAX_ITERATIONS = 100
 
         @JvmField
-        var MIN_TURRET_ANGLE_SERVO = 0.3
+        var MIN_TURRET_ANGLE_SERVO = 0.25
 
         @JvmField
-        var MAX_TURRET_ANGLE_SERVO = 0.85
+        var MAX_TURRET_ANGLE_SERVO = 0.8
 
         @JvmField
-        var MIN_TURRET_ANGLE = 30.0 / 180.0 * PI
+        var MIN_TURRET_ANGLE = PI / 2.0 - atan2(10.0, 15.0)
 
         @JvmField
-        var MAX_TURRET_ANGLE = 45.0 / 180.0 * PI
+        var MAX_TURRET_ANGLE = PI / 2.0 - atan2(7.0, 16.0)
 
         @JvmField
         var PULLEY_U = 0.302
@@ -287,7 +291,7 @@ object Configs {
         var TURRET_SHOOT_POS = Vec2(0.0, 0.06)
 
         @JvmField
-        var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.085)
+        var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.115)
 
         @JvmField
         var TURRET_SHOOT_DETECT_CURRENT: Double = 3.7
@@ -308,10 +312,10 @@ object Configs {
         var MAX_MOTOR_RPS = 85.0
 
         @JvmField
-        var ZERO_ROTATE_POS = 1.0 - 0.68
+        var ZERO_ROTATE_POS = 1.0 - 0.663
 
         @JvmField
-        var ZEROING_TIME = 0.1
+        var ZEROING_TIME = 1.0
 
         @JvmField
         var ROTATE_SERVO_RATIO = (25.0 / 20.0) * (40.0 / 110.0)
@@ -330,12 +334,6 @@ object Configs {
 
         @JvmField
         var MIN_ROTATE = ((1.0 - 0.74) - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
-
-        @JvmField
-        var ACCEL_K = 10.0
-
-        @JvmField
-        var ACCEL_THRESHOLD = 0.3
     }
 
     @Config
@@ -826,6 +824,9 @@ object Configs {
     internal object BATTERY{
         @JvmField
         var LOW_VOLTAGE = 8.5
+
+        @JvmField
+        var LOW_VOLTAGE_TRIGGER_TIME = 0.5
     }
 
     @Config

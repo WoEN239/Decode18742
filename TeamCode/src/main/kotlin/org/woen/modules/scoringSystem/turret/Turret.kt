@@ -52,19 +52,19 @@ class Turret : IModule {
     private var _currentMode = TurretMode.SHORT
 
     override suspend fun process() {
-//        _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-//            if (_currentTurretState != TurretState.SHOOT)
-//                return@launch
-//
-//            calcTurretState()
-//
-//            if (_isShooting && _hardwareTurret.shotWasFired) {
-//                _isShooting = false
-//                ThreadedEventBus.LAZY_INSTANCE.invoke(TurretCurrentPeaked())
-//
-//                ThreadedTelemetry.LAZY_INSTANCE.log("\tTurret: current peaked")
-//            }
-//        }
+        _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            if (_currentTurretState != TurretState.SHOOT)
+                return@launch
+
+            calcTurretState()
+
+            if (_isShooting && _hardwareTurret.shotWasFired) {
+                _isShooting = false
+                ThreadedEventBus.LAZY_INSTANCE.invoke(TurretCurrentPeaked())
+
+                ThreadedTelemetry.LAZY_INSTANCE.log("\tTurret: current peaked")
+            }
+        }
     }
 
     private fun calcTurretState() {
@@ -85,7 +85,7 @@ class Turret : IModule {
                     - odometry.odometryOrientation.angle
         ).angle
 
-//        _hardwareTurret.targetRotatePosition = robotRotationBasketErr
+        _hardwareTurret.targetRotatePosition = robotRotationBasketErr
 
 //        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
 
@@ -159,12 +159,12 @@ class Turret : IModule {
         get() = _turretJob != null && !_turretJob!!.isCompleted
 
     private fun setTurretState(state: TurretState) {
-//        _currentTurretState = state
-//
-//        when (_currentTurretState) {
-//            TurretState.STOP -> _hardwareTurret.targetVelocity = 0.0
-//            TurretState.SHOOT -> calcTurretState()
-//        }
+        _currentTurretState = state
+
+        when (_currentTurretState) {
+            TurretState.STOP -> _hardwareTurret.targetVelocity = 0.0
+            TurretState.SHOOT -> calcTurretState()
+        }
     }
 
     override fun opModeStart() {

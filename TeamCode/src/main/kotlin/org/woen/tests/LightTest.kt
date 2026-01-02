@@ -9,7 +9,7 @@ import org.woen.utils.drivers.LEDLine
 @Config
 internal object LED_TEST{
     @JvmField
-    var SECTR = 6.0
+    var SECTR = 3.0
 
     @JvmField
     var POWER = 1.0
@@ -18,9 +18,13 @@ internal object LED_TEST{
 @TeleOp
 class LightTest: LinearOpMode() {
     override fun runOpMode() {
-        val r = LEDLine(hardwareMap, "expansionR")
-        val g = LEDLine(hardwareMap, "expansionG")
-        val b = LEDLine(hardwareMap, "expansionB")
+        val er = LEDLine(hardwareMap, "expansionR")
+        val eg = LEDLine(hardwareMap, "expansionG")
+        val eb = LEDLine(hardwareMap, "expansionB")
+        val cr = LEDLine(hardwareMap, "controlR")
+        val cg = LEDLine(hardwareMap, "controlG")
+        val cb = LEDLine(hardwareMap, "controlB")
+
         val timer = ElapsedTime()
 
         waitForStart()
@@ -29,23 +33,35 @@ class LightTest: LinearOpMode() {
         timer.reset()
 
         while (opModeIsActive()){
+            val r: Double
+            val g: Double
+            val b: Double
+
             val time = timer.seconds() % (3.0 * LED_TEST.SECTR)
 
             if(time < LED_TEST.SECTR){
-                r.power = time / LED_TEST.SECTR * LED_TEST.POWER
-                g.power = (LED_TEST.SECTR - time) / LED_TEST.SECTR * LED_TEST.POWER
-                b.power = 0.0
+                r = time / LED_TEST.SECTR * LED_TEST.POWER
+                g = (LED_TEST.SECTR - time) / LED_TEST.SECTR * LED_TEST.POWER
+                b = 0.0
             }
             else if(time < 2.0 * LED_TEST.SECTR){
-                r.power = (2.0 * LED_TEST.SECTR - time) / LED_TEST.SECTR * LED_TEST.POWER
-                g.power = 0.0
-                b.power = (time - LED_TEST.SECTR) / LED_TEST.SECTR * LED_TEST.POWER
+                r = (2.0 * LED_TEST.SECTR - time) / LED_TEST.SECTR * LED_TEST.POWER
+                g = 0.0
+                b = (time - LED_TEST.SECTR) / LED_TEST.SECTR * LED_TEST.POWER
             }
             else{
-                r.power = 0.0
-                g.power = (time - 2.0 * LED_TEST.SECTR) / LED_TEST.SECTR * LED_TEST.POWER
-                b.power = (3.0 * LED_TEST.SECTR - time) / LED_TEST.SECTR * LED_TEST.POWER
+                r = 0.0
+                g = (time - 2.0 * LED_TEST.SECTR) / LED_TEST.SECTR * LED_TEST.POWER
+                b = (3.0 * LED_TEST.SECTR - time) / LED_TEST.SECTR * LED_TEST.POWER
             }
+
+            cr.power = r
+            cg.power = g
+            cb.power = b
+
+            er.power = r
+            eg.power = g
+            eb.power = b
         }
     }
 }

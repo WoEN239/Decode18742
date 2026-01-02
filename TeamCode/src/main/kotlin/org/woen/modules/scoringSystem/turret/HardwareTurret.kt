@@ -4,7 +4,9 @@ import androidx.core.math.MathUtils.clamp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.PwmControl
 import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.hardware.ServoImpl
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -102,10 +104,9 @@ class HardwareTurret :
             shotWasFired = false
         }
 
-//        _angleSevo.position = _anglePosition
+        _angleSevo.position = _anglePosition
 
         if (_isServoZeroed) {
-//            targetRotatePosition = 0.0
             _currentRotate = _rotateEncoder.currentPosition.toDouble()
             _rotateServo.position = _targetRotationPosition
         }
@@ -134,26 +135,20 @@ class HardwareTurret :
             _targetTicksVelocity
         )
 
-        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
-//            if(err < Configs.TURRET.ACCEL_THRESHOLD)
-            _pulleyU
-//            else{
-//                _regulator.start()
-//
-//                Configs.TURRET.ACCEL_K
-//            }
-        )
+        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_pulleyU)
 
         _deltaTime.reset()
     }
 
     override fun init(hardwareMap: HardwareMap) {
         _motor = hardwareMap.get("pulleyMotor") as DcMotorEx
-//        _angleSevo = hardwareMap.get("turretAngleServo") as Servo
+        _angleSevo = hardwareMap.get("turretAngleServo") as Servo
 
         _rotateEncoder = EncoderOnly(hardwareMap.get("brushMotor") as DcMotorEx)
 
         _rotateServo = hardwareMap.get("turretRotateServo") as Servo
+
+        (_rotateServo as PwmControl).pwmRange = PwmControl.PwmRange(500.0, 2500.0)
 
         Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.onSet += {
             _velocityFilter.coef = it
@@ -165,7 +160,7 @@ class HardwareTurret :
 
             _rotateServo.direction = Servo.Direction.REVERSE
 
-//            _angleSevo.direction = Servo.Direction.REVERSE
+            _angleSevo.direction = Servo.Direction.REVERSE
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
@@ -174,8 +169,9 @@ class HardwareTurret :
             it.addData("current ticks pulley velocity", _motorVelocity)
             it.addData("target ticks pulley velocity", _targetTicksVelocity)
             it.addData("pulley amps", _motorAmps)
-            it.addData("angle position", anglePosition)
+            it.addData("angle position", Math.toDegrees(anglePosition))
             it.addData("pulleyU", _pulleyU)
+            it.addData("current turret rotation",  Math.toDegrees(currentRotatePosition))
         }
 
         targetRotatePosition = 0.0
@@ -193,8 +189,9 @@ class HardwareTurret :
             ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
                 _rotateServo.position = Configs.TURRET.ZERO_ROTATE_POS
 
-                delay(100)
+                delay((Configs.TURRET.ZEROING_TIME * 1000.0).toLong())
 
+                _rotateEncoder.resetEncoder()
                 _isServoZeroed = true
             }
         }

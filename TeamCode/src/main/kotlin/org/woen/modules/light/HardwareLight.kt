@@ -3,6 +3,7 @@ package org.woen.modules.light
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.PwmControl
 import com.qualcomm.robotcore.hardware.Servo
+import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
@@ -40,6 +41,12 @@ class HardwareLight(private val _rName: String, private val _gName: String, priv
         _rPort = LEDLine(hardwareMap, _rName)
         _gPort = LEDLine(hardwareMap, _gName)
         _bPort = LEDLine(hardwareMap, _bName)
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            _rPort.init()
+            _gPort.init()
+            _bPort.init()
+        }
     }
 
     override fun opModeStart() {

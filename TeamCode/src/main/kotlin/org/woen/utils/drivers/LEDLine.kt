@@ -26,11 +26,14 @@ class LEDLine(
     init {
         _port = hardwareMap.get(name) as Servo
 
-        if (signalPin == SignalPin.MINUS)
-            _port.direction = Servo.Direction.REVERSE
-
-        (_port as PwmControl).pwmRange = PwmControl.PwmRange(0.0, 20000.0, 7000.0)
+        init()
 
         power = 0.0
+    }
+
+    fun init(){
+        _port.direction = Servo.Direction.REVERSE
+
+        (_port as PwmControl).pwmRange = PwmControl.PwmRange(0.0, 20000.0, 7000.0)
     }
 }

@@ -1,5 +1,6 @@
 package org.woen.modules.light
 
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
@@ -40,14 +41,23 @@ class Light: IModule {
         })
     }
 
+    private val _lowVoltageTimer = ElapsedTime()
+
     override suspend fun process() {
         _lightJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             if (ThreadedBattery.LAZY_INSTANCE.currentVoltage < Configs.BATTERY.LOW_VOLTAGE) {
-                _expansionLed.color = LightColor.ORANGE
-                _controlLed.color = LightColor.ORANGE
+                if(_lowVoltageTimer.seconds() > Configs.BATTERY.LOW_VOLTAGE_TRIGGER_TIME) {
+                    _expansionLed.color = LightColor.ORANGE
+                    _controlLed.color = LightColor.ORANGE
+                }
+                else{
+                    _expansionLed.color = _currentLightColor
+                    _controlLed.color = _currentLightColor
+                }
             } else {
                 _expansionLed.color = _currentLightColor
                 _controlLed.color = _currentLightColor
+                _lowVoltageTimer.reset()
             }
         }
     }
