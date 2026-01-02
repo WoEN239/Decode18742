@@ -76,24 +76,20 @@ class HardwareTurret :
     private var _isServoZeroed = false
     private var _currentRotate = 0.0
     private var _targetRotationPosition = 0.0
+    private var _pulleyU = 0.0
 
     val currentRotatePosition
         get() = _currentRotate / Configs.TURRET.ENCODER_TICKS_IN_REVOLUTION * Configs.TURRET.ROTATE_ENCODER_RATIO * 2.0 * PI
 
     var targetRotatePosition: Double
-        get() {
-            if (_isServoZeroed)
-                return (_targetRotationPosition - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_TURNS * Configs.TURRET.ROTATE_SERVO_RATIO
-
-            return 0.0
-        }
+        get() =
+            (_targetRotationPosition - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_TURNS * Configs.TURRET.ROTATE_SERVO_RATIO
         set(value) {
-            if (_isServoZeroed)
-                _targetRotationPosition = clamp(
-                    value, Configs.TURRET.MIN_ROTATE,
-                    Configs.TURRET.MAX_ROTATE
-                ) / Configs.TURRET.ROTATE_SERVO_RATIO / Configs.TURRET.ROTATE_SERVO_TURNS +
-                        Configs.TURRET.ZERO_ROTATE_POS
+            _targetRotationPosition = clamp(
+                value, Configs.TURRET.MIN_ROTATE,
+                Configs.TURRET.MAX_ROTATE
+            ) / Configs.TURRET.ROTATE_SERVO_RATIO / Configs.TURRET.ROTATE_SERVO_TURNS +
+                    Configs.TURRET.ZERO_ROTATE_POS
         }
 
     override fun update() {
@@ -106,13 +102,13 @@ class HardwareTurret :
             shotWasFired = false
         }
 
-        _angleSevo.position = _anglePosition
+//        _angleSevo.position = _anglePosition
 
-//        if(_isServoZeroed) {
-////            targetRotatePosition = 0.0
-//            _currentRotate = _rotateEncoder.currentPosition.toDouble()
-//            _rotateServo.position = _targetRotationPosition
-//        }
+        if (_isServoZeroed) {
+//            targetRotatePosition = 0.0
+            _currentRotate = _rotateEncoder.currentPosition.toDouble()
+            _rotateServo.position = _targetRotationPosition
+        }
 
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
@@ -133,17 +129,19 @@ class HardwareTurret :
 
         val err = _targetTicksVelocity - _motorVelocity
 
-        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
-            if(err < Configs.TURRET.ACCEL_THRESHOLD)
-            _regulator.update(
-                err,
-                _targetTicksVelocity
-            )
-            else{
-                _regulator.start()
+        _pulleyU = _regulator.update(
+            err,
+            _targetTicksVelocity
+        )
 
-                Configs.TURRET.ACCEL_K
-            }
+        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(
+//            if(err < Configs.TURRET.ACCEL_THRESHOLD)
+            _pulleyU
+//            else{
+//                _regulator.start()
+//
+//                Configs.TURRET.ACCEL_K
+//            }
         )
 
         _deltaTime.reset()
@@ -151,7 +149,7 @@ class HardwareTurret :
 
     override fun init(hardwareMap: HardwareMap) {
         _motor = hardwareMap.get("pulleyMotor") as DcMotorEx
-        _angleSevo = hardwareMap.get("turretAngleServo") as Servo
+//        _angleSevo = hardwareMap.get("turretAngleServo") as Servo
 
         _rotateEncoder = EncoderOnly(hardwareMap.get("brushMotor") as DcMotorEx)
 
@@ -165,7 +163,9 @@ class HardwareTurret :
             _motor.mode = DcMotor.RunMode.RESET_ENCODERS
             _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
-            _angleSevo.direction = Servo.Direction.REVERSE
+            _rotateServo.direction = Servo.Direction.REVERSE
+
+//            _angleSevo.direction = Servo.Direction.REVERSE
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
@@ -175,7 +175,10 @@ class HardwareTurret :
             it.addData("target ticks pulley velocity", _targetTicksVelocity)
             it.addData("pulley amps", _motorAmps)
             it.addData("angle position", anglePosition)
+            it.addData("pulleyU", _pulleyU)
         }
+
+        targetRotatePosition = 0.
     }
 
     override fun opModeStart() {
@@ -186,7 +189,15 @@ class HardwareTurret :
         _velocityFilter.start()
         _regulator.start()
 
-        _rotateServo.position = Configs.TURRET.ZERO_ROTATE_POS
+        if (!_isServoZeroed) {
+            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                _rotateServo.position = Configs.TURRET.ZERO_ROTATE_POS
+
+                delay(100)
+
+                _isServoZeroed = true
+            }
+        }
     }
 
     override fun opModeStop() {

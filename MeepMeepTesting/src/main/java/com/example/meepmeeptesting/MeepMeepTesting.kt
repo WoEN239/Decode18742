@@ -28,7 +28,7 @@ object MeepMeepTesting {
             )
         )
 
-        val shootTime = 1.0
+        val shootTime = 0.7
 
         fun TrajectoryActionBuilder.circle() =
             setTangent(0.4)
@@ -59,6 +59,7 @@ object MeepMeepTesting {
                 .setTangent(PI / 2.0)
                 .meterSplineToLinearHeading(Pose2d(-0.776, -0.656, -PI * 0.75), -PI * 0.9)
                 .waitSeconds(shootTime)
+                .circle()
                 .circle()
                 .circle()
                 .circle()

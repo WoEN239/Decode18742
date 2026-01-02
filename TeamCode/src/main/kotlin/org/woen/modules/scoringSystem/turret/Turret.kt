@@ -1,6 +1,7 @@
 package org.woen.modules.scoringSystem.turret
 
 
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -15,8 +16,10 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
+import kotlin.concurrent.thread
 import kotlin.math.PI
 import kotlin.math.pow
+import kotlin.math.sin
 
 
 class SetTurretMode(val mode: Turret.TurretMode)
@@ -49,19 +52,19 @@ class Turret : IModule {
     private var _currentMode = TurretMode.SHORT
 
     override suspend fun process() {
-        _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if (_currentTurretState != TurretState.SHOOT)
-                return@launch
-
-            calcTurretState()
-
-            if (_isShooting && _hardwareTurret.shotWasFired) {
-                _isShooting = false
-                ThreadedEventBus.LAZY_INSTANCE.invoke(TurretCurrentPeaked())
-
-                ThreadedTelemetry.LAZY_INSTANCE.log("\tTurret: current peaked")
-            }
-        }
+//        _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//            if (_currentTurretState != TurretState.SHOOT)
+//                return@launch
+//
+//            calcTurretState()
+//
+//            if (_isShooting && _hardwareTurret.shotWasFired) {
+//                _isShooting = false
+//                ThreadedEventBus.LAZY_INSTANCE.invoke(TurretCurrentPeaked())
+//
+//                ThreadedTelemetry.LAZY_INSTANCE.log("\tTurret: current peaked")
+//            }
+//        }
     }
 
     private fun calcTurretState() {
@@ -156,16 +159,18 @@ class Turret : IModule {
         get() = _turretJob != null && !_turretJob!!.isCompleted
 
     private fun setTurretState(state: TurretState) {
-        _currentTurretState = state
-
-        when (_currentTurretState) {
-            TurretState.STOP -> _hardwareTurret.targetVelocity = 0.0
-            TurretState.SHOOT -> calcTurretState()
-        }
+//        _currentTurretState = state
+//
+//        when (_currentTurretState) {
+//            TurretState.STOP -> _hardwareTurret.targetVelocity = 0.0
+//            TurretState.SHOOT -> calcTurretState()
+//        }
     }
 
     override fun opModeStart() {
         setTurretState(TurretState.SHOOT)
+
+        _hardwareTurret.targetVelocity = 15.0
     }
 
     override fun opModeStop() {
@@ -175,6 +180,22 @@ class Turret : IModule {
     override fun dispose() {
         _turretJob?.cancel()
     }
+
+//    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
+//        val timer = ElapsedTime()
+//
+//        timer.reset()
+//
+//        while (!Thread.currentThread().isInterrupted){
+//            _hardwareTurret.targetVelocity = (sin(timer.seconds() * 2.0) + 1.0) / 2.0 * 10.0 + 10.0
+////
+////            Thread.sleep(5000)
+////
+////            _hardwareTurret.targetVelocity = 20.0
+////
+////            Thread.sleep(5000)
+//        }
+//    })
 
     constructor() {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareTurret)

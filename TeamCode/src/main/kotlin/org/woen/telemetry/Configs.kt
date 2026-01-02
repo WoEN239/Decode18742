@@ -230,7 +230,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.00055, kF = 0.0045, kI = 0.00001)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.013, kF = 0.0035, kI = 0.0007)
 
         @JvmField
         var PULLEY_TARGET_SENS = 0.4
@@ -308,7 +308,7 @@ object Configs {
         var MAX_MOTOR_RPS = 85.0
 
         @JvmField
-        var ZERO_ROTATE_POS = 0.68
+        var ZERO_ROTATE_POS = 1.0 - 0.68
 
         @JvmField
         var ZEROING_TIME = 0.1
@@ -326,10 +326,10 @@ object Configs {
         var ENCODER_TICKS_IN_REVOLUTION = 8192.0
 
         @JvmField
-        var MAX_ROTATE = (0.58 - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
+        var MAX_ROTATE = ((1.0 - 0.54) - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
 
         @JvmField
-        var MIN_ROTATE = (0.405 - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
+        var MIN_ROTATE = ((1.0 - 0.74) - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
 
         @JvmField
         var ACCEL_K = 10.0
@@ -816,7 +816,7 @@ object Configs {
         var BELTS_POWER = 5.0
 
         @JvmField
-        var BELTS_FAST_POWER = 8.1
+        var BELTS_FAST_POWER = 9.0
 
         @JvmField
         var BELTS_FAST_FAST_POWER = 10.0
