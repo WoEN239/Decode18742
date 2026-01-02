@@ -178,7 +178,7 @@ class HardwareTurret :
             it.addData("pulleyU", _pulleyU)
         }
 
-        targetRotatePosition = 0.
+        targetRotatePosition = 0.0
     }
 
     override fun opModeStart() {
