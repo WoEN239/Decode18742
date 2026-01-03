@@ -285,6 +285,7 @@ class SortingStorageLogic
     {
         logM.logMd("Starting Lazy stream shooting", PROCESS_STARTING)
 
+        storageCells.hwSortingM.openTurretGate()
         storageCells.hwSortingM.slowStartBelts()
         delay(FIRE_THREE_BALLS_FOR_SHOOTING_MS)
         storageCells.hwSortingM.pushLastBallForShotFast()

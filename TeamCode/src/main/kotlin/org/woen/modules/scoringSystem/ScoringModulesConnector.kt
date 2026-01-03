@@ -133,6 +133,7 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             TurretCurrentPeaked::class, {
 
+                logM.logMd("RECEIVED - Turret current peaked", EVENTS_FEEDBACK)
                 _shotWasFired.set(true)
         }   )
 
@@ -182,35 +183,35 @@ class ScoringModulesConnector
         }   )   )
 
 
-//        ThreadedGamepad.LAZY_INSTANCE.addListener(
-//            createClickDownListener(
-//            { it.square }, {
-//
-//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-//                        SetLightColorEvent(Light.LightColor.ORANGE))
-//
-//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-//                        StorageGetReadyForIntakeEvent(
-//                            Ball.Name.PURPLE))
-//
-//                    logM.logMd("\nSMC: START - PURPLE Intake - GAMEPAD")
-//                    logM.logMd("SMC isBusy: " + isBusy())
-//        }   )   )
-//
-//        ThreadedGamepad.LAZY_INSTANCE.addListener(
-//            createClickDownListener(
-//            { it.circle }, {
-//
-//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-//                        SetLightColorEvent(Light.LightColor.ORANGE))
-//
-//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-//                        StorageGetReadyForIntakeEvent(
-//                            Ball.Name.GREEN))
-//
-//                    logM.logMd("\nSMC: START - GREEN Intake - GAMEPAD")
-//                    logM.logMd("SMC isBusy: " + isBusy())
-//        }   )   )
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener(
+            { it.square }, {
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.ORANGE))
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        StorageGetReadyForIntakeEvent(
+                            Ball.Name.PURPLE))
+
+                    logM.logMd("\nSMC: START - PURPLE Intake - GAMEPAD", GAMEPAD_FEEDBACK)
+                    logM.logMd("SMC isBusy: " + isBusy(), GENERIC_INFO)
+        }   )   )
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener(
+            { it.circle }, {
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.ORANGE))
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        StorageGetReadyForIntakeEvent(
+                            Ball.Name.GREEN))
+
+                    logM.logMd("\nSMC: START - GREEN Intake - GAMEPAD", GAMEPAD_FEEDBACK)
+                    logM.logMd("SMC isBusy: " + isBusy(), GENERIC_INFO)
+        }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
             createClickDownListener(
@@ -390,8 +391,8 @@ class ScoringModulesConnector
         while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
-            DriveMode.SHOOTING)).process.wait()
+//        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
+//            DriveMode.SHOOTING)).process.wait()
 
         logM.logMd("Started - Lazy stream drum request", PROCESS_STARTING)
         val requestResult = _storage.lazyDrumRequest()
@@ -442,8 +443,8 @@ class ScoringModulesConnector
     private suspend fun readyUpForShooting()
     {
         logM.logMd("Starting Drivetrain rotation", PROCESS_STARTING)
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
-            DriveMode.SHOOTING)).process.wait()
+//        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
+//            DriveMode.SHOOTING)).process.wait()
 
         logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
         awaitShotFiring()

@@ -1,6 +1,7 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
+import kotlinx.coroutines.delay
 import kotlin.math.min
 
 import org.woen.enumerators.Ball
@@ -262,9 +263,9 @@ class StorageCells
 
         hwSortingM.resumeAwaitingEating()
     }
-    fun updateAfterRequest()
+    suspend fun updateAfterRequest()
     {
-        hwSortingM.stopAwaitingEating(false)
+        hwSortingM.stopAwaitingEating(true)
 
         _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
         _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])

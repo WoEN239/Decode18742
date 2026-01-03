@@ -24,6 +24,7 @@ class LogManager
 
     enum class DebugSetting
     {
+        HIDE,
         SHOW_EVERYTHING,
         SHOW_SELECTED_LEVELS,
 
@@ -85,6 +86,7 @@ class LogManager
     {
         return when (_debugShowSetting)
         {
+            DebugSetting.HIDE                 -> false
             DebugSetting.SHOW_EVERYTHING      -> true
             DebugSetting.SHOW_SELECTED_LEVELS -> customSelected(debugLevel)
 

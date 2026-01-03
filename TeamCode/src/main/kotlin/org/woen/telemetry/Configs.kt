@@ -609,7 +609,7 @@ object Configs {
         @JvmField
         var ONE_BALL_PUSHING_MS: Long = 444
         @JvmField
-        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 1000
+        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 300
 
 
         @JvmField
@@ -619,9 +619,9 @@ object Configs {
 
 
         @JvmField
-        var SMC_MAX_SHOT_AWAITING_MS: Long = 350
+        var SMC_MAX_SHOT_AWAITING_MS: Long = 50
         @JvmField
-        var SSM_MAX_SHOT_AWAITING_MS: Long = 700
+        var SSM_MAX_SHOT_AWAITING_MS: Long = 180
 
 
 
@@ -658,7 +658,7 @@ object Configs {
 
 
         @JvmField
-        var USE_LAZY_VERSION_OF_STREAM_REQUEST = true
+        var USE_LAZY_VERSION_OF_STREAM_REQUEST = false
         @JvmField
         var USE_EASY_VERSION_OF_STREAM_REQUEST = true
 
