@@ -375,7 +375,7 @@ object Configs {
         var LCS_GREEN_BALL_B_K = 0.39
 
         @JvmField
-        var LCS_GREEN_BALL_THRESHOLD = 33.0
+        var LCS_GREEN_BALL_THRESHOLD = 37.0
 
 
         @JvmField
@@ -413,9 +413,9 @@ object Configs {
 
 
         @JvmField
-        var MIN_TIME_FOR_INTAKE_DETECTION_MS: Long = 13
+        var MIN_TIME_FOR_INTAKE_DETECTION_MS: Long = 12
         @JvmField
-        var MIN_TIME_FOR_INTAKE_NOT_DETECTION_MS: Long = 26
+        var MIN_TIME_FOR_INTAKE_NOT_DETECTION_MS: Long = 25
     }
 
 
@@ -632,13 +632,13 @@ object Configs {
 
 
         @JvmField
-        var SORTING_REALIGNING_FORWARD_MS: Long = 35
+        var SORTING_REALIGNING_FORWARD_MS: Long = 333
         @JvmField
         var SORTING_REALIGNING_REVERSE_MS: Long = 65
 
 
         @JvmField
-        var SMC_MAX_SHOT_AWAITING_MS: Long = 55
+        var SMC_MAX_SHOT_AWAITING_MS: Long = 60
         @JvmField
         var SSM_MAX_SHOT_AWAITING_MS: Long = 184
 
@@ -649,7 +649,7 @@ object Configs {
 
 
         @JvmField
-        var BETWEEN_SHOTS_MS:   Long = 300
+        var BETWEEN_SHOTS_MS:   Long = 100
         @JvmField
         var BETWEEN_INTAKES_MS: Long = 500
     }
@@ -680,6 +680,9 @@ object Configs {
         var USE_LAZY_VERSION_OF_STREAM_REQUEST = false
         @JvmField
         var USE_EASY_VERSION_OF_STREAM_REQUEST = true
+
+        @JvmField
+        var SHOULD_WAIT_BEFORE_NEXT_SHOT_IF_NOT_LAZY = false
 
 
         @JvmField

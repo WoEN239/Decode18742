@@ -15,6 +15,7 @@ import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
+import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
@@ -304,7 +305,8 @@ class HwSortingManager
         closeLaunch()
         closeTurretGate()
 
-        //hwForwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
+//        slowStartBelts()
+//        delay(DELAY.SORTING_REALIGNING_FORWARD_MS)
         reverseBeltsTime(DELAY.SORTING_REALIGNING_REVERSE_MS)
 
         openGate()
@@ -322,6 +324,7 @@ class HwSortingManager
 
         if (helpPushLastBall.get())
         {
+//            delay(Delay.HALF_PUSH)
             openLaunch()
             helpPushLastBall.set(false)
         }

@@ -40,7 +40,8 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
-
+import org.woen.telemetry.Configs.DELAY.BETWEEN_SHOTS_MS
+import org.woen.telemetry.Configs.SORTING_SETTINGS.SHOULD_WAIT_BEFORE_NEXT_SHOT_IF_NOT_LAZY
 
 
 class SortingStorageLogic
@@ -217,7 +218,7 @@ class SortingStorageLogic
         if (fullRotations >= NOTHING)
             repeat(fullRotations)
                 { storageCells.fullRotate() }
-
+        storageCells.hwSortingM.forwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
 
         logM.logMd("sorting finished - success", PROCESS_ENDING)
         logM.logMd("Getting ready to shoot",     PROCESS_STARTING)
@@ -244,7 +245,9 @@ class SortingStorageLogic
             storageCells.hwSortingM.helpPushLastBall.set(
                 storageCells.onlyOneBallLeft())
 
-            if (!fullWaitForShotFired(processId, autoUpdatePatternWhenSucceed))
+            if (!fullWaitForShotFired(
+                    processId, !isNowPerfectlySorted,
+                    autoUpdatePatternWhenSucceed))
                  Request.TERMINATED
             else if (storageCells.isNotEmpty())
                  Request.SUCCESS
@@ -317,6 +320,7 @@ class SortingStorageLogic
 
             if (!fullWaitForShotFired(
                     DRUM_REQUEST,
+                    SHOULD_WAIT_BEFORE_NEXT_SHOT_IF_NOT_LAZY,
                     false))
                 return Request.TERMINATED
 
@@ -337,6 +341,7 @@ class SortingStorageLogic
 
             if (!fullWaitForShotFired(
                     DRUM_REQUEST,
+                    SHOULD_WAIT_BEFORE_NEXT_SHOT_IF_NOT_LAZY,
                     false))
                 return Request.TERMINATED
 
@@ -654,6 +659,7 @@ class SortingStorageLogic
     fun shotWasFired() = shotWasFired.set(true)
     suspend fun fullWaitForShotFired(
         processId: Int,
+        doWaitBeforeNextShot: Boolean = false,
         autoUpdatePatternWhenSucceed : Boolean = true
     ): Boolean
     {
@@ -678,6 +684,8 @@ class SortingStorageLogic
         shotWasFired.set(false)
         //storageCells.hwSortingM.hwReverseBeltsTime(Delay.FULL_PUSH)
         storageCells.updateAfterRequest()
+
+        delay(BETWEEN_SHOTS_MS)
 
         if (autoUpdatePatternWhenSucceed)
             dynamicMemoryPattern.removeFromTemporary()
