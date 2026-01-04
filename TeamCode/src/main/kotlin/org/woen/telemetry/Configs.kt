@@ -888,7 +888,7 @@ object Configs {
         var ORANGE_R_POWER = 1.0
 
         @JvmField
-        var ORANGE_G_POWER = 0.5
+        var ORANGE_G_POWER = 0.25
 
         @JvmField
         var ORANGE_B_POWER = 0.0

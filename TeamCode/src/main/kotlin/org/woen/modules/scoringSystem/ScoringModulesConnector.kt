@@ -261,6 +261,55 @@ class ScoringModulesConnector
                     logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener(
+            { it.dpad_left }, {
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.GREEN))
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        StorageGiveDrumRequest(
+                            Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN,
+                            Shooting.StockPattern.tryConvertToPatternSequence(
+                                Shooting.StockPattern.Name.GPP)!!))
+
+                    logM.logMd("\nSTART - GPP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+        }   )   )
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener(
+                { it.dpad_up }, {
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.GREEN))
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        StorageGiveDrumRequest(
+                            Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN,
+                            Shooting.StockPattern.tryConvertToPatternSequence(
+                                Shooting.StockPattern.Name.PGP)!!))
+
+                    logM.logMd("\nSTART - PGP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+        }   )   )
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener(
+                { it.dpad_right }, {
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.GREEN))
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        StorageGiveDrumRequest(
+                            Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN,
+                            Shooting.StockPattern.tryConvertToPatternSequence(
+                                Shooting.StockPattern.Name.PPG)!!))
+
+                    logM.logMd("\nSTART - PPG Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+                }   )   )
 
 //        ThreadedGamepad.LAZY_INSTANCE.addListener(
 //            createClickDownListener(
