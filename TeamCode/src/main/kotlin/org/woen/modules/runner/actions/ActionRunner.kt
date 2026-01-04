@@ -15,7 +15,6 @@ import org.woen.modules.runner.segment.RequireRRBuilderEvent
 import org.woen.modules.runner.segment.RunSegmentEvent
 import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
-import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
@@ -64,10 +63,10 @@ class ActionRunner private constructor() : DisposableHandle {
     }
 
     private val _yColorMultiplier
-        get() = if (HotRun.LAZY_INSTANCE.currentRunColor == HotRun.RunColor.BLUE) 1.0 else -1.0
+        get() = if (HotRun.LAZY_INSTANCE.currentStartPosition == HotRun.StartPosition.BLUE) 1.0 else -1.0
 
     private val _hColorMultiplier
-        get() = if (HotRun.LAZY_INSTANCE.currentRunColor == HotRun.RunColor.BLUE) 1.0 else -1.0
+        get() = if (HotRun.LAZY_INSTANCE.currentStartPosition == HotRun.StartPosition.BLUE) 1.0 else -1.0
 
     private val _isULT = false
 

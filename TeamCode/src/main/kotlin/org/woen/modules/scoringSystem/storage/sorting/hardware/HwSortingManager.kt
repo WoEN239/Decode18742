@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.enumerators.Ball
-import org.woen.modules.scoringSystem.storage.Alias
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.woen.telemetry.LogManager
@@ -63,7 +62,7 @@ class HwSortingManager
         subscribeToHwEvents()
         addDevices()
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener({ it.ps },   {
 
                     canHandleIntake.set(true)

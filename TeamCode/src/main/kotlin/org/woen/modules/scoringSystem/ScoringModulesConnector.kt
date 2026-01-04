@@ -42,7 +42,6 @@ import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
-import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
@@ -168,7 +167,7 @@ class ScoringModulesConnector
     }
     private fun subscribeToGamepad()
     {
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
                 { it.right_trigger > 0.5 }, {
 
@@ -190,7 +189,7 @@ class ScoringModulesConnector
         }   )   )
 
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
             { it.square }, {
 
@@ -205,7 +204,7 @@ class ScoringModulesConnector
                     logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
             { it.circle }, {
 
@@ -220,7 +219,7 @@ class ScoringModulesConnector
                     logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
             { it.left_trigger > 0.5 }, {
 
@@ -237,7 +236,7 @@ class ScoringModulesConnector
 
 
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
                 { it.left_bumper }, {
 
@@ -248,7 +247,7 @@ class ScoringModulesConnector
                     logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
             { it.right_bumper }, {
 
@@ -261,7 +260,7 @@ class ScoringModulesConnector
                     logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
             { it.dpad_left }, {
 
@@ -277,7 +276,7 @@ class ScoringModulesConnector
                     logM.logMd("\nSTART - GPP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
                 { it.dpad_up }, {
 
@@ -294,7 +293,7 @@ class ScoringModulesConnector
                     logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
                 { it.dpad_right }, {
 

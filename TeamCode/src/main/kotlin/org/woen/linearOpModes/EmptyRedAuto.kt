@@ -9,7 +9,7 @@ import org.woen.hotRun.HotRun
 @Autonomous
 class EmptyRedAuto : LinearOpMode() {
     override fun runOpMode() {
-        HotRun.LAZY_INSTANCE.currentRunColor = HotRun.RunColor.RED
+        HotRun.LAZY_INSTANCE.currentStartPosition = HotRun.StartPosition.RED
 
         waitForStart()
         resetRuntime()

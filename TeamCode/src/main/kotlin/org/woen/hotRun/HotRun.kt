@@ -15,7 +15,6 @@ import org.woen.threading.ThreadedTimers
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.events.SimpleEmptyEvent
-import org.woen.utils.events.SimpleEvent
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
@@ -66,24 +65,32 @@ class HotRun private constructor() {
         MANUAL, AUTO
     }
 
-    enum class RunColor(
+    enum class StartPosition(
         val basketPosition: Vec2,
         val startOrientation: Orientation,
-        val parkingOrientation: Orientation
+        val parkingOrientation: Orientation,
+        val color: RunColor
     ) {
         RED(
             Configs.TURRET.RED_BASKET_POSITION,
             Configs.ODOMETRY.START_RED_ORIENTATION,
-            Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION
+            Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION,
+            RunColor.RED
         ),
         BLUE(
             Configs.TURRET.BLUE_BASKET_POSITION,
             Configs.ODOMETRY.START_BLUE_ORIENTATION,
-            Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION
+            Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION,
+            RunColor.BLUE
         );
     }
 
-    var currentRunColor = RunColor.BLUE
+    enum class RunColor{
+        RED,
+        BLUE
+    }
+
+    var currentStartPosition = StartPosition.BLUE
 
     val opModeInitEvent = SimpleEmptyEvent()
     val opModeStartEvent = SimpleEmptyEvent()
@@ -97,7 +104,7 @@ class HotRun private constructor() {
 
         ThreadManager.LAZY_INSTANCE
         ThreadedTelemetry.LAZY_INSTANCE.setDriveTelemetry(opMode.telemetry)
-        ThreadedGamepad.LAZY_INSTANCE.init(opMode.gamepad1)
+        ThreadedGamepad.LAZY_INSTANCE.init(opMode.gamepad1, opMode.gamepad2)
         HardwareThreads.LAZY_INSTANCE
         ActionRunner.LAZY_INSTANCE
         Camera.LAZY_INSTANCE
@@ -107,7 +114,7 @@ class HotRun private constructor() {
         ThreadedTelemetry.LAZY_INSTANCE.log("init completed")
 
         while (!opMode.isStarted()) {
-            if (isGamepadStart && ThreadedGamepad.LAZY_INSTANCE.getIsGamepadTriggered()) OpModeManagerImpl.getOpModeManagerOfActivity(
+            if (isGamepadStart && ThreadedGamepad.LAZY_INSTANCE.getIsGamepadsTriggered()) OpModeManagerImpl.getOpModeManagerOfActivity(
                 AppUtil.getInstance().activity
             ).startActiveOpMode()
         }

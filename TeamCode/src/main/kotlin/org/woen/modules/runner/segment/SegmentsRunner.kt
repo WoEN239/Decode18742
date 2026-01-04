@@ -111,7 +111,7 @@ class SegmentsRunner : IModule {
             _segmentTimer.reset()
         }
 
-        _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
+        _targetOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
     }
 
     override fun opModeStop() {

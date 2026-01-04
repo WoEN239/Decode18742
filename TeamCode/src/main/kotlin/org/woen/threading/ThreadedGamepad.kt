@@ -116,33 +116,49 @@ class ThreadedGamepad {
         }
     }
 
-    private val _allListeners = CopyOnWriteArrayList<IListener>()
+    private val _gamepad1Listeners = CopyOnWriteArrayList<IListener>()
+    private val _gamepad2Listeners = CopyOnWriteArrayList<IListener>()
 
-    private lateinit var _gamepad: Gamepad
+    private lateinit var _gamepad1: Gamepad
+    private lateinit var _gamepad2: Gamepad
 
-    fun addListener(listener: IListener) = _allListeners.add(listener)
+    fun addGamepad1Listener(listener: IListener) = _gamepad1Listeners.add(listener)
+    fun addGamepad2Listener(listener: IListener) = _gamepad2Listeners.add(listener)
 
-    fun getIsGamepadTriggered() =
-        abs(_gamepad.left_stick_x) > 0.01 || abs(_gamepad.left_stick_y) > 0.01 ||
-                abs(_gamepad.right_stick_x) > 0.01 || abs(_gamepad.right_stick_y) > 0.01 || _gamepad.left_trigger > 0.01 || _gamepad.right_trigger > 0.01 ||
-                _gamepad.left_bumper || _gamepad.right_bumper || _gamepad.ps || _gamepad.touchpad || _gamepad.dpad_up || _gamepad.dpad_down || _gamepad.dpad_left || _gamepad.dpad_right ||
-                _gamepad.circle || _gamepad.square || _gamepad.triangle || _gamepad.cross
+    private fun getIsGamepadTriggered(gamepad: Gamepad) =
+        abs(gamepad.left_stick_x) > 0.01 || abs(gamepad.left_stick_y) > 0.01 ||
+                abs(gamepad.right_stick_x) > 0.01 || abs(gamepad.right_stick_y) > 0.01 ||
+                gamepad.left_trigger > 0.01 || gamepad.right_trigger > 0.01 || gamepad.left_bumper ||
+                gamepad.right_bumper || gamepad.ps || gamepad.touchpad || gamepad.dpad_up ||
+                gamepad.dpad_down || gamepad.dpad_left || gamepad.dpad_right ||
+                gamepad.circle || gamepad.square || gamepad.triangle || gamepad.cross
 
-    fun rumble(duration: Double) {
+    fun getIsGamepadsTriggered() = getIsGamepadTriggered(_gamepad1) || getIsGamepadTriggered(_gamepad2)
+
+    fun rumble1(duration: Double) {
         if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
-            _gamepad.rumble((duration * 1000.0).toInt())
+            _gamepad1.rumble((duration * 1000.0).toInt())
     }
 
-    fun init(gamepad: Gamepad) {
-        _gamepad = gamepad
+    fun rumble2(duration: Double) {
+        if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
+            _gamepad1.rumble((duration * 1000.0).toInt())
+    }
+
+    fun init(gamepad1: Gamepad, gamepad2: Gamepad) {
+        _gamepad1 = gamepad1
+        _gamepad2 = gamepad2
     }
 
     private constructor() {
         HotRun.LAZY_INSTANCE.opModeUpdateEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
                 runBlocking {
-                    for (i in _allListeners)
-                        i.update(_gamepad)
+                    for (i in _gamepad1Listeners)
+                        i.update(_gamepad1)
+
+                    for(i in _gamepad2Listeners)
+                        i.update(_gamepad2)
                 }
             }
         }

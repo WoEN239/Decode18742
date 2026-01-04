@@ -1,7 +1,6 @@
 package org.woen.modules.scoringSystem.turret
 
 
-import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -16,10 +15,8 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
-import kotlin.concurrent.thread
 import kotlin.math.PI
 import kotlin.math.pow
-import kotlin.math.sin
 
 
 class SetTurretMode(val mode: Turret.TurretMode)
@@ -78,10 +75,10 @@ class Turret : IModule {
                     )
 
         val shootDistance =
-            (turretPos - HotRun.LAZY_INSTANCE.currentRunColor.basketPosition).length()
+            (turretPos - HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition).length()
 
         val robotRotationBasketErr = Angle(
-            (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition - turretPos).rot()
+            (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - turretPos).rot()
                     - odometry.odometryOrientation.angle
         ).angle
 

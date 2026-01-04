@@ -28,13 +28,13 @@ class HardwareOdometry : IHardwareDevice {
             Vec2(
                 pos.getX(DistanceUnit.METER),
                 pos.getY(DistanceUnit.METER)
-            ).turn(HotRun.LAZY_INSTANCE.currentRunColor.startOrientation.angle - PI),
+            ).turn(HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.angle - PI),
             Angle(pos.getHeading(AngleUnit.RADIANS))
-        ) + HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
+        ) + HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
 
         velocity =
             Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER)).turn(
-                HotRun.LAZY_INSTANCE.currentRunColor.startOrientation.angle - PI
+                HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.angle - PI
             ).turn(-currentOrientation.angle)
         headingVelocity = _computer.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS)
     }
@@ -43,7 +43,7 @@ class HardwareOdometry : IHardwareDevice {
         _computer = hardwareMap.get("odometry") as OdometryComputer
         _computer.resetPosAndIMU()
 
-        currentOrientation = HotRun.LAZY_INSTANCE.currentRunColor.startOrientation
+        currentOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _computer.setOffsets(

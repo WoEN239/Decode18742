@@ -4,9 +4,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
-import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
-import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.telemetry.Configs
@@ -89,7 +87,7 @@ class SimpleStorage : IModule {
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
 
-                ThreadedGamepad.LAZY_INSTANCE.rumble(0.5)
+                ThreadedGamepad.LAZY_INSTANCE.rumble1(0.5)
 
                 _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
 
@@ -120,11 +118,11 @@ class SimpleStorage : IModule {
             _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
         })
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.left_bumper }, {
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(createClickDownListener({ it.left_bumper }, {
             ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateSimpleShootEvent())
         }))
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(createClickDownListener({ it.right_bumper }, {
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(createClickDownListener({ it.right_bumper }, {
             val located =
                 ThreadedEventBus.LAZY_INSTANCE.invoke(RequireRobotLocatedShootingArea()).isLocated
 

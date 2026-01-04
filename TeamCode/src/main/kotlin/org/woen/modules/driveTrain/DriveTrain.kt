@@ -19,7 +19,6 @@ import org.woen.utils.units.Angle
 import org.woen.utils.units.Color
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
-import kotlin.coroutines.Continuation
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -69,7 +68,7 @@ class DriveTrain : IModule {
                 DriveMode.SHOOTING -> {
                     _targetOrientation.angl =
                         Angle(
-                            (HotRun.LAZY_INSTANCE.currentRunColor.basketPosition -
+                            (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition -
                                     odometry.odometryOrientation.pos).rot()
                         )
 
@@ -137,7 +136,7 @@ class DriveTrain : IModule {
             _targetRotateVelocity = it.rotationVelocity
         })
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(object : ThreadedGamepad.IListener {
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(object : ThreadedGamepad.IListener {
             override suspend fun update(gamepadData: Gamepad) {
                 var ly = -gamepadData.left_stick_y.toDouble()
                 var lx = -gamepadData.left_stick_x.toDouble()
@@ -157,7 +156,7 @@ class DriveTrain : IModule {
                     rx *= abs(rx)
                 }
 
-                val currentRunColor = HotRun.LAZY_INSTANCE.currentRunColor
+                val currentRunColor = HotRun.LAZY_INSTANCE.currentStartPosition
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     SetDriveTargetVelocityEvent(
@@ -165,7 +164,7 @@ class DriveTrain : IModule {
                             ly,
                             lx
                         ).turn(
-                            if (currentRunColor == HotRun.RunColor.BLUE) (_currentRobotRotation * -1.0 -
+                            if (currentRunColor == HotRun.StartPosition.BLUE) (_currentRobotRotation * -1.0 -
                                     Angle.ofDeg(90.0)).angle
                             else
                                 (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle
@@ -184,7 +183,7 @@ class DriveTrain : IModule {
                 _targetTimer.reset()
 
                 if (it.mode == DriveMode.PARKING)
-                    _targetOrientation = HotRun.LAZY_INSTANCE.currentRunColor.parkingOrientation
+                    _targetOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.parkingOrientation
 
                 _xRegulator.start()
                 _xRegulator.resetIntegral()
@@ -195,7 +194,7 @@ class DriveTrain : IModule {
             }
         })
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             ThreadedGamepad.createClickDownListener(
                 { it.circle },
                 {
@@ -204,7 +203,7 @@ class DriveTrain : IModule {
                 })
         )
 
-        ThreadedGamepad.LAZY_INSTANCE.addListener(
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             ThreadedGamepad.createClickDownListener(
                 { it.dpad_down },
                 {
@@ -221,7 +220,7 @@ class DriveTrain : IModule {
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.drawCircle(
-                HotRun.LAZY_INSTANCE.currentRunColor.basketPosition,
+                HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition,
                 0.05,
                 Color.ORANGE
             )
