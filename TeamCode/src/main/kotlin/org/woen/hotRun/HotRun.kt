@@ -71,17 +71,29 @@ class HotRun private constructor() {
         val parkingOrientation: Orientation,
         val color: RunColor
     ) {
-        RED(
+        RED_CLOSE(
             Configs.TURRET.RED_BASKET_POSITION,
-            Configs.ODOMETRY.START_RED_ORIENTATION,
+            Configs.ODOMETRY.START_RED_CLOSE_ORIENTATION,
             Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION,
             RunColor.RED
         ),
-        BLUE(
+        BLUE_CLOSE(
             Configs.TURRET.BLUE_BASKET_POSITION,
-            Configs.ODOMETRY.START_BLUE_ORIENTATION,
+            Configs.ODOMETRY.START_BLUE_CLOSE_ORIENTATION,
             Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION,
             RunColor.BLUE
+        ),
+        RED_FAR(
+        Configs.TURRET.RED_BASKET_POSITION,
+        Configs.ODOMETRY.START_RED_FAR_ORIENTATION,
+        Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION,
+        RunColor.RED
+        ),
+        BLUE_FAR(
+        Configs.TURRET.BLUE_BASKET_POSITION,
+        Configs.ODOMETRY.START_BLUE_FAR_ORIENTATION,
+        Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION,
+        RunColor.BLUE
         );
     }
 
@@ -90,7 +102,7 @@ class HotRun private constructor() {
         BLUE
     }
 
-    var currentStartPosition = StartPosition.BLUE
+    var currentStartPosition = StartPosition.BLUE_CLOSE
 
     val opModeInitEvent = SimpleEmptyEvent()
     val opModeStartEvent = SimpleEmptyEvent()

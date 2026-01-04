@@ -164,7 +164,7 @@ class DriveTrain : IModule {
                             ly,
                             lx
                         ).turn(
-                            if (currentRunColor == HotRun.StartPosition.BLUE) (_currentRobotRotation * -1.0 -
+                            if (currentRunColor == HotRun.StartPosition.BLUE_CLOSE) (_currentRobotRotation * -1.0 -
                                     Angle.ofDeg(90.0)).angle
                             else
                                 (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle

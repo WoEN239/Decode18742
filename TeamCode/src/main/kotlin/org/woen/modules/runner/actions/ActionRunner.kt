@@ -63,10 +63,10 @@ class ActionRunner private constructor() : DisposableHandle {
     }
 
     private val _yColorMultiplier
-        get() = if (HotRun.LAZY_INSTANCE.currentStartPosition == HotRun.StartPosition.BLUE) 1.0 else -1.0
+        get() = if (HotRun.LAZY_INSTANCE.currentStartPosition.color == HotRun.RunColor.BLUE) 1.0 else -1.0
 
     private val _hColorMultiplier
-        get() = if (HotRun.LAZY_INSTANCE.currentStartPosition == HotRun.StartPosition.BLUE) 1.0 else -1.0
+        get() = if (HotRun.LAZY_INSTANCE.currentStartPosition.color == HotRun.RunColor.BLUE) 1.0 else -1.0
 
     private val _isULT = false
 

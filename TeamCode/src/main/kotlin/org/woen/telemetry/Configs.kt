@@ -83,12 +83,16 @@ object Configs {
     @Config
     internal object ODOMETRY {
         @JvmField
-        var START_RED_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), 0.91 + 0.38 / 2.0 - 0.045), Angle(PI))
-        //1.63, 0.39, PI
+        var START_RED_CLOSE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), 0.91 + 0.38 / 2.0 - 0.045), Angle(PI))
 
         @JvmField
-        var START_BLUE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), -0.91 - 0.38 / 2.0 + 0.045), Angle(PI))
-        //1.631, -0.39, PI
+        var START_RED_FAR_ORIENTATION = Orientation(Vec2(1.63, 0.39), Angle(PI))
+
+        @JvmField
+        var START_BLUE_CLOSE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), -0.91 - 0.38 / 2.0 + 0.045), Angle(PI))
+
+        @JvmField
+        var START_BLUE_FAR_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI))
 
         @JvmField
         var X_ODOMETER_POSITION = -0.09
