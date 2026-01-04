@@ -400,6 +400,32 @@ object Configs {
                     ))
                 )
                 ).toDouble()
+
+
+        @JvmField
+        var GREEN_BALL_R_K = 0.0
+
+        @JvmField
+        var GREEN_BALL_G_K = 1.0 - 0.39
+
+        @JvmField
+        var GREEN_BALL_B_K = 0.39
+
+        @JvmField
+        var GREEN_BALL_THRESHOLD = 20.0
+
+
+        @JvmField
+        var PURPLE_BALL_R_K = 0.78
+
+        @JvmField
+        var PURPLE_BALL_G_K = (1.0 - 0.78) / 2.0
+
+        @JvmField
+        var PURPLE_BALL_B_K = (1.0 - 0.78) / 2.0
+
+        @JvmField
+        var PURPLE_BALL_THRESHOLD = 20.0
     }
 
 
