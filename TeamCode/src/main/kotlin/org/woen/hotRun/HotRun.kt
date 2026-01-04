@@ -69,37 +69,47 @@ class HotRun private constructor() {
         val basketPosition: Vec2,
         val startOrientation: Orientation,
         val parkingOrientation: Orientation,
-        val color: RunColor
+        val color: RunColor,
+        val position: RunPosition
     ) {
         RED_CLOSE(
             Configs.TURRET.RED_BASKET_POSITION,
             Configs.ODOMETRY.START_RED_CLOSE_ORIENTATION,
             Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION,
-            RunColor.RED
+            RunColor.RED,
+            RunPosition.CLOSE
         ),
         BLUE_CLOSE(
             Configs.TURRET.BLUE_BASKET_POSITION,
             Configs.ODOMETRY.START_BLUE_CLOSE_ORIENTATION,
             Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION,
-            RunColor.BLUE
+            RunColor.BLUE,
+            RunPosition.CLOSE
         ),
         RED_FAR(
         Configs.TURRET.RED_BASKET_POSITION,
         Configs.ODOMETRY.START_RED_FAR_ORIENTATION,
         Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION,
-        RunColor.RED
+        RunColor.RED,
+            RunPosition.FAR
         ),
         BLUE_FAR(
         Configs.TURRET.BLUE_BASKET_POSITION,
         Configs.ODOMETRY.START_BLUE_FAR_ORIENTATION,
         Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION,
-        RunColor.BLUE
+        RunColor.BLUE,
+            RunPosition.FAR
         );
     }
 
     enum class RunColor{
         RED,
         BLUE
+    }
+
+    enum class RunPosition{
+        FAR,
+        CLOSE
     }
 
     var currentStartPosition = StartPosition.BLUE_CLOSE
