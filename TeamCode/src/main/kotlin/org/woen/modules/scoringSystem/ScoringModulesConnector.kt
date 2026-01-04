@@ -2,8 +2,10 @@ package org.woen.modules.scoringSystem
 
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
@@ -22,6 +24,7 @@ import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
 
 import org.woen.telemetry.LogManager
+import org.woen.threading.ThreadManager
 import org.woen.telemetry.Configs.DELAY
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -79,6 +82,7 @@ class ScoringModulesConnector
 
     private val _isBusy          = AtomicBoolean(false)
     private val _isAlreadyFiring = AtomicBoolean(false)
+    private val _runningIntakeInstances = AtomicInteger(0)
 
     private val _shotWasFired      = AtomicBoolean(false)
     private val _canRestartBrushes = AtomicBoolean(false)
@@ -103,7 +107,9 @@ class ScoringModulesConnector
     {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGetReadyForIntakeEvent::class, {
-                startIntakeProcess(it.inputToBottomSlot)
+                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                    startIntakeProcess(it.inputToBottomSlot)
+                }
         }   )
 
 
@@ -167,19 +173,20 @@ class ScoringModulesConnector
                 { it.right_trigger > 0.5 }, {
 
                     logM.logMd("Gamepad try start lazy intake", GAMEPAD_FEEDBACK)
-                    val startingResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        StartLazyIntakeEvent())
+//                    val startingResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        StartLazyIntakeEvent())
 
-                    if (startingResult.startingResult) startBrushes()
-                    else
-                    {
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(
-                            SetLightColorEvent(Light.LightColor.BLUE))
-
-                        reverseBrushes(TIME_FOR_BRUSH_REVERSING)
-                    }
-
-                    logM.logMd("\ntry start LazyIntake: ${startingResult.startingResult}", PROCESS_STARTING)
+//                    if (startingResult.startingResult)
+                        startBrushes()
+//                    else
+//                    {
+//                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                            SetLightColorEvent(Light.LightColor.BLUE))
+//
+//                        reverseBrushes(TIME_FOR_BRUSH_REVERSING)
+//                    }
+//
+//                    logM.logMd("\ntry start LazyIntake: ${startingResult.startingResult}", PROCESS_STARTING)
         }   )   )
 
 
@@ -194,8 +201,8 @@ class ScoringModulesConnector
                         StorageGetReadyForIntakeEvent(
                             Ball.Name.PURPLE))
 
-                    logM.logMd("\nSMC: START - PURPLE Intake - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("SMC isBusy: " + isBusy(), GENERIC_INFO)
+                    logM.logMd("\nSTART - PURPLE Intake - GAMEPAD", GAMEPAD_FEEDBACK)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
@@ -209,8 +216,8 @@ class ScoringModulesConnector
                         StorageGetReadyForIntakeEvent(
                             Ball.Name.GREEN))
 
-                    logM.logMd("\nSMC: START - GREEN Intake - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("SMC isBusy: " + isBusy(), GENERIC_INFO)
+                    logM.logMd("\nSTART - GREEN Intake - GAMEPAD", GAMEPAD_FEEDBACK)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
@@ -225,7 +232,7 @@ class ScoringModulesConnector
                     reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
 
                     logM.logMd("\nSTOP  - INTAKE - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: " + isBusy(), GENERIC_INFO)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
 
@@ -238,7 +245,7 @@ class ScoringModulesConnector
                     ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
 
                     logM.logMd("STOP  - ANY Request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: " + isBusy(), GENERIC_INFO)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
@@ -251,7 +258,7 @@ class ScoringModulesConnector
                     ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDrumRequest())
 
                     logM.logMd("\nSTART - STREAM Drum request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("SMC isBusy: " + isBusy(), GENERIC_INFO)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
         }   )   )
 
 
@@ -264,8 +271,8 @@ class ScoringModulesConnector
 //
 //                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 //
-//                    logM.logMd("\nSMC: START - PURPLE Request - GAMEPAD")
-//                    logM.logMd("SMC isBusy: " + isBusy())
+//                    logM.logMd("\nSTART - PURPLE Request - GAMEPAD")
+//                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
 //        }   )   )
 //
 //        ThreadedGamepad.LAZY_INSTANCE.addListener(
@@ -277,8 +284,8 @@ class ScoringModulesConnector
 //
 //                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 //
-//                    logM.logMd("\nSMC: START - GREEN Request - GAMEPAD")
-//                    logM.logMd("SMC isBusy: " + isBusy())
+//                    logM.logMd("\nSTART - GREEN Request - GAMEPAD")
+//                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
 //        }   )   )
     }
     private fun resetParametersToDefault()
@@ -303,8 +310,7 @@ class ScoringModulesConnector
 
             return Intake.FAIL_IS_BUSY
         }
-
-        setBusy()
+        _runningIntakeInstances.getAndAdd(1)
 
         logM.logMd("Started - Intake, INPUT BALL: $inputToBottomSlot", PROCESS_STARTING)
         val intakeResult = _storage.handleIntake(inputToBottomSlot)
@@ -317,6 +323,7 @@ class ScoringModulesConnector
         }
 
         logM.logMd("FINISHED - INTAKE, result: $intakeResult", PROCESS_ENDING)
+        _runningIntakeInstances.getAndAdd(-1)
         setIdle()
         return intakeResult
     }
@@ -364,7 +371,8 @@ class ScoringModulesConnector
         if (_isAlreadyFiring.get()) return Request.FAIL_IS_BUSY
         _isAlreadyFiring.set(true)
 
-        while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
+        while (isBusy() || _runningIntakeInstances.get() > 0)
+            delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
         logM.logMd("Started - SMART drum request", PROCESS_STARTING)
@@ -388,7 +396,8 @@ class ScoringModulesConnector
         if (_isAlreadyFiring.get()) return Request.FAIL_IS_BUSY
         _isAlreadyFiring.set(true)
 
-        while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
+        while (isBusy() || _runningIntakeInstances.get() > 0)
+            delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
 //        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
@@ -407,7 +416,8 @@ class ScoringModulesConnector
         if (_isAlreadyFiring.get()) return Request.FAIL_IS_BUSY
         _isAlreadyFiring.set(true)
 
-        while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
+        while (isBusy() || _runningIntakeInstances.get() > 0)
+            delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
@@ -426,7 +436,8 @@ class ScoringModulesConnector
         if (_isAlreadyFiring.get()) return Request.FAIL_IS_BUSY
         _isAlreadyFiring.set(true)
 
-        while (isBusy()) delay(DELAY.EVENT_AWAITING_MS)
+        while (isBusy() || _runningIntakeInstances.get() > 0)
+            delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
         logM.logMd("Started - Single request", PROCESS_STARTING)
@@ -485,7 +496,7 @@ class ScoringModulesConnector
                 requestResult
         )   )
 
-        _storage.tryStartLazyIntake()
+        //_storage.tryStartLazyIntake()
     }
     private suspend fun resumeLogicAfterShooting(requestResult: RequestResult.Name)
     {

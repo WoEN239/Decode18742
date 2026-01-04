@@ -16,6 +16,7 @@ import org.woen.modules.camera.OnPatternDetectedEvent
 import org.woen.modules.light.Light
 import org.woen.modules.light.SetLightColorEvent
 
+import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 
@@ -129,13 +130,14 @@ class SortingStorage
                     .noIntakeRaceConditionProblems(LAZY_INTAKE)
                 it.startingResult = canStartLazyIntake
 
-                if (canStartLazyIntake)
-                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                        logM.logMd("IS IDLE = starting lazy intake", PROCESS_STARTING)
-                        startLazyIntake()
-                    }
-
-                else _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
+//                if (canStartLazyIntake)
+//                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//                        logM.logMd("IS IDLE = starting lazy intake", PROCESS_STARTING)
+//                        startLazyIntake()
+//                    }
+//
+//                else
+                    _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
         }   )
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StopLazyIntakeEvent::class, {
@@ -317,16 +319,17 @@ class SortingStorage
     }
     suspend fun hwSmartPushNextBall()
         = _storageLogic.storageCells.hwSortingM.hwSmartPushNextBall()
-    fun alreadyFull()  = _storageLogic.storageCells.alreadyFull()
+    fun alreadyFull() = _storageLogic.storageCells.alreadyFull()
 
 
 
     suspend fun tryStartLazyIntake()
     {
-        if (!_storageLogic.storageCells.alreadyFull()
-            && _storageLogic.noIntakeRaceConditionProblems(LAZY_INTAKE))
-            startLazyIntake()
-        else _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
+//        if (!_storageLogic.storageCells.alreadyFull()
+//            && _storageLogic.noIntakeRaceConditionProblems(LAZY_INTAKE))
+//            startLazyIntake()
+//        else
+            _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
     }
     private suspend fun startLazyIntake()
     {
@@ -353,7 +356,7 @@ class SortingStorage
 
 
 
-    suspend fun handleIntake(inputToBottomSlot: Ball.Name): IntakeResult.Name
+    suspend fun handleIntake(inputBall: Ball.Name): IntakeResult.Name
     {
         if (_storageLogic.storageCells.alreadyFull()) return Intake.FAIL_IS_FULL
 
@@ -364,18 +367,15 @@ class SortingStorage
             if (_storageLogic.isForcedToTerminate(INTAKE))
                 return _storageLogic.terminateIntake(INTAKE)
 
-            logM.logMd("searching for intake slot", LOGIC_STEPS)
-            val storageCanHandle = _storageLogic.storageCells.handleIntake()
-            logM.logMd("DONE Searching, result: ${storageCanHandle.name()}", PROCESS_ENDING)
+            val intakeResult = _storageLogic.safeSortIntake(inputBall)
 
-            val intakeResult = _storageLogic.safeSortIntake(
-                storageCanHandle, inputToBottomSlot)
-
-            _storageLogic.resumeLogicAfterIntake(INTAKE)
+            if (_storageLogic.runningIntakeInstances.get() == 0)
+                _storageLogic.resumeLogicAfterIntake(INTAKE)
             return intakeResult
         }
 
-        _storageLogic.resumeLogicAfterIntake(INTAKE)
+        if (_storageLogic.runningIntakeInstances.get() == 0)
+            _storageLogic.resumeLogicAfterIntake(INTAKE)
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
     suspend fun handleRequest(request: BallRequest.Name):  RequestResult.Name
@@ -430,6 +430,7 @@ class SortingStorage
         logM.logMd("MODE: EASY SHOOT EVERYTHING", PROCESS_NAME)
         val requestResult = _storageLogic.easyShootEverything()
 
+        delay(Delay.HALF_PUSH)
         _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
         return requestResult
     }
@@ -443,6 +444,7 @@ class SortingStorage
         logM.logMd("MODE: SHOOT EVERYTHING", PROCESS_NAME)
         val requestResult = _storageLogic.shootEverything()
 
+        delay(Delay.HALF_PUSH)
         _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
         return requestResult
     }
@@ -490,9 +492,13 @@ class SortingStorage
 
         if  (Request.wasTerminated(requestResult))
              _storageLogic.terminateRequest(DRUM_REQUEST)
-        else _storageLogic.resumeLogicAfterRequest(
-            DRUM_REQUEST,
-            _storageLogic.storageCells.isNotEmpty())
+        else
+        {
+            delay(Delay.HALF_PUSH)
+            _storageLogic.resumeLogicAfterRequest(
+                DRUM_REQUEST,
+                _storageLogic.storageCells.isNotEmpty())
+        }
         return requestResult
     }
     suspend fun shootEntireDrumRequest(
@@ -560,10 +566,14 @@ class SortingStorage
             }
 
         if  (Request.wasTerminated(requestResult))
-            _storageLogic.terminateRequest(DRUM_REQUEST)
-        else _storageLogic.resumeLogicAfterRequest(
-            DRUM_REQUEST,
-            _storageLogic.storageCells.isNotEmpty())
+             _storageLogic.terminateRequest(DRUM_REQUEST)
+        else
+        {
+            delay(Delay.HALF_PUSH)
+            _storageLogic.resumeLogicAfterRequest(
+                DRUM_REQUEST,
+                _storageLogic.storageCells.isNotEmpty())
+        }
         return requestResult
     }
 }

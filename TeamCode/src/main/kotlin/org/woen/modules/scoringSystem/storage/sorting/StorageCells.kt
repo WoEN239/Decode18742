@@ -248,20 +248,25 @@ class StorageCells
             curSlot++
         }
     }
-    suspend fun updateAfterIntake(inputToBottomSlot: Ball.Name)
+    suspend fun updateAfterIntake(inputBall: Ball.Name)
     {
-        hwSortingM.stopAwaitingEating(true)
-
         logM.logMd("before intake:", GENERIC_INFO)
         logAllStorageData()
 
-        _storageCells[StorageSlot.BOTTOM].set(inputToBottomSlot)
-        hwReAdjustStorage()
+        var curSlot = StorageSlot.BOTTOM
+        var rotationTime = Delay.FULL_PUSH
+        while (curSlot < StorageSlot.MOBILE && _storageCells[curSlot].isEmpty())
+        {
+            curSlot++
+            rotationTime += Delay.PART_PUSH
+        }
+        if (curSlot - 1 >= StorageSlot.BOTTOM) _storageCells[curSlot - 1].set(inputBall)
 
-        logM.logMd("finished cells intake, new storage:", GENERIC_INFO)
+        logM.logMd("software storage processing finished", PROCESS_ENDING)
+        logM.logMd("new storage: ", GENERIC_INFO)
         logAllStorageData()
 
-        hwSortingM.resumeAwaitingEating()
+        hwSortingM.hwForwardBeltsTime(rotationTime)
     }
     fun updateAfterRequest()
     {

@@ -74,13 +74,20 @@ class HwSorting : IHardwareDevice
 
 
 
-    override fun init(hardwareMap : HardwareMap)
+    constructor()
     {
-        _beltMotors = MotorOnly(hardwareMap.get(SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
-
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
             gateServo, pushServo, launchServo, turretGateServo)
     }
+
+    override fun init(hardwareMap : HardwareMap)
+    {
+        _beltMotors = MotorOnly(hardwareMap.get(SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
+    }
+
+
+
+
 
     override fun update()
     {
@@ -119,40 +126,40 @@ class HwSorting : IHardwareDevice
 
     fun openGate()
     {
-        gateServo.targetAngle = 1.5 * PI * GATE_SERVO_OPEN_VALUE
+        gateServo.targetPosition = GATE_SERVO_OPEN_VALUE
     }
     fun closeGate()
     {
-        gateServo.targetAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE
+        gateServo.targetPosition = GATE_SERVO_CLOSE_VALUE
     }
 
     fun openPush()
     {
-        pushServo.targetAngle = 1.5 * PI * PUSH_SERVO_OPEN_VALUE
+        pushServo.targetPosition = PUSH_SERVO_OPEN_VALUE
     }
     fun closePush()
     {
-        pushServo.targetAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE
+        pushServo.targetPosition = PUSH_SERVO_CLOSE_VALUE
     }
 
     fun openLaunch()
     {
-        launchServo.targetAngle = 1.5 * PI * LAUNCH_SERVO_OPEN_VALUE
+        launchServo.targetPosition = LAUNCH_SERVO_OPEN_VALUE
     }
     fun closeLaunch()
     {
-        launchServo.targetAngle = 1.5 * PI * LAUNCH_SERVO_CLOSE_VALUE
+        launchServo.targetPosition = LAUNCH_SERVO_CLOSE_VALUE
     }
 
 
 
     fun openTurretGate()
     {
-        turretGateServo.targetAngle = 1.5 * PI * TURRET_GATE_SERVO_OPEN_VALUE
+        turretGateServo.targetPosition = TURRET_GATE_SERVO_OPEN_VALUE
     }
     fun closeTurretGate()
     {
-        turretGateServo.targetAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE
+        turretGateServo.targetPosition = TURRET_GATE_SERVO_CLOSE_VALUE
     }
 
 

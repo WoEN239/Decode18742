@@ -122,7 +122,7 @@ class HwSortingSensors(): IHardwareDevice
                 "[!!] - PURPLE BALL DETECTED",
                 "StorageSensors", HARDWARE)
         }
-        else colorSensorsDetectedIntakeEvent(
+        else colorSensorsDetectedIntakeEvent.invoke(
             ColorSensorsData(Ball.Name.NONE, SensorsId.LEFT))
 
 
@@ -153,7 +153,7 @@ class HwSortingSensors(): IHardwareDevice
 //                "[!!] - PURPLE BALL DETECTED",
 //                "StorageSensors", HARDWARE)
 //        }
-//        else colorSensorsDetectedIntakeEvent(
+//        else colorSensorsDetectedIntakeEvent.invoke(
 //            ColorSensorsData(Ball.Name.NONE, SensorsId.RIGHT))
 
 

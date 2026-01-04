@@ -1,15 +1,20 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.enumerators.Ball
+import org.woen.modules.scoringSystem.storage.Alias
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.woen.telemetry.LogManager
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
+
+import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
@@ -23,13 +28,15 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE
 import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE_HIGH
 import org.woen.telemetry.Configs.DEBUG_LEVELS.HSM_DEBUG_LEVELS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.HSM_DEBUG_SETTING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 
 import org.woen.telemetry.Configs.DELAY
+import org.woen.telemetry.Configs.STORAGE_SENSORS.MIN_TIME_FOR_INTAKE_DETECTION_MS
+
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION
-import org.woen.threading.ThreadedGamepad
-import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
+import org.woen.telemetry.Configs.STORAGE_SENSORS.MIN_TIME_FOR_INTAKE_NOT_DETECTION_MS
 
 
 class HwSortingManager
@@ -46,6 +53,9 @@ class HwSortingManager
     val canHandleIntake   = AtomicBoolean(false)
     val autoIntakeTracker = AutoIntakeTracker()
 
+    val intakeDetectedTimer    = ElapsedTime()
+    val intakeNotDetectedTimer = ElapsedTime()
+
 
 
     constructor()
@@ -54,7 +64,7 @@ class HwSortingManager
         addDevices()
 
         ThreadedGamepad.LAZY_INSTANCE.addListener(
-            createClickDownListener({ it.circle },   {
+            createClickDownListener({ it.ps },   {
 
                     canHandleIntake.set(true)
         }   )   )
@@ -69,28 +79,37 @@ class HwSortingManager
             val isAwaitingIntake: Boolean
             if (it.color != Ball.Name.NONE)
             {
+                intakeNotDetectedTimer.reset()
+                logM.logMd("Can handle: ${canHandleIntake.get()}", GENERIC_INFO)
+                logM.logMd("Intake is free: ${autoIntakeTracker.intakeIsFree()}", GENERIC_INFO)
                 isAwaitingIntake = autoIntakeTracker.intakeIsFree() && canHandleIntake.get()
                 autoIntakeTracker.safeAddSensorId(it.sensorsId)
             }
             else
             {
+                intakeDetectedTimer.reset()
                 isAwaitingIntake = false
-                autoIntakeTracker.safeRemoveSensorId(it.sensorsId)
+                if (intakeNotDetectedTimer.milliseconds() > MIN_TIME_FOR_INTAKE_NOT_DETECTION_MS)
+                    autoIntakeTracker.safeRemoveSensorId(it.sensorsId)
             }
 
-            if (isAwaitingIntake)
+            if (isAwaitingIntake && intakeDetectedTimer.milliseconds() > MIN_TIME_FOR_INTAKE_DETECTION_MS)
             {
+                logM.logMd("Currently addressing auto intake", LOGIC_STEPS)
                 stopAwaitingEating(false)
 
                 ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
 
                     val storageCanHandleInput = ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        BallCountInStorageEvent()).count + 1 < MAX_BALL_COUNT
+                        BallCountInStorageEvent()).count < MAX_BALL_COUNT
+
+                    logM.logMd("Is not full: $storageCanHandleInput", GENERIC_INFO)
 
                     if (storageCanHandleInput)
                     {
                         ThreadedEventBus.LAZY_INSTANCE.invoke(
                             StorageGetReadyForIntakeEvent(it.color))
+                        delay(DELAY.INTAKE_RACE_CONDITION_MS)
 
                         logM.logMd("COLOR SENSORS - Started intake", HARDWARE_HIGH)
                         resumeAwaitingEating()
@@ -133,7 +152,7 @@ class HwSortingManager
     {
         logM.logMd("INITIALISATION - Adding HwDevices", HARDWARE_HIGH)
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSorting)
-        //HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSensors)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hwSensors)
     }
     fun resetParametersAndLogicToDefault() = stopAwaitingEating(false)
 
@@ -263,7 +282,6 @@ class HwSortingManager
     suspend fun hwForwardBeltsTime(timeMs: Long)
     {
         logM.logMd("Chosen time period: $timeMs", HARDWARE)
-        stopAwaitingEating(false)
         startBelts()
         delay(timeMs)
         stopBelts()
@@ -271,7 +289,6 @@ class HwSortingManager
     suspend fun hwReverseBeltsTime(timeMs: Long)
     {
         logM.logMd("Chosen time period: $timeMs", HARDWARE)
-        stopAwaitingEating(false)
         reverseBelts()
         delay(timeMs)
         stopBelts()

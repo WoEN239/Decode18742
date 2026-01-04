@@ -42,7 +42,7 @@ object Configs {
         var BRUSH_BIG_TARGET_CURRENT = 1000.0
 
         @JvmField
-        var BRUSH_STOP_TIME =0.5
+        var BRUSH_STOP_TIME = 0.5
         @JvmField
         var TIME_FOR_BRUSH_REVERSING: Long = 1500
 
@@ -412,7 +412,7 @@ object Configs {
         var GREEN_BALL_B_K = 0.39
 
         @JvmField
-        var GREEN_BALL_THRESHOLD = 20.0
+        var GREEN_BALL_THRESHOLD = 33.0
 
 
         @JvmField
@@ -425,7 +425,13 @@ object Configs {
         var PURPLE_BALL_B_K = (1.0 - 0.78) / 2.0
 
         @JvmField
-        var PURPLE_BALL_THRESHOLD = 20.0
+        var PURPLE_BALL_THRESHOLD = 30.0
+
+
+        @JvmField
+        var MIN_TIME_FOR_INTAKE_DETECTION_MS: Long = 13
+        @JvmField
+        var MIN_TIME_FOR_INTAKE_NOT_DETECTION_MS: Long = 26
     }
 
 
@@ -579,8 +585,9 @@ object Configs {
 
 
         //  Hardware sorting manager
-        var HSM_DEBUG_SETTING = LogManager.DebugSetting.HIDE
+        var HSM_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
         var HSM_DEBUG_LEVELS  = arrayListOf(
+            HARDWARE_LOW,
             HARDWARE,
             HARDWARE_HIGH,
 
@@ -633,7 +640,9 @@ object Configs {
 
 
         @JvmField
-        var ONE_BALL_PUSHING_MS: Long = 444
+        var FULL_BALL_PUSHING_MS: Long = 444
+        @JvmField
+        var PART_BALL_PUSHING_MS: Long = 300
         @JvmField
         var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 300
 
@@ -645,9 +654,9 @@ object Configs {
 
 
         @JvmField
-        var SMC_MAX_SHOT_AWAITING_MS: Long = 50
+        var SMC_MAX_SHOT_AWAITING_MS: Long = 55
         @JvmField
-        var SSM_MAX_SHOT_AWAITING_MS: Long = 180
+        var SSM_MAX_SHOT_AWAITING_MS: Long = 184
 
 
 
@@ -770,7 +779,7 @@ object Configs {
         var PUSH_SERVO_CLOSE_VALUE = 0.84
 
         @JvmField
-        var LAUNCH_SERVO_OPEN_VALUE = 0.37
+        var LAUNCH_SERVO_OPEN_VALUE = 0.4
         @JvmField
         var LAUNCH_SERVO_CLOSE_VALUE = 0.75
 

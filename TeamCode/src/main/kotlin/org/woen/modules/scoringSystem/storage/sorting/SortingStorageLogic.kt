@@ -4,6 +4,7 @@ package org.woen.modules.scoringSystem.storage.sorting
 import kotlin.math.min
 import kotlinx.coroutines.delay
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
@@ -42,6 +43,7 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
 import org.woen.telemetry.Configs.DELAY.FIRE_THREE_BALLS_FOR_SHOOTING_MS
 
 
+
 class SortingStorageLogic
 {
     val storageCells           = StorageCells()
@@ -50,6 +52,7 @@ class SortingStorageLogic
     val shotWasFired           = AtomicBoolean(false)
     val lazyIntakeIsActive     = AtomicBoolean(false)
     val pleaseWaitForIntakeEnd = AtomicBoolean(false)
+    val runningIntakeInstances = AtomicInteger(0)
 
     val runStatus = RunStatus(PRIORITY_SETTING_FOR_SORTING_STORAGE)
     val logM = LogManager(SSL_DEBUG_SETTING,
@@ -135,24 +138,23 @@ class SortingStorageLogic
 
 
 
-    suspend fun safeSortIntake(intakeResult: IntakeResult, inputToBottomSlot: Ball.Name): IntakeResult.Name
+    suspend fun safeSortIntake(inputBall: Ball.Name): IntakeResult.Name
     {
-        if (intakeResult.didFail()) return intakeResult.name()   //  Intake failed
+        if (storageCells.alreadyFull()) return Intake.FAIL_IS_FULL   //  Intake failed
 
+        runningIntakeInstances.getAndAdd(1)
         pleaseWaitForIntakeEnd.set(true)
-        logM.logMd("Sorting intake", PROCESS_NAME)
+        logM.logMd("Sorting intake", LOGIC_STEPS)
 
-        storageCells.hwReAdjustStorage()
-        storageCells.hwSortingM.hwForwardBeltsTime(Delay.HALF_PUSH)
-
-        storageCells.updateAfterIntake(inputToBottomSlot)
+        storageCells.updateAfterIntake(inputBall)
+        runningIntakeInstances.getAndAdd(-1)
         return Intake.SUCCESS
     }
 
     private suspend fun intakeRaceConditionIsPresent(processId: Int):  Boolean
     {
         logM.logMd("CHECKING RACE CONDITION", PROCESS_NAME)
-        if (runStatus.isUsedByAnyProcess()) return true
+        if (runStatus.isUsedByAnotherProcess(processId)) return true
 
         logM.logMd("Currently not busy", GENERIC_INFO)
         runStatus.addProcessToQueue(processId)
@@ -172,12 +174,15 @@ class SortingStorageLogic
 
     fun terminateIntake(processId: Int): IntakeResult.Name
     {
-        logM.logMd("Intake is being terminated", TERMINATION)
+        if (runningIntakeInstances.get() == 0)
+        {
+            logM.logMd("Intake is being terminated", TERMINATION)
 
-        runStatus.safeRemoveThisProcessIdFromQueue(processId)
-        runStatus.safeRemoveThisProcessFromTerminationList(processId)
+            runStatus.safeRemoveThisProcessIdFromQueue(processId)
+            runStatus.safeRemoveThisProcessFromTerminationList(processId)
 
-        resumeLogicAfterIntake(processId)
+            resumeLogicAfterIntake(processId)
+        }
         return Intake.TERMINATED
     }
 
@@ -612,8 +617,8 @@ class SortingStorageLogic
             logM.logMd("Finished reversing", PROCESS_ENDING)
 
             logM.logMd("Starting calibration", PROCESS_STARTING)
-            storageCells.hwSortingM.fullCalibrate()
             storageCells.hwSortingM.hwForwardBeltsTime(Delay.HALF_PUSH)
+            storageCells.hwSortingM.fullCalibrate()
         }
         else storageCells.hwSortingM.fullCalibrate()
 
