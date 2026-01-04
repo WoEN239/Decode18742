@@ -348,46 +348,7 @@ object Configs {
 
 
         @JvmField
-        var THRESHOLD_GREEN_BALL_MAX_R_S1 = 100
-
-        @JvmField
-        var THRESHOLD_GREEN_BALL_MIN_G_S1 = 50
-
-        @JvmField
-        var THRESHOLD_GREEN_BALL_MAX_B_S1 = 220
-
-        @JvmField
-        var THRESHOLD_GREEN_BALL_MAX_R_S2 = 70
-
-        @JvmField
-        var THRESHOLD_GREEN_BALL_MIN_G_S2 = 40
-
-        @JvmField
-        var THRESHOLD_GREEN_BALL_MAX_B_S2 = 70
-
-
-        @JvmField
-        var THRESHOLD_PURPLE_BALL_MIN_R_S1 = 80
-
-        @JvmField
-        var THRESHOLD_PURPLE_BALL_MAX_G_S1 = 150
-
-        @JvmField
-        var THRESHOLD_PURPLE_BALL_MIN_B_S1 = 80
-
-        @JvmField
-        var THRESHOLD_PURPLE_BALL_MIN_R_S2 = 40
-
-        @JvmField
-        var THRESHOLD_PURPLE_BALL_MAX_G_S2 = 70
-
-        @JvmField
-        var THRESHOLD_PURPLE_BALL_MIN_B_S2 = 20
-
-
-        @JvmField
         var CONST_MAXIMUM_READING = 10240.0
-
         @JvmField
         var ACCUMULATION_INTERVAL_MS = 24
 
@@ -407,29 +368,48 @@ object Configs {
 
 
         @JvmField
-        var GREEN_BALL_R_K = 0.0
+        var LCS_GREEN_BALL_R_K = 0.0
+        @JvmField
+        var LCS_GREEN_BALL_G_K = 1.0 - 0.39
+        @JvmField
+        var LCS_GREEN_BALL_B_K = 0.39
 
         @JvmField
-        var GREEN_BALL_G_K = 1.0 - 0.39
-
-        @JvmField
-        var GREEN_BALL_B_K = 0.39
-
-        @JvmField
-        var GREEN_BALL_THRESHOLD = 33.0
+        var LCS_GREEN_BALL_THRESHOLD = 33.0
 
 
         @JvmField
-        var PURPLE_BALL_R_K = 0.78
+        var LCS_PURPLE_BALL_R_K = 0.78
+        @JvmField
+        var LCS_PURPLE_BALL_G_K = (1.0 - 0.78) / 2.0
+        @JvmField
+        var LCS_PURPLE_BALL_B_K = (1.0 - 0.78) / 2.0
 
         @JvmField
-        var PURPLE_BALL_G_K = (1.0 - 0.78) / 2.0
+        var LCS_PURPLE_BALL_THRESHOLD = 30.0
+
+
 
         @JvmField
-        var PURPLE_BALL_B_K = (1.0 - 0.78) / 2.0
+        var RCS_GREEN_BALL_R_K = 0.0
+        @JvmField
+        var RCS_GREEN_BALL_G_K = 1.0 - 0.39
+        @JvmField
+        var RCS_GREEN_BALL_B_K = 0.39
 
         @JvmField
-        var PURPLE_BALL_THRESHOLD = 30.0
+        var RCS_GREEN_BALL_THRESHOLD = 33.0
+
+
+        @JvmField
+        var RCS_PURPLE_BALL_R_K = 0.78
+        @JvmField
+        var RCS_PURPLE_BALL_G_K = (1.0 - 0.78) / 2.0
+        @JvmField
+        var RCS_PURPLE_BALL_B_K = (1.0 - 0.78) / 2.0
+
+        @JvmField
+        var RCS_PURPLE_BALL_THRESHOLD = 30.0
 
 
         @JvmField
@@ -790,10 +770,12 @@ object Configs {
 
 
         @JvmField
-        var POWER_FOR_FAST_BELT_ROTATING = 11.0
+        var BELT_POWER_FAST_MODE = 11.0
 
         @JvmField
-        var POWER_FOR_SLOW_BELT_ROTATING = 9.0
+        var BELT_POWER_SLOW_MODE = 8.0
+        @JvmField
+        var BELT_POWER_SHOOT_MODE = 9.0
 
         @JvmField
         var TURRET_GATE_SERVO_OPEN_VALUE = 0.775

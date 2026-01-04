@@ -1,7 +1,6 @@
 package org.woen.modules.scoringSystem.storage.sorting
 
 
-import kotlinx.coroutines.delay
 import kotlin.math.min
 
 import org.woen.enumerators.Ball
@@ -266,7 +265,7 @@ class StorageCells
         logM.logMd("new storage: ", GENERIC_INFO)
         logAllStorageData()
 
-        hwSortingM.hwForwardBeltsTime(rotationTime)
+        hwSortingM.forwardBeltsTime(rotationTime)
     }
     fun updateAfterRequest()
     {
@@ -296,7 +295,7 @@ class StorageCells
         hwSortingM.stopAwaitingEating(true)
         hwReAdjustStorage()
 
-        hwSortingM.hwRotateMobileSlot()
+        hwSortingM.rotateMobileSlot()
 
         _storageCells[StorageSlot.MOBILE].set(_storageCells[StorageSlot.TURRET])
         _storageCells[StorageSlot.TURRET].empty()
@@ -349,7 +348,7 @@ class StorageCells
         hwSortingM.stopAwaitingEating(true)
 
         while (swReAdjustStorage())
-            hwSortingM.hwForwardBeltsTime(Delay.FULL_PUSH)
+            hwSortingM.forwardBeltsTime(Delay.FULL_PUSH)
     }
 
 

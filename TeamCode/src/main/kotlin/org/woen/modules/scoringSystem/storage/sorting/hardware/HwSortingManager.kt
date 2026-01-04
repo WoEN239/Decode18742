@@ -16,11 +16,12 @@ import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 
+import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
+
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE_LOW
 import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE
@@ -36,6 +37,7 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_CURRENT_PROTECTION_FOR_ST
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION
 import org.woen.telemetry.Configs.STORAGE_SENSORS.MIN_TIME_FOR_INTAKE_NOT_DETECTION_MS
+
 
 
 class HwSortingManager
@@ -112,10 +114,9 @@ class HwSortingManager
 
                         logM.logMd("COLOR SENSORS - Started intake", HARDWARE_HIGH)
                         resumeAwaitingEating()
-                    }
-                }
-            }
-        }
+        }   }   }   }
+
+
 
         _hwSorting.beltsCurrentPeakedEvent +=
         {
@@ -144,8 +145,7 @@ class HwSortingManager
                 }
 
                 isStoppingBelts.set(false)
-            }
-        }
+        }   }
     }
     private fun addDevices()
     {
@@ -254,6 +254,11 @@ class HwSortingManager
 
 
 
+    fun shootStartBelts()
+    {
+        logM.logMd("SHOOT Starter hw belts", HARDWARE)
+        _hwSorting.shootStartBeltMotors()
+    }
     fun slowStartBelts()
     {
         logM.logMd("SLOW Started hw belts", HARDWARE)
@@ -278,21 +283,21 @@ class HwSortingManager
 
 
 
-    suspend fun hwForwardBeltsTime(timeMs: Long)
+    suspend fun forwardBeltsTime(timeMs: Long)
     {
         logM.logMd("Chosen time period: $timeMs", HARDWARE)
         startBelts()
         delay(timeMs)
         stopBelts()
     }
-    suspend fun hwReverseBeltsTime(timeMs: Long)
+    suspend fun reverseBeltsTime(timeMs: Long)
     {
         logM.logMd("Chosen time period: $timeMs", HARDWARE)
         reverseBelts()
         delay(timeMs)
         stopBelts()
     }
-    suspend fun hwRotateMobileSlot()
+    suspend fun rotateMobileSlot()
     {
         logM.logMd("ROTATING MOBILE SLOT", HARDWARE_HIGH)
         stopAwaitingEating(true)
@@ -300,7 +305,7 @@ class HwSortingManager
         closeTurretGate()
 
         //hwForwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
-        hwReverseBeltsTime(DELAY.SORTING_REALIGNING_REVERSE_MS)
+        reverseBeltsTime(DELAY.SORTING_REALIGNING_REVERSE_MS)
 
         openGate()
         openPush()
@@ -310,10 +315,10 @@ class HwSortingManager
         closeGateWithPush()
     }
 
-    suspend fun hwSmartPushNextBall()
+    suspend fun smartPushNextBall()
     {
         logM.logMd("STARTED Smart ball push for shot", HARDWARE_HIGH)
-        slowStartBelts()
+        shootStartBelts()
 
         if (helpPushLastBall.get())
         {
@@ -321,7 +326,7 @@ class HwSortingManager
             helpPushLastBall.set(false)
         }
     }
-    suspend fun pushLastBallForShotFast()
+    suspend fun pushLastBallFast()
     {
         openLaunch()
         closeLaunch()

@@ -318,7 +318,7 @@ class SortingStorage
         }   }
     }
     suspend fun hwSmartPushNextBall()
-        = _storageLogic.storageCells.hwSortingM.hwSmartPushNextBall()
+        = _storageLogic.storageCells.hwSortingM.smartPushNextBall()
     fun alreadyFull() = _storageLogic.storageCells.alreadyFull()
 
 

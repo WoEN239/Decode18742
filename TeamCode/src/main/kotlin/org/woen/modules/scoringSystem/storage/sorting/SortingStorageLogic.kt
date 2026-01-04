@@ -40,7 +40,6 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
-import org.woen.telemetry.Configs.DELAY.FIRE_THREE_BALLS_FOR_SHOOTING_MS
 
 
 
@@ -190,11 +189,21 @@ class SortingStorageLogic
 
     private suspend fun rotateToFoundBall(
         requestResult: RequestResult,
-        processId: Int): RequestResult
+        processId: Int,
+        doExtraRecalibration: Boolean): RequestResult
     {
         if (requestResult.didFail()) return requestResult  //  Request search failed
         if (isForcedToTerminate(processId))
             return Request.F_TERMINATED
+
+        if (doExtraRecalibration)
+        {
+            storageCells.hwSortingM.reverseBeltsTime(Delay.PART_PUSH)
+            storageCells.hwSortingM.closeTurretGate()
+            storageCells.hwSortingM.slowStartBelts()
+            delay(Delay.HALF_PUSH)
+            storageCells.hwSortingM.stopBelts()
+        }
 
         val fullRotations = when (requestResult.name())
         {
@@ -225,7 +234,7 @@ class SortingStorageLogic
             return Request.TERMINATED
 
         val updateResult = if (!isNowPerfectlySorted)
-            rotateToFoundBall(requestResult, processId)
+            rotateToFoundBall(requestResult, processId, true)
         else Request.TURRET_SLOT
 
         logM.logMd("Finished updating", PROCESS_ENDING)
@@ -291,9 +300,9 @@ class SortingStorageLogic
         logM.logMd("Starting Lazy stream shooting", PROCESS_STARTING)
 
         storageCells.hwSortingM.openTurretGate()
-        storageCells.hwSortingM.slowStartBelts()
-        delay(FIRE_THREE_BALLS_FOR_SHOOTING_MS)
-        storageCells.hwSortingM.pushLastBallForShotFast()
+        storageCells.hwSortingM.shootStartBelts()
+        delay(DELAY.FIRE_THREE_BALLS_FOR_SHOOTING_MS)
+        storageCells.hwSortingM.pushLastBallFast()
 
         storageCells.fullEmptyStorageCells()
         return Request.SUCCESS_NOW_EMPTY
@@ -613,11 +622,11 @@ class SortingStorageLogic
         if (doAutoCalibration)
         {
             logM.logMd("Reversing belts for calibration", PROCESS_STARTING)
-            storageCells.hwSortingM.hwReverseBeltsTime(Delay.HALF_PUSH)
+            storageCells.hwSortingM.reverseBeltsTime(Delay.PART_PUSH)
             logM.logMd("Finished reversing", PROCESS_ENDING)
 
             logM.logMd("Starting calibration", PROCESS_STARTING)
-            storageCells.hwSortingM.hwForwardBeltsTime(Delay.HALF_PUSH)
+            storageCells.hwSortingM.forwardBeltsTime(Delay.HALF_PUSH)
             storageCells.hwSortingM.fullCalibrate()
         }
         else storageCells.hwSortingM.fullCalibrate()

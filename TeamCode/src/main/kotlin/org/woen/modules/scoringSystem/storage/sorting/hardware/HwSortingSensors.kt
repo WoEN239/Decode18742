@@ -2,16 +2,15 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 
 //*
+import kotlin.math.max
 
 import woen239.FixColorSensor.fixSensor
-import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
 
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.threading.hardware.IHardwareDevice
 
 import org.woen.enumerators.Ball
-import org.woen.telemetry.Configs
 import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE
 import org.woen.telemetry.Configs.DEBUG_LEVELS.HARDWARE_LOW
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SENSORS_DEBUG_LEVELS
@@ -21,31 +20,30 @@ import org.woen.telemetry.LogManager
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.events.SimpleEmptyEvent
 
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_OPTIC_1
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_OPTIC_2
-
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_L
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_R
 
-import org.woen.telemetry.Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
-import org.woen.telemetry.Configs.STORAGE_SENSORS.OPTIC_SEES_NOT_BLACK
+import org.woen.telemetry.Configs.STORAGE_SENSORS.LCS_GREEN_BALL_B_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.LCS_GREEN_BALL_G_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.LCS_GREEN_BALL_R_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.LCS_GREEN_BALL_THRESHOLD
 
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_GREEN_BALL_MAX_R_S1
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_GREEN_BALL_MIN_G_S1
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_GREEN_BALL_MAX_B_S1
-//
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_GREEN_BALL_MAX_R_S2
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_GREEN_BALL_MIN_G_S2
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_GREEN_BALL_MAX_B_S2
-//------------------------------------------------------------------------------------------
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_PURPLE_BALL_MIN_R_S1
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_PURPLE_BALL_MAX_G_S1
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_PURPLE_BALL_MIN_B_S1
-//
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_PURPLE_BALL_MIN_R_S2
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_PURPLE_BALL_MAX_G_S2
-import org.woen.telemetry.Configs.STORAGE_SENSORS.THRESHOLD_PURPLE_BALL_MIN_B_S2
-import kotlin.math.max
+import org.woen.telemetry.Configs.STORAGE_SENSORS.LCS_PURPLE_BALL_B_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.LCS_PURPLE_BALL_G_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.LCS_PURPLE_BALL_R_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.LCS_PURPLE_BALL_THRESHOLD
+
+import org.woen.telemetry.Configs.STORAGE_SENSORS.RCS_GREEN_BALL_B_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.RCS_GREEN_BALL_G_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.RCS_GREEN_BALL_R_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.RCS_GREEN_BALL_THRESHOLD
+
+import org.woen.telemetry.Configs.STORAGE_SENSORS.RCS_PURPLE_BALL_B_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.RCS_PURPLE_BALL_G_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.RCS_PURPLE_BALL_R_K
+import org.woen.telemetry.Configs.STORAGE_SENSORS.RCS_PURPLE_BALL_THRESHOLD
+
+import org.woen.telemetry.Configs.STORAGE_SENSORS.CONST_MAXIMUM_READING
+
 
 
 enum class SensorsId { NOTHING, LEFT, RIGHT }
@@ -94,15 +92,20 @@ class HwSortingSensors(): IHardwareDevice
 
 
         val argb1 = _intakeColorSensorL.normalizedColors
-        val r1 = argb1.red   * VAR_MAXIMUM_READING
-        val g1 = argb1.green * VAR_MAXIMUM_READING
-        val b1 = argb1.blue  * VAR_MAXIMUM_READING
+        val r1 = argb1.red   * CONST_MAXIMUM_READING
+        val g1 = argb1.green * CONST_MAXIMUM_READING
+        val b1 = argb1.blue  * CONST_MAXIMUM_READING
 
         //(r * kr + b * kb + g * kg) - max(r * (1 - kr), b * (1 - kb), g * (1 - kg)) > n
 
-        if ((Configs.STORAGE_SENSORS.GREEN_BALL_R_K * r1 + Configs.STORAGE_SENSORS.GREEN_BALL_B_K * b1 + Configs.STORAGE_SENSORS.GREEN_BALL_G_K * g1) -
-            max(r1 * (1 - Configs.STORAGE_SENSORS.GREEN_BALL_R_K), max(b1 * (1 - Configs.STORAGE_SENSORS.GREEN_BALL_B_K),
-                g1 * (1 - Configs.STORAGE_SENSORS.GREEN_BALL_G_K))) > Configs.STORAGE_SENSORS.GREEN_BALL_THRESHOLD)
+        if (
+            (LCS_GREEN_BALL_R_K * r1 + LCS_GREEN_BALL_B_K * b1 + LCS_GREEN_BALL_G_K * g1) -
+            max(r1 * (1 - LCS_GREEN_BALL_R_K),
+                max(
+                    b1 * (1 - LCS_GREEN_BALL_B_K),
+                    g1 * (1 - LCS_GREEN_BALL_G_K)
+                )
+            ) > LCS_GREEN_BALL_THRESHOLD)
         {
             colorSensorsDetectedIntakeEvent.invoke(
                 ColorSensorsData(Ball.Name.GREEN, SensorsId.LEFT))
@@ -111,9 +114,14 @@ class HwSortingSensors(): IHardwareDevice
                 "GREEN BALL DETECTED",
                 "StorageSensors", HARDWARE)
         }
-        else if ((Configs.STORAGE_SENSORS.PURPLE_BALL_R_K * r1 + Configs.STORAGE_SENSORS.PURPLE_BALL_B_K * b1 + Configs.STORAGE_SENSORS.PURPLE_BALL_G_K * g1) -
-                max(r1 * (1 - Configs.STORAGE_SENSORS.PURPLE_BALL_R_K), max(b1 * (1 - Configs.STORAGE_SENSORS.PURPLE_BALL_B_K),
-                    g1 * (1 - Configs.STORAGE_SENSORS.PURPLE_BALL_G_K))) > Configs.STORAGE_SENSORS.PURPLE_BALL_THRESHOLD)
+        else if (
+            (LCS_PURPLE_BALL_R_K * r1 + LCS_PURPLE_BALL_B_K * b1 + LCS_PURPLE_BALL_G_K * g1) -
+                max(r1 * (1 - LCS_PURPLE_BALL_R_K),
+                    max(
+                        b1 * (1 - LCS_PURPLE_BALL_B_K),
+                        g1 * (1 - LCS_PURPLE_BALL_G_K)
+                    )
+                ) > LCS_PURPLE_BALL_THRESHOLD)
         {
             colorSensorsDetectedIntakeEvent.invoke(
                 ColorSensorsData(Ball.Name.PURPLE, SensorsId.LEFT))
@@ -127,39 +135,49 @@ class HwSortingSensors(): IHardwareDevice
 
 
 //        val argb2 = _intakeColorSensorR.normalizedColors
-//        val r2 = argb2.red   * VAR_MAXIMUM_READING
-//        val g2 = argb2.green * VAR_MAXIMUM_READING
-//        val b2 = argb2.blue  * VAR_MAXIMUM_READING
+//        val r2 = argb2.red   * CONST_MAXIMUM_READING
+//        val g2 = argb2.green * CONST_MAXIMUM_READING
+//        val b2 = argb2.blue  * CONST_MAXIMUM_READING
 //
-//        if (r2 < THRESHOLD_GREEN_BALL_MAX_R_S2 &&
-//            g2 > THRESHOLD_GREEN_BALL_MIN_G_S2 &&
-//            b2 < THRESHOLD_GREEN_BALL_MAX_B_S2)
+//        if (
+//            (RCS_GREEN_BALL_R_K * r2 + RCS_GREEN_BALL_B_K * b2 + RCS_GREEN_BALL_G_K * g2) -
+//                max(r2 * (1 - RCS_GREEN_BALL_R_K),
+//                    max(
+//                        b2 * (1 - RCS_GREEN_BALL_B_K),
+//                        g2 * (1 - RCS_GREEN_BALL_G_K)
+//                    )
+//                ) > RCS_GREEN_BALL_THRESHOLD)
 //        {
 //            colorSensorsDetectedIntakeEvent.invoke(
 //                ColorSensorsData(Ball.Name.GREEN, SensorsId.RIGHT))
 //
-//            logM.logTag(
-//                "[!!] - GREEN BALL DETECTED",
-//                "StorageSensors", HARDWARE)
+//            logM.logTag("GREEN BALL DETECTED",
+//                        "StorageSensors", HARDWARE)
 //        }
-//        else if (r2 > THRESHOLD_PURPLE_BALL_MIN_R_S2 &&
-//                 g2 < THRESHOLD_PURPLE_BALL_MAX_G_S2 &&
-//                 b2 > THRESHOLD_PURPLE_BALL_MIN_B_S2)
+//        else if (
+//            (RCS_PURPLE_BALL_R_K * r2 + RCS_PURPLE_BALL_B_K * b2 + RCS_PURPLE_BALL_G_K * g2) -
+//                max(r2 * (1 - RCS_PURPLE_BALL_R_K),
+//                    max(
+//                        b2 * (1 - RCS_PURPLE_BALL_B_K),
+//                        g2 * (1 - RCS_PURPLE_BALL_G_K)
+//                    )
+//                ) > RCS_PURPLE_BALL_THRESHOLD)
 //        {
 //            colorSensorsDetectedIntakeEvent.invoke(
 //                ColorSensorsData(Ball.Name.PURPLE, SensorsId.RIGHT))
 //
 //            logM.logTag(
-//                "[!!] - PURPLE BALL DETECTED",
+//                "PURPLE BALL DETECTED",
 //                "StorageSensors", HARDWARE)
 //        }
 //        else colorSensorsDetectedIntakeEvent.invoke(
 //            ColorSensorsData(Ball.Name.NONE, SensorsId.RIGHT))
-
-
-//        logM.logTag("---  UPDATED COLORS  ---",     "StorageSensors", HARDWARE_LOW)
-//        logM.logTag("r1 = $r1, g1 = $g1, b1 = $b1", "StorageSensors", HARDWARE_LOW)
-//        logM.logTag("r2 = $r2, g2 = $g2, b2 = $b2", "StorageSensors", HARDWARE_LOW)
+//
+//
+//        logM.logTag("\n---  UPDATED COLORS  ---"
+//                      + "\nr1 = $r1, g1 = $g1, b1 = $b1"
+//                      + "\nr2 = $r2, g2 = $g2, b2 = $b2",
+//            "StorageSensors", HARDWARE_LOW)
     }
 
 

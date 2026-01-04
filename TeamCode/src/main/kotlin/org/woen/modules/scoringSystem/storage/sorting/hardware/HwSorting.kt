@@ -35,8 +35,9 @@ import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
 
 import org.woen.telemetry.Configs.STORAGE.BELT_MOTORS_DIRECTION
 
-import org.woen.telemetry.Configs.STORAGE.POWER_FOR_SLOW_BELT_ROTATING
-import org.woen.telemetry.Configs.STORAGE.POWER_FOR_FAST_BELT_ROTATING
+import org.woen.telemetry.Configs.STORAGE.BELT_POWER_SLOW_MODE
+import org.woen.telemetry.Configs.STORAGE.BELT_POWER_FAST_MODE
+import org.woen.telemetry.Configs.STORAGE.BELT_POWER_SHOOT_MODE
 
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO
@@ -117,10 +118,11 @@ class HwSorting : IHardwareDevice
 
 
 
-    fun slowStartBeltMotors() = _beltMotorsPower.set(  POWER_FOR_SLOW_BELT_ROTATING)
-    fun startBeltMotors()     = _beltMotorsPower.set(  POWER_FOR_FAST_BELT_ROTATING)
-    fun reverseBeltMotors()   = _beltMotorsPower.set( -POWER_FOR_FAST_BELT_ROTATING)
-    fun stopBeltMotors()      = _beltMotorsPower.set(0.0)
+    fun shootStartBeltMotors() = _beltMotorsPower.set(  BELT_POWER_SHOOT_MODE)
+    fun slowStartBeltMotors()  = _beltMotorsPower.set(  BELT_POWER_SLOW_MODE)
+    fun startBeltMotors()      = _beltMotorsPower.set(  BELT_POWER_FAST_MODE)
+    fun reverseBeltMotors()    = _beltMotorsPower.set( -BELT_POWER_FAST_MODE)
+    fun stopBeltMotors()       = _beltMotorsPower.set(0.0)
 
 
 
