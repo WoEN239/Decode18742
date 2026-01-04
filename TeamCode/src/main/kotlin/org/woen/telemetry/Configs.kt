@@ -553,7 +553,7 @@ object Configs {
 
 
         //  Hardware sorting manager
-        var HSM_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+        var HSM_DEBUG_SETTING = LogManager.DebugSetting.HIDE
         var HSM_DEBUG_LEVELS  = arrayListOf(
             HARDWARE,
             HARDWARE_HIGH,

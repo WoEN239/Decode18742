@@ -26,6 +26,7 @@ class LogManager
     {
         HIDE,
         SHOW_EVERYTHING,
+
         SHOW_SELECTED_LEVELS,
 
         SHOW_ABOVE_SELECTED_INCLUSIVE,
