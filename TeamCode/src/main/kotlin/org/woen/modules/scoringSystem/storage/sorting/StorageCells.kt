@@ -263,7 +263,7 @@ class StorageCells
 
         hwSortingM.resumeAwaitingEating()
     }
-    suspend fun updateAfterRequest()
+    fun updateAfterRequest()
     {
         hwSortingM.stopAwaitingEating(true)
 
@@ -347,10 +347,6 @@ class StorageCells
             hwSortingM.hwForwardBeltsTime(Delay.FULL_PUSH)
     }
 
-
-
-    fun pauseAnyIntake() = hwSortingM.stopAwaitingEating(true)
-    fun resumeIntakes()  = hwSortingM.resumeAwaitingEating()
 
 
     private fun logAllStorageData()

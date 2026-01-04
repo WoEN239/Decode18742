@@ -246,7 +246,7 @@ class SortingStorageLogic
 
 
         runStatus.addProcessToQueue(processId)
-        storageCells.pauseAnyIntake()
+        storageCells.hwSortingM.stopAwaitingEating(true)
 
         delay(DELAY.REQUEST_RACE_CONDITION_MS)
         return !runStatus.isThisProcessHighestPriority(processId)
@@ -623,7 +623,7 @@ class SortingStorageLogic
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
         runStatus.clearCurrentActiveProcess()
-        storageCells.resumeIntakes()
+        storageCells.hwSortingM.resumeAwaitingEating()
 
         logM.logMd("FINISHED resume logic", PROCESS_ENDING)
     }

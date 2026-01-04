@@ -3,6 +3,7 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.woen.enumerators.Ball
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.woen.telemetry.LogManager
@@ -27,20 +28,23 @@ import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION
-
+import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 
 class HwSortingManager
 {
     private val _hwSorting = HwSorting()
-    //private val _hwSensors = HwSortingSensors()
+    private val _hwSensors = HwSortingSensors()
 
     val logM = LogManager(HSM_DEBUG_SETTING,
         HSM_DEBUG_LEVELS, "HSM")
 
-    val isAwaitingIntake = AtomicBoolean(false)
-    val isStoppingBelts  = AtomicBoolean(false)
-    val helpPushLastBall = AtomicBoolean(false)
+    val isStoppingBelts   = AtomicBoolean(false)
+    val helpPushLastBall  = AtomicBoolean(false)
+
+    val canHandleIntake   = AtomicBoolean(false)
+    val autoIntakeTracker = AutoIntakeTracker()
 
 
 
@@ -48,39 +52,52 @@ class HwSortingManager
     {
         subscribeToHwEvents()
         addDevices()
+
+        ThreadedGamepad.LAZY_INSTANCE.addListener(
+            createClickDownListener({ it.circle },   {
+
+                    canHandleIntake.set(true)
+        }   )   )
     }
 
     private fun subscribeToHwEvents()
     {
-//        _hwSensors.colorSensorsDetectedIntakeEvent +=
-//        {
-//            logM.logTag("Color sensors sees $it input", "StorageSensors", HARDWARE_LOW)
-//
-//            if (isAwaitingIntake.get())
-//            {
-//                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-//
-//                    val storageCanHandleInput = ThreadedEventBus.LAZY_INSTANCE.invoke(
-//                        BallCountInStorageEvent()).count + 1 < MAX_BALL_COUNT
-//
-//                    if (storageCanHandleInput)
-//                    {
-//                        ThreadedEventBus.LAZY_INSTANCE.invoke(
-//                            StorageGetReadyForIntakeEvent(it))
-//
-//                        logM.logMd("COLOR SENSORS - Start intake", HARDWARE_HIGH)
-//                        delay(DELAY.BETWEEN_INTAKES_MS)
-//
-//                        resumeAwaitingEating()
-//                    }
-//                    else
-//                    {
-//                        stopAwaitingEating(true)
-//                        delay(DELAY.BETWEEN_INTAKES_MS)
-//                    }
-//                }
-//            }
-//        }
+        _hwSensors.colorSensorsDetectedIntakeEvent +=
+        {
+            logM.logTag("ColorTr:${it.sensorsId} sees ${it.color} input", "StorageSensors", HARDWARE_LOW)
+
+            val isAwaitingIntake: Boolean
+            if (it.color != Ball.Name.NONE)
+            {
+                isAwaitingIntake = autoIntakeTracker.intakeIsFree() && canHandleIntake.get()
+                autoIntakeTracker.safeAddSensorId(it.sensorsId)
+            }
+            else
+            {
+                isAwaitingIntake = false
+                autoIntakeTracker.safeRemoveSensorId(it.sensorsId)
+            }
+
+            if (isAwaitingIntake)
+            {
+                stopAwaitingEating(false)
+
+                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+
+                    val storageCanHandleInput = ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        BallCountInStorageEvent()).count + 1 < MAX_BALL_COUNT
+
+                    if (storageCanHandleInput)
+                    {
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                            StorageGetReadyForIntakeEvent(it.color))
+
+                        logM.logMd("COLOR SENSORS - Started intake", HARDWARE_HIGH)
+                        resumeAwaitingEating()
+                    }
+                }
+            }
+        }
 
         _hwSorting.beltsCurrentPeakedEvent +=
         {
@@ -122,11 +139,11 @@ class HwSortingManager
 
 
 
-    fun resumeAwaitingEating() = isAwaitingIntake.set(true)
+    fun resumeAwaitingEating() = canHandleIntake.set(true)
     fun stopAwaitingEating(stopBelts: Boolean)
     {
         logM.logMd("Stopped auto intake awaiting", GENERIC_INFO)
-        isAwaitingIntake.set(false)
+        canHandleIntake.set(false)
         if (stopBelts) stopBelts()
     }
     suspend fun fullCalibrate()

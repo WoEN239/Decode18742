@@ -669,7 +669,7 @@ object Configs {
 
 
         @JvmField
-        var USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS = true
+        var USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS = false
 
         @JvmField
         var SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION = false
@@ -769,9 +769,9 @@ object Configs {
     internal object HARDWARE_DEVICES_NAMES {
 
         @JvmField
-        var INTAKE_COLOR_SENSOR_1 = "color1"
+        var INTAKE_COLOR_SENSOR_L = "colorSensorLeft"
         @JvmField
-        var INTAKE_COLOR_SENSOR_2 = "color2"
+        var INTAKE_COLOR_SENSOR_R = "colorSensorRight"
 
 
         @JvmField
