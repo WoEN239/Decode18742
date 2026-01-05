@@ -124,17 +124,19 @@ class Turret : IModule {
             ) { getHitHeight(it, targetAngle) }
         }
 
-        val calcAngle = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            val turretVel = _hardwareTurret.targetVelocity
+//        val calcAngle = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//            val turretVel = _hardwareTurret.targetVelocity
+//
+//            _hardwareTurret.anglePosition =
+//                approximation(Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE)
+//                { getHitHeight(turretVel, it) }
+//        }
 
-            _hardwareTurret.anglePosition =
-                approximation(Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE)
-                { getHitHeight(turretVel, it) }
-        }
+        _hardwareTurret.anglePosition = targetAngle
 
         runBlocking {
             calcVel.join()
-            calcAngle.join()
+//            calcAngle.join()
         }
     }
 

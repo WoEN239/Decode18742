@@ -292,7 +292,7 @@ object Configs {
         var SOLO_AIR_FORCE_K = 0.0
 
         @JvmField
-        var PULLEY_DRUM_U = 0.33
+        var PULLEY_DRUM_U = 0.328
 
         @JvmField
         var DRUM_AIR_FORCE_K = 0.0
@@ -340,7 +340,7 @@ object Configs {
         var MIN_ROTATE = ((1.0 - 0.74) - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
 
         @JvmField
-        var MAX_SHOOTING_DISTANCE = 5.0
+        var MAX_SHOOTING_DISTANCE = 3.0
     }
 
     @Config
@@ -642,7 +642,7 @@ object Configs {
         @JvmField
         var SMC_MAX_SHOT_AWAITING_MS: Long = 60
         @JvmField
-        var SSL_MAX_SHOT_AWAITING_MS: Long = 186
+        var SSL_MAX_SHOT_AWAITING_MS: Long = 200
         @JvmField
         var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33
 
@@ -770,9 +770,9 @@ object Configs {
         var PUSH_SERVO_CLOSE_VALUE = 0.84
 
         @JvmField
-        var LAUNCH_SERVO_OPEN_VALUE = 0.4
+        var LAUNCH_SERVO_OPEN_VALUE = 0.33
         @JvmField
-        var LAUNCH_SERVO_CLOSE_VALUE = 0.75
+        var LAUNCH_SERVO_CLOSE_VALUE = 0.7
 
 
 
