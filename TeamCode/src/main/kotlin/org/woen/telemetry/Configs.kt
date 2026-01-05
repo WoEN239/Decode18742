@@ -83,13 +83,13 @@ object Configs {
     @Config
     internal object ODOMETRY {
         @JvmField
-        var START_RED_CLOSE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), 0.91 + 0.38 / 2.0 - 0.045), Angle(PI))
+        var START_RED_CLOSE_ORIENTATION = Orientation(Vec2(-(1.205 + 0.38 / 2.0 + 0.01), 0.93 + 0.38 / 2.0 - 0.01), Angle(PI))
 
         @JvmField
         var START_RED_FAR_ORIENTATION = Orientation(Vec2(1.63, 0.39), Angle(PI))
 
         @JvmField
-        var START_BLUE_CLOSE_ORIENTATION = Orientation(Vec2(-(1.215 + 0.38 / 2.0), -0.91 - 0.38 / 2.0 + 0.045), Angle(PI))
+        var START_BLUE_CLOSE_ORIENTATION = Orientation(Vec2(-(1.205 + 0.38 / 2.0 + 0.01), -0.93 - 0.38 / 2.0 + 0.01), Angle(PI))
 
         @JvmField
         var START_BLUE_FAR_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI))
@@ -286,7 +286,7 @@ object Configs {
         var MAX_TURRET_ANGLE = PI / 2.0 - atan2(7.0, 16.0)
 
         @JvmField
-        var PULLEY_U = 0.302
+        var PULLEY_U = 0.35
 
         @JvmField
         var AIR_FORCE_K = 0.0
