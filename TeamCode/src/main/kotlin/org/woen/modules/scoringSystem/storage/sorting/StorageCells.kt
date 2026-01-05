@@ -253,7 +253,7 @@ class StorageCells
         logAllStorageData()
 
         var curSlot = StorageSlot.BOTTOM
-        var rotationTime = Delay.FULL_PUSH
+        var rotationTime = 2 * Delay.PART_PUSH
         while (curSlot < StorageSlot.MOBILE && _storageCells[curSlot].isEmpty())
         {
             curSlot++

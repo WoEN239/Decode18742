@@ -105,10 +105,12 @@ class Turret : IModule {
             return pos.y
         }
 
-        val calcVel = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            val targetAngle =
-                if (_currentMode == TurretMode.SHORT) Configs.TURRET.SHORT_ANGLE_POSITION else Configs.TURRET.LONG_ANGLE_POSITION
+        val targetAngle =
+            ((turretPos - HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition).length()
+                    / Configs.TURRET.MAX_SHOOTING_DISTANCE) * (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) +
+                    Configs.TURRET.MIN_TURRET_ANGLE
 
+        val calcVel = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             _hardwareTurret.targetVelocity = approximation(
                 Configs.TURRET.MINIMAL_PULLEY_VELOCITY,
                 Configs.TURRET.MAX_MOTOR_RPS * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS

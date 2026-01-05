@@ -286,7 +286,7 @@ object Configs {
         var MAX_TURRET_ANGLE = PI / 2.0 - atan2(7.0, 16.0)
 
         @JvmField
-        var PULLEY_U = 0.35
+        var PULLEY_U = 0.345
 
         @JvmField
         var AIR_FORCE_K = 0.0
@@ -302,12 +302,6 @@ object Configs {
 
         @JvmField
         var SHOOT_TRIGGER_DELAY = 0.008
-
-        @JvmField
-        var SHORT_ANGLE_POSITION = 50.0 / 180.0 * PI
-
-        @JvmField
-        var LONG_ANGLE_POSITION = 45.0 / 180.0 * PI
 
         @JvmField
         var MINIMAL_PULLEY_VELOCITY = 5.0
@@ -338,6 +332,9 @@ object Configs {
 
         @JvmField
         var MIN_ROTATE = ((1.0 - 0.74) - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
+
+        @JvmField
+        var MAX_SHOOTING_DISTANCE = 5.0
     }
 
     @Config
@@ -640,7 +637,7 @@ object Configs {
         @JvmField
         var SMC_MAX_SHOT_AWAITING_MS: Long = 60
         @JvmField
-        var SSM_MAX_SHOT_AWAITING_MS: Long = 184
+        var SSM_MAX_SHOT_AWAITING_MS: Long = 187
 
 
 
@@ -847,10 +844,10 @@ object Configs {
     @Config
     internal object BATTERY{
         @JvmField
-        var LOW_VOLTAGE = 8.5
+        var LOW_VOLTAGE = 9.5
 
         @JvmField
-        var LOW_VOLTAGE_TRIGGER_TIME = 0.5
+        var LOW_VOLTAGE_TRIGGER_TIME = 0.2
     }
 
     @Config
