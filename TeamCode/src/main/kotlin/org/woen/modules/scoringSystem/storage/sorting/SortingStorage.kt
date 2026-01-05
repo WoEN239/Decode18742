@@ -20,6 +20,7 @@ import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 
+import org.woen.modules.scoringSystem.turret.CurrentlyShooting
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
@@ -98,6 +99,11 @@ class SortingStorage
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             ShotWasFiredEvent::class, {
                 _storageLogic.shotWasFired()
+        }   )
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(
+            CurrentlyShooting::class, {
+                _storageLogic.canShoot.set(true)
         }   )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(

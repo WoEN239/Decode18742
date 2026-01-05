@@ -82,8 +82,8 @@ class HwSortingManager
             if (it.color != Ball.Name.NONE)
             {
                 intakeNotDetectedTimer.reset()
-                logM.logMd("Can handle: ${canHandleIntake.get()}", GENERIC_INFO)
-                logM.logMd("Intake is free: ${autoIntakeTracker.intakeIsFree()}", GENERIC_INFO)
+                logM.logMd("Can handle: ${canHandleIntake.get()}", HARDWARE_LOW)
+                logM.logMd("Intake is free: ${autoIntakeTracker.intakeIsFree()}", HARDWARE_LOW)
                 isAwaitingIntake = autoIntakeTracker.intakeIsFree() && canHandleIntake.get()
                 autoIntakeTracker.safeAddSensorId(it.sensorsId)
             }
@@ -257,7 +257,7 @@ class HwSortingManager
 
     fun shootStartBelts()
     {
-        logM.logMd("SHOOT Starter hw belts", HARDWARE)
+        logM.logMd("SHOOT Starterв hw belts", HARDWARE)
         _hwSorting.shootStartBeltMotors()
     }
     fun slowStartBelts()
@@ -324,7 +324,7 @@ class HwSortingManager
 
         if (helpPushLastBall.get())
         {
-//            delay(Delay.HALF_PUSH)
+            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 8)
             openLaunch()
             helpPushLastBall.set(false)
         }

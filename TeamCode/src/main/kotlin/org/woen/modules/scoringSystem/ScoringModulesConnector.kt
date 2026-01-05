@@ -80,8 +80,9 @@ class ScoringModulesConnector
     val logM = LogManager(SMC_DEBUG_SETTING, SMC_DEBUG_LEVELS, "SMC")
 
 
-    private val _isBusy          = AtomicBoolean(false)
-    private val _isAlreadyFiring = AtomicBoolean(false)
+    private val _isBusy            = AtomicBoolean(false)
+    private val _isAlreadyFiring   = AtomicBoolean(false)
+    private val _currentlyShooting = AtomicBoolean(false)
     private val _runningIntakeInstances = AtomicInteger(0)
 
     private val _shotWasFired      = AtomicBoolean(false)
@@ -521,15 +522,20 @@ class ScoringModulesConnector
         logM.logMd("Starting Drivetrain rotation", PROCESS_STARTING)
 //        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
 //            DriveMode.SHOOTING)).process.wait()
-
         logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
+
+
+        while (_currentlyShooting.get())
+            delay(DELAY.EVENT_AWAITING_MS)
+
+        _currentlyShooting.set(true)
         awaitShotFiring()
     }
     private suspend fun awaitShotFiring()
     {
         logM.logMd("SEND - AWAITING SHOT", EVENTS_FEEDBACK)
         ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
-        _storage.hwSmartPushNextBall()
+//        _storage.hwSmartPushNextBall()
 
 
         var timePassedWaitingForShot = NOTHING.toLong()
@@ -545,9 +551,10 @@ class ScoringModulesConnector
         else logM.logMd("\n\n\nRECEIVED - SHOT FIRED\n", LOGIC_STEPS)
 
 
-        if (_shotWasFired.get()) ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
+        //if (_shotWasFired.get()) ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
 
         _shotWasFired.set(false)
+        _currentlyShooting.set(false)
         _requestWasTerminated.set(false)
     }
 

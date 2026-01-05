@@ -53,6 +53,7 @@ class SortingStorageLogic
     val storageCells           = StorageCells()
     val dynamicMemoryPattern   = DynamicPattern()
 
+    val canShoot               = AtomicBoolean(false)
     val shotWasFired           = AtomicBoolean(false)
     val lazyIntakeIsActive     = AtomicBoolean(false)
     val pleaseWaitForIntakeEnd = AtomicBoolean(false)
@@ -684,12 +685,25 @@ class SortingStorageLogic
     {
         storageCells.hwSortingM.openTurretGate()
         logM.logMd("waiting for shot - event send", EVENTS_FEEDBACK)
+        shotWasFired.set(false)
+        canShoot.set(false)
         ThreadedEventBus.LAZY_INSTANCE.invoke(Request.IsReadyEvent)
 
         var timePassedWaiting: Long = NOTHING.toLong()
+        while (!canShoot.get() && timePassedWaiting < DELAY.SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS)
+        {
+            delay(DELAY.EVENT_AWAITING_MS)
+            timePassedWaiting += DELAY.EVENT_AWAITING_MS
+            if (isForcedToTerminate(processId)) return false
+        }
+
+        if (!canShoot.get()) return false
+
+        timePassedWaiting = 0
+        storageCells.hwSortingM.smartPushNextBall()
 
         while (!shotWasFired.get() &&
-            timePassedWaiting < DELAY.SSM_MAX_SHOT_AWAITING_MS)
+            timePassedWaiting < DELAY.SSL_MAX_SHOT_AWAITING_MS)
         {
             delay(DELAY.EVENT_AWAITING_MS)
             timePassedWaiting += DELAY.EVENT_AWAITING_MS
@@ -700,7 +714,6 @@ class SortingStorageLogic
         logM.logMd("fired? ${shotWasFired.get()}," +
                 " delta time: $timePassedWaiting", GENERIC_INFO)
 
-        shotWasFired.set(false)
         storageCells.updateAfterRequest()
 
         if (doWaitBeforeNextShot) delay(BETWEEN_SHOTS_MS)

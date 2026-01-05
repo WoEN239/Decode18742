@@ -292,7 +292,7 @@ object Configs {
         var SOLO_AIR_FORCE_K = 0.0
 
         @JvmField
-        var PULLEY_DRUM_U = 0.32
+        var PULLEY_DRUM_U = 0.33
 
         @JvmField
         var DRUM_AIR_FORCE_K = 0.0
@@ -574,7 +574,6 @@ object Configs {
         //  Hardware sorting manager
         var HSM_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
         var HSM_DEBUG_LEVELS  = arrayListOf(
-            HARDWARE_LOW,
             HARDWARE,
             HARDWARE_HIGH,
 
@@ -643,7 +642,9 @@ object Configs {
         @JvmField
         var SMC_MAX_SHOT_AWAITING_MS: Long = 60
         @JvmField
-        var SSM_MAX_SHOT_AWAITING_MS: Long = 188
+        var SSL_MAX_SHOT_AWAITING_MS: Long = 186
+        @JvmField
+        var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33
 
 
 
