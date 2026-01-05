@@ -1,24 +1,33 @@
 package org.woen.modules.light
 
+
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
 import org.woen.telemetry.Configs
-import org.woen.telemetry.ThreadedTelemetry
+import org.woen.telemetry.Configs.BATTERY.LOW_VOLTAGE
+import org.woen.telemetry.Configs.BATTERY.LOW_VOLTAGE_TRIGGER_TIME
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedBattery
 
+
+
 data class SetLightColorEvent(val color: Light.LightColor)
 class RequireLedColorEvent(var color: Light.LightColor = Light.LightColor.BLUE)
 
-class Light: IModule {
-    enum class LightColor{
+
+
+class Light: IModule
+{
+    enum class LightColor
+    {
         GREEN,
         BLUE,
-        ORANGE
+        ORANGE,
+        RED
     }
 
     private val _expansionLed = HardwareLight("expansionR", "expansionG", "expansionB")
@@ -28,7 +37,7 @@ class Light: IModule {
 
     private var _lightJob: Job? = null
 
-    constructor(){
+    constructor() {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_expansionLed)
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_controlLed)
 
@@ -43,18 +52,24 @@ class Light: IModule {
 
     private val _lowVoltageTimer = ElapsedTime()
 
-    override suspend fun process() {
+    override suspend fun process()
+    {
         _lightJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            if (ThreadedBattery.LAZY_INSTANCE.currentVoltage < Configs.BATTERY.LOW_VOLTAGE) {
-                if(_lowVoltageTimer.seconds() > Configs.BATTERY.LOW_VOLTAGE_TRIGGER_TIME) {
-                    _expansionLed.color = LightColor.ORANGE
-                    _controlLed.color = LightColor.ORANGE
+            if (ThreadedBattery.LAZY_INSTANCE.currentVoltage < LOW_VOLTAGE)
+            {
+                if(_lowVoltageTimer.seconds() > LOW_VOLTAGE_TRIGGER_TIME)
+                {
+                    _expansionLed.color = LightColor.RED
+                    _controlLed.color   = LightColor.RED
                 }
-                else{
+                else
+                {
                     _expansionLed.color = _currentLightColor
-                    _controlLed.color = _currentLightColor
+                    _controlLed.color   = _currentLightColor
                 }
-            } else {
+            }
+            else
+            {
                 _expansionLed.color = _currentLightColor
                 _controlLed.color = _currentLightColor
                 _lowVoltageTimer.reset()
@@ -65,14 +80,13 @@ class Light: IModule {
     override val isBusy: Boolean
         get() = _lightJob != null && !_lightJob!!.isCompleted
 
-    override fun opModeStart() {
+    override fun opModeStart()
+    {
         _expansionLed.color = _currentLightColor
-        _controlLed.color = _currentLightColor
+        _controlLed.color   = _currentLightColor
     }
 
-    override fun opModeStop() {
-
-    }
+    override fun opModeStop() { }
 
     override fun dispose() {
         _lightJob?.cancel()

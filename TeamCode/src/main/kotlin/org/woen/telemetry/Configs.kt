@@ -851,32 +851,35 @@ object Configs {
     }
 
     @Config
-    internal object LIGHT{
+    internal object LIGHT {
+
         @JvmField
         var BLUE_R_POWER = 0.0
-
         @JvmField
         var BLUE_G_POWER = 1.0
-
         @JvmField
         var BLUE_B_POWER = 1.0
 
         @JvmField
         var GREEN_R_POWER = 0.0
-
         @JvmField
         var GREEN_G_POWER = 1.0
-
         @JvmField
         var GREEN_B_POWER = 0.0
 
         @JvmField
         var ORANGE_R_POWER = 1.0
-
         @JvmField
-        var ORANGE_G_POWER = 0.25
-
+        var ORANGE_G_POWER = 0.2
         @JvmField
         var ORANGE_B_POWER = 0.0
+
+
+        @JvmField
+        var RED_R_POWER = 1.0
+        @JvmField
+        var RED_G_POWER = 0.0
+        @JvmField
+        var RED_B_POWER = 0.0
     }
 }

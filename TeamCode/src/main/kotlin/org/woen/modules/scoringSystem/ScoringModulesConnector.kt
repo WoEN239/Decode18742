@@ -107,6 +107,10 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             StorageGetReadyForIntakeEvent::class, {
                 ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetLightColorEvent(Light.LightColor.ORANGE))
+
                     startIntakeProcess(it.inputToBottomSlot)
                 }
         }   )
