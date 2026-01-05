@@ -12,6 +12,9 @@ import org.woen.enumerators.BallRequest
 import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 
+import org.woen.modules.light.Light
+import org.woen.modules.light.SetLightColorEvent
+
 import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
@@ -41,7 +44,8 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
 import org.woen.telemetry.Configs.DELAY.BETWEEN_SHOTS_MS
-import org.woen.telemetry.Configs.SORTING_SETTINGS.SHOULD_WAIT_BEFORE_NEXT_SHOT_IF_NOT_LAZY
+import org.woen.telemetry.Configs.SORTING_SETTINGS.DO_WAIT_BEFORE_NEXT_SHOT
+
 
 
 class SortingStorageLogic
@@ -148,6 +152,11 @@ class SortingStorageLogic
 
         storageCells.updateAfterIntake(inputBall)
         runningIntakeInstances.getAndAdd(-1)
+
+        if (runningIntakeInstances.get() == 0)
+            ThreadedEventBus.LAZY_INSTANCE.invoke(
+                SetLightColorEvent(Light.LightColor.BLUE))
+
         return Intake.SUCCESS
     }
 
@@ -242,12 +251,12 @@ class SortingStorageLogic
 
         return if (updateResult.didSucceed())
         {
-            storageCells.hwSortingM.helpPushLastBall.set(
-                storageCells.onlyOneBallLeft())
+            val isLastBall = storageCells.onlyOneBallLeft()
+            storageCells.hwSortingM.helpPushLastBall.set(isLastBall)
 
-            if (!fullWaitForShotFired(
-                    processId, !isNowPerfectlySorted,
-                    autoUpdatePatternWhenSucceed))
+            val doWaitBeforeNextShot = DO_WAIT_BEFORE_NEXT_SHOT && !isLastBall
+
+            if (!fullWaitForShotFired(processId, doWaitBeforeNextShot, autoUpdatePatternWhenSucceed))
                  Request.TERMINATED
             else if (storageCells.isNotEmpty())
                  Request.SUCCESS
@@ -315,12 +324,12 @@ class SortingStorageLogic
         var shotsFired = NOTHING
         while (shotsFired < MAX_BALL_COUNT)
         {
-            storageCells.hwSortingM.helpPushLastBall.set(
-                shotsFired == MAX_BALL_COUNT - 1)
+            val isLastShot = shotsFired == MAX_BALL_COUNT - 1
+            storageCells.hwSortingM.helpPushLastBall.set(isLastShot)
 
             if (!fullWaitForShotFired(
                     DRUM_REQUEST,
-                    SHOULD_WAIT_BEFORE_NEXT_SHOT_IF_NOT_LAZY,
+                    DO_WAIT_BEFORE_NEXT_SHOT && !isLastShot,
                     false))
                 return Request.TERMINATED
 
@@ -337,11 +346,12 @@ class SortingStorageLogic
 
         while (ballCount > NOTHING)
         {
-            storageCells.hwSortingM.helpPushLastBall.set(ballCount == 1)
+            val isLastShot = ballCount == 1
+            storageCells.hwSortingM.helpPushLastBall.set(isLastShot)
 
             if (!fullWaitForShotFired(
                     DRUM_REQUEST,
-                    SHOULD_WAIT_BEFORE_NEXT_SHOT_IF_NOT_LAZY,
+                    DO_WAIT_BEFORE_NEXT_SHOT && !isLastShot,
                     false))
                 return Request.TERMINATED
 
@@ -491,7 +501,7 @@ class SortingStorageLogic
                 return Request.TERMINATED
 
             if (Request.didFail(shootingResult))
-                curRequestId += MAX_BALL_COUNT  //  Fast break if next ball is not present
+                curRequestId += MAX_BALL_COUNT  //  Fast break if the next ball is not present
 
             curRequestId++
         }

@@ -250,10 +250,10 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0, -3.66 / 2.0)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.3, -3.66 / 2.0 + 0.3)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0, 3.66 / 2.0)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.3, 3.66 / 2.0 - 0.3)
 
         @JvmField
         var TURRET_HEIGHT = 0.32
@@ -262,7 +262,7 @@ object Configs {
         var BALL_MASS = 0.075
 
         @JvmField
-        var BASKET_TARGET_HEIGHT = 1.0
+        var BASKET_TARGET_HEIGHT = 1.16
 
         @JvmField
         var TIME_STEP = 0.05
@@ -286,10 +286,16 @@ object Configs {
         var MAX_TURRET_ANGLE = PI / 2.0 - atan2(7.0, 16.0)
 
         @JvmField
-        var PULLEY_U = 0.345
+        var PULLEY_SOLO_U = 0.345
 
         @JvmField
-        var AIR_FORCE_K = 0.0
+        var SOLO_AIR_FORCE_K = 0.0
+
+        @JvmField
+        var PULLEY_DRUM_U = 0.32
+
+        @JvmField
+        var DRUM_AIR_FORCE_K = 0.0
 
         @JvmField
         var TURRET_SHOOT_POS = Vec2(0.0, 0.06)
@@ -301,7 +307,7 @@ object Configs {
         var TURRET_SHOOT_DETECT_CURRENT: Double = 3.7
 
         @JvmField
-        var SHOOT_TRIGGER_DELAY = 0.008
+        var SHOOT_TRIGGER_DELAY = 0.007
 
         @JvmField
         var MINIMAL_PULLEY_VELOCITY = 5.0
@@ -637,7 +643,7 @@ object Configs {
         @JvmField
         var SMC_MAX_SHOT_AWAITING_MS: Long = 60
         @JvmField
-        var SSM_MAX_SHOT_AWAITING_MS: Long = 187
+        var SSM_MAX_SHOT_AWAITING_MS: Long = 188
 
 
 
@@ -679,7 +685,7 @@ object Configs {
         var USE_EASY_VERSION_OF_STREAM_REQUEST = true
 
         @JvmField
-        var SHOULD_WAIT_BEFORE_NEXT_SHOT_IF_NOT_LAZY = false
+        var DO_WAIT_BEFORE_NEXT_SHOT = false
 
 
         @JvmField
@@ -870,7 +876,7 @@ object Configs {
         @JvmField
         var ORANGE_R_POWER = 1.0
         @JvmField
-        var ORANGE_G_POWER = 0.2
+        var ORANGE_G_POWER = 0.07
         @JvmField
         var ORANGE_B_POWER = 0.0
 

@@ -34,6 +34,7 @@ import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
 import org.woen.modules.scoringSystem.turret.CurrentlyShooting
 import org.woen.modules.scoringSystem.turret.TurretCurrentPeaked
+import org.woen.modules.scoringSystem.turret.SetTurretShootTypeEvent
 
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
@@ -427,6 +428,9 @@ class ScoringModulesConnector
             delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
+
         logM.logMd("Started - SMART drum request", PROCESS_STARTING)
         val requestResult = _storage.shootEntireDrumRequest(
                 shootingMode,
@@ -455,6 +459,9 @@ class ScoringModulesConnector
 //        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
 //            DriveMode.SHOOTING)).process.wait()
 
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
+
         logM.logMd("Started - Lazy stream drum request", PROCESS_STARTING)
         val requestResult = _storage.lazyDrumRequest()
         logM.logMd("FINISHED - Lazy stream drum request", PROCESS_ENDING)
@@ -475,6 +482,9 @@ class ScoringModulesConnector
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
                 DriveMode.SHOOTING))
 
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
+
         logM.logMd("Started - stream drum request", PROCESS_STARTING)
         val requestResult = _storage.streamDrumRequest()
         logM.logMd("FINISHED - stream drum request", PROCESS_ENDING)
@@ -493,6 +503,9 @@ class ScoringModulesConnector
         setBusy()
 
         logM.logMd("Started - Single request", PROCESS_STARTING)
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            SetTurretShootTypeEvent(Shooting.ShotType.SINGLE))
 
         val requestResult = _storage.handleRequest(ballRequest)
         logM.logMd("FINISHED - Single request", PROCESS_ENDING)

@@ -7,6 +7,12 @@ import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
 class Shooting
 {
+    enum class ShotType
+    {
+        DRUM,
+        SINGLE
+    }
+
     enum class Mode
     {
         FIRE_EVERYTHING_YOU_HAVE,

@@ -4,6 +4,7 @@ package org.woen.modules.scoringSystem.turret
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.woen.enumerators.Shooting.ShotType
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.RequireOdometryEvent
@@ -19,6 +20,7 @@ import kotlin.math.PI
 import kotlin.math.pow
 
 
+
 class SetTurretMode(val mode: Turret.TurretMode)
 
 class CurrentlyShooting()
@@ -26,9 +28,12 @@ class TurretCurrentPeaked()
 
 class RequestTurretCurrentRotation(var rotation: Angle = Angle.ZERO) : StoppingEvent
 
+class SetTurretShootTypeEvent(val type: ShotType)
+
 
 class Turret : IModule {
     private val _hardwareTurret = HardwareTurret()
+
 
     enum class TurretState {
         STOP,
@@ -47,6 +52,8 @@ class Turret : IModule {
     private var _isShooting = false
 
     private var _currentMode = TurretMode.SHORT
+
+    private var _currentShootType = ShotType.DRUM
 
     override suspend fun process() {
         _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -87,14 +94,14 @@ class Turret : IModule {
 //        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
 
         fun getHitHeight(startVel: Double, angle: Double): Double {
-            var vecVel = Vec2(startVel * Configs.TURRET.PULLEY_U, 0.0).setRot(angle)
+            var vecVel = Vec2(startVel * (if(_currentShootType == ShotType.SINGLE) Configs.TURRET.PULLEY_SOLO_U else Configs.TURRET.PULLEY_DRUM_U), 0.0).setRot(angle)
 //            vecVel += robotXVel
             var pos = Vec2.ZERO
 
             while (pos.x < shootDistance && !Thread.currentThread().isInterrupted && pos.y > -1.0) {
                 vecVel -= (Vec2(
                     vecVel.length()
-                        .pow(2.0) * Configs.TURRET.AIR_FORCE_K / Configs.TURRET.BALL_MASS, 0.0
+                        .pow(2.0) * (if(_currentShootType == ShotType.SINGLE) Configs.TURRET.SOLO_AIR_FORCE_K else Configs.TURRET.DRUM_AIR_FORCE_K) / Configs.TURRET.BALL_MASS, 0.0
                 ).setRot(vecVel.rot()) +
                         Vec2(0.0, Configs.TURRET.CALCULATING_G)) *
                         Configs.TURRET.TIME_STEP
@@ -209,6 +216,10 @@ class Turret : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretCurrentRotation::class, {
             it.rotation = Angle(_hardwareTurret.currentRotatePosition)
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(SetTurretShootTypeEvent::class, {
+            _currentShootType = it.type
         })
     }
 }
