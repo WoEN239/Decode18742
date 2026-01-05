@@ -313,7 +313,7 @@ class HwSortingManager
         openPush()
 
         reverseBelts()
-        delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 4)
+//        delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 10)
         closeGateWithPush()
     }
 

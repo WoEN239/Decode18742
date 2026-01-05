@@ -372,10 +372,10 @@ object Configs {
         @JvmField
         var LCS_GREEN_BALL_G_K = 1.0 - 0.39
         @JvmField
-        var LCS_GREEN_BALL_B_K = 0.39
+        var LCS_GREEN_BALL_B_K = 0.44
 
         @JvmField
-        var LCS_GREEN_BALL_THRESHOLD = 37.0
+        var LCS_GREEN_BALL_THRESHOLD = 40.0
 
 
         @JvmField
@@ -386,7 +386,7 @@ object Configs {
         var LCS_PURPLE_BALL_B_K = (1.0 - 0.78) / 2.0
 
         @JvmField
-        var LCS_PURPLE_BALL_THRESHOLD = 30.0
+        var LCS_PURPLE_BALL_THRESHOLD = 29.0
 
 
 
@@ -632,7 +632,7 @@ object Configs {
 
 
         @JvmField
-        var SORTING_REALIGNING_FORWARD_MS: Long = 333
+        var SORTING_REALIGNING_FORWARD_MS: Long = 222
         @JvmField
         var SORTING_REALIGNING_REVERSE_MS: Long = 65
 
