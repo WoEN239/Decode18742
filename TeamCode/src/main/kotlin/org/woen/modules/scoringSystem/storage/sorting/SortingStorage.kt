@@ -392,7 +392,8 @@ class SortingStorage
 
 
         val shootingResult = _storageLogic.shootRequestFinalPhase(
-            requestResult, SINGLE_REQUEST)
+            requestResult, SINGLE_REQUEST,
+            requestResult == Request.TURRET_SLOT)
 
         if (shootingResult == Request.TERMINATED)
             return _storageLogic.terminateRequest(SINGLE_REQUEST)

@@ -172,8 +172,8 @@ class StorageCells
                 else if (canMatchRequest) localMaximum += TRUE_MATCH_WEIGHT
                 else requestId += trimmedRequestSize
 
-                logM.logMd("> requestId: $requestId, direct match: $canMatchRequest\n"
-                      + "request ball: ${curRequest.name()}, storage ball: ${storageBall.name()}",
+                logM.logMd("requestId: ${requestId % MAX_BALL_COUNT}, direct match: $canMatchRequest"
+                      + "\n\t\t> request ball: ${curRequest.name()}, storage ball: ${storageBall.name()}",
                     GENERIC_INFO)
 
                 requestId++

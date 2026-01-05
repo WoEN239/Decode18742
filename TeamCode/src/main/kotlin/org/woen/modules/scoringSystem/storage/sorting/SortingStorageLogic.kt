@@ -409,9 +409,12 @@ class SortingStorageLogic
                      storageCells.handleRequest(requested[curRequestId])
                 else Request.TURRET_SLOT
 
+            val noRotationNeeded = isNowPerfectlySorted || requestResult == Request.TURRET_SLOT
+
             shootingResult = shootRequestFinalPhase(
                 requestResult, DRUM_REQUEST,
-                isNowPerfectlySorted, autoUpdatePatternWhenSucceed)
+                noRotationNeeded,
+                autoUpdatePatternWhenSucceed)
 
             curRequestId++
         }
@@ -477,9 +480,12 @@ class SortingStorageLogic
                     storageCells.handleRequest(requested[curRequestId])
                 else Request.TURRET_SLOT
 
+            val noRotationNeeded = isNowPerfectlySorted || requestResult == Request.TURRET_SLOT
+
             shootingResult = shootRequestFinalPhase(
                 requestResult, DRUM_REQUEST,
-                isNowPerfectlySorted, autoUpdatePatternWhenSucceed)
+                noRotationNeeded,
+                autoUpdatePatternWhenSucceed)
 
             if (Request.wasTerminated(shootingResult))
                 return Request.TERMINATED
@@ -597,11 +603,14 @@ class SortingStorageLogic
 
             val requestResult = if (!isNowPerfectlySorted)
                 storageCells.handleRequest(requested[curRequestId])
-            else Request.TURRET_SLOT
+                else Request.TURRET_SLOT
+
+            val noRotationNeeded = isNowPerfectlySorted || requestResult == Request.TURRET_SLOT
 
             shootingResult = shootRequestFinalPhase(
                 requestResult, DRUM_REQUEST,
-                isNowPerfectlySorted, autoUpdatePatternWhenSucceed)
+                noRotationNeeded,
+                autoUpdatePatternWhenSucceed)
 
             if (Request.wasTerminated(shootingResult))
                 return Request.TERMINATED
@@ -682,10 +691,9 @@ class SortingStorageLogic
                 " delta time: $timePassedWaiting", GENERIC_INFO)
 
         shotWasFired.set(false)
-        //storageCells.hwSortingM.hwReverseBeltsTime(Delay.FULL_PUSH)
         storageCells.updateAfterRequest()
 
-        delay(BETWEEN_SHOTS_MS)
+        if (doWaitBeforeNextShot) delay(BETWEEN_SHOTS_MS)
 
         if (autoUpdatePatternWhenSucceed)
             dynamicMemoryPattern.removeFromTemporary()
