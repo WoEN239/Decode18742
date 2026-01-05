@@ -207,26 +207,27 @@ object Configs {
     internal object CAMERA {
         @JvmField
         var CAMERA_ENABLE = true
-        @JvmField
-        var CAMERA_H_RED_DOWN=4.0
-        @JvmField
-        var CAMERA_H_RED_UP=30.0
-        @JvmField
-        var CAMERA_C_RED_DOWN=127.7
-        @JvmField
-        var CAMERA_C_RED_UP=255.0
-        @JvmField
-        var CAMERA_V_RED_DOWN=154.5
-        @JvmField
-        var CAMERA_V_RED_UP=255.0
-        @JvmField
-        var CAMERA_KSIZE=22.0
 
         @JvmField
-        var CRASH_TIME = 1.0
+        var CAMERA_H_RED_DOWN = 4.0
 
         @JvmField
-        var CRASH_FPS_THRESHOLD = 0.00001
+        var CAMERA_H_RED_UP = 30.0
+
+        @JvmField
+        var CAMERA_C_RED_DOWN = 127.7
+
+        @JvmField
+        var CAMERA_C_RED_UP = 255.0
+
+        @JvmField
+        var CAMERA_V_RED_DOWN = 154.5
+
+        @JvmField
+        var CAMERA_V_RED_UP = 255.0
+
+        @JvmField
+        var CAMERA_KSIZE = 22.0
     }
 
     @Config
@@ -255,23 +256,23 @@ object Configs {
         @JvmField
         var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.3, 3.66 / 2.0 - 0.3)
 
-        @JvmField
-        var TURRET_HEIGHT = 0.32
-
-        @JvmField
-        var BALL_MASS = 0.075
-
-        @JvmField
-        var BASKET_TARGET_HEIGHT = 1.16
-
-        @JvmField
-        var TIME_STEP = 0.05
-
-        @JvmField
-        var CALCULATING_G = 9.78
-
-        @JvmField
-        var APPROXIMATION_MAX_ITERATIONS = 100
+//        @JvmField
+//        var TURRET_HEIGHT = 0.32
+//
+//        @JvmField
+//        var BALL_MASS = 0.075
+//
+//        @JvmField
+//        var BASKET_TARGET_HEIGHT = 1.16
+//
+//        @JvmField
+//        var TIME_STEP = 0.05
+//
+//        @JvmField
+//        var CALCULATING_G = 9.78
+//
+//        @JvmField
+//        var APPROXIMATION_MAX_ITERATIONS = 100
 
         @JvmField
         var MIN_TURRET_ANGLE_SERVO = 0.25
@@ -285,17 +286,17 @@ object Configs {
         @JvmField
         var MAX_TURRET_ANGLE = PI / 2.0 - atan2(7.0, 16.0)
 
-        @JvmField
-        var PULLEY_SOLO_U = 0.345
-
-        @JvmField
-        var SOLO_AIR_FORCE_K = 0.0
-
-        @JvmField
-        var PULLEY_DRUM_U = 0.328
-
-        @JvmField
-        var DRUM_AIR_FORCE_K = 0.0
+//        @JvmField
+//        var PULLEY_SOLO_U = 0.345
+//
+//        @JvmField
+//        var SOLO_AIR_FORCE_K = 0.0
+//
+//        @JvmField
+//        var PULLEY_DRUM_U = 0.328
+//
+//        @JvmField
+//        var DRUM_AIR_FORCE_K = 0.0
 
         @JvmField
         var TURRET_SHOOT_POS = Vec2(0.0, 0.06)
@@ -308,12 +309,12 @@ object Configs {
 
         @JvmField
         var SHOOT_TRIGGER_DELAY = 0.007
-
-        @JvmField
-        var MINIMAL_PULLEY_VELOCITY = 5.0
-
-        @JvmField
-        var MAX_MOTOR_RPS = 85.0
+//
+//        @JvmField
+//        var MINIMAL_PULLEY_VELOCITY = 5.0
+//
+//        @JvmField
+//        var MAX_MOTOR_RPS = 85.0
 
         @JvmField
         var ZERO_ROTATE_POS = 1.0 - 0.663
@@ -338,9 +339,24 @@ object Configs {
 
         @JvmField
         var MIN_ROTATE = ((1.0 - 0.74) - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
+//
+//        @JvmField
+//        var MAX_SHOOTING_DISTANCE = 3.0
 
         @JvmField
-        var MAX_SHOOTING_DISTANCE = 3.0
+        var SHOOTING_RED_POSITION = Vec2(0.0, 0.0)
+
+        @JvmField
+        var SHOOTING_BLUE_POSITION = Vec2(0.0, 0.0)
+
+        @JvmField
+        var SHOOTING_ANGLE_POSITION = 0.0
+
+        @JvmField
+        var SHOOTING_SINGLE_PULLEY_VELOCITY = 0.0
+
+        @JvmField
+        var SHOOTING_DRUM_PULLEY_VELOCITY = 0.0
     }
 
     @Config

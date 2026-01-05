@@ -50,10 +50,6 @@ class Camera : DisposableHandle {
 
     var currentPattern: Pattern? = null
 
-    private var _oldFPS = 0.0
-
-    private val _crashTimer = ElapsedTime()
-
     private val _thread =
         ThreadManager.LAZY_INSTANCE.register(thread(start = true, name = "Camera thread") {
             while (!Thread.currentThread().isInterrupted && Configs.CAMERA.CAMERA_ENABLE) {
@@ -69,19 +65,6 @@ class Camera : DisposableHandle {
                     Thread.sleep(5)
                     continue
                 }
-
-//                _visionPortal?.let {
-//                    val fps = it.fps.toDouble()
-//
-//                    if (abs(_oldFPS - fps) > Configs.CAMERA.CRASH_FPS_THRESHOLD)
-//                        _crashTimer.reset()
-//                    else if (_crashTimer.seconds() > Configs.CAMERA.CRASH_TIME) {
-//                        reCreateCamera()
-//                        ThreadedTelemetry.LAZY_INSTANCE.log("camera restarted cause: fps")
-//                    }
-//
-//                    _oldFPS = fps
-//                }
 
                 val detections = _aprilProcessor?.freshDetections
 

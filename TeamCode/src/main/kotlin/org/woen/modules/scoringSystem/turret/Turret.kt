@@ -2,8 +2,8 @@ package org.woen.modules.scoringSystem.turret
 
 
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.woen.enumerators.Shooting.ShotType
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
@@ -15,10 +15,6 @@ import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Angle
-import org.woen.utils.units.Vec2
-import kotlin.math.PI
-import kotlin.math.pow
-
 
 
 class SetTurretMode(val mode: Turret.TurretMode)
@@ -33,7 +29,7 @@ class SetTurretShootTypeEvent(val type: ShotType)
 
 class Turret : IModule {
     private val _hardwareTurret = HardwareTurret()
-
+    private val _hardwareTurretServos = HardwareTurretServos()
 
     enum class TurretState {
         STOP,
@@ -55,12 +51,16 @@ class Turret : IModule {
 
     private var _currentShootType = ShotType.DRUM
 
+    private var _isRotateZeroed = false
+
     override suspend fun process() {
         _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             if (_currentTurretState != TurretState.SHOOT)
                 return@launch
 
-            calcTurretState()
+//            calcTurretState()
+
+            updateTurret()
 
             if (_isShooting && _hardwareTurret.shotWasFired) {
                 _isShooting = false
@@ -71,58 +71,60 @@ class Turret : IModule {
         }
     }
 
-    private fun calcTurretState() {
-        val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
-
-        val turretPos =
-            odometry.odometryOrientation.pos +
-                    Configs.TURRET.TURRET_CENTER_POS.turn(odometry.odometryOrientation.angle) +
-                    Configs.TURRET.TURRET_SHOOT_POS.turn(
-                        odometry.odometryOrientation.angle + _hardwareTurret.currentRotatePosition
-                    )
-
-        val shootDistance =
-            (turretPos - HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition).length()
-
-        val robotRotationBasketErr = Angle(
-            (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - turretPos).rot()
-                    - odometry.odometryOrientation.angle
-        ).angle
-
-        _hardwareTurret.targetRotatePosition = robotRotationBasketErr
-
-//        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
-
-        fun getHitHeight(startVel: Double, angle: Double): Double {
-            var vecVel = Vec2(startVel * (if(_currentShootType == ShotType.SINGLE) Configs.TURRET.PULLEY_SOLO_U else Configs.TURRET.PULLEY_DRUM_U), 0.0).setRot(angle)
-//            vecVel += robotXVel
-            var pos = Vec2.ZERO
-
-            while (pos.x < shootDistance && !Thread.currentThread().isInterrupted && pos.y > -1.0) {
-                vecVel -= (Vec2(
-                    vecVel.length()
-                        .pow(2.0) * (if(_currentShootType == ShotType.SINGLE) Configs.TURRET.SOLO_AIR_FORCE_K else Configs.TURRET.DRUM_AIR_FORCE_K) / Configs.TURRET.BALL_MASS, 0.0
-                ).setRot(vecVel.rot()) +
-                        Vec2(0.0, Configs.TURRET.CALCULATING_G)) *
-                        Configs.TURRET.TIME_STEP
-
-                pos += vecVel * Configs.TURRET.TIME_STEP
-            }
-
-            return pos.y
-        }
-
-        val targetAngle =
-            ((turretPos - HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition).length()
-                    / Configs.TURRET.MAX_SHOOTING_DISTANCE) * (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) +
-                    Configs.TURRET.MIN_TURRET_ANGLE
-
-        val calcVel = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            _hardwareTurret.targetVelocity = approximation(
-                Configs.TURRET.MINIMAL_PULLEY_VELOCITY,
-                Configs.TURRET.MAX_MOTOR_RPS * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS
-            ) { getHitHeight(it, targetAngle) }
-        }
+//    private fun calcTurretState() {
+//        val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+//
+//        val turretPos =
+//            odometry.odometryOrientation.pos +
+//                    (Configs.TURRET.TURRET_CENTER_POS +
+//                            Configs.TURRET.TURRET_SHOOT_POS.turn(_hardwareTurret.currentRotatePosition)).turn(odometry.odometryOrientation.angle)
+//
+//        val shootDistance =
+//            (turretPos - HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition).length()
+//
+//        val robotRotationBasketErr = Angle(
+//            (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - turretPos).rot()
+//                    - odometry.odometryOrientation.angle
+//        ).angle
+//
+//        _hardwareTurret.targetRotatePosition = robotRotationBasketErr
+//
+////        val robotXVel = odometry.odometryVelocity.turn(robotRotationBasketErr).x
+//
+//        fun getHitHeight(startVel: Double, angle: Double): Double {
+//            var vecVel = Vec2(
+//                startVel * (if (_currentShootType == ShotType.SINGLE) Configs.TURRET.PULLEY_SOLO_U else Configs.TURRET.PULLEY_DRUM_U),
+//                0.0
+//            ).setRot(angle)
+////            vecVel += robotXVel
+//            var pos = Vec2.ZERO
+//
+//            while (pos.x < shootDistance && !Thread.currentThread().isInterrupted && pos.y > -1.0) {
+//                vecVel -= (Vec2(
+//                    vecVel.length()
+//                        .pow(2.0) * (if (_currentShootType == ShotType.SINGLE) Configs.TURRET.SOLO_AIR_FORCE_K else Configs.TURRET.DRUM_AIR_FORCE_K) / Configs.TURRET.BALL_MASS,
+//                    0.0
+//                ).setRot(vecVel.rot()) +
+//                        Vec2(0.0, Configs.TURRET.CALCULATING_G)) *
+//                        Configs.TURRET.TIME_STEP
+//
+//                pos += vecVel * Configs.TURRET.TIME_STEP
+//            }
+//
+//            return pos.y
+//        }
+//
+//        val targetAngle =
+//            ((turretPos - HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition).length()
+//                    / Configs.TURRET.MAX_SHOOTING_DISTANCE) * (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) +
+//                    Configs.TURRET.MIN_TURRET_ANGLE
+//
+//        val calcVel = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//            _hardwareTurret.targetVelocity = approximation(
+//                Configs.TURRET.MINIMAL_PULLEY_VELOCITY,
+//                Configs.TURRET.MAX_MOTOR_RPS * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS
+//            ) { getHitHeight(it, targetAngle) }
+//        }
 
 //        val calcAngle = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
 //            val turretVel = _hardwareTurret.targetVelocity
@@ -131,36 +133,56 @@ class Turret : IModule {
 //                approximation(Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE)
 //                { getHitHeight(turretVel, it) }
 //        }
+//
+//        _hardwareTurret.anglePosition = targetAngle
+//
+//        runBlocking {
+//            calcVel.join()
+////            calcAngle.join()
+//        }
+//    }
 
-        _hardwareTurret.anglePosition = targetAngle
+//    private fun approximation(min: Double, max: Double, func: (Double) -> Double): Double {
+//        var left = min
+//        var right = max
+//
+//        var iterations = 0
+//
+//        while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS && !Thread.currentThread().isInterrupted) {
+//            iterations++
+//
+//            val middle = (left + right) / 2.0
+//
+//            val dif =
+//                func(middle) - (Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT)
+//
+//            if (dif > 0.0)
+//                right = middle
+//            else
+//                left = middle
+//        }
+//
+//        return (left + right) / 2.0
+//    }
 
-        runBlocking {
-            calcVel.join()
-//            calcAngle.join()
+    fun updateTurret() {
+        if (_currentShootType == ShotType.DRUM)
+            _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_DRUM_PULLEY_VELOCITY
+        else
+            _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_SINGLE_PULLEY_VELOCITY
+
+        _hardwareTurretServos.rawAnglePosition = Configs.TURRET.SHOOTING_ANGLE_POSITION
+
+        if (_isRotateZeroed) {
+            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+
+            _hardwareTurretServos.targetRotatePosition = Angle(
+                (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.TURRET_CENTER_POS.turn(
+                    odometry.odometryOrientation.angle
+                )).rot()
+                        - odometry.odometryOrientation.angle
+            ).angle
         }
-    }
-
-    private fun approximation(min: Double, max: Double, func: (Double) -> Double): Double {
-        var left = min
-        var right = max
-
-        var iterations = 0
-
-        while (iterations < Configs.TURRET.APPROXIMATION_MAX_ITERATIONS && !Thread.currentThread().isInterrupted) {
-            iterations++
-
-            val middle = (left + right) / 2.0
-
-            val dif =
-                func(middle) - (Configs.TURRET.BASKET_TARGET_HEIGHT - Configs.TURRET.TURRET_HEIGHT)
-
-            if (dif > 0.0)
-                right = middle
-            else
-                left = middle
-        }
-
-        return (left + right) / 2.0
     }
 
     override val isBusy: Boolean
@@ -171,14 +193,23 @@ class Turret : IModule {
 
         when (_currentTurretState) {
             TurretState.STOP -> _hardwareTurret.targetVelocity = 0.0
-            TurretState.SHOOT -> calcTurretState()
+            TurretState.SHOOT -> updateTurret()
         }
     }
 
     override fun opModeStart() {
         setTurretState(TurretState.SHOOT)
 
-        _hardwareTurret.targetVelocity = 15.0
+        if (!_isRotateZeroed) {
+            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                _hardwareTurretServos.rawRotatePosition = Configs.TURRET.ZERO_ROTATE_POS
+
+                delay((Configs.TURRET.ZEROING_TIME * 1000.0).toLong())
+
+                _hardwareTurret.resetRotateEncoder()
+                _isRotateZeroed = true
+            }
+        }
     }
 
     override fun opModeStop() {
@@ -189,24 +220,9 @@ class Turret : IModule {
         _turretJob?.cancel()
     }
 
-//    private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
-//        val timer = ElapsedTime()
-//
-//        timer.reset()
-//
-//        while (!Thread.currentThread().isInterrupted){
-//            _hardwareTurret.targetVelocity = (sin(timer.seconds() * 2.0) + 1.0) / 2.0 * 10.0 + 10.0
-////
-////            Thread.sleep(5000)
-////
-////            _hardwareTurret.targetVelocity = 20.0
-////
-////            Thread.sleep(5000)
-//        }
-//    })
-
     constructor() {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareTurret)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareTurretServos)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(CurrentlyShooting::class, {
             _isShooting = true
@@ -217,7 +233,7 @@ class Turret : IModule {
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretCurrentRotation::class, {
-            it.rotation = Angle(_hardwareTurret.currentRotatePosition)
+            it.rotation = Angle(if (_isRotateZeroed) _hardwareTurret.currentRotatePosition else 0.0)
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetTurretShootTypeEvent::class, {

@@ -70,6 +70,7 @@ class HotRun private constructor() {
         val startOrientation: Orientation,
         val parkingOrientation: Orientation,
         val color: RunColor,
+        val shootingPosition: Vec2,
         val position: RunPosition
     ) {
         RED_CLOSE(
@@ -77,6 +78,7 @@ class HotRun private constructor() {
             Configs.ODOMETRY.START_RED_CLOSE_ORIENTATION,
             Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION,
             RunColor.RED,
+            Configs.TURRET.SHOOTING_RED_POSITION,
             RunPosition.CLOSE
         ),
         BLUE_CLOSE(
@@ -84,30 +86,33 @@ class HotRun private constructor() {
             Configs.ODOMETRY.START_BLUE_CLOSE_ORIENTATION,
             Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION,
             RunColor.BLUE,
+            Configs.TURRET.SHOOTING_BLUE_POSITION,
             RunPosition.CLOSE
         ),
         RED_FAR(
-        Configs.TURRET.RED_BASKET_POSITION,
-        Configs.ODOMETRY.START_RED_FAR_ORIENTATION,
-        Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION,
-        RunColor.RED,
+            Configs.TURRET.RED_BASKET_POSITION,
+            Configs.ODOMETRY.START_RED_FAR_ORIENTATION,
+            Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION,
+            RunColor.RED,
+            Configs.TURRET.SHOOTING_RED_POSITION,
             RunPosition.FAR
         ),
         BLUE_FAR(
-        Configs.TURRET.BLUE_BASKET_POSITION,
-        Configs.ODOMETRY.START_BLUE_FAR_ORIENTATION,
-        Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION,
-        RunColor.BLUE,
+            Configs.TURRET.BLUE_BASKET_POSITION,
+            Configs.ODOMETRY.START_BLUE_FAR_ORIENTATION,
+            Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION,
+            RunColor.BLUE,
+            Configs.TURRET.SHOOTING_BLUE_POSITION,
             RunPosition.FAR
         );
     }
 
-    enum class RunColor{
+    enum class RunColor {
         RED,
         BLUE
     }
 
-    enum class RunPosition{
+    enum class RunPosition {
         FAR,
         CLOSE
     }
@@ -141,7 +146,7 @@ class HotRun private constructor() {
             ).startActiveOpMode()
         }
 
-        if(opMode.opModeIsActive()) {
+        if (opMode.opModeIsActive()) {
             opMode.resetRuntime()
 
             ThreadedTelemetry.LAZY_INSTANCE.log("op mode start")

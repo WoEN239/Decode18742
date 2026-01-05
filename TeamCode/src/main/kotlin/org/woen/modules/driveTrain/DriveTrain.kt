@@ -6,6 +6,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.scoringSystem.turret.RequestTurretCurrentRotation
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
@@ -66,16 +67,29 @@ class DriveTrain : IModule {
                     _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
 
                 DriveMode.SHOOTING -> {
-                    _targetOrientation.angl =
-                        Angle(
-                            (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition -
-                                    odometry.odometryOrientation.pos).rot()
+                    val currentTurretRotate = ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        RequestTurretCurrentRotation()
+                    ).rotation
+
+                    _targetOrientation =
+                        Orientation(
+                            HotRun.LAZY_INSTANCE.currentStartPosition.shootingPosition - (odometry.odometryOrientation.pos + (Configs.TURRET.TURRET_CENTER_POS +
+                                    Configs.TURRET.TURRET_SHOOT_POS.turn(currentTurretRotate.angle)).turn(
+                                odometry.odometryOrientation.angle
+                            )),
+                            Angle(
+                                (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition -
+                                        odometry.odometryOrientation.pos).rot()
+                            )
                         )
 
                     val hErr = (_targetOrientation.angl - odometry.odometryOrientation.angl).angle
 
                     _hardwareDriveTrain.drive(
-                        _targetTranslateVelocity,
+                        Vec2(
+                            _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.x),
+                            _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.y)
+                        ).turn(-odometry.odometryOrientation.angle),
                         if ((hErr > Configs.TURRET.MIN_ROTATE && hErr < Configs.TURRET.MAX_ROTATE) || (hErr < Configs.TURRET.MIN_ROTATE && _targetRotateVelocity < 0.0) ||
                             (hErr > Configs.TURRET.MAX_ROTATE && _targetRotateVelocity > 0.0)
                         )
@@ -83,7 +97,7 @@ class DriveTrain : IModule {
                             val err1 = Configs.TURRET.MIN_ROTATE - hErr
                             val err2 = Configs.TURRET.MAX_ROTATE - hErr
 
-                            if(abs(err1) > abs(err2))
+                            if (abs(err1) > abs(err2))
                                 -err2 * Configs.DRIVE_TRAIN.SHOOTING_P
                             else
                                 -err1 * Configs.DRIVE_TRAIN.SHOOTING_P
@@ -102,8 +116,8 @@ class DriveTrain : IModule {
                 }
             }
 
-            if (((abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS &&
-                        abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS) || _currentMode == DriveMode.SHOOTING) &&
+            if (abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS &&
+                abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS &&
                 abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS
             ) {
                 if (_targetTimer.seconds() > Configs.DRIVE_TRAIN.TARGET_TIMER)
@@ -183,7 +197,8 @@ class DriveTrain : IModule {
                 _targetTimer.reset()
 
                 if (it.mode == DriveMode.PARKING)
-                    _targetOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.parkingOrientation
+                    _targetOrientation =
+                        HotRun.LAZY_INSTANCE.currentStartPosition.parkingOrientation
 
                 _xRegulator.start()
                 _xRegulator.resetIntegral()

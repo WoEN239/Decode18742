@@ -41,6 +41,7 @@ class HardwareOdometry : IHardwareDevice {
 
     override fun init(hardwareMap: HardwareMap) {
         _computer = hardwareMap.get("odometry") as OdometryComputer
+        _computer.recalibrateIMU()
         _computer.resetPosAndIMU()
 
         currentOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
@@ -56,9 +57,8 @@ class HardwareOdometry : IHardwareDevice {
                 OdometryComputer.EncoderDirection.FORWARD,
                 OdometryComputer.EncoderDirection.REVERSED
             )
-
-//            _computer.recalibrateIMU()
         }
+
     }
 
     override fun opModeStart() {
