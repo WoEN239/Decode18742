@@ -457,8 +457,8 @@ class ScoringModulesConnector
             delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
-//        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
-//            DriveMode.SHOOTING)).process.wait()
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
+            DriveMode.SHOOTING)).process.wait()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
@@ -520,8 +520,8 @@ class ScoringModulesConnector
     private suspend fun readyUpForShooting()
     {
         logM.logMd("Starting Drivetrain rotation", PROCESS_STARTING)
-//        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
-//            DriveMode.SHOOTING)).process.wait()
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
+            DriveMode.SHOOTING)).process.wait()
         logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
 
 

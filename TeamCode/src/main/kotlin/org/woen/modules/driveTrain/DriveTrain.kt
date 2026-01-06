@@ -67,16 +67,9 @@ class DriveTrain : IModule {
                     _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
 
                 DriveMode.SHOOTING -> {
-                    val currentTurretRotate = ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        RequestTurretCurrentRotation()
-                    ).rotation
-
                     _targetOrientation =
                         Orientation(
-                            HotRun.LAZY_INSTANCE.currentStartPosition.shootingPosition - (odometry.odometryOrientation.pos + (Configs.TURRET.TURRET_CENTER_POS +
-                                    Configs.TURRET.TURRET_SHOOT_POS.turn(currentTurretRotate.angle)).turn(
-                                odometry.odometryOrientation.angle
-                            )),
+                            HotRun.LAZY_INSTANCE.currentStartPosition.shootingPosition,
                             Angle(
                                 (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition -
                                         odometry.odometryOrientation.pos).rot()
@@ -85,10 +78,12 @@ class DriveTrain : IModule {
 
                     val hErr = (_targetOrientation.angl - odometry.odometryOrientation.angl).angle
 
+                    val turretPos = odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(odometry.odometryOrientation.angle)
+
                     _hardwareDriveTrain.drive(
                         Vec2(
-                            _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.x),
-                            _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.y)
+                            _xRegulator.update(_targetOrientation.x - turretPos.x),
+                            _yRegulator.update(_targetOrientation.y - turretPos.y)
                         ).turn(-odometry.odometryOrientation.angle),
                         if ((hErr > Configs.TURRET.MIN_ROTATE && hErr < Configs.TURRET.MAX_ROTATE) || (hErr < Configs.TURRET.MIN_ROTATE && _targetRotateVelocity < 0.0) ||
                             (hErr > Configs.TURRET.MAX_ROTATE && _targetRotateVelocity > 0.0)
@@ -118,7 +113,7 @@ class DriveTrain : IModule {
 
             if (abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS &&
                 abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS &&
-                abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS
+                (abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS || _currentMode == DriveMode.SHOOTING)
             ) {
                 if (_targetTimer.seconds() > Configs.DRIVE_TRAIN.TARGET_TIMER)
                     _currentProcess.close()
@@ -131,7 +126,7 @@ class DriveTrain : IModule {
         get() = _driveJob != null && !_driveJob!!.isCompleted
 
     override fun opModeStart() {
-
+//        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.SHOOTING))
     }
 
     override fun opModeStop() {
@@ -170,7 +165,7 @@ class DriveTrain : IModule {
                     rx *= abs(rx)
                 }
 
-                val currentRunColor = HotRun.LAZY_INSTANCE.currentStartPosition
+                val currentRunColor = HotRun.LAZY_INSTANCE.currentStartPosition.color
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     SetDriveTargetVelocityEvent(
@@ -178,7 +173,7 @@ class DriveTrain : IModule {
                             ly,
                             lx
                         ).turn(
-                            if (currentRunColor == HotRun.StartPosition.BLUE_CLOSE) (_currentRobotRotation * -1.0 -
+                            if (currentRunColor == HotRun.RunColor.BLUE) (_currentRobotRotation * -1.0 -
                                     Angle.ofDeg(90.0)).angle
                             else
                                 (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle

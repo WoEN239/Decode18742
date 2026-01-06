@@ -134,10 +134,10 @@ object Configs {
         var H_REGULATOR_PARAMETERS = RegulatorParameters(kP = 8.0, limitU = MAX_DRIVE_ANGLE_VELOCITY)
 
         @JvmField
-        var X_REGULATOR_PARAMETERS = RegulatorParameters(kP = 6.0, kD = 0.5, limitU = MAX_DRIVE_VELOCITY)
+        var X_REGULATOR_PARAMETERS = RegulatorParameters(kP = 4.0, kD = 0.1, limitU = MAX_DRIVE_VELOCITY)
 
         @JvmField
-        var Y_REGULATOR_PARAMETERS = RegulatorParameters(kP = 6.0, kD = 0.5, limitU = MAX_DRIVE_VELOCITY)
+        var Y_REGULATOR_PARAMETERS = RegulatorParameters(kP = 4.0, kD = 0.1, limitU = MAX_DRIVE_VELOCITY)
 
         @JvmField
         var SHOOTING_P = 4.0
@@ -206,7 +206,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = true
+        var CAMERA_ENABLE = false
 
         @JvmField
         var CAMERA_H_RED_DOWN = 4.0
@@ -251,10 +251,10 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.3, -3.66 / 2.0 + 0.3)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, -3.66 / 2.0 + 0.1)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.3, 3.66 / 2.0 - 0.3)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, 3.66 / 2.0 - 0.1)
 
 //        @JvmField
 //        var TURRET_HEIGHT = 0.32
@@ -344,19 +344,19 @@ object Configs {
 //        var MAX_SHOOTING_DISTANCE = 3.0
 
         @JvmField
-        var SHOOTING_RED_POSITION = Vec2(0.0, 0.0)
+        var SHOOTING_RED_POSITION = Vec2(-0.681, 0.827)
 
         @JvmField
-        var SHOOTING_BLUE_POSITION = Vec2(0.0, 0.0)
+        var SHOOTING_BLUE_POSITION = Vec2(-0.681, -0.827)
 
         @JvmField
-        var SHOOTING_ANGLE_POSITION = 0.0
+        var SHOOTING_ANGLE_POSITION = 0.62
 
         @JvmField
-        var SHOOTING_SINGLE_PULLEY_VELOCITY = 0.0
+        var SHOOTING_SINGLE_PULLEY_VELOCITY = 15.0
 
         @JvmField
-        var SHOOTING_DRUM_PULLEY_VELOCITY = 0.0
+        var SHOOTING_DRUM_PULLEY_VELOCITY = 16.0
     }
 
     @Config

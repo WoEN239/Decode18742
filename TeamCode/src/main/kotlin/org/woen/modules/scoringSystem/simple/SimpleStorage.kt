@@ -3,8 +3,11 @@ package org.woen.modules.scoringSystem.simple
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.woen.enumerators.Shooting.ShotType
 import org.woen.modules.IModule
+import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
+import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.telemetry.Configs
@@ -42,7 +45,7 @@ class SimpleStorage : IModule {
         ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.FORWARD))
 
         _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
-//        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.DRIVE))
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.DRIVE))
 
         _isShooting = false
     }
@@ -56,8 +59,10 @@ class SimpleStorage : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
             _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-//                val process =
-//                    ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
+                ThreadedEventBus.LAZY_INSTANCE.invoke(ShotType.DRUM)
+
+                val process =
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
 
                 _isShooting = true
 
@@ -72,7 +77,7 @@ class SimpleStorage : IModule {
                 while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)
 
-//                process.wait()
+                process.wait()
 
                 delay((Configs.SIMPLE_STORAGE.LOOK_DELAY_TIME * 1000.0).toLong())
 
@@ -123,10 +128,10 @@ class SimpleStorage : IModule {
         }))
 
         ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(createClickDownListener({ it.right_bumper }, {
-            val located =
-                ThreadedEventBus.LAZY_INSTANCE.invoke(RequireRobotLocatedShootingArea()).isLocated
-
-            if (located)
+//            val located =
+//                ThreadedEventBus.LAZY_INSTANCE.invoke(RequireRobotLocatedShootingArea()).isLocated
+//
+//            if (located)
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
         }))
 

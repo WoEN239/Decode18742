@@ -177,9 +177,9 @@ class Turret : IModule {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
             _hardwareTurretServos.targetRotatePosition = Angle(
-                (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.TURRET_CENTER_POS.turn(
+                (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
                     odometry.odometryOrientation.angle
-                )).rot()
+                ))).rot()
                         - odometry.odometryOrientation.angle
             ).angle
         }
