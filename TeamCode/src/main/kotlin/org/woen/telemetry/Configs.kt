@@ -22,6 +22,14 @@ import kotlin.jvm.JvmField
 import kotlin.math.atan2
 
 
+/*
+ *    Это файл со всеми конфигами робота
+ *    В нём, и только в нём РАЗРЕШАЕТСЯ использовать ЭДЖОВСКИЕ D: технологии
+ *    (на значениях которые не требуют больших точностей)
+ *    > подставление красивых значений вроде 33333
+ */
+
+
 object Configs {
 
     @Config
@@ -660,7 +668,7 @@ object Configs {
         @JvmField
         var SSL_MAX_SHOT_AWAITING_MS: Long = 200
         @JvmField
-        var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33
+        var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33333
 
 
 
