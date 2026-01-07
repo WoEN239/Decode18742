@@ -103,10 +103,10 @@ object Configs {
         var START_BLUE_FAR_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI))
 
         @JvmField
-        var X_ODOMETER_POSITION = -0.09
+        var X_ODOMETER_POSITION = 0.0919
 
         @JvmField
-        var Y_ODOMETER_POSITION = 0.15
+        var Y_ODOMETER_POSITION = -0.1404
     }
 
     @Config
@@ -259,10 +259,10 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, -3.66 / 2.0 + 0.1)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, -3.66 / 2.0 + 0.25)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, 3.66 / 2.0 - 0.1)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, 3.66 / 2.0 - 0.25)
 
 //        @JvmField
 //        var TURRET_HEIGHT = 0.32
@@ -347,15 +347,18 @@ object Configs {
 
         @JvmField
         var MIN_ROTATE = ((1.0 - 0.74) - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
+
+        @JvmField
+        var DRIVE_ROTATE_WINDOW = Math.toRadians(15.0)
 //
 //        @JvmField
 //        var MAX_SHOOTING_DISTANCE = 3.0
 
         @JvmField
-        var SHOOTING_RED_POSITION = Vec2(-0.681, 0.827)
+        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.731, 0.759), Angle.ofDeg(138.043))
 
         @JvmField
-        var SHOOTING_BLUE_POSITION = Vec2(-0.681, -0.827)
+        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.731, -0.759), Angle.ofDeg(-138.043))
 
         @JvmField
         var SHOOTING_ANGLE_POSITION = 0.62
@@ -364,7 +367,7 @@ object Configs {
         var SHOOTING_SINGLE_PULLEY_VELOCITY = 15.0
 
         @JvmField
-        var SHOOTING_DRUM_PULLEY_VELOCITY = 16.0
+        var SHOOTING_DRUM_PULLEY_VELOCITY = 15.6
     }
 
     @Config
@@ -866,7 +869,7 @@ object Configs {
         var BELTS_POWER = 5.0
 
         @JvmField
-        var BELTS_FAST_POWER = 9.0
+        var BELTS_FAST_POWER = 8.5
 
         @JvmField
         var BELTS_FAST_FAST_POWER = 10.0

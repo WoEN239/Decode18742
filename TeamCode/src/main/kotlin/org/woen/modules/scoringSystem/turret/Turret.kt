@@ -51,7 +51,7 @@ class Turret : IModule {
 
     private var _currentShootType = ShotType.DRUM
 
-    private var _isRotateZeroed = false
+//    private var _isRotateZeroed = false
 
     override suspend fun process() {
         _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -172,17 +172,17 @@ class Turret : IModule {
             _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_SINGLE_PULLEY_VELOCITY
 
         _hardwareTurretServos.rawAnglePosition = Configs.TURRET.SHOOTING_ANGLE_POSITION
-
-        if (_isRotateZeroed) {
-            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
-
-            _hardwareTurretServos.targetRotatePosition = Angle(
-                (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
-                    odometry.odometryOrientation.angle
-                ))).rot()
-                        - odometry.odometryOrientation.angle
-            ).angle
-        }
+//
+//        if (_isRotateZeroed) {
+//            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+//
+//            _hardwareTurretServos.targetRotatePosition = Angle(
+//                (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
+//                    odometry.odometryOrientation.angle
+//                ))).rot()
+//                        - odometry.odometryOrientation.angle
+//            ).angle
+//        }
     }
 
     override val isBusy: Boolean
@@ -200,16 +200,16 @@ class Turret : IModule {
     override fun opModeStart() {
         setTurretState(TurretState.SHOOT)
 
-        if (!_isRotateZeroed) {
-            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                _hardwareTurretServos.rawRotatePosition = Configs.TURRET.ZERO_ROTATE_POS
-
-                delay((Configs.TURRET.ZEROING_TIME * 1000.0).toLong())
-
-                _hardwareTurret.resetRotateEncoder()
-                _isRotateZeroed = true
-            }
-        }
+//        if (!_isRotateZeroed) {
+//            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//                _hardwareTurretServos.rawRotatePosition = Configs.TURRET.ZERO_ROTATE_POS
+//
+//                delay((Configs.TURRET.ZEROING_TIME * 1000.0).toLong())
+//
+//                _hardwareTurret.resetRotateEncoder()
+//                _isRotateZeroed = true
+//            }
+//        }
     }
 
     override fun opModeStop() {
@@ -233,7 +233,7 @@ class Turret : IModule {
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretCurrentRotation::class, {
-            it.rotation = Angle(if (_isRotateZeroed) _hardwareTurret.currentRotatePosition else 0.0)
+            it.rotation = Angle(0.0 /*if (_isRotateZeroed) _hardwareTurret.currentRotatePosition else 0.0*/)
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetTurretShootTypeEvent::class, {

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
+import org.woen.telemetry.Configs
 import woen239.odometry.OdometryComputer
 
 @TeleOp
@@ -17,9 +18,11 @@ class PinpointTest : LinearOpMode() {
 
         pinpoint.setEncoderResolution(OdometryComputer.GoBildaOdometryPods.goBILDA_4_BAR_POD)
         pinpoint.setEncoderDirections(
-            OdometryComputer.EncoderDirection.FORWARD,
-            OdometryComputer.EncoderDirection.FORWARD
+            OdometryComputer.EncoderDirection.REVERSED,
+            OdometryComputer.EncoderDirection.REVERSED
         )
+        pinpoint.setOffsets(Configs.ODOMETRY.X_ODOMETER_POSITION, Configs.ODOMETRY.Y_ODOMETER_POSITION,
+            DistanceUnit.METER)
 
         waitForStart()
         resetRuntime()

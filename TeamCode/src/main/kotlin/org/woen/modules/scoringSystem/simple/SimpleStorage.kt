@@ -83,7 +83,7 @@ class SimpleStorage : IModule {
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
 
-                delay(450)
+                delay(500)
 
                 _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
 

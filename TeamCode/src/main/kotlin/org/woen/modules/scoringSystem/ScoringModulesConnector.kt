@@ -248,6 +248,8 @@ class ScoringModulesConnector
 
                     _requestWasTerminated.set(true)
                     ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        SetDriveModeEvent(DriveMode.DRIVE))
 
                     logM.logMd("STOP  - ANY Request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
@@ -256,6 +258,8 @@ class ScoringModulesConnector
         ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
             { it.right_bumper }, {
+
+                    _requestWasTerminated.set(false)
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(
                         SetLightColorEvent(Light.LightColor.GREEN))
@@ -520,8 +524,26 @@ class ScoringModulesConnector
     private suspend fun readyUpForShooting()
     {
         logM.logMd("Starting Drivetrain rotation", PROCESS_STARTING)
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
-            DriveMode.SHOOTING)).process.wait()
+
+        val drivingToSHootingZone = ThreadedEventBus.LAZY_INSTANCE.invoke(
+                SetDriveModeEvent(
+                    DriveMode.SHOOTING)).process
+
+        do
+        {
+            delay(DELAY.EVENT_AWAITING_MS)
+            val nowInShootingZone = drivingToSHootingZone.closed.get()
+        }
+        while (!nowInShootingZone && !_requestWasTerminated.get())
+
+        if (_requestWasTerminated.get())
+        {
+            logM.logMd("Canceled driving to shooting zone = request was terminated",
+                LOGIC_STEPS)
+
+            _requestWasTerminated.set(false)
+            return
+        }
         logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
 
 

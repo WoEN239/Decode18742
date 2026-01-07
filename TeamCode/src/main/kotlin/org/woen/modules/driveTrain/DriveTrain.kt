@@ -6,7 +6,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
-import org.woen.modules.scoringSystem.turret.RequestTurretCurrentRotation
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
@@ -67,36 +66,25 @@ class DriveTrain : IModule {
                     _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
 
                 DriveMode.SHOOTING -> {
-                    _targetOrientation =
-                        Orientation(
-                            HotRun.LAZY_INSTANCE.currentStartPosition.shootingPosition,
-                            Angle(
-                                (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition -
-                                        odometry.odometryOrientation.pos).rot()
-                            )
-                        )
-
-                    val hErr = (_targetOrientation.angl - odometry.odometryOrientation.angl).angle
-
-                    val turretPos = odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(odometry.odometryOrientation.angle)
+                    _targetOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
 
                     _hardwareDriveTrain.drive(
                         Vec2(
-                            _xRegulator.update(_targetOrientation.x - turretPos.x),
-                            _yRegulator.update(_targetOrientation.y - turretPos.y)
+                            _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.pos.x),
+                            _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.pos.y)
                         ).turn(-odometry.odometryOrientation.angle),
-                        if ((hErr > Configs.TURRET.MIN_ROTATE && hErr < Configs.TURRET.MAX_ROTATE) || (hErr < Configs.TURRET.MIN_ROTATE && _targetRotateVelocity < 0.0) ||
+                        /*if ((hErr > Configs.TURRET.MIN_ROTATE && hErr < Configs.TURRET.MAX_ROTATE) || (hErr < Configs.TURRET.MIN_ROTATE && _targetRotateVelocity < 0.0) ||
                             (hErr > Configs.TURRET.MAX_ROTATE && _targetRotateVelocity > 0.0)
                         )
                             _targetRotateVelocity else {
-                            val err1 = Configs.TURRET.MIN_ROTATE - hErr
-                            val err2 = Configs.TURRET.MAX_ROTATE - hErr
+                            val err1 = (Configs.TURRET.MIN_ROTATE + Configs.TURRET.DRIVE_ROTATE_WINDOW) - hErr
+                            val err2 = (Configs.TURRET.MAX_ROTATE - Configs.TURRET.DRIVE_ROTATE_WINDOW) - hErr
 
                             if (abs(err1) > abs(err2))
                                 -err2 * Configs.DRIVE_TRAIN.SHOOTING_P
                             else
                                 -err1 * Configs.DRIVE_TRAIN.SHOOTING_P
-                        }
+                        }*/ _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
                     )
                 }
 

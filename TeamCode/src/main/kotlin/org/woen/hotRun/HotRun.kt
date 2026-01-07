@@ -70,7 +70,7 @@ class HotRun private constructor() {
         val startOrientation: Orientation,
         val parkingOrientation: Orientation,
         val color: RunColor,
-        val shootingPosition: Vec2,
+        val shootingOrientation: Orientation,
         val position: RunPosition
     ) {
         RED_CLOSE(
@@ -78,7 +78,7 @@ class HotRun private constructor() {
             Configs.ODOMETRY.START_RED_CLOSE_ORIENTATION,
             Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION,
             RunColor.RED,
-            Configs.TURRET.SHOOTING_RED_POSITION,
+            Configs.TURRET.SHOOTING_RED_ORIENTATION,
             RunPosition.CLOSE
         ),
         BLUE_CLOSE(
@@ -86,7 +86,7 @@ class HotRun private constructor() {
             Configs.ODOMETRY.START_BLUE_CLOSE_ORIENTATION,
             Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION,
             RunColor.BLUE,
-            Configs.TURRET.SHOOTING_BLUE_POSITION,
+            Configs.TURRET.SHOOTING_BLUE_ORIENTATION,
             RunPosition.CLOSE
         ),
         RED_FAR(
@@ -94,7 +94,7 @@ class HotRun private constructor() {
             Configs.ODOMETRY.START_RED_FAR_ORIENTATION,
             Configs.DRIVE_TRAIN.RED_PARKING_ORIENTATION,
             RunColor.RED,
-            Configs.TURRET.SHOOTING_RED_POSITION,
+            Configs.TURRET.SHOOTING_RED_ORIENTATION,
             RunPosition.FAR
         ),
         BLUE_FAR(
@@ -102,7 +102,7 @@ class HotRun private constructor() {
             Configs.ODOMETRY.START_BLUE_FAR_ORIENTATION,
             Configs.DRIVE_TRAIN.BLUE_PARKING_ORIENTATION,
             RunColor.BLUE,
-            Configs.TURRET.SHOOTING_BLUE_POSITION,
+            Configs.TURRET.SHOOTING_BLUE_ORIENTATION,
             RunPosition.FAR
         );
     }
@@ -117,7 +117,7 @@ class HotRun private constructor() {
         CLOSE
     }
 
-    var currentStartPosition = StartPosition.RED_CLOSE
+    var currentStartPosition = StartPosition.BLUE_CLOSE
 
     val opModeInitEvent = SimpleEmptyEvent()
     val opModeStartEvent = SimpleEmptyEvent()
