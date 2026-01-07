@@ -160,10 +160,10 @@ object Configs {
         var TARGET_TIMER = 0.1
 
         @JvmField
-        var RED_PARKING_ORIENTATION = Orientation(Vec2(0.9, -0.93), Angle.ofDeg(90.0))
+        var RED_PARKING_ORIENTATION = Orientation(Vec2(0.948, -0.803), Angle.ofDeg(-180.0))
 
         @JvmField
-        var BLUE_PARKING_ORIENTATION = Orientation(Vec2(0.9, 0.93), Angle.ofDeg(-90.0))
+        var BLUE_PARKING_ORIENTATION = Orientation(Vec2(0.948, 0.803), Angle.ofDeg(180.0))
 
         @JvmField
         var X_DEATH_ZONE = 0.05
@@ -416,7 +416,7 @@ object Configs {
         var LCS_PURPLE_BALL_B_K = (1.0 - 0.78) / 2.0
 
         @JvmField
-        var LCS_PURPLE_BALL_THRESHOLD = 29.0
+        var LCS_PURPLE_BALL_THRESHOLD = 28.5
 
 
 
@@ -669,7 +669,7 @@ object Configs {
         @JvmField
         var SMC_MAX_SHOT_AWAITING_MS: Long = 60
         @JvmField
-        var SSL_MAX_SHOT_AWAITING_MS: Long = 200
+        var SSL_MAX_SHOT_AWAITING_MS: Long = 202
         @JvmField
         var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33333
 

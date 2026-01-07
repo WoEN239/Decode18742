@@ -27,3 +27,8 @@ class StorageUpdateAfterLazyIntakeEvent(
 
 class FillStorageWithUnknownColorsEvent(
     var startingResult: Boolean = false) : StoppingEvent
+
+
+
+class FullFinishedIntakeEvent(
+    var ballCountInStorage: Int = 0)

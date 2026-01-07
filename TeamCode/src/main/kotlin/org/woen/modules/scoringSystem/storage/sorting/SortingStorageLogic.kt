@@ -21,6 +21,7 @@ import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
+import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
 
 import org.woen.utils.process.RunStatus
 import org.woen.telemetry.LogManager
@@ -673,6 +674,9 @@ class SortingStorageLogic
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
         runStatus.clearCurrentActiveProcess()
+
+        EventBusLI.invoke(FullFinishedIntakeEvent(
+            storageCells.anyBallCount()))
     }
 
 

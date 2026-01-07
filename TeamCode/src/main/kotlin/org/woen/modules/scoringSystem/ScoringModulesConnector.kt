@@ -486,60 +486,66 @@ class ScoringModulesConnector
     {
         logM.logMd("Starting Drivetrain rotation", PROCESS_STARTING)
 
-        val drivingToSHootingZone = EventBusLI.invoke(
-                SetDriveModeEvent(
-                    DriveMode.SHOOTING)).process
-
-        do
-        {
-            delay(DELAY.EVENT_AWAITING_MS)
-            val nowInShootingZone = drivingToSHootingZone.closed.get()
-        }
-        while (!nowInShootingZone && !_requestWasTerminated.get())
-
-        if (_requestWasTerminated.get())
-        {
-            logM.logMd("Canceled driving to shooting zone = request was terminated",
-                LOGIC_STEPS)
-
-            _requestWasTerminated.set(false)
-            return
-        }
-        logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
-
-
-        while (_currentlyShooting.get())
-            delay(DELAY.EVENT_AWAITING_MS)
-
-        _currentlyShooting.set(true)
-        awaitShotFiring()
-    }
-    private suspend fun awaitShotFiring()
-    {
-        logM.logMd("SEND - AWAITING SHOT", EVENTS_FEEDBACK)
         EventBusLI.invoke(CurrentlyShooting())
-//        _storage.hwSmartPushNextBall()
-
-
-        var timePassedWaitingForShot = NOTHING.toLong()
-        while (!_shotWasFired.get() && !_requestWasTerminated.get()
-            && timePassedWaitingForShot < DELAY.SMC_MAX_SHOT_AWAITING_MS)
-        {
-            delay(DELAY.EVENT_AWAITING_MS)
-            timePassedWaitingForShot += DELAY.EVENT_AWAITING_MS
-        }
-
-        if (timePassedWaitingForShot >= DELAY.SMC_MAX_SHOT_AWAITING_MS)
-             logM.logMd("\n\n\nShot timeout, assume success\n", LOGIC_STEPS)
-        else logM.logMd("\n\n\nRECEIVED - SHOT FIRED\n", LOGIC_STEPS)
-
-
-        //if (_shotWasFired.get()) EventBusLI.invoke(ShotWasFiredEvent())
-
         _shotWasFired.set(false)
         _currentlyShooting.set(false)
         _requestWasTerminated.set(false)
+
+
+//        val drivingToSHootingZone = EventBusLI.invoke(
+//                SetDriveModeEvent(
+//                    DriveMode.SHOOTING)).process
+//
+//        do
+//        {
+//            delay(DELAY.EVENT_AWAITING_MS)
+//            val nowInShootingZone = drivingToSHootingZone.closed.get()
+//        }
+//        while (!nowInShootingZone && !_requestWasTerminated.get())
+//
+//        if (_requestWasTerminated.get())
+//        {
+//            logM.logMd("Canceled driving to shooting zone = request was terminated",
+//                LOGIC_STEPS)
+//
+//            _requestWasTerminated.set(false)
+//            return
+//        }
+//        logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
+//
+//
+//        while (_currentlyShooting.get())
+//            delay(DELAY.EVENT_AWAITING_MS)
+//
+//        _currentlyShooting.set(true)
+//        awaitShotFiring()
     }
+//    private suspend fun awaitShotFiring()
+//    {
+//        logM.logMd("SEND - AWAITING SHOT", EVENTS_FEEDBACK)
+//        EventBusLI.invoke(CurrentlyShooting())
+//        _storage.hwSmartPushNextBall()
+//
+//
+//        var timePassedWaitingForShot = NOTHING.toLong()
+//        while (!_shotWasFired.get() && !_requestWasTerminated.get()
+//            && timePassedWaitingForShot < DELAY.SMC_MAX_SHOT_AWAITING_MS)
+//        {
+//            delay(DELAY.EVENT_AWAITING_MS)
+//            timePassedWaitingForShot += DELAY.EVENT_AWAITING_MS
+//        }
+//
+//        if (timePassedWaitingForShot >= DELAY.SMC_MAX_SHOT_AWAITING_MS)
+//             logM.logMd("\n\n\nShot timeout, assume success\n", LOGIC_STEPS)
+//        else logM.logMd("\n\n\nRECEIVED - SHOT FIRED\n", LOGIC_STEPS)
+//
+//
+//        if (_shotWasFired.get()) EventBusLI.invoke(ShotWasFiredEvent())
+//
+//        _shotWasFired.set(false)
+//        _currentlyShooting.set(false)
+//        _requestWasTerminated.set(false)
+//    }
 
     private fun sendFinishedFiringEvent (requestResult: RequestResult.Name)
     {

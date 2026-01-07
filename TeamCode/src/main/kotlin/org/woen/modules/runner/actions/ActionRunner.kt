@@ -1,30 +1,47 @@
 package org.woen.modules.runner.actions
 
 
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.PI
+import kotlin.concurrent.thread
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.DisposableHandle
+
 import com.acmerobotics.roadrunner.AngularVelConstraint
 import com.acmerobotics.roadrunner.MinVelConstraint
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.TranslationalVelConstraint
 import com.acmerobotics.roadrunner.Vector2d
-import kotlinx.coroutines.DisposableHandle
-import kotlinx.coroutines.runBlocking
+
+import org.woen.utils.units.Vec2
+import org.woen.utils.units.Angle
+import org.woen.utils.units.Orientation
+import org.woen.utils.smartMutex.SmartMutex
+
 import org.woen.hotRun.HotRun
+
+import org.woen.telemetry.Configs.DELAY
+import org.woen.threading.ThreadManager
+import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
+
 import org.woen.modules.runner.segment.RRTrajectorySegment
 import org.woen.modules.runner.segment.RequireRRBuilderEvent
 import org.woen.modules.runner.segment.RunSegmentEvent
+
+import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
-import org.woen.threading.ThreadManager
-import org.woen.threading.ThreadedEventBus
-import org.woen.utils.smartMutex.SmartMutex
-import org.woen.utils.units.Angle
-import org.woen.utils.units.Orientation
-import org.woen.utils.units.Vec2
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.concurrent.thread
-import kotlin.math.PI
+import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
+import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
+import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 
 
-class ActionRunner private constructor() : DisposableHandle {
+
+
+class ActionRunner private constructor() : DisposableHandle
+{
     companion object {
         private var _nullableInstance: ActionRunner? = null
 
@@ -75,12 +92,21 @@ class ActionRunner private constructor() : DisposableHandle {
             Vec2(-0.776, -0.656 * _yColorMultiplier),
             Angle(-PI * 0.75 * _hColorMultiplier)
         )
+    
+    
+    private val _doneShooting   = AtomicBoolean(false)
+    private val _ballsInStorage     = AtomicInteger(3)
+    private val _activeBallsInCycle = AtomicInteger(3)
 
+    
+    
+    
+    
     private suspend fun simpleCloseAuto() {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeToLinearHeading(
                         _shootingOrientation.pos.rrVec(),
@@ -91,12 +117,12 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+        EventBusLI.invoke(SimpleShootEvent()).process.wait()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeToLinearHeading(
                         Vector2d(-0.314, -0.716 * _yColorMultiplier),
@@ -114,10 +140,10 @@ class ActionRunner private constructor() : DisposableHandle {
 
         Thread.sleep(900)
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
                         .strafeToLinearHeading(
@@ -129,12 +155,12 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+        EventBusLI.invoke(SimpleShootEvent()).process.wait()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
                         .strafeToLinearHeading(
@@ -151,12 +177,12 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+        EventBusLI.invoke(SimpleShootEvent()).process.wait()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
                         .strafeToLinearHeading(
@@ -173,12 +199,12 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+        EventBusLI.invoke(SimpleShootEvent()).process.wait()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeTo(Vector2d(-1.2, -0.656 * _yColorMultiplier))
                         .build()
@@ -187,11 +213,12 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
     }
 
-    suspend fun closeAuto() {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+    suspend fun closeAuto()
+    {
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeToLinearHeading(
                         _shootingOrientation.pos.rrVec(),
@@ -202,12 +229,18 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        //TODO("просто выстрелить все что есть")
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+
+        //------------------------------
+        handleStreamShooting()
+        //------------------------------
+
+        
+        
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeToLinearHeading(
                         Vector2d(
@@ -224,10 +257,10 @@ class ActionRunner private constructor() : DisposableHandle {
 
         Thread.sleep(800)
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
                         .strafeTo(Vector2d(0.1, -0.9 * _yColorMultiplier))
@@ -241,13 +274,20 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        //TODO("просто выстрелить все что есть")
 
-        for (i in 1..3) {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(
+
+        //------------------------------
+        handleStreamShooting()
+        //------------------------------
+        
+        
+
+        for (i in 1..3)
+        {
+            EventBusLI.invoke(
                 RunSegmentEvent(
                     RRTrajectorySegment(
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        EventBusLI.invoke(
                             RequireRRBuilderEvent()
                         ).trajectoryBuilder!!
                             .setTangent(0.4 * _hColorMultiplier)
@@ -256,19 +296,25 @@ class ActionRunner private constructor() : DisposableHandle {
                                     0.2,
                                     -1.4 * _yColorMultiplier,
                                     -PI * 0.7 * _hColorMultiplier
-                                ), -PI * 0.5 * _hColorMultiplier
+                                ),  -PI * 0.5 * _hColorMultiplier
                             )
                             .build()
                     )
                 )
             ).process.wait()
 
-            //TODO("хавать пока не забьется")
 
-            ThreadedEventBus.LAZY_INSTANCE.invoke(
+
+            //------------------------------
+            handleSmartIntake()
+            //------------------------------
+            
+            
+
+            EventBusLI.invoke(
                 RunSegmentEvent(
                     RRTrajectorySegment(
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        EventBusLI.invoke(
                             RequireRRBuilderEvent()
                         ).trajectoryBuilder!!
                             .setTangent(PI / 2.0 * _hColorMultiplier)
@@ -284,13 +330,17 @@ class ActionRunner private constructor() : DisposableHandle {
                 )
             ).process.wait()
 
-            //TODO("просто выстрелить все что есть")
+
+
+            //------------------------------
+            handleStreamShooting()
+            //------------------------------
         }
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
                         .setTangent(0.4 * _hColorMultiplier)
@@ -299,19 +349,25 @@ class ActionRunner private constructor() : DisposableHandle {
                                 0.2,
                                 -1.4 * _yColorMultiplier,
                                 -PI * 0.7 * _hColorMultiplier
-                            ), -PI * 0.5 * _hColorMultiplier
+                            ),  -PI * 0.5 * _hColorMultiplier
                         )
                         .build()
                 )
             )
         ).process.wait()
 
-        //TODO("хавать пока не забьется")
+        
+        
+        //------------------------------
+        handleSmartIntake()
+        //------------------------------
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+        
+        
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
                         .setTangent(PI / 2.0 * _hColorMultiplier)
@@ -327,12 +383,12 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        //TODO("выстрелить в мотив")
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
                         .strafeToLinearHeading(
@@ -349,12 +405,18 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        //TODO("выстрелить в мотив")
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+
+        //------------------------------
+        handleCustomisableShooting()
+        //------------------------------
+
+
+
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
                         .strafeToLinearHeading(
@@ -371,12 +433,18 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        //TODO("выстрелить в мотив")
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
+
+        //------------------------------
+        handleCustomisableShooting()
+        //------------------------------
+
+
+
+        EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!
                         .strafeTo(Vector2d(-1.2, -0.656 * _yColorMultiplier))
@@ -385,6 +453,60 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
     }
+
+
+    private suspend fun handleSmartIntake()
+    {
+        var waitingForIntakeFinishing: Long = 0
+        while(_ballsInStorage.get() < _activeBallsInCycle.get()
+            && waitingForIntakeFinishing < 10000)
+        {
+            delay(DELAY.EVENT_AWAITING_MS)
+            waitingForIntakeFinishing += DELAY.EVENT_AWAITING_MS
+        }
+
+        val eatenBallCount = _ballsInStorage.get()
+        if  (eatenBallCount < _activeBallsInCycle.get())
+            _activeBallsInCycle.set(eatenBallCount)
+    }
+    private suspend fun handleStreamShooting()
+    {
+        //--  Cycle STREAM Drum shooting (for optimisation see Configs.SORTING_SETTINGS)
+        //--  USE_EASY_DRUM && USE_LAZY_DRUM = when both set to false
+        //--  > Maximizes speed, but is more risky
+
+        _doneShooting.set(false)
+        EventBusLI.invoke(StorageGiveStreamDrumRequest())
+        var waitingForSecondStreamMS: Long = 0
+        while(!_doneShooting.get() && waitingForSecondStreamMS < 10000)
+        {
+            delay(DELAY.EVENT_AWAITING_MS)
+            waitingForSecondStreamMS += DELAY.EVENT_AWAITING_MS
+        }
+        if (waitingForSecondStreamMS > 10000)
+            EventBusLI.invoke(TerminateRequestEvent())
+        else _ballsInStorage.set(0)
+        //------------------------------------------------------------------------------------
+    }
+    private suspend fun handleCustomisableShooting()
+    {
+        _doneShooting.set(false)
+        EventBusLI.invoke(DefaultFireEvent())
+
+        var waitingForCustomisableDrumMS: Long = 0
+        while(!_doneShooting.get() && waitingForCustomisableDrumMS < 10000)
+        {
+            delay(DELAY.EVENT_AWAITING_MS)
+            waitingForCustomisableDrumMS += DELAY.EVENT_AWAITING_MS
+        }
+
+        if (waitingForCustomisableDrumMS > 10000)
+            EventBusLI.invoke(TerminateRequestEvent())
+        else _ballsInStorage.set(0)
+    }
+
+
+
 
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
@@ -401,6 +523,13 @@ class ActionRunner private constructor() : DisposableHandle {
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)
                 _thread.start()
+            
+            EventBusLI.subscribe(FullFinishedFiringEvent::class, {
+                    _doneShooting.set(true)
+            }   )
+            EventBusLI.subscribe(FullFinishedIntakeEvent::class, {
+                    _ballsInStorage.set(it.ballCountInStorage)
+            }   )
         }
 
         HotRun.LAZY_INSTANCE.opModeStopEvent += {
