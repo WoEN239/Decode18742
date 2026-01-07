@@ -361,13 +361,13 @@ object Configs {
         var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.731, -0.759), Angle.ofDeg(-138.043))
 
         @JvmField
-        var SHOOTING_ANGLE_POSITION = 0.62
+        var SHOOTING_ANGLE_POSITION = 0.575
 
         @JvmField
         var SHOOTING_SINGLE_PULLEY_VELOCITY = 15.0
 
         @JvmField
-        var SHOOTING_DRUM_PULLEY_VELOCITY = 15.8
+        var SHOOTING_DRUM_PULLEY_VELOCITY = 17.07
     }
 
     @Config
@@ -658,7 +658,7 @@ object Configs {
         var PART_BALL_PUSHING_MS: Long = 333
         @JvmField
 //        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 300    //  9.0V configuration
-        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 488      //  8.5V configuration
+        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 477      //  8.2V configuration
 
 
         @JvmField
@@ -671,7 +671,7 @@ object Configs {
         var SMC_MAX_SHOT_AWAITING_MS: Long = 60
         @JvmField
 //        var SSL_MAX_SHOT_AWAITING_MS: Long = 205     //  9.0V configuration
-        var SSL_MAX_SHOT_AWAITING_MS: Long = 245       //  8.5V configuration
+        var SSL_MAX_SHOT_AWAITING_MS: Long = 250       //  8.2V configuration
 
         @JvmField
         var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33333
@@ -807,12 +807,12 @@ object Configs {
 
 
         @JvmField
-        var BELT_POWER_FAST_MODE = 8.0
+        var BELT_POWER_FAST_MODE = 9.0
 
         @JvmField
         var BELT_POWER_SLOW_MODE = 8.0
         @JvmField
-        var BELT_POWER_SHOOT_MODE = 8.5
+        var BELT_POWER_SHOOT_MODE = 8.2
 
         @JvmField
         var TURRET_GATE_SERVO_OPEN_VALUE = 0.775
@@ -879,7 +879,7 @@ object Configs {
     }
 
     @Config
-    internal object BATTERY{
+    internal object BATTERY {
         @JvmField
         var LOW_VOLTAGE = 9.5
 
