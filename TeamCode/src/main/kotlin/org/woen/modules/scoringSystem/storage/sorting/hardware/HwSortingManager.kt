@@ -8,14 +8,12 @@ import org.woen.enumerators.Ball
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.woen.telemetry.LogManager
-import org.woen.threading.ThreadManager
-import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
-
-import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
-import org.woen.modules.scoringSystem.storage.Alias.Delay
+import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
+import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
+import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
@@ -65,8 +63,8 @@ class HwSortingManager
         subscribeToHwEvents()
         addDevices()
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener({ it.ps },   {
+        GamepadLI.addGamepad1Listener(createClickDownListener(
+            { it.ps },   {
 
                     canHandleIntake.set(true)
         }   )   )
@@ -76,7 +74,8 @@ class HwSortingManager
     {
         _hwSensors.colorSensorsDetectedIntakeEvent +=
         {
-            logM.logTag("ColorTr:${it.sensorsId} sees ${it.color} input", "StorageSensors", HARDWARE_LOW)
+            logM.logTag("ColorTr:${it.sensorsId} sees ${it.color} input", "StorageSensors",
+                HARDWARE_LOW)
 
             val isAwaitingIntake: Boolean
             if (it.color != Ball.Name.NONE)
@@ -100,17 +99,18 @@ class HwSortingManager
                 logM.logMd("Currently addressing auto intake", LOGIC_STEPS)
                 stopAwaitingEating(false)
 
-                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                SmartCoroutineLI.launch {
 
-                    val storageCanHandleInput = ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    val storageCanHandleInput = EventBusLI.invoke(
                         BallCountInStorageEvent()).count < MAX_BALL_COUNT
 
                     logM.logMd("Is not full: $storageCanHandleInput", GENERIC_INFO)
 
                     if (storageCanHandleInput)
                     {
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(
-                            StorageGetReadyForIntakeEvent(it.color))
+                        EventBusLI.invoke(StorageGetReadyForIntakeEvent(
+                            it.color))
+
                         delay(DELAY.INTAKE_RACE_CONDITION_MS)
 
                         logM.logMd("COLOR SENSORS - Started intake", HARDWARE_HIGH)
@@ -129,7 +129,7 @@ class HwSortingManager
                 logM.logMd("BELTS - Initiating current protection", HARDWARE_HIGH)
 
                 if (USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS)
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(WaitForTerminateIntakeEvent())
+                    EventBusLI.invoke(WaitForTerminateIntakeEvent())
 
                 if (SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION)
                 {
@@ -137,7 +137,7 @@ class HwSortingManager
                     {
                         logM.logMd("Belt current protection - attempting storage recalibration", HARDWARE_LOW)
 
-                        val recalibrateResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        val recalibrateResult = EventBusLI.invoke(
                             FillStorageWithUnknownColorsEvent()
                         ).startingResult
                     }

@@ -5,6 +5,8 @@ import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 
 import org.woen.telemetry.Configs
+import org.woen.threading.ThreadManager
+import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
 
 
@@ -87,6 +89,11 @@ object Alias
         val FULL_PUSH = Configs.DELAY.FULL_BALL_PUSHING_MS
         val HALF_PUSH = Configs.DELAY.FULL_BALL_PUSHING_MS / 2
     }
+
+
+    val GamepadLI  get() = ThreadedGamepad.LAZY_INSTANCE
+    val EventBusLI get() = ThreadedEventBus.LAZY_INSTANCE
+    val SmartCoroutineLI get() = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
 
 
 

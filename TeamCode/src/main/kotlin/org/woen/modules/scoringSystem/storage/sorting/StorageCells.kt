@@ -6,15 +6,12 @@ import kotlin.math.min
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
 
-import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
-
 import org.woen.enumerators.StorageSlot
 
 import org.woen.telemetry.LogManager
 
 import org.woen.modules.scoringSystem.storage.Alias.Delay
-import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
@@ -86,24 +83,6 @@ class StorageCells
 
 
 
-    fun handleIntake(): IntakeResult
-    {
-        val result = Intake.F_IS_FULL
-        if (alreadyFull()) return result
-
-        var curSlotId = StorageSlot.BOTTOM
-        while (curSlotId < MAX_BALL_COUNT)
-        {
-            if (_storageCells[Intake.SEARCH_ORDER[curSlotId]].isEmpty())
-            {
-                result.set(Intake.SEARCH_ORDER[curSlotId])
-                curSlotId += STORAGE_SLOT_COUNT  //  Fast break, preferring chosen slot order
-            }
-            curSlotId++
-        }
-
-        return result
-    }
 
     suspend fun handleRequest(requested: BallRequest.Name): RequestResult
     {
@@ -280,10 +259,10 @@ class StorageCells
 
 
 
-    fun recalibrateAfterStorageDesync()
-    {
-        TODO("Add full storage recalibration using in robot color sensors")
-    }
+//    fun recalibrateAfterStorageDesync()
+//    {
+//        TODO("Add full storage recalibration using in robot color sensors")
+//    }
 
 
 

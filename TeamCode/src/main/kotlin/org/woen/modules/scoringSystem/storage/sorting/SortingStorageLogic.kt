@@ -18,13 +18,17 @@ import org.woen.modules.light.SetLightColorEvent
 import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
+import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
-import org.woen.telemetry.LogManager
-import org.woen.telemetry.Configs.DELAY
 import org.woen.utils.process.RunStatus
-import org.woen.threading.ThreadedEventBus
+import org.woen.telemetry.LogManager
+
+import org.woen.telemetry.Configs.DELAY
+import org.woen.telemetry.Configs.DELAY.BETWEEN_SHOTS_MS
+
+import org.woen.telemetry.Configs.SORTING_SETTINGS.DO_WAIT_BEFORE_NEXT_SHOT
 
 import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
@@ -43,8 +47,6 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
-import org.woen.telemetry.Configs.DELAY.BETWEEN_SHOTS_MS
-import org.woen.telemetry.Configs.SORTING_SETTINGS.DO_WAIT_BEFORE_NEXT_SHOT
 
 
 
@@ -155,8 +157,7 @@ class SortingStorageLogic
         runningIntakeInstances.getAndAdd(-1)
 
         if (runningIntakeInstances.get() == 0)
-            ThreadedEventBus.LAZY_INSTANCE.invoke(
-                SetLightColorEvent(Light.LightColor.BLUE))
+            EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
 
         return Intake.SUCCESS
     }
@@ -687,7 +688,7 @@ class SortingStorageLogic
         logM.logMd("waiting for shot - event send", EVENTS_FEEDBACK)
         shotWasFired.set(false)
         canShoot.set(false)
-        ThreadedEventBus.LAZY_INSTANCE.invoke(Request.IsReadyEvent)
+        EventBusLI.invoke(Request.IsReadyEvent)
 
         var timePassedWaiting: Long = NOTHING.toLong()
         while (!canShoot.get() && timePassedWaiting < DELAY.SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS)

@@ -13,12 +13,14 @@ import org.woen.enumerators.Shooting
 
 import org.woen.hotRun.HotRun
 import org.woen.modules.camera.OnPatternDetectedEvent
-import org.woen.modules.light.Light
-import org.woen.modules.light.SetLightColorEvent
+//import org.woen.modules.light.Light
+//import org.woen.modules.light.SetLightColorEvent
 
 import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
+import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
+import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 
 import org.woen.modules.scoringSystem.turret.CurrentlyShooting
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
@@ -36,9 +38,6 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
 
-import org.woen.threading.ThreadManager
-import org.woen.threading.ThreadedEventBus
-//import org.woen.threading.ThreadedGamepad
 //import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.telemetry.LogManager
@@ -46,11 +45,11 @@ import org.woen.telemetry.Configs.DELAY
 
 import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
-import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
+//import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
-import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
+//import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SSM_DEBUG_LEVELS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SSM_DEBUG_SETTING
 
@@ -83,7 +82,7 @@ class SortingStorage
         subscribeToSecondDriverPatternRecalibration()
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            SmartCoroutineLI.launch {
                 terminateIntake()
                 terminateRequest()
 
@@ -96,23 +95,19 @@ class SortingStorage
 
     private fun subscribeToInfoEvents()
     {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            ShotWasFiredEvent::class, {
+        EventBusLI.subscribe(ShotWasFiredEvent::class, {
                 _storageLogic.shotWasFired()
         }   )
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            CurrentlyShooting::class, {
+        EventBusLI.subscribe(CurrentlyShooting::class, {
                 _storageLogic.canShoot.set(true)
         }   )
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            BallCountInStorageEvent::class, {
+        EventBusLI.subscribe(BallCountInStorageEvent::class, {
                 it.count = _storageLogic.storageCells.anyBallCount()
         }   )
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageHandleIdenticalColorsEvent::class, {
+        EventBusLI.subscribe(StorageHandleIdenticalColorsEvent::class, {
 
                 val result = _storageLogic.storageCells.handleIdenticalColorRequest()
 
@@ -121,17 +116,17 @@ class SortingStorage
         }   )
 
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(OnPatternDetectedEvent::class, {
+        EventBusLI.subscribe(OnPatternDetectedEvent::class, {
 
                 _storageLogic.dynamicMemoryPattern.setPermanent(it.pattern.subsequence)
         }   )
     }
     private fun subscribeToActionEvents()
     {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StartLazyIntakeEvent::class, {
+        EventBusLI.subscribe(StartLazyIntakeEvent::class, {
 
                 logM.logMd("check race condition", ATTEMPTING_LOGIC)
+
                 val canStartLazyIntake = _storageLogic
                     .noIntakeRaceConditionProblems(LAZY_INTAKE)
                 it.startingResult = canStartLazyIntake
@@ -145,14 +140,12 @@ class SortingStorage
 //                else
                     _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
         }   )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StopLazyIntakeEvent::class, {
+        EventBusLI.subscribe(StopLazyIntakeEvent::class, {
 
                 _storageLogic.lazyIntakeIsActive.set(false)
         }   )
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageUpdateAfterLazyIntakeEvent::class, {
+        EventBusLI.subscribe(StorageUpdateAfterLazyIntakeEvent::class, {
 
                 val canStartUpdateAfterLazyIntake = _storageLogic.canStartUpdateAfterLazyIntake()
                 it.startingResult = canStartUpdateAfterLazyIntake
@@ -166,29 +159,27 @@ class SortingStorage
 
 
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageInitiatePredictSortEvent::class, {
+        EventBusLI.subscribe(StorageInitiatePredictSortEvent::class, {
 
                 val canInitiate   = _storageLogic.canInitiatePredictSort()
                 it.startingResult = canInitiate
 
                 if (canInitiate)
-                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                    SmartCoroutineLI.launch {
                         _storageLogic.safeInitiatePredictSort(it.requestedPattern)
                     }
 
                 else _storageLogic.runStatus
                     .safeRemoveThisProcessIdFromQueue(PREDICT_SORT)
         }   )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            FillStorageWithUnknownColorsEvent::class, {
+        EventBusLI.subscribe(FillStorageWithUnknownColorsEvent::class, {
 
                 val canStartStorageCalibration = _storageLogic
                    .canStartStorageCalibrationWithCurrent()
                 it.startingResult = canStartStorageCalibration
 
                 if (canStartStorageCalibration)
-                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                    SmartCoroutineLI.launch {
                         _storageLogic.safeStartStorageCalibrationWithCurrent()
                     }
 
@@ -229,16 +220,16 @@ class SortingStorage
     }
     private fun subscribeToTerminateEvents()
     {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateIntakeEvent::class, {
+        EventBusLI.subscribe(TerminateIntakeEvent::class, {
 
                 terminateIntake()
         }   )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitForTerminateIntakeEvent::class, {
+        EventBusLI.subscribe(WaitForTerminateIntakeEvent::class, {
 
                 terminateIntake()
         }   )
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateRequestEvent::class, {
+        EventBusLI.subscribe(TerminateRequestEvent::class, {
 
                 terminateRequest()
         }   )
@@ -308,57 +299,60 @@ class SortingStorage
         }
     }
 
-    fun unsafeTestSorting()
-    {
-        val fill = arrayOf(Ball.Name.PURPLE, Ball.Name.GREEN, Ball.Name.PURPLE)
-        _storageLogic.storageCells.safeUpdateAfterLazyIntake(fill)
-
-        ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            var iteration = 0
-            while (iteration < 100)
-            {
-                logM.logMd("\nIteration: $iteration", GENERIC_INFO)
-
-                _storageLogic.storageCells.fullRotate()
-                iteration++
-        }   }
-    }
-    suspend fun hwSmartPushNextBall()
-        = _storageLogic.storageCells.hwSortingM.smartPushNextBall()
+//    fun unsafeTestSorting()
+//    {
+//        val fill = arrayOf(Ball.Name.PURPLE, Ball.Name.GREEN, Ball.Name.PURPLE)
+//        _storageLogic.storageCells.safeUpdateAfterLazyIntake(fill)
+//
+//        SmartCoroutineLI.launch {
+//            var iteration = 0
+//            while (iteration < 100)
+//            {
+//                logM.logMd("\nIteration: $iteration", GENERIC_INFO)
+//
+//                _storageLogic.storageCells.fullRotate()
+//                iteration++
+//        }   }
+//    }
+//    suspend fun hwSmartPushNextBall()
+//        = _storageLogic.storageCells.hwSortingM.smartPushNextBall()
     fun alreadyFull() = _storageLogic.storageCells.alreadyFull()
 
 
 
-    suspend fun tryStartLazyIntake()
-    {
+//    suspend fun tryStartLazyIntake()
+//    {
 //        if (!_storageLogic.storageCells.alreadyFull()
 //            && _storageLogic.noIntakeRaceConditionProblems(LAZY_INTAKE))
 //            startLazyIntake()
 //        else
-            _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
-    }
-    private suspend fun startLazyIntake()
-    {
-        logM.logMd("Started LazyIntake", PROCESS_STARTING)
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SetLightColorEvent(Light.LightColor.ORANGE))
-        _storageLogic.runStatus.setCurrentActiveProcess(LAZY_INTAKE)
-        _storageLogic.lazyIntakeIsActive.set(true)
-
-        _storageLogic.storageCells.hwSortingM.slowStartBelts()
-        while (_storageLogic.lazyIntakeIsActive.get())
-        {
-            delay(DELAY.EVENT_AWAITING_MS)
-
-            if (_storageLogic.isForcedToTerminate(LAZY_INTAKE))
-                _storageLogic.terminateIntake(LAZY_INTAKE)
-        }
-        _storageLogic.storageCells.hwSortingM.stopBelts()
-        _storageLogic.lazyIntakeIsActive.set(false)
-
-        logM.logMd("Stopped LazyIntake", PROCESS_ENDING)
-        _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
-    }
+//            _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
+//    }
+//    private suspend fun startLazyIntake()
+//    {
+//        logM.logMd("Started LazyIntake", PROCESS_STARTING)
+//
+//        EventBusLI.invoke(SetLightColorEvent(Light.LightColor.ORANGE))
+//
+//        _storageLogic.runStatus.setCurrentActiveProcess(LAZY_INTAKE)
+//        _storageLogic.lazyIntakeIsActive.set(true)
+//
+//        _storageLogic.storageCells.hwSortingM.slowStartBelts()
+//
+//        while (_storageLogic.lazyIntakeIsActive.get())
+//        {
+//            delay(DELAY.EVENT_AWAITING_MS)
+//
+//            if (_storageLogic.isForcedToTerminate(LAZY_INTAKE))
+//                _storageLogic.terminateIntake(LAZY_INTAKE)
+//        }
+//
+//        _storageLogic.storageCells.hwSortingM.stopBelts()
+//        _storageLogic.lazyIntakeIsActive.set(false)
+//
+//        logM.logMd("Stopped LazyIntake", PROCESS_ENDING)
+//        _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
+//    }
 
 
 
@@ -382,6 +376,7 @@ class SortingStorage
 
         if (_storageLogic.runningIntakeInstances.get() == 0)
             _storageLogic.resumeLogicAfterIntake(INTAKE)
+
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
     suspend fun handleRequest(request: BallRequest.Name):  RequestResult.Name

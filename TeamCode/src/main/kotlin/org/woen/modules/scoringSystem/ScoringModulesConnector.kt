@@ -24,10 +24,7 @@ import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
 
 import org.woen.telemetry.LogManager
-import org.woen.threading.ThreadManager
 import org.woen.telemetry.Configs.DELAY
-import org.woen.threading.ThreadedEventBus
-import org.woen.threading.ThreadedGamepad
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
@@ -40,7 +37,7 @@ import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
-import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
+//import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 
@@ -51,6 +48,9 @@ import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
+import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
+import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
+import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
@@ -106,12 +106,10 @@ class ScoringModulesConnector
 
     private fun subscribeToEvents()
     {
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageGetReadyForIntakeEvent::class, {
-                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+        EventBusLI.subscribe(StorageGetReadyForIntakeEvent::class, {
+                SmartCoroutineLI.launch {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.ORANGE))
+                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.ORANGE))
 
                     startIntakeProcess(it.inputToBottomSlot)
                 }
@@ -119,20 +117,17 @@ class ScoringModulesConnector
 
 
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageGiveSingleRequest::class, {
+        EventBusLI.subscribe(StorageGiveSingleRequest::class, {
 
                 startSingleRequest(it.ballRequest)
         }   )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageGiveStreamDrumRequest::class, {
+        EventBusLI.subscribe(StorageGiveStreamDrumRequest::class, {
 
                 if (USE_LAZY_VERSION_OF_STREAM_REQUEST)
                      startLazyStreamDrumRequest()
                 else startStreamDrumRequest()
         }   )
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageGiveDrumRequest::class, {
+        EventBusLI.subscribe(StorageGiveDrumRequest::class, {
 
                 startDrumRequest(
                     it.shootingMode,
@@ -141,51 +136,45 @@ class ScoringModulesConnector
         }   )
 
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            TurretCurrentPeaked::class, {
+        EventBusLI.subscribe(TurretCurrentPeaked::class, {
 
                 logM.logMd("RECEIVED - Turret current peaked", EVENTS_FEEDBACK)
                 _shotWasFired.set(true)
         }   )
 
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            StorageRequestIsReadyEvent::class, {
+        EventBusLI.subscribe(StorageRequestIsReadyEvent::class, {
 
                 readyUpForShooting()
         }   )
 
 
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(
-            ReverseAndThenStartBrushesAgain::class, {
+        EventBusLI.subscribe(ReverseAndThenStartBrushesAgain::class, {
 
                 startBrushesAfterDelay(it.reverseTime)
         }   )
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(FullFinishedFiringEvent::class, {
+        EventBusLI.subscribe(FullFinishedFiringEvent::class, {
 
-            ThreadedEventBus.LAZY_INSTANCE.invoke(
-                SetLightColorEvent(Light.LightColor.BLUE))
-
-            ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
-        })
+                EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
+                EventBusLI.invoke(SetDriveModeEvent(DriveMode.DRIVE))
+        }   )
     }
     private fun subscribeToGamepad()
     {
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener(
+        GamepadLI.addGamepad1Listener(createClickDownListener(
                 { it.right_trigger > 0.5 }, {
 
                     logM.logMd("Gamepad try start lazy intake", GAMEPAD_FEEDBACK)
-//                    val startingResult = ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                    val startingResult = EventBusLI.invoke(
 //                        StartLazyIntakeEvent())
 
 //                    if (startingResult.startingResult)
                         startBrushes()
 //                    else
 //                    {
-//                        ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        EventBusLI.invoke(
 //                            SetLightColorEvent(Light.LightColor.BLUE))
 //
 //                        reverseBrushes(TIME_FOR_BRUSH_REVERSING)
@@ -195,152 +184,136 @@ class ScoringModulesConnector
         }   )   )
 
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener(
+        GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.square }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.ORANGE))
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        StorageGetReadyForIntakeEvent(
+                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.ORANGE))
+                    EventBusLI.invoke(StorageGetReadyForIntakeEvent(
                             Ball.Name.PURPLE))
 
                     logM.logMd("\nSTART - PURPLE Intake - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}",
+                        GENERIC_INFO)
         }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener(
+        GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.circle }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.ORANGE))
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        StorageGetReadyForIntakeEvent(
+                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.ORANGE))
+                    EventBusLI.invoke(StorageGetReadyForIntakeEvent(
                             Ball.Name.GREEN))
 
                     logM.logMd("\nSTART - GREEN Intake - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}",
+                        GENERIC_INFO)
         }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener(
+        GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.left_trigger > 0.5 }, {
 
                     _intakeWasTerminated.set(true)
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateIntakeEvent())
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.BLUE))
+
+                    EventBusLI.invoke(TerminateIntakeEvent())
+                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
 
                     reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
 
                     logM.logMd("\nSTOP  - INTAKE - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}",
+                        GENERIC_INFO)
         }   )   )
 
 
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener(
+        GamepadLI.addGamepad1Listener(createClickDownListener(
                 { it.left_bumper }, {
 
                     _requestWasTerminated.set(true)
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateRequestEvent())
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetDriveModeEvent(DriveMode.DRIVE))
+
+                    EventBusLI.invoke(TerminateRequestEvent())
+                    EventBusLI.invoke(SetDriveModeEvent(DriveMode.DRIVE))
 
                     logM.logMd("STOP  - ANY Request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}",
+                        GENERIC_INFO)
         }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener(
+        GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.right_bumper }, {
 
                     _requestWasTerminated.set(false)
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.GREEN))
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveStreamDrumRequest())
+                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
+                    EventBusLI.invoke(StorageGiveStreamDrumRequest())
 
                     logM.logMd("\nSTART - STREAM Drum request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}",
+                        GENERIC_INFO)
         }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener(
-            { it.dpad_left }, {
+        GamepadLI.addGamepad1Listener(createClickDownListener(
+                { it.dpad_left }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.GREEN))
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        StorageGiveDrumRequest(
+                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
+                    EventBusLI.invoke(StorageGiveDrumRequest(
                             Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN,
                             Shooting.StockPattern.tryConvertToPatternSequence(
                                 Shooting.StockPattern.Name.GPP)!!))
 
                     logM.logMd("\nSTART - GPP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}",
+                        GENERIC_INFO)
         }   )   )
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener(
+        GamepadLI.addGamepad1Listener(createClickDownListener(
                 { it.dpad_up }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.GREEN))
-
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        StorageGiveDrumRequest(
+                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
+                    EventBusLI.invoke(StorageGiveDrumRequest(
                             Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN,
                             Shooting.StockPattern.tryConvertToPatternSequence(
                                 Shooting.StockPattern.Name.PGP)!!))
 
                     logM.logMd("\nSTART - PGP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}",
+                        GENERIC_INFO)
         }   )   )
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener(
+        GamepadLI.addGamepad1Listener(createClickDownListener(
                 { it.dpad_right }, {
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        SetLightColorEvent(Light.LightColor.GREEN))
+                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        StorageGiveDrumRequest(
+                    EventBusLI.invoke(StorageGiveDrumRequest(
                             Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN,
                             Shooting.StockPattern.tryConvertToPatternSequence(
                                 Shooting.StockPattern.Name.PPG)!!))
 
                     logM.logMd("\nSTART - PPG Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
-                }   )   )
+                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}",
+                        GENERIC_INFO)
+        }   )   )
 
-//        ThreadedGamepad.LAZY_INSTANCE.addListener(
+//        GamepadLI.addListener(
 //            createClickDownListener(
 //            { it.left_trigger > 0.75 }, {
 //
-//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                    EventBusLI.invoke(
 //                        SetLightColorEvent(Light.LightColor.GREEN))
 //
-//                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
+//                    EventBusLI.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 //
 //                    logM.logMd("\nSTART - PURPLE Request - GAMEPAD")
 //                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
 //        }   )   )
 //
-//        ThreadedGamepad.LAZY_INSTANCE.addListener(
+//        GamepadLI.addListener(
 //            createClickDownListener(
 //            { it.right_trigger > 0.75 }, {
 //
-//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                    EventBusLI.invoke(
 //                        SetLightColorEvent(Light.LightColor.GREEN))
 //
-//                    ThreadedEventBus.LAZY_INSTANCE.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
+//                    EventBusLI.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 //
 //                    logM.logMd("\nSTART - GREEN Request - GAMEPAD")
 //                    logM.logMd("isBusy: ${isBusy() || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
@@ -389,15 +362,12 @@ class ScoringModulesConnector
 
 
     private fun startBrushes()
-    {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SwitchBrushStateEvent(
+        = EventBusLI.invoke(SwitchBrushStateEvent(
                 Brush.BrushState.FORWARD))
-    }
+
     private fun reverseBrushes(reverseTime: Long)
     {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SwitchBrushStateEvent(
+        EventBusLI.invoke(SwitchBrushStateEvent(
                 Brush.BrushState.REVERSE,
                 reverseTime
         )   )
@@ -407,10 +377,7 @@ class ScoringModulesConnector
         _canRestartBrushes.set(true)
         reverseBrushes(reverseTime)
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            ReverseAndThenStartBrushesAgain(
-                reverseTime
-        )   )
+        EventBusLI.invoke(ReverseAndThenStartBrushesAgain(reverseTime))
     }
     private suspend fun startBrushesAfterDelay(delay: Long)
     {
@@ -433,8 +400,7 @@ class ScoringModulesConnector
             delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
+        EventBusLI.invoke(SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
 
         logM.logMd("Started - SMART drum request", PROCESS_STARTING)
         val requestResult = _storage.shootEntireDrumRequest(
@@ -461,11 +427,10 @@ class ScoringModulesConnector
             delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
+        EventBusLI.invoke(SetDriveModeEvent(
             DriveMode.SHOOTING)).process.wait()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
+        EventBusLI.invoke(SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
 
         logM.logMd("Started - Lazy stream drum request", PROCESS_STARTING)
         val requestResult = _storage.lazyDrumRequest()
@@ -484,11 +449,8 @@ class ScoringModulesConnector
             delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(
-                DriveMode.SHOOTING))
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
+        EventBusLI.invoke(SetDriveModeEvent(DriveMode.SHOOTING))
+        EventBusLI.invoke(SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
 
         logM.logMd("Started - stream drum request", PROCESS_STARTING)
         val requestResult = _storage.streamDrumRequest()
@@ -509,8 +471,7 @@ class ScoringModulesConnector
 
         logM.logMd("Started - Single request", PROCESS_STARTING)
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            SetTurretShootTypeEvent(Shooting.ShotType.SINGLE))
+        EventBusLI.invoke(SetTurretShootTypeEvent(Shooting.ShotType.SINGLE))
 
         val requestResult = _storage.handleRequest(ballRequest)
         logM.logMd("FINISHED - Single request", PROCESS_ENDING)
@@ -525,7 +486,7 @@ class ScoringModulesConnector
     {
         logM.logMd("Starting Drivetrain rotation", PROCESS_STARTING)
 
-        val drivingToSHootingZone = ThreadedEventBus.LAZY_INSTANCE.invoke(
+        val drivingToSHootingZone = EventBusLI.invoke(
                 SetDriveModeEvent(
                     DriveMode.SHOOTING)).process
 
@@ -556,7 +517,7 @@ class ScoringModulesConnector
     private suspend fun awaitShotFiring()
     {
         logM.logMd("SEND - AWAITING SHOT", EVENTS_FEEDBACK)
-        ThreadedEventBus.LAZY_INSTANCE.invoke(CurrentlyShooting())
+        EventBusLI.invoke(CurrentlyShooting())
 //        _storage.hwSmartPushNextBall()
 
 
@@ -573,26 +534,23 @@ class ScoringModulesConnector
         else logM.logMd("\n\n\nRECEIVED - SHOT FIRED\n", LOGIC_STEPS)
 
 
-        //if (_shotWasFired.get()) ThreadedEventBus.LAZY_INSTANCE.invoke(ShotWasFiredEvent())
+        //if (_shotWasFired.get()) EventBusLI.invoke(ShotWasFiredEvent())
 
         _shotWasFired.set(false)
         _currentlyShooting.set(false)
         _requestWasTerminated.set(false)
     }
 
-    private suspend fun sendFinishedFiringEvent (requestResult: RequestResult.Name)
+    private fun sendFinishedFiringEvent (requestResult: RequestResult.Name)
     {
         logM.logMd("FINISHED all firing", PROCESS_ENDING)
         logM.logMd("Send finished firing EVENT", PROCESS_ENDING)
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            FullFinishedFiringEvent(
-                requestResult
-        )   )
+        EventBusLI.invoke(FullFinishedFiringEvent(requestResult))
 
         //_storage.tryStartLazyIntake()
     }
-    private suspend fun resumeLogicAfterShooting(requestResult: RequestResult.Name)
+    private fun resumeLogicAfterShooting(requestResult: RequestResult.Name)
     {
         tryRestartBrushes()
         setIdle()
@@ -608,10 +566,12 @@ class ScoringModulesConnector
     private fun setBusy() = _isBusy.set(true)
     private fun setIdle() = _isBusy.set(false)
 
+
+
     private fun tryRestartBrushes()
     {
         if (BallCountInStorageEvent(NOTHING).count < MAX_BALL_COUNT)
-            ThreadedEventBus.LAZY_INSTANCE.invoke(
-                SwitchBrushStateEvent(Brush.BrushState.FORWARD))
+            EventBusLI.invoke(SwitchBrushStateEvent(
+                Brush.BrushState.FORWARD))
     }
 }
