@@ -81,7 +81,7 @@ class ActionRunner private constructor() : DisposableHandle
 
     private val _eatVelConstant = MinVelConstraint(
         listOf(
-            TranslationalVelConstraint(0.8),
+            TranslationalVelConstraint(0.5),
             AngularVelConstraint(5.0)
         )
     )
@@ -590,7 +590,7 @@ class ActionRunner private constructor() : DisposableHandle
     {
         var waitingForIntakeFinishing: Long = 0
         while(_ballsInStorage.get() < _activeBallsInCycle.get()
-            && waitingForIntakeFinishing < 10000)
+            && waitingForIntakeFinishing < 5000)
         {
             delay(DELAY.EVENT_AWAITING_MS)
             waitingForIntakeFinishing += DELAY.EVENT_AWAITING_MS
@@ -609,12 +609,12 @@ class ActionRunner private constructor() : DisposableHandle
         _doneShooting.set(false)
         EventBusLI.invoke(StorageGiveStreamDrumRequest())
         var waitingForSecondStreamMS: Long = 0
-        while(!_doneShooting.get() && waitingForSecondStreamMS < 10000)
+        while(!_doneShooting.get() && waitingForSecondStreamMS < 5000)
         {
             delay(DELAY.EVENT_AWAITING_MS)
             waitingForSecondStreamMS += DELAY.EVENT_AWAITING_MS
         }
-        if (waitingForSecondStreamMS > 10000)
+        if (waitingForSecondStreamMS > 5000)
             EventBusLI.invoke(TerminateRequestEvent())
         else _ballsInStorage.set(0)
         //------------------------------------------------------------------------------------
@@ -625,13 +625,13 @@ class ActionRunner private constructor() : DisposableHandle
         EventBusLI.invoke(DefaultFireEvent())
 
         var waitingForCustomisableDrumMS: Long = 0
-        while(!_doneShooting.get() && waitingForCustomisableDrumMS < 10000)
+        while(!_doneShooting.get() && waitingForCustomisableDrumMS < 5000)
         {
             delay(DELAY.EVENT_AWAITING_MS)
             waitingForCustomisableDrumMS += DELAY.EVENT_AWAITING_MS
         }
 
-        if (waitingForCustomisableDrumMS > 10000)
+        if (waitingForCustomisableDrumMS > 5000)
             EventBusLI.invoke(TerminateRequestEvent())
         else _ballsInStorage.set(0)
     }

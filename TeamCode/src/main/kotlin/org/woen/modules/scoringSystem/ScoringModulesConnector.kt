@@ -486,32 +486,35 @@ class ScoringModulesConnector
     {
         logM.logMd("Starting Drivetrain rotation", PROCESS_STARTING)
 
+
+        val drivingToSHootingZone = EventBusLI.invoke(
+                SetDriveModeEvent(
+                    DriveMode.SHOOTING)).process
+
+        do
+        {
+            delay(DELAY.EVENT_AWAITING_MS)
+            val nowInShootingZone = drivingToSHootingZone.closed.get()
+        }
+        while (!nowInShootingZone && !_requestWasTerminated.get())
+
+        if (_requestWasTerminated.get())
+        {
+            logM.logMd("Canceled driving to shooting zone = request was terminated",
+                LOGIC_STEPS)
+
+            _requestWasTerminated.set(false)
+            return
+        }
+        logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
+
+
         EventBusLI.invoke(CurrentlyShooting())
         _shotWasFired.set(false)
         _currentlyShooting.set(false)
         _requestWasTerminated.set(false)
 
 
-//        val drivingToSHootingZone = EventBusLI.invoke(
-//                SetDriveModeEvent(
-//                    DriveMode.SHOOTING)).process
-//
-//        do
-//        {
-//            delay(DELAY.EVENT_AWAITING_MS)
-//            val nowInShootingZone = drivingToSHootingZone.closed.get()
-//        }
-//        while (!nowInShootingZone && !_requestWasTerminated.get())
-//
-//        if (_requestWasTerminated.get())
-//        {
-//            logM.logMd("Canceled driving to shooting zone = request was terminated",
-//                LOGIC_STEPS)
-//
-//            _requestWasTerminated.set(false)
-//            return
-//        }
-//        logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
 //
 //
 //        while (_currentlyShooting.get())

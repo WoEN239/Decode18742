@@ -324,7 +324,7 @@ class HwSortingManager
 
         if (helpPushLastBall.get())
         {
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 8)
+            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 4)
             openLaunch()
             helpPushLastBall.set(false)
         }

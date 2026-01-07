@@ -367,7 +367,7 @@ object Configs {
         var SHOOTING_SINGLE_PULLEY_VELOCITY = 15.0
 
         @JvmField
-        var SHOOTING_DRUM_PULLEY_VELOCITY = 15.6
+        var SHOOTING_DRUM_PULLEY_VELOCITY = 15.8
     }
 
     @Config
@@ -655,9 +655,10 @@ object Configs {
         @JvmField
         var FULL_BALL_PUSHING_MS: Long = 444
         @JvmField
-        var PART_BALL_PUSHING_MS: Long = 300
+        var PART_BALL_PUSHING_MS: Long = 333
         @JvmField
-        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 300
+//        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 300    //  9.0V configuration
+        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 488      //  8.5V configuration
 
 
         @JvmField
@@ -669,7 +670,9 @@ object Configs {
         @JvmField
         var SMC_MAX_SHOT_AWAITING_MS: Long = 60
         @JvmField
-        var SSL_MAX_SHOT_AWAITING_MS: Long = 202
+//        var SSL_MAX_SHOT_AWAITING_MS: Long = 205     //  9.0V configuration
+        var SSL_MAX_SHOT_AWAITING_MS: Long = 245       //  8.5V configuration
+
         @JvmField
         var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33333
 
@@ -708,7 +711,7 @@ object Configs {
 
 
         @JvmField
-        var USE_LAZY_VERSION_OF_STREAM_REQUEST = false
+        var USE_LAZY_VERSION_OF_STREAM_REQUEST = true
         @JvmField
         var USE_EASY_VERSION_OF_STREAM_REQUEST = true
 
@@ -804,12 +807,12 @@ object Configs {
 
 
         @JvmField
-        var BELT_POWER_FAST_MODE = 11.0
+        var BELT_POWER_FAST_MODE = 8.0
 
         @JvmField
         var BELT_POWER_SLOW_MODE = 8.0
         @JvmField
-        var BELT_POWER_SHOOT_MODE = 9.0
+        var BELT_POWER_SHOOT_MODE = 8.5
 
         @JvmField
         var TURRET_GATE_SERVO_OPEN_VALUE = 0.775
