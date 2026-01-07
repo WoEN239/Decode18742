@@ -36,8 +36,7 @@ import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
-
-
+import org.woen.telemetry.Configs
 
 
 class ActionRunner private constructor() : DisposableHandle
@@ -88,10 +87,7 @@ class ActionRunner private constructor() : DisposableHandle
     )
 
     private val _shootingOrientation
-        get() = Orientation(
-            Vec2(-0.776, -0.656 * _yColorMultiplier),
-            Angle(-PI * 0.75 * _hColorMultiplier)
-        )
+        get() = Configs.TURRET.SHOOTING_BLUE_ORIENTATION
     
     
     private val _doneShooting   = AtomicBoolean(false)
@@ -213,7 +209,142 @@ class ActionRunner private constructor() : DisposableHandle
         ).process.wait()
     }
 
-    suspend fun closeAuto()
+    private suspend fun closeAuto12()
+    {
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeToLinearHeading(
+                        _shootingOrientation.pos.rrVec(),
+                        _shootingOrientation.angle
+                    )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+
+
+        //------------------------------
+        handleStreamShooting()
+        //------------------------------
+
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeToLinearHeading(
+                        Vector2d(-0.314, -0.716 * _yColorMultiplier),
+                        -PI / 2.0 * _hColorMultiplier
+                    ).strafeTo(Vector2d(-0.314, -1.25 * _yColorMultiplier), _eatVelConstant)
+                        .setReversed(true)
+                        .splineTo(
+                            Vector2d(-0.05, -1.35 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
+                        )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+        Thread.sleep(900)
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!
+                        .strafeToLinearHeading(
+                            _shootingOrientation.pos.rrVec(),
+                            _shootingOrientation.angle
+                        )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+
+
+        //------------------------------
+        handleCustomisableShooting()
+        //------------------------------
+
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!
+                        .strafeToLinearHeading(
+                            Vector2d(0.353, -0.712 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
+                        )
+                        .strafeTo(Vector2d(0.353, -1.25 * _yColorMultiplier), _eatVelConstant)
+                        .strafeToLinearHeading(
+                            _shootingOrientation.pos.rrVec(),
+                            _shootingOrientation.angle
+                        )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+
+
+        //------------------------------
+        handleCustomisableShooting()
+        //------------------------------
+
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!
+                        .strafeToLinearHeading(
+                            Vector2d(0.95, -0.712 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
+                        )
+                        .strafeTo(Vector2d(1.0, -1.25 * _yColorMultiplier), _eatVelConstant)
+                        .strafeToLinearHeading(
+                            _shootingOrientation.pos.rrVec(),
+                            _shootingOrientation.angle
+                        )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+
+
+        //------------------------------
+        handleCustomisableShooting()
+        //------------------------------
+
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeTo(Vector2d(-1.2, -0.656 * _yColorMultiplier))
+                        .build()
+                )
+            )
+        ).process.wait()
+    }
+    private suspend fun closeAuto24()
     {
         EventBusLI.invoke(
             RunSegmentEvent(
@@ -512,8 +643,8 @@ class ActionRunner private constructor() : DisposableHandle
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
             if (HotRun.LAZY_INSTANCE.currentStartPosition.position == HotRun.RunPosition.CLOSE) {
-                simpleCloseAuto()
-                //closeAuto()
+//                simpleCloseAuto()
+                closeAuto12()
             }
         }
     })
