@@ -85,7 +85,7 @@ class ScoringModulesConnector
     private val _currentlyShooting = AtomicBoolean(false)
     private val _runningIntakeInstances = AtomicInteger(0)
 
-    private val _shotWasFired      = AtomicBoolean(false)
+//    private val _shotWasFired      = AtomicBoolean(false)
     private val _canRestartBrushes = AtomicBoolean(false)
     private val _requestWasTerminated = AtomicBoolean(false)
 
@@ -132,11 +132,11 @@ class ScoringModulesConnector
         }   )
 
 
-        EventBusLI.subscribe(TurretCurrentPeaked::class, {
-
-                logM.logMd("RECEIVED - Turret current peaked", EVENTS_FEEDBACK)
-                _shotWasFired.set(true)
-        }   )
+//        EventBusLI.subscribe(TurretCurrentPeaked::class, {
+//
+//                logM.logMd("RECEIVED - Turret current peaked", EVENTS_FEEDBACK)
+//                _shotWasFired.set(true)
+//        }   )
 
 
         EventBusLI.subscribe(StorageRequestIsReadyEvent::class, {
@@ -315,7 +315,7 @@ class ScoringModulesConnector
     {
         setIdle()
 
-        _shotWasFired.set(false)
+//        _shotWasFired.set(false)
         _canRestartBrushes.set(false)
 
         _requestWasTerminated.set(false)

@@ -690,7 +690,6 @@ class SortingStorageLogic
 
 
 
-    fun shotWasFired() = shotWasFired.set(true)
     suspend fun fullWaitForShotFired(
         processId: Int,
         doWaitBeforeNextShot: Boolean = false,

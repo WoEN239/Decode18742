@@ -80,6 +80,12 @@ class RunStatus
         }
         while (position != -1)
     }
+    fun safeRemoveOnlyOneInstanceOfThisProcessFromQueue(processId: Int)
+    {
+        val position  =     _processQueue.indexOf(processId)
+        if (position != -1) _processQueue.removeAt(position)
+    }
+
 
 
     fun isThisProcessHighestPriority(processId: Int): Boolean

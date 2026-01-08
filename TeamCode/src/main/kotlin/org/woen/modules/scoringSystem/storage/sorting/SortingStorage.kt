@@ -99,7 +99,7 @@ class SortingStorage
     private fun subscribeToInfoEvents()
     {
         EventBusLI.subscribe(ShotWasFiredEvent::class, {
-                _storageLogic.shotWasFired()
+                _storageLogic.shotWasFired.set(true)
         }   )
 
         EventBusLI.subscribe(CurrentlyShooting::class, {
