@@ -65,12 +65,6 @@ class HwSortingManager
     {
         subscribeToHwEvents()
         addDevices()
-
-        GamepadLI.addGamepad1Listener(createClickDownListener(
-            { it.ps },   {
-
-                    canHandleIntake.set(true)
-        }   )   )
     }
 
     private fun subscribeToHwEvents()

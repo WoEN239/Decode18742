@@ -30,7 +30,7 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
 import org.woen.modules.scoringSystem.turret.CurrentlyShooting
-import org.woen.modules.scoringSystem.turret.TurretCurrentPeaked
+//import org.woen.modules.scoringSystem.turret.TurretCurrentPeaked
 import org.woen.modules.scoringSystem.turret.SetTurretShootTypeEvent
 
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
@@ -59,7 +59,7 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.SMC_DEBUG_LEVELS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SMC_DEBUG_SETTING
 
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-import org.woen.telemetry.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
+//import org.woen.telemetry.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
@@ -249,8 +249,7 @@ class ScoringModulesConnector
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
                     EventBusLI.invoke(StorageGiveDrumRequest(
                         TELEOP_PATTERN_SHOOTING_MODE,
-                            Shooting.StockPattern.tryConvertToPatternSequence(
-                                Shooting.StockPattern.Name.GPP)!!))
+                            Shooting.StockPattern.Sequence.Request.GPP))
 
                     logM.logMd("\nSTART - GPP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
@@ -262,8 +261,7 @@ class ScoringModulesConnector
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
                     EventBusLI.invoke(StorageGiveDrumRequest(
                         TELEOP_PATTERN_SHOOTING_MODE,
-                            Shooting.StockPattern.tryConvertToPatternSequence(
-                                Shooting.StockPattern.Name.PGP)!!))
+                        Shooting.StockPattern.Sequence.Request.PGP))
 
                     logM.logMd("\nSTART - PGP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
@@ -276,8 +274,7 @@ class ScoringModulesConnector
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
                     EventBusLI.invoke(StorageGiveDrumRequest(
                             TELEOP_PATTERN_SHOOTING_MODE,
-                            Shooting.StockPattern.tryConvertToPatternSequence(
-                                Shooting.StockPattern.Name.PPG)!!))
+                        Shooting.StockPattern.Sequence.Request.PPG))
 
                     logM.logMd("\nSTART - PPG Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",

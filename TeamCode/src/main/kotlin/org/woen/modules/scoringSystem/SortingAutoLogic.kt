@@ -192,7 +192,7 @@ class SortingAutoLogic
                 logM.logMd("Default decided: Fire custom pattern", PROCESS_NAME)
 
                 val convertedPattern = Shooting.StockPattern.
-                    tryConvertToPatternSequence(AUTO_DEFAULT_PATTERN)!!
+                    tryConvertToPatternSequence(AUTO_DEFAULT_PATTERN)
 
                 logPatternInfo(convertedPattern)
 
@@ -265,7 +265,7 @@ class SortingAutoLogic
                 logM.logMd("Failsafe decided: Fire custom pattern", PROCESS_NAME)
 
                 val convertedPattern = Shooting.StockPattern.
-                    tryConvertToPatternSequence(AUTO_FAILSAFE_PATTERN)!!
+                    tryConvertToPatternSequence(AUTO_FAILSAFE_PATTERN)
 
                 logPatternInfo(convertedPattern)
 

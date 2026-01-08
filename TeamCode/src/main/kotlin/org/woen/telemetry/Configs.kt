@@ -7,6 +7,7 @@ import kotlin.math.ceil
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
+import org.woen.enumerators.BallRequest
 
 import org.woen.enumerators.Shooting
 import org.woen.enumerators.StorageSlot
@@ -700,6 +701,10 @@ object Configs {
 
     @Config
     internal object SORTING_SETTINGS {
+
+        @JvmField
+        var INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = Shooting.StockPattern.Sequence.Storage.EMPTY
+
 
         @JvmField
         var ALWAYS_TRY_PREDICT_SORTING = true

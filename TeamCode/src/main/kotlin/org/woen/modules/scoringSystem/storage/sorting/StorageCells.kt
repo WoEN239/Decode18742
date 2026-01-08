@@ -33,6 +33,7 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.MIN_SEQUENCE_SCORE_FOR_PREDIC
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 import org.woen.telemetry.Configs.DELAY
+import org.woen.telemetry.Configs.SORTING_SETTINGS.INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -65,13 +66,16 @@ class PredictSortResult(var totalRotations: Int, var maxSequenceScore: Double)
 
 class StorageCells
 {
-    private val _storageCells = Array(STORAGE_SLOT_COUNT) { Ball() }
+    private val _storageCells = INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
     val hwSortingM = HwSortingManager()
     val logM = LogManager(CELLS_DEBUG_SETTING, CELLS_DEBUG_LEVELS, "CELLS")
 
 
 
-    fun resetParametersToDefault() = fullEmptyStorageCells()
+    fun resetParametersToDefault()
+    {
+        if (notFullYet()) hwSortingM.resumeAwaitingEating()
+    }
 
     fun fullEmptyStorageCells()
     {
@@ -358,6 +362,7 @@ class StorageCells
         return count
     }
     fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT
+    fun notFullYet()  = anyBallCount() < MAX_BALL_COUNT
     fun onlyOneBallLeft() = anyBallCount() == 1
     fun isEmpty(): Boolean
     {
