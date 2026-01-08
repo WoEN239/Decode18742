@@ -20,7 +20,7 @@ class StorageGiveDrumRequest(
 
 class StorageInitiatePredictSortEvent(
     var requestedPattern: Array<BallRequest.Name>,
-    var startingResult: Boolean) : StoppingEvent
+    var startingResult: Boolean = false) : StoppingEvent
 
 
 

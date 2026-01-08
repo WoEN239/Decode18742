@@ -16,6 +16,7 @@ import com.acmerobotics.roadrunner.TranslationalVelConstraint
 import com.acmerobotics.roadrunner.Vector2d
 
 import org.woen.hotRun.HotRun
+import org.woen.modules.camera.OnPatternDetectedEvent
 import org.woen.utils.smartMutex.SmartMutex
 
 import org.woen.telemetry.Configs
@@ -28,15 +29,18 @@ import org.woen.modules.runner.segment.RRTrajectorySegment
 import org.woen.modules.runner.segment.RequireRRBuilderEvent
 import org.woen.modules.runner.segment.RunSegmentEvent
 
+import org.woen.modules.scoringSystem.turret.Turret
+import org.woen.modules.scoringSystem.turret.SetRotateStateEvent
+
 import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
+import org.woen.modules.scoringSystem.storage.StorageInitiatePredictSortEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
-import org.woen.modules.scoringSystem.turret.SetRotateStateEvent
-import org.woen.modules.scoringSystem.turret.SetTurretMode
-import org.woen.modules.scoringSystem.turret.Turret
+import org.woen.modules.scoringSystem.storage.sorting.DynamicPattern
+
 
 
 class ActionRunner private constructor() : DisposableHandle
@@ -88,12 +92,15 @@ class ActionRunner private constructor() : DisposableHandle
 
     private val _shootingOrientation
         get() = Configs.TURRET.SHOOTING_BLUE_ORIENTATION
-    
-    
+
+
+
+    private val _pattern = DynamicPattern()
+    private val _patternWasDetected = AtomicBoolean(false)
+
     private val _doneShooting       = AtomicBoolean(false)
     private val _ballsInStorage     = AtomicInteger(3)
     private val _activeBallsInCycle = AtomicInteger(3)
-
     
     
     
@@ -612,6 +619,15 @@ class ActionRunner private constructor() : DisposableHandle
         val eatenBallCount = _ballsInStorage.get()
         if  (eatenBallCount < _activeBallsInCycle.get())
             _activeBallsInCycle.set(eatenBallCount)
+
+
+        if (_patternWasDetected.get())
+            EventBusLI.invoke(
+                StorageInitiatePredictSortEvent(
+                    DynamicPattern.trimPattern(
+                        _pattern.lastUnfinished(),
+                        _pattern.permanent()
+            )   )   )
     }
     private suspend fun handleStreamShooting()
     {
@@ -647,7 +663,13 @@ class ActionRunner private constructor() : DisposableHandle
 
         if (waitingForCustomisableDrumMS > 3333)
             EventBusLI.invoke(TerminateRequestEvent())
-        else _ballsInStorage.set(0)
+        else
+        {
+            repeat (_ballsInStorage.get())
+                { _pattern.addToTemporary() }
+
+            _ballsInStorage.set(0)
+        }
     }
 
 
@@ -674,6 +696,10 @@ class ActionRunner private constructor() : DisposableHandle
             }   )
             EventBusLI.subscribe(FullFinishedIntakeEvent::class, {
                     _ballsInStorage.set(it.ballCountInStorage)
+            }   )
+            EventBusLI.subscribe(OnPatternDetectedEvent::class, {
+                    _pattern.setPermanent(it.pattern.subsequence)
+                    _patternWasDetected.set(true)
             }   )
         }
 
