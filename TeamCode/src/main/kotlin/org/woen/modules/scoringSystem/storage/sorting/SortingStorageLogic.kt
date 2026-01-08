@@ -331,45 +331,12 @@ class SortingStorageLogic
 
         storageCells.fullEmptyStorageCells()
     }
-    suspend fun easyShootEverything(): RequestResult.Name
+    suspend fun fastStreamDrumRequest(): RequestResult.Name
     {
-        var shotsFired = NOTHING
-        while (shotsFired < MAX_BALL_COUNT)
-        {
-            val isLastShot = shotsFired == MAX_BALL_COUNT - 1
-            storageCells.hwSortingM.helpPushLastBall.set(isLastShot)
+        val ballCount = storageCells.anyBallCount()
+        logM.logMd("Expected shots count: $ballCount", GENERIC_INFO)
 
-            if (!fullWaitForShotFired(
-                    DRUM_REQUEST,
-                    DO_WAIT_BEFORE_NEXT_SHOT && !isLastShot,
-                    false))
-                return Request.TERMINATED
-
-            logM.logMd("shot finished, updating..", PROCESS_ENDING)
-            shotsFired++
-        }
-
-        return Request.SUCCESS_NOW_EMPTY
-    }
-    suspend fun shootEverything():     RequestResult.Name
-    {
-        var ballCount = storageCells.anyBallCount()
-        if (ballCount == NOTHING) return Request.FAIL_IS_EMPTY
-
-        while (ballCount > NOTHING)
-        {
-            val isLastShot = ballCount == 1
-            storageCells.hwSortingM.helpPushLastBall.set(isLastShot)
-
-            if (!fullWaitForShotFired(
-                    DRUM_REQUEST,
-                    DO_WAIT_BEFORE_NEXT_SHOT && !isLastShot,
-                    false))
-                return Request.TERMINATED
-
-            logM.logMd("shot finished, updating..", PROCESS_ENDING)
-            ballCount--
-        }
+        lazyShootEverything(ballCount)
         return Request.SUCCESS_NOW_EMPTY
     }
 

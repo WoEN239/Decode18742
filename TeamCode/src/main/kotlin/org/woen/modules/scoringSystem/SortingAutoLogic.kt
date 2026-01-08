@@ -38,11 +38,11 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SAL_DEBUG_LEVELS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SAL_DEBUG_SETTING
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.DEFAULT_PATTERN
-import org.woen.telemetry.Configs.SORTING_SETTINGS.DEFAULT_SHOOTING_MODE
+import org.woen.telemetry.Configs.SORTING_SETTINGS.AUTO_DEFAULT_PATTERN
+import org.woen.telemetry.Configs.SORTING_SETTINGS.AUTO_DEFAULT_SHOOTING_MODE
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.FAILSAFE_PATTERN
-import org.woen.telemetry.Configs.SORTING_SETTINGS.FAILSAFE_SHOOTING_MODE
+import org.woen.telemetry.Configs.SORTING_SETTINGS.AUTO_FAILSAFE_PATTERN
+import org.woen.telemetry.Configs.SORTING_SETTINGS.AUTO_FAILSAFE_SHOOTING_MODE
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.MAX_ATTEMPTS_FOR_PATTERN_DETECTION
 import org.woen.telemetry.Configs.SORTING_SETTINGS.MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS
@@ -134,10 +134,10 @@ class SortingAutoLogic
     {
         logM.logMd("Choosing default", PROCESS_NAME)
 
-        if (DEFAULT_SHOOTING_MODE == Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE)
+        if (AUTO_DEFAULT_SHOOTING_MODE == Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE)
             fireEverything()
 
-        when (DEFAULT_PATTERN)
+        when (AUTO_DEFAULT_PATTERN)
         {
             Shooting.StockPattern.Name.USE_DETECTED_PATTERN ->
             {
@@ -150,7 +150,7 @@ class SortingAutoLogic
                     logPatternInfo(_pattern.permanent())
 
                     EventBusLI.invoke(StorageGiveDrumRequest(
-                            DEFAULT_SHOOTING_MODE,
+                            AUTO_DEFAULT_SHOOTING_MODE,
                             _pattern.permanent()
                     )   )
                 }
@@ -162,7 +162,7 @@ class SortingAutoLogic
             {
                 logM.logMd("Default trying: fire identical colors", ATTEMPTING_LOGIC)
 
-                val ballCount = Shooting.StockPattern.requestedBallCount(DEFAULT_PATTERN)
+                val ballCount = Shooting.StockPattern.requestedBallCount(AUTO_DEFAULT_PATTERN)
                 val storageBalls = EventBusLI.invoke(StorageHandleIdenticalColorsEvent())
 
                 logM.logMd("Got identical count: " +
@@ -180,7 +180,7 @@ class SortingAutoLogic
                     logPatternInfo(convertedPattern)
 
                     EventBusLI.invoke(StorageGiveDrumRequest(
-                            DEFAULT_SHOOTING_MODE,
+                            AUTO_DEFAULT_SHOOTING_MODE,
                             convertedPattern
                     )   )
                 }
@@ -192,12 +192,12 @@ class SortingAutoLogic
                 logM.logMd("Default decided: Fire custom pattern", PROCESS_NAME)
 
                 val convertedPattern = Shooting.StockPattern.
-                    tryConvertToPatternSequence(DEFAULT_PATTERN)!!
+                    tryConvertToPatternSequence(AUTO_DEFAULT_PATTERN)!!
 
                 logPatternInfo(convertedPattern)
 
                 EventBusLI.invoke(StorageGiveDrumRequest(
-                        DEFAULT_SHOOTING_MODE,
+                        AUTO_DEFAULT_SHOOTING_MODE,
                         convertedPattern
                 )   )
             }
@@ -207,10 +207,10 @@ class SortingAutoLogic
     {
         logM.logMd("Choosing failsafe", PROCESS_NAME)
 
-        if (FAILSAFE_SHOOTING_MODE == Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE)
+        if (AUTO_FAILSAFE_SHOOTING_MODE == Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE)
             fireEverything()
 
-        when (FAILSAFE_PATTERN)
+        when (AUTO_FAILSAFE_PATTERN)
         {
             Shooting.StockPattern.Name.USE_DETECTED_PATTERN ->
             {
@@ -223,7 +223,7 @@ class SortingAutoLogic
                     logPatternInfo(_pattern.permanent())
 
                     EventBusLI.invoke(StorageGiveDrumRequest(
-                            FAILSAFE_SHOOTING_MODE,
+                            AUTO_FAILSAFE_SHOOTING_MODE,
                             _pattern.permanent()
                     )   )
                 }
@@ -235,7 +235,7 @@ class SortingAutoLogic
             {
                 logM.logMd("Failsafe trying: fire identical colors", ATTEMPTING_LOGIC)
 
-                val ballCount = Shooting.StockPattern.requestedBallCount(DEFAULT_PATTERN)
+                val ballCount = Shooting.StockPattern.requestedBallCount(AUTO_DEFAULT_PATTERN)
                 val storageBalls = EventBusLI.invoke(StorageHandleIdenticalColorsEvent())
 
                 logM.logMd("Got identical count: " +
@@ -253,7 +253,7 @@ class SortingAutoLogic
                     logPatternInfo(convertedPattern)
 
                     EventBusLI.invoke(StorageGiveDrumRequest(
-                            FAILSAFE_SHOOTING_MODE,
+                            AUTO_FAILSAFE_SHOOTING_MODE,
                             convertedPattern
                     )   )
                 }
@@ -265,12 +265,12 @@ class SortingAutoLogic
                 logM.logMd("Failsafe decided: Fire custom pattern", PROCESS_NAME)
 
                 val convertedPattern = Shooting.StockPattern.
-                    tryConvertToPatternSequence(FAILSAFE_PATTERN)!!
+                    tryConvertToPatternSequence(AUTO_FAILSAFE_PATTERN)!!
 
                 logPatternInfo(convertedPattern)
 
                 EventBusLI.invoke(StorageGiveDrumRequest(
-                        DEFAULT_SHOOTING_MODE,
+                        AUTO_DEFAULT_SHOOTING_MODE,
                         convertedPattern
                 )   )
             }

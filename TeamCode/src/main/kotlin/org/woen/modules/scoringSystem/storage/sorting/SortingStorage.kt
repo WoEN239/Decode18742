@@ -427,9 +427,7 @@ class SortingStorage
         _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
         logM.logMd("MODE: SMART StreamDrum request", PROCESS_NAME)
 
-        val ballCount = _storageLogic.storageCells.anyBallCount()
-        logM.logMd("Expected shots count: $ballCount", GENERIC_INFO)
-        _storageLogic.lazyShootEverything(ballCount)
+        _storageLogic.fastStreamDrumRequest()
 
         _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
         return Request.SUCCESS_NOW_EMPTY
@@ -463,7 +461,7 @@ class SortingStorage
             when (shootingMode)
             {
                 Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
-                    -> _storageLogic.shootEverything()
+                    -> _storageLogic.fastStreamDrumRequest()
 
                 Shooting.Mode.FIRE_PATTERN_CAN_SKIP
                     -> _storageLogic.shootEntireCanSkip(
@@ -532,7 +530,7 @@ class SortingStorage
             when (shootingMode)
             {
                 Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
-                    -> _storageLogic.shootEverything()
+                    -> _storageLogic.fastStreamDrumRequest()
 
                 Shooting.Mode.FIRE_PATTERN_CAN_SKIP
                     -> _storageLogic.shootEntireCanSkip(

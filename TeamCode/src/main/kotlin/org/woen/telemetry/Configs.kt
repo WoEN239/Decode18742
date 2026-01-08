@@ -751,16 +751,18 @@ object Configs {
 
 
         @JvmField
-        var DEFAULT_SHOOTING_MODE = Shooting.Mode.FIRE_PATTERN_CAN_SKIP
+        var TELEOP_PATTERN_SHOOTING_MODE = Shooting.Mode.FIRE_PATTERN_CAN_SKIP
+        @JvmField
+        var AUTO_DEFAULT_SHOOTING_MODE = Shooting.Mode.FIRE_PATTERN_CAN_SKIP
 
         @JvmField
-        var DEFAULT_PATTERN = Shooting.StockPattern.Name.USE_DETECTED_PATTERN
+        var AUTO_DEFAULT_PATTERN = Shooting.StockPattern.Name.USE_DETECTED_PATTERN
 
         @JvmField
-        var FAILSAFE_SHOOTING_MODE = Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
+        var AUTO_FAILSAFE_SHOOTING_MODE = Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
 
         @JvmField
-        var FAILSAFE_PATTERN = Shooting.StockPattern.Name.ANY
+        var AUTO_FAILSAFE_PATTERN = Shooting.StockPattern.Name.ANY
 
 
 

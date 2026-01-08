@@ -67,7 +67,7 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS
-
+import org.woen.telemetry.Configs.SORTING_SETTINGS.TELEOP_PATTERN_SHOOTING_MODE
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -248,7 +248,7 @@ class ScoringModulesConnector
 
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
                     EventBusLI.invoke(StorageGiveDrumRequest(
-                            Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN,
+                        TELEOP_PATTERN_SHOOTING_MODE,
                             Shooting.StockPattern.tryConvertToPatternSequence(
                                 Shooting.StockPattern.Name.GPP)!!))
 
@@ -261,7 +261,7 @@ class ScoringModulesConnector
 
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
                     EventBusLI.invoke(StorageGiveDrumRequest(
-                            Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN,
+                        TELEOP_PATTERN_SHOOTING_MODE,
                             Shooting.StockPattern.tryConvertToPatternSequence(
                                 Shooting.StockPattern.Name.PGP)!!))
 
@@ -274,9 +274,8 @@ class ScoringModulesConnector
                 { it.dpad_right }, {
 
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
-
                     EventBusLI.invoke(StorageGiveDrumRequest(
-                            Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN,
+                            TELEOP_PATTERN_SHOOTING_MODE,
                             Shooting.StockPattern.tryConvertToPatternSequence(
                                 Shooting.StockPattern.Name.PPG)!!))
 
