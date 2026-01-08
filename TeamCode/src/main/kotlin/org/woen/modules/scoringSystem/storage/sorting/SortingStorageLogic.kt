@@ -134,11 +134,11 @@ class SortingStorageLogic
 
         return runStatus.isThisProcessHighestPriority(UPDATE_AFTER_LAZY_INTAKE)
     }
-    fun trySafeStartUpdateAfterLazyIntake(inputFromTurretSlotToBottom: Array<Ball.Name>)
+    fun safeUpdateAfterLazyIntake(inputFromTurretSlotToBottom: Array<Ball.Name>)
     {
         runStatus.setCurrentActiveProcess(UPDATE_AFTER_LAZY_INTAKE)
 
-        storageCells.safeUpdateAfterLazyIntake(inputFromTurretSlotToBottom)
+        storageCells.updateAfterLazyIntake(inputFromTurretSlotToBottom)
 
         runStatus.clearCurrentActiveProcess()
         runStatus.safeRemoveThisProcessIdFromQueue(UPDATE_AFTER_LAZY_INTAKE)
@@ -230,7 +230,6 @@ class SortingStorageLogic
         if (fullRotations >= NOTHING)
             repeat(fullRotations)
                 { storageCells.fullRotate() }
-        storageCells.hwSortingM.forwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
 
         logM.logMd("sorting finished - success", PROCESS_ENDING)
         logM.logMd("Getting ready to shoot",     PROCESS_STARTING)
@@ -310,17 +309,27 @@ class SortingStorageLogic
 
 
 
-    suspend fun lazyShootEverything(): RequestResult.Name
+
+    suspend fun lazyShootEverything(ballCount: Int)
     {
         logM.logMd("Starting Lazy stream shooting", PROCESS_STARTING)
 
+        val beltPushTime = when (ballCount)
+        {
+            3    -> DELAY.FIRE_3_BALLS_FOR_SHOOTING_MS
+            2    -> DELAY.FIRE_2_BALLS_FOR_SHOOTING_MS
+            else -> DELAY.FIRE_1_BALLS_FOR_SHOOTING_MS
+        }
+
+        logM.logMd("Firing time (without launcherServo): $beltPushTime", GENERIC_INFO)
+
         storageCells.hwSortingM.openTurretGate()
         storageCells.hwSortingM.shootStartBelts()
-        delay(DELAY.FIRE_THREE_BALLS_FOR_SHOOTING_MS)
+
+        delay(beltPushTime)
         storageCells.hwSortingM.pushLastBallFast()
 
         storageCells.fullEmptyStorageCells()
-        return Request.SUCCESS_NOW_EMPTY
     }
     suspend fun easyShootEverything(): RequestResult.Name
     {

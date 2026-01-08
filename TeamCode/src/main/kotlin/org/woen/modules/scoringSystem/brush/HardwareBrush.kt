@@ -45,7 +45,7 @@ class HardwareBrush : IHardwareDevice {
             BrushDirection.STOP -> 0.0
 
             BrushDirection.REVERSE ->
-                -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER * 0.8)
+                -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER)
         }
     }
 

@@ -57,8 +57,6 @@ class Turret : IModule {
 
     private var _currentTurretState = TurretState.STOP
 
-    private var _isShooting = false
-
     private var _currentMode = TurretMode.SHORT
 
     private var _currentShootType = ShotType.DRUM
@@ -74,13 +72,6 @@ class Turret : IModule {
 //            calcTurretState()
 
             updateTurret()
-
-            if (_isShooting && _hardwareTurret.shotWasFired) {
-                _isShooting = false
-                ThreadedEventBus.LAZY_INSTANCE.invoke(TurretCurrentPeaked())
-
-                ThreadedTelemetry.LAZY_INSTANCE.log("\tTurret: current peaked")
-            }
         }
     }
 
@@ -246,10 +237,6 @@ class Turret : IModule {
     constructor() {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareTurret)
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareTurretServos)
-
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(CurrentlyShooting::class, {
-            _isShooting = true
-        })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetTurretMode::class, {
             _currentMode = it.mode

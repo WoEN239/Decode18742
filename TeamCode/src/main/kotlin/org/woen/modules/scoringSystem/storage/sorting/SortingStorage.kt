@@ -13,12 +13,14 @@ import org.woen.enumerators.Shooting
 
 import org.woen.hotRun.HotRun
 import org.woen.modules.camera.OnPatternDetectedEvent
-//import org.woen.modules.light.Light
-//import org.woen.modules.light.SetLightColorEvent
+
+import org.woen.modules.light.Light.LightColor
+import org.woen.modules.light.SetLightColorEvent
 
 import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
+import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 
@@ -45,11 +47,12 @@ import org.woen.telemetry.Configs.DELAY
 
 import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
+import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 //import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
-//import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SSM_DEBUG_LEVELS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SSM_DEBUG_SETTING
 
@@ -61,7 +64,7 @@ import org.woen.telemetry.Configs.PROCESS_ID.SINGLE_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
 import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_EASY_VERSION_OF_STREAM_REQUEST
+import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION
 
 
@@ -131,14 +134,13 @@ class SortingStorage
                     .noIntakeRaceConditionProblems(LAZY_INTAKE)
                 it.startingResult = canStartLazyIntake
 
-//                if (canStartLazyIntake)
-//                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-//                        logM.logMd("IS IDLE = starting lazy intake", PROCESS_STARTING)
-//                        startLazyIntake()
-//                    }
-//
-//                else
-                    _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
+                if (canStartLazyIntake)
+                    SmartCoroutineLI.launch {
+                        logM.logMd("IS IDLE = starting lazy intake", PROCESS_STARTING)
+                        startLazyIntake()
+                    }
+
+                else _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
         }   )
         EventBusLI.subscribe(StopLazyIntakeEvent::class, {
 
@@ -147,11 +149,11 @@ class SortingStorage
 
         EventBusLI.subscribe(StorageUpdateAfterLazyIntakeEvent::class, {
 
-                val canStartUpdateAfterLazyIntake = _storageLogic.canStartUpdateAfterLazyIntake()
-                it.startingResult = canStartUpdateAfterLazyIntake
+                val canStartUpdate = _storageLogic.canStartUpdateAfterLazyIntake()
+                it.startingResult = canStartUpdate
 
-                if (canStartUpdateAfterLazyIntake)
-                    _storageLogic.trySafeStartUpdateAfterLazyIntake(
+                if (canStartUpdate)
+                    _storageLogic.safeUpdateAfterLazyIntake(
                         it.inputFromTurretSlotToBottom)
 
                 else _storageLogic.resumeLogicAfterIntake(UPDATE_AFTER_LAZY_INTAKE)
@@ -320,39 +322,31 @@ class SortingStorage
 
 
 
-//    suspend fun tryStartLazyIntake()
-//    {
-//        if (!_storageLogic.storageCells.alreadyFull()
-//            && _storageLogic.noIntakeRaceConditionProblems(LAZY_INTAKE))
-//            startLazyIntake()
-//        else
-//            _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
-//    }
-//    private suspend fun startLazyIntake()
-//    {
-//        logM.logMd("Started LazyIntake", PROCESS_STARTING)
-//
-//        EventBusLI.invoke(SetLightColorEvent(Light.LightColor.ORANGE))
-//
-//        _storageLogic.runStatus.setCurrentActiveProcess(LAZY_INTAKE)
-//        _storageLogic.lazyIntakeIsActive.set(true)
-//
-//        _storageLogic.storageCells.hwSortingM.slowStartBelts()
-//
-//        while (_storageLogic.lazyIntakeIsActive.get())
-//        {
-//            delay(DELAY.EVENT_AWAITING_MS)
-//
-//            if (_storageLogic.isForcedToTerminate(LAZY_INTAKE))
-//                _storageLogic.terminateIntake(LAZY_INTAKE)
-//        }
-//
-//        _storageLogic.storageCells.hwSortingM.stopBelts()
-//        _storageLogic.lazyIntakeIsActive.set(false)
-//
-//        logM.logMd("Stopped LazyIntake", PROCESS_ENDING)
-//        _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
-//    }
+    private suspend fun startLazyIntake()
+    {
+        logM.logMd("Started LazyIntake", PROCESS_STARTING)
+
+        EventBusLI.invoke(SetLightColorEvent(LightColor.ORANGE))
+
+        _storageLogic.runStatus.setCurrentActiveProcess(LAZY_INTAKE)
+        _storageLogic.lazyIntakeIsActive.set(true)
+
+        _storageLogic.storageCells.hwSortingM.slowStartBelts()
+
+        while (_storageLogic.lazyIntakeIsActive.get())
+        {
+            delay(DELAY.EVENT_AWAITING_MS)
+
+            if (_storageLogic.isForcedToTerminate(LAZY_INTAKE))
+                _storageLogic.terminateIntake(LAZY_INTAKE)
+        }
+
+        _storageLogic.storageCells.hwSortingM.stopBelts()
+        _storageLogic.lazyIntakeIsActive.set(false)
+
+        logM.logMd("Stopped LazyIntake", PROCESS_ENDING)
+        _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
+    }
 
 
 
@@ -405,51 +399,44 @@ class SortingStorage
 
 
 
-    suspend fun lazyDrumRequest():                RequestResult.Name
+    suspend fun streamDrumRequest():             RequestResult.Name
+    {
+        return if (USE_LAZY_VERSION_OF_STREAM_REQUEST)
+             lazyStreamDrumRequest()
+        else fastStreamDrumRequest()
+    }
+    private suspend fun lazyStreamDrumRequest(): RequestResult.Name
     {
         if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
             return _storageLogic.terminateRequest(DRUM_REQUEST)
 
         _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
-        logM.logMd("MODE: LAZY SHOOT EVERYTHING", PROCESS_NAME)
-        val requestResult = _storageLogic.lazyShootEverything()
+        logM.logMd("MODE: LAZY StreamDrum request", PROCESS_NAME)
+
+        _storageLogic.lazyShootEverything(MAX_BALL_COUNT)
 
         _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
-        return requestResult
+        return Request.SUCCESS_NOW_EMPTY
     }
-    suspend fun streamDrumRequest():              RequestResult.Name
-    {
-        return if (USE_EASY_VERSION_OF_STREAM_REQUEST)
-             easyDrumRequest()
-        else shootEntireDrumRequest()
-    }
-    private suspend fun easyDrumRequest():        RequestResult.Name
-    {
-        if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
-            return _storageLogic.terminateRequest(DRUM_REQUEST)
-
-        _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
-        logM.logMd("MODE: EASY SHOOT EVERYTHING", PROCESS_NAME)
-        val requestResult = _storageLogic.easyShootEverything()
-
-        delay(Delay.HALF_PUSH)
-        _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
-        return requestResult
-    }
-    private suspend fun shootEntireDrumRequest(): RequestResult.Name
+    private suspend fun fastStreamDrumRequest(): RequestResult.Name
     {
         if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
         if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
             return _storageLogic.terminateRequest(DRUM_REQUEST)
 
         _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
-        logM.logMd("MODE: SHOOT EVERYTHING", PROCESS_NAME)
-        val requestResult = _storageLogic.shootEverything()
+        logM.logMd("MODE: SMART StreamDrum request", PROCESS_NAME)
 
-        delay(Delay.HALF_PUSH)
+        val ballCount = _storageLogic.storageCells.anyBallCount()
+        logM.logMd("Expected shots count: $ballCount", GENERIC_INFO)
+        _storageLogic.lazyShootEverything(ballCount)
+
         _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
-        return requestResult
+        return Request.SUCCESS_NOW_EMPTY
     }
+
+
+
     suspend fun shootEntireDrumRequest(
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,

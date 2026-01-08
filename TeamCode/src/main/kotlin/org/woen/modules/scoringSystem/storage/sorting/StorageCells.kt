@@ -32,7 +32,7 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.MIN_SEQUENCE_SCORE_FOR_PREDIC
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
-
+import org.woen.telemetry.Configs.DELAY
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -215,7 +215,7 @@ class StorageCells
             curSlot++
         }
     }
-    fun safeUpdateAfterLazyIntake(inputFromTurretSlotToBottom: Array<Ball.Name>)
+    fun updateAfterLazyIntake(inputFromTurretSlotToBottom: Array<Ball.Name>)
     {
         if (inputFromTurretSlotToBottom.size > MAX_BALL_COUNT) return
 
@@ -244,7 +244,7 @@ class StorageCells
         logM.logMd("new storage: ", GENERIC_INFO)
         logAllStorageData()
 
-        hwSortingM.forwardBeltsTime(rotationTime)
+        hwSortingM.reinstantiableForwardBeltsTime(rotationTime)
     }
     fun updateAfterRequest()
     {
@@ -279,6 +279,7 @@ class StorageCells
         _storageCells[StorageSlot.MOBILE].set(_storageCells[StorageSlot.TURRET])
         _storageCells[StorageSlot.TURRET].empty()
 
+        hwSortingM.forwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
         hwReAdjustStorage()
 
         logM.logMd("finished full rotation, new storage:", PROCESS_ENDING)

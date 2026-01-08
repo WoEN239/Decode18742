@@ -36,7 +36,8 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_CURRENT_PROTECTION_FOR_ST
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION
 import org.woen.telemetry.Configs.STORAGE_SENSORS.MIN_TIME_FOR_INTAKE_NOT_DETECTION_MS
-
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.max
 
 
 class HwSortingManager
@@ -51,7 +52,9 @@ class HwSortingManager
     val helpPushLastBall  = AtomicBoolean(false)
 
     val canHandleIntake   = AtomicBoolean(false)
+    val currentPushTime   = AtomicLong(0)
     val autoIntakeTracker = AutoIntakeTracker()
+    val reinstantiableBeltsTimer = ElapsedTime()
 
     val intakeDetectedTimer    = ElapsedTime()
     val intakeNotDetectedTimer = ElapsedTime()
@@ -257,7 +260,7 @@ class HwSortingManager
 
     fun shootStartBelts()
     {
-        logM.logMd("SHOOT Starterв hw belts", HARDWARE)
+        logM.logMd("SHOOT Started hw belts", HARDWARE)
         _hwSorting.shootStartBeltMotors()
     }
     fun slowStartBelts()
@@ -284,6 +287,32 @@ class HwSortingManager
 
 
 
+    suspend fun reinstantiableForwardBeltsTime(timeMs: Long, firstInstance: Boolean = false)
+    {
+        val pushTime = if (firstInstance) timeMs
+            else max(
+                timeMs,
+                currentPushTime.get()
+                    - reinstantiableBeltsTimer
+                        .milliseconds().toLong())
+
+        reinstantiableBeltsTimer.reset()
+        currentPushTime.set(pushTime)
+        logM.logMd("Chosen time period: $pushTime", HARDWARE)
+
+        val pushing = SmartCoroutineLI.launch {
+
+            startBelts()
+            delay(pushTime)
+
+            if (reinstantiableBeltsTimer.milliseconds()
+                > currentPushTime.get())
+                stopBelts()
+        }
+
+        while (!pushing.isCompleted)
+            delay(DELAY.EVENT_AWAITING_MS)
+    }
     suspend fun forwardBeltsTime(timeMs: Long)
     {
         logM.logMd("Chosen time period: $timeMs", HARDWARE)

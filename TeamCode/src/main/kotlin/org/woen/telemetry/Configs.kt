@@ -44,7 +44,7 @@ object Configs {
         var BRUSH_DEF_TIME = 1.5
 
         @JvmField
-        var BRUSH_TARGET_CURRENT = 2.5
+        var BRUSH_TARGET_CURRENT = 3.0
 
         @JvmField
         var BRUSH_BIG_TARGET_CURRENT = 1000.0
@@ -52,10 +52,10 @@ object Configs {
         @JvmField
         var BRUSH_STOP_TIME = 0.5
         @JvmField
-        var TIME_FOR_BRUSH_REVERSING: Long = 1500
+        var TIME_FOR_BRUSH_REVERSING: Long = 1555
 
         @JvmField
-        var BRUSH_POWER = 11.0
+        var BRUSH_POWER = 11.5
     }
 
     @Config
@@ -663,8 +663,10 @@ object Configs {
         @JvmField
         var PART_BALL_PUSHING_MS: Long = 333
         @JvmField
-//        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 300    //  9.0V configuration
-        var FIRE_THREE_BALLS_FOR_SHOOTING_MS: Long = 488      //  8.5V configuration
+//        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 300    //  9.0V configuration
+        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 488      //  8.5V configuration
+        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 333      //  8.5V configuration
+        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 155      //  8.5V configuration
 
 
         @JvmField
@@ -718,8 +720,6 @@ object Configs {
 
         @JvmField
         var USE_LAZY_VERSION_OF_STREAM_REQUEST = true
-        @JvmField
-        var USE_EASY_VERSION_OF_STREAM_REQUEST = true
 
         @JvmField
         var DO_WAIT_BEFORE_NEXT_SHOT = false

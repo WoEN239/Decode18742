@@ -42,7 +42,7 @@ class HardwareTurret :
 
     var shotWasFired = false
         private set
-    private var _motorAmps = 0.0
+    private var _pulleyMotorAmps = 0.0
 
     private val _regulator = Regulator(Configs.TURRET.PULLEY_REGULATOR)
     private val _velocityFilter =
@@ -57,17 +57,14 @@ class HardwareTurret :
     private var _currentRotate = 0.0
     private var _pulleyU = 0.0
     val currentRotatePosition
-        get() = _currentRotate / Configs.TURRET.ENCODER_TICKS_IN_REVOLUTION * Configs.TURRET.ROTATE_ENCODER_RATIO * 2.0 * PI
+        get() = _currentRotate / Configs.TURRET.ENCODER_TICKS_IN_REVOLUTION *
+                Configs.TURRET.ROTATE_ENCODER_RATIO * 2.0 * PI
+
+
 
     override fun update() {
-        _motorAmps = _motor.getCurrent(CurrentUnit.AMPS)
 
-        if (_motorAmps > Configs.TURRET.TURRET_SHOOT_DETECT_CURRENT)
-            shotWasFired = _shootTriggerTimer.seconds() > Configs.TURRET.SHOOT_TRIGGER_DELAY
-        else {
-            _shootTriggerTimer.reset()
-            shotWasFired = false
-        }
+        _pulleyMotorAmps = _motor.getCurrent(CurrentUnit.AMPS)
 
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
@@ -121,7 +118,7 @@ class HardwareTurret :
             it.addData("target pulley velocity", targetVelocity)
             it.addData("current ticks pulley velocity", _motorVelocity)
             it.addData("target ticks pulley velocity", _targetTicksVelocity)
-            it.addData("pulley amps", _motorAmps)
+            it.addData("pulley motor amps", _pulleyMotorAmps)
             it.addData("pulleyU", _pulleyU)
             it.addData("current turret rotation",  Math.toDegrees(currentRotatePosition))
         }

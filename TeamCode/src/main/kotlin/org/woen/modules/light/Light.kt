@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
-import org.woen.telemetry.Configs
 import org.woen.telemetry.Configs.BATTERY.LOW_VOLTAGE
 import org.woen.telemetry.Configs.BATTERY.LOW_VOLTAGE_TRIGGER_TIME
 import org.woen.threading.ThreadManager
