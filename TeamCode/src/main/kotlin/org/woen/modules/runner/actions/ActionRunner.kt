@@ -15,14 +15,12 @@ import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.TranslationalVelConstraint
 import com.acmerobotics.roadrunner.Vector2d
 
-import org.woen.utils.units.Vec2
-import org.woen.utils.units.Angle
-import org.woen.utils.units.Orientation
+import org.woen.hotRun.HotRun
 import org.woen.utils.smartMutex.SmartMutex
 
-import org.woen.hotRun.HotRun
-
+import org.woen.telemetry.Configs
 import org.woen.telemetry.Configs.DELAY
+
 import org.woen.threading.ThreadManager
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 
@@ -36,7 +34,9 @@ import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
-import org.woen.telemetry.Configs
+import org.woen.modules.scoringSystem.turret.SetRotateStateEvent
+import org.woen.modules.scoringSystem.turret.SetTurretMode
+import org.woen.modules.scoringSystem.turret.Turret
 
 
 class ActionRunner private constructor() : DisposableHandle
@@ -90,7 +90,7 @@ class ActionRunner private constructor() : DisposableHandle
         get() = Configs.TURRET.SHOOTING_BLUE_ORIENTATION
     
     
-    private val _doneShooting   = AtomicBoolean(false)
+    private val _doneShooting       = AtomicBoolean(false)
     private val _ballsInStorage     = AtomicInteger(3)
     private val _activeBallsInCycle = AtomicInteger(3)
 
@@ -232,6 +232,10 @@ class ActionRunner private constructor() : DisposableHandle
         //------------------------------
 
 
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_OBELISK))
+        //  Attempt to get pattern
+
+
 
         EventBusLI.invoke(
             RunSegmentEvent(
@@ -252,6 +256,7 @@ class ActionRunner private constructor() : DisposableHandle
             )
         ).process.wait()
 
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_BASKET))
         Thread.sleep(900)
 
         EventBusLI.invoke(
@@ -366,8 +371,11 @@ class ActionRunner private constructor() : DisposableHandle
         handleStreamShooting()
         //------------------------------
 
-        
-        
+
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_OBELISK))
+        //  Attempt to get pattern
+
+
         EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
@@ -386,7 +394,12 @@ class ActionRunner private constructor() : DisposableHandle
             )
         ).process.wait()
 
+
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_BASKET))
+
+
         Thread.sleep(800)
+
 
         EventBusLI.invoke(
             RunSegmentEvent(
@@ -603,18 +616,19 @@ class ActionRunner private constructor() : DisposableHandle
     private suspend fun handleStreamShooting()
     {
         //--  Cycle STREAM Drum shooting (for optimisation see Configs.SORTING_SETTINGS)
-        //--  USE_EASY_DRUM && USE_LAZY_DRUM = when both set to false
-        //--  > Maximizes speed, but is more risky
+        //--  USE_LAZY_DRUM = false   >>>   Maximizes speed, but is more risky
 
         _doneShooting.set(false)
         EventBusLI.invoke(StorageGiveStreamDrumRequest())
+
         var waitingForSecondStreamMS: Long = 0
-        while(!_doneShooting.get() && waitingForSecondStreamMS < 5000)
+        while(!_doneShooting.get() && waitingForSecondStreamMS < 2000)
         {
             delay(DELAY.EVENT_AWAITING_MS)
             waitingForSecondStreamMS += DELAY.EVENT_AWAITING_MS
         }
-        if (waitingForSecondStreamMS > 5000)
+
+        if (waitingForSecondStreamMS > 2000)
             EventBusLI.invoke(TerminateRequestEvent())
         else _ballsInStorage.set(0)
         //------------------------------------------------------------------------------------
@@ -625,13 +639,13 @@ class ActionRunner private constructor() : DisposableHandle
         EventBusLI.invoke(DefaultFireEvent())
 
         var waitingForCustomisableDrumMS: Long = 0
-        while(!_doneShooting.get() && waitingForCustomisableDrumMS < 5000)
+        while(!_doneShooting.get() && waitingForCustomisableDrumMS < 3333)
         {
             delay(DELAY.EVENT_AWAITING_MS)
             waitingForCustomisableDrumMS += DELAY.EVENT_AWAITING_MS
         }
 
-        if (waitingForCustomisableDrumMS > 5000)
+        if (waitingForCustomisableDrumMS > 3333)
             EventBusLI.invoke(TerminateRequestEvent())
         else _ballsInStorage.set(0)
     }

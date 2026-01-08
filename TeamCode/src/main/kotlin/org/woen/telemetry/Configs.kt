@@ -740,7 +740,7 @@ object Configs {
 
 
         @JvmField
-        var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 2000
+        var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 1000
 
         @JvmField
         var MAX_ATTEMPTS_FOR_PATTERN_DETECTION = 2
@@ -751,7 +751,7 @@ object Configs {
 
 
         @JvmField
-        var DEFAULT_SHOOTING_MODE = Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
+        var DEFAULT_SHOOTING_MODE = Shooting.Mode.FIRE_PATTERN_CAN_SKIP
 
         @JvmField
         var DEFAULT_PATTERN = Shooting.StockPattern.Name.USE_DETECTED_PATTERN
