@@ -16,6 +16,8 @@ import org.woen.modules.camera.OnPatternDetectedEvent
 
 import org.woen.modules.light.Light.LightColor
 import org.woen.modules.light.SetLightColorEvent
+import org.woen.modules.scoringSystem.brush.Brush
+import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
 import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
@@ -139,6 +141,10 @@ class SortingStorage
                     SmartCoroutineLI.launch {
                         logM.logMd("IS IDLE = starting lazy intake",
                             PROCESS_STARTING)
+
+                        EventBusLI.invoke(SwitchBrushStateEvent(
+                            Brush.BrushState.FORWARD))
+
                         startLazyIntake()
                     }
 
@@ -175,7 +181,7 @@ class SortingStorage
                     SmartCoroutineLI.launch {
                         logM.logMd("IS IDLE = starting predict sort",
                             PROCESS_STARTING)
-                        _storageLogic.safeInitiatePredictSort(it.requestedPattern.reversedArray())
+                        _storageLogic.safeInitiatePredictSort(it.requestedPattern)
                     }
                 else _storageLogic.runStatus
                     .safeRemoveThisProcessIdFromQueue(PREDICT_SORT)

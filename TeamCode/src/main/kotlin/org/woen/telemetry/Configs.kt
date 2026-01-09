@@ -383,7 +383,7 @@ object Configs {
         var SHOOTING_DRUM_MAX_PULLEY_VELOCITY = 19.0
 
         @JvmField
-        var KOST_K = 1.3
+        var KOST_K = 1.2
     }
 
     @Config
@@ -674,11 +674,11 @@ object Configs {
         var PART_BALL_PUSHING_MS: Long = 333
 
         @JvmField
-        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 400        //  9.0V configuration
+        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 450        //  9.0V configuration
 //        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
-        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 275
+        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 300
 //        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 444      //  8.5V configuration
-        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 150
+        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 200
 //        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 222      //  8.5V configuration
 
 
