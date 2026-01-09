@@ -4,6 +4,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.enumerators.Shooting.ShotType
+import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
@@ -11,6 +12,7 @@ import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -26,6 +28,8 @@ class StopBeltEvent()
 class SimpleStorage : IModule {
     private val _hardwareStorage = HardwareSimpleStorage()
 
+    private var _storageJob: Job? = null
+
     private val _gateServo = ThreadedServo(
         Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO,
         startPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
@@ -40,7 +44,7 @@ class SimpleStorage : IModule {
     private var _isShooting = false
 
     private fun terminateShoot() {
-        _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+        _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.FORWARD))
 
@@ -66,6 +70,8 @@ class SimpleStorage : IModule {
 
                 _isShooting = true
 
+                _storageJob?.join()
+
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
@@ -81,9 +87,9 @@ class SimpleStorage : IModule {
 
                 delay((Configs.SIMPLE_STORAGE.LOOK_DELAY_TIME * 1000.0).toLong())
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_FAST
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.SHOOT
 
-                delay(500)
+                delay((Configs.SIMPLE_STORAGE.SHOOTING_TIME * 1000.0).toLong())
 
                 _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
 
@@ -99,7 +105,7 @@ class SimpleStorage : IModule {
                 while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE_FAST
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE
 
                 delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
 
@@ -135,29 +141,45 @@ class SimpleStorage : IModule {
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
         }))
 
-        _hardwareStorage.currentTriggerEvent += {
-            if (!_isShooting) {
-                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.REVERSE))
+//        _hardwareStorage.currentTriggerEvent += {
+//            if (!_isShooting) {
+//                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.REVERSE))
+//
+//                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+//            }
+//        }
+    }
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+    override suspend fun process() {
+        if(!_isShooting) {
+            _storageJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                if (_hardwareStorage.isBall) {
+                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+
+                    delay((Configs.SIMPLE_STORAGE.PUSH_TIME * 1000.0).toLong())
+
+                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+                }
             }
         }
     }
 
-    override suspend fun process() {
-
-    }
-
     override val isBusy: Boolean
-        get() = true
+        get() = _storageJob != null && !_storageJob!!.isCompleted
 
     override fun opModeStart() {
-        ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE_FAST
+        if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
+            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                _isShooting = true
 
-            delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE
 
-            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+                delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
+
+                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+
+                _isShooting = false
+            }
         }
     }
 

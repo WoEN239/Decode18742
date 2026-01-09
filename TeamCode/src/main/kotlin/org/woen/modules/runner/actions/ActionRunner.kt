@@ -16,6 +16,7 @@ import com.acmerobotics.roadrunner.TranslationalVelConstraint
 import com.acmerobotics.roadrunner.Vector2d
 
 import org.woen.hotRun.HotRun
+import org.woen.modules.camera.CloseCameraEvent
 import org.woen.modules.camera.OnPatternDetectedEvent
 import org.woen.utils.smartMutex.SmartMutex
 
@@ -40,7 +41,7 @@ import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageInitiatePredictSortEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 import org.woen.modules.scoringSystem.storage.sorting.DynamicPattern
-
+import org.woen.threading.ThreadedEventBus
 
 
 class ActionRunner private constructor() : DisposableHandle
@@ -244,7 +245,9 @@ class ActionRunner private constructor() : DisposableHandle
 
         EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
 
-        delay(1500)
+        delay(500)
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(CloseCameraEvent())
 
 
         //------------------------------
@@ -263,7 +266,7 @@ class ActionRunner private constructor() : DisposableHandle
                     ).strafeTo(Vector2d(-0.314, -1.35 * _yColorMultiplier), _eatVelConstant)
                         .setReversed(true)
                         .splineTo(
-                            Vector2d(0.0, -1.4 * _yColorMultiplier),
+                            Vector2d(0.0, -1.44 * _yColorMultiplier),
                             -PI / 2.0 * _hColorMultiplier
                         )
                         .build()
@@ -642,6 +645,10 @@ class ActionRunner private constructor() : DisposableHandle
     }
     private suspend fun handleStreamShooting()
     {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+
+        return
+
         //--  Cycle STREAM Drum shooting (for optimisation see Configs.SORTING_SETTINGS)
         //--  USE_LAZY_DRUM = false   >>>   Maximizes speed, but is more risky
 
@@ -662,6 +669,10 @@ class ActionRunner private constructor() : DisposableHandle
     }
     private suspend fun handleCustomisableShooting()
     {
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
+
+        return
+
         _doneShooting.set(false)
         EventBusLI.invoke(DefaultFireEvent())
 
@@ -701,18 +712,18 @@ class ActionRunner private constructor() : DisposableHandle
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)
                 _thread.start()
-
-            EventBusLI.subscribe(FullFinishedFiringEvent::class, {
-                    _doneShooting.set(true)
-            }   )
-            EventBusLI.subscribe(FullFinishedIntakeEvent::class, {
-                    _ballsInStorage.set(it.ballCountInStorage)
-            }   )
-            EventBusLI.subscribe(OnPatternDetectedEvent::class, {
-                    _pattern.setPermanent(it.pattern.subsequence)
-                    _patternWasDetected.set(true)
-            }   )
         }
+
+//        EventBusLI.subscribe(FullFinishedFiringEvent::class, {
+//            _doneShooting.set(true)
+//        }   )
+//        EventBusLI.subscribe(FullFinishedIntakeEvent::class, {
+//            _ballsInStorage.set(it.ballCountInStorage)
+//        }   )
+//        EventBusLI.subscribe(OnPatternDetectedEvent::class, {
+//            _pattern.setPermanent(it.pattern.subsequence)
+//            _patternWasDetected.set(true)
+//        }   )
 
         HotRun.LAZY_INSTANCE.opModeStopEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)

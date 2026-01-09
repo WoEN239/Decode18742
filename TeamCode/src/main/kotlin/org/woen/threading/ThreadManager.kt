@@ -70,7 +70,9 @@ class ThreadManager private constructor() : DisposableHandle {
     }
 
     override fun dispose() {
-        for (thread in _allThreads) thread.interrupt()
+        for (thread in _allThreads)
+            if(!thread.isInterrupted)
+                thread.interrupt()
 
         _threadPool.shutdown()
     }

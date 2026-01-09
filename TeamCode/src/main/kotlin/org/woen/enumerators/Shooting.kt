@@ -65,7 +65,11 @@ class Shooting
                     Ball(Ball.UNKNOWN_COLOR, Ball.Name.UNKNOWN_COLOR),
                     Ball(Ball.UNKNOWN_COLOR, Ball.Name.UNKNOWN_COLOR),
                     Ball(Ball.NONE,          Ball.Name.NONE))
-                val EMPTY = arrayOf<Ball>()
+                val EMPTY = arrayOf(
+                    Ball(),
+                    Ball(),
+                    Ball(),
+                    Ball())
 
                 val PPP = arrayOf(
                     Ball(Ball.PURPLE, Ball.Name.PURPLE),

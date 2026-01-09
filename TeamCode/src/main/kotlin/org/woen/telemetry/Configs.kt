@@ -248,7 +248,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.013, kF = 0.0035)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.012, kF = 0.0035)
 
         @JvmField
         var PULLEY_TARGET_SENS = 0.4
@@ -356,16 +356,16 @@ object Configs {
 //        var MAX_SHOOTING_DISTANCE = 3.0
 
         @JvmField
-        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.731, 0.759), Angle.ofDeg(138.043))
+        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.731, 0.759), Angle.ofDeg(136.0))
 
         @JvmField
-        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.731, -0.759), Angle.ofDeg(-138.043))
+        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.731, -0.759), Angle.ofDeg(-136.0))
 
         @JvmField
-        var SHOOTING_ANGLE_POSITION = 0.5
+        var SHOOTING_ANGLE_POSITION = 0.625
 
         @JvmField
-        var SHOOTING_SINGLE_PULLEY_VELOCITY = 15.0
+        var SHOOTING_SINGLE_PULLEY_VELOCITY = 5.0
 
         @JvmField
         var ROTATE_SENS = Math.toRadians(10.0)
@@ -374,7 +374,7 @@ object Configs {
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
 
         @JvmField
-        var SHOOTING_DRUM_PULLEY_VELOCITY = 18.2
+        var SHOOTING_DRUM_PULLEY_VELOCITY = 15.9
     }
 
     @Config
@@ -882,13 +882,16 @@ object Configs {
         var BELTS_FULL_TIMER = 0.1
 
         @JvmField
-        var BELTS_POWER = 5.0
+        var BELTS_POWER = 11.0
 
         @JvmField
-        var BELTS_FAST_POWER = 8.5
+        var BELTS_SHOOT_POWER = 8.3
 
         @JvmField
-        var BELTS_FAST_FAST_POWER = 10.0
+        var SHOOTING_TIME = 0.5
+
+        @JvmField
+        var PUSH_TIME = 0.5
     }
 
     @Config

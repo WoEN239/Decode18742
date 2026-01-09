@@ -20,6 +20,7 @@ import org.woen.utils.smartMutex.SmartMutex
 import kotlin.concurrent.thread
 
 data class OnPatternDetectedEvent(val pattern: Pattern)
+class CloseCameraEvent()
 
 class Camera : DisposableHandle {
     companion object {
@@ -146,6 +147,13 @@ class Camera : DisposableHandle {
                 FtcDashboard.getInstance().stopCameraStream()
                 _visionPortal?.close()
             }
+
+            ThreadedEventBus.LAZY_INSTANCE.subscribe(CloseCameraEvent::class, {
+                _thread.interrupt()
+
+                FtcDashboard.getInstance().stopCameraStream()
+                _visionPortal?.close()
+            })
         }
     }
 }
