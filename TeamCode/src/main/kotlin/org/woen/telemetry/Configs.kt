@@ -356,13 +356,16 @@ object Configs {
 //        var MAX_SHOOTING_DISTANCE = 3.0
 
         @JvmField
-        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.731, 0.759), Angle.ofDeg(136.0))
+        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.783, 0.742), Angle.ofDeg(135.0))
 
         @JvmField
-        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.731, -0.759), Angle.ofDeg(-136.0))
+        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.783, -0.742), Angle.ofDeg(-135.0))
 
         @JvmField
-        var SHOOTING_ANGLE_POSITION = 0.625
+        var SHOOTING_ANGLE_MIN_POSITION = 0.3
+
+        @JvmField
+        var SHOOTING_ANGLE_MAX_POSITION = (1.0 - 0.37)
 
         @JvmField
         var SHOOTING_SINGLE_PULLEY_VELOCITY = 5.0
@@ -374,7 +377,10 @@ object Configs {
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
 
         @JvmField
-        var SHOOTING_DRUM_PULLEY_VELOCITY = 18.5
+        var SHOOTING_DRUM_MIN_PULLEY_VELOCITY = 14.5
+
+        @JvmField
+        var SHOOTING_DRUM_MAX_PULLEY_VELOCITY = 19.0
     }
 
     @Config
@@ -870,9 +876,6 @@ object Configs {
     @Config
     internal object SIMPLE_STORAGE {
         @JvmField
-        var LOOK_DELAY_TIME = 0.09
-
-        @JvmField
         var REVERS_TIME = 0.2
 
         @JvmField
@@ -885,10 +888,10 @@ object Configs {
         var BELTS_POWER = 11.0
 
         @JvmField
-        var BELTS_SHOOT_POWER = 8.3
+        var BELTS_SHOOT_POWER = 9.0
 
         @JvmField
-        var SHOOTING_TIME = 0.5
+        var SHOOTING_TIME = 0.4
 
         @JvmField
         var PUSH_TIME = 0.5

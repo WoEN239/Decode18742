@@ -1,6 +1,7 @@
 package org.woen.modules.scoringSystem.turret
 
 
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -9,7 +10,6 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.RequireOdometryEvent
 import org.woen.telemetry.Configs
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -172,30 +172,26 @@ class Turret : IModule {
 //    }
 
     fun updateTurret() {
-        if (_currentShootType == ShotType.DRUM)
-            _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_DRUM_PULLEY_VELOCITY
-        else
+        if (_currentShootType == ShotType.SINGLE)
             _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_SINGLE_PULLEY_VELOCITY
-
-        _hardwareTurretServos.rawAnglePosition = Configs.TURRET.SHOOTING_ANGLE_POSITION
 
         if (_isRotateZeroed) {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
             _hardwareTurretServos.targetRotatePosition = Angle(
-                when(_currentRotateState) {
+                when (_currentRotateState) {
                     RotateState.TO_BASKET ->
                         ((HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
                             odometry.odometryOrientation.angle
                         ))).rot()
-                        -odometry.odometryOrientation.angle)
+                                - odometry.odometryOrientation.angle)
 
                     RotateState.CONSTANT -> 0.0
 
                     RotateState.TO_OBELISK -> ((Configs.TURRET.OBELISK_POSITION - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
                         odometry.odometryOrientation.angle
                     ))).rot()
-                            -odometry.odometryOrientation.angle)
+                            - odometry.odometryOrientation.angle)
                 }
             ).angle
         }
@@ -217,6 +213,10 @@ class Turret : IModule {
         _currentRotateState = RotateState.CONSTANT
 
         setTurretState(TurretState.SHOOT)
+
+        _hardwareTurretServos.rawAnglePosition = Configs.TURRET.SHOOTING_ANGLE_MAX_POSITION
+
+        _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_DRUM_MIN_PULLEY_VELOCITY
 
         if (!_isRotateZeroed) {
             ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -270,6 +270,24 @@ class Turret : IModule {
                             - Angle(_hardwareTurret.currentRotatePosition)).angle
                 ) <
                         Configs.TURRET.ROTATE_SENS
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(StartShootingEvent::class, {
+            val timer = ElapsedTime()
+
+            timer.reset()
+
+            val shootTime = Configs.SIMPLE_STORAGE.SHOOTING_TIME
+
+            while (timer.seconds() < shootTime) {
+                _hardwareTurretServos.rawAnglePosition =
+                    (Configs.TURRET.SHOOTING_ANGLE_MAX_POSITION - Configs.TURRET.SHOOTING_ANGLE_MIN_POSITION) * (1.0 - timer.seconds() / shootTime) + Configs.TURRET.SHOOTING_ANGLE_MIN_POSITION
+
+                _hardwareTurret.targetVelocity = (Configs.TURRET.SHOOTING_DRUM_MAX_PULLEY_VELOCITY - Configs.TURRET.SHOOTING_DRUM_MIN_PULLEY_VELOCITY) * (timer.seconds() / shootTime) + Configs.TURRET.SHOOTING_DRUM_MIN_PULLEY_VELOCITY
+            }
+
+            _hardwareTurretServos.rawAnglePosition = Configs.TURRET.SHOOTING_ANGLE_MAX_POSITION
+            _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_DRUM_MIN_PULLEY_VELOCITY
         })
     }
 }

@@ -11,6 +11,7 @@ import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
 import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
+import org.woen.modules.scoringSystem.turret.StartShootingEvent
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
@@ -85,7 +86,7 @@ class SimpleStorage : IModule {
 
                 process.wait()
 
-                delay((Configs.SIMPLE_STORAGE.LOOK_DELAY_TIME * 1000.0).toLong())
+                ThreadedEventBus.LAZY_INSTANCE.invoke(StartShootingEvent())
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.SHOOT
 
