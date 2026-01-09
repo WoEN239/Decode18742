@@ -9,9 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import org.woen.telemetry.LogManager
 import org.woen.threading.hardware.HardwareThreads
-import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
-import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT

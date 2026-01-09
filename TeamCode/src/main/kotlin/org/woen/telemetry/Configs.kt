@@ -669,11 +669,14 @@ object Configs {
         var FULL_BALL_PUSHING_MS: Long = 444
         @JvmField
         var PART_BALL_PUSHING_MS: Long = 333
+
         @JvmField
-//        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 300    //  9.0V configuration
-        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
-        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 444      //  8.5V configuration
-        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 222      //  8.5V configuration
+        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 400        //  9.0V configuration
+//        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
+        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 275
+//        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 444      //  8.5V configuration
+        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 150
+//        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 222      //  8.5V configuration
 
 
         @JvmField
@@ -714,6 +717,8 @@ object Configs {
 
         @JvmField
         var ALWAYS_TRY_PREDICT_SORTING = true
+        @JvmField
+        var TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING = true
 
         @JvmField
         var MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING = 0.75

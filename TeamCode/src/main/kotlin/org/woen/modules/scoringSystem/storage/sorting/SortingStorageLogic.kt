@@ -48,7 +48,8 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
-
+import org.woen.telemetry.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
+import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING
 
 
 class SortingStorageLogic
@@ -238,16 +239,14 @@ class SortingStorageLogic
     suspend fun shootRequestFinalPhase(
         requestResult: RequestResult,
         processId: Int,
-        isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = false): RequestResult.Name
     {
         if (requestResult.didFail()) return requestResult.name()
         if (isForcedToTerminate(processId))
             return Request.TERMINATED
 
-        val updateResult = if (!isNowPerfectlySorted)
-            rotateToFoundBall(requestResult, processId, true)
-        else Request.TURRET_SLOT
+        val updateResult = if (requestResult == Request.TURRET_SLOT) Request.TURRET_SLOT
+            else rotateToFoundBall(requestResult, processId, true)
 
         logM.logMd("Finished updating", PROCESS_ENDING)
 
@@ -310,7 +309,7 @@ class SortingStorageLogic
 
 
 
-    suspend fun lazyShootEverything(ballCount: Int)
+    suspend fun lazyStreamDrumRequest(ballCount: Int)
     {
         logM.logMd("Starting Lazy stream shooting", PROCESS_STARTING)
 
@@ -336,23 +335,23 @@ class SortingStorageLogic
         val ballCount = storageCells.anyBallCount()
         logM.logMd("Expected shots count: $ballCount", GENERIC_INFO)
 
-        lazyShootEverything(ballCount)
+        lazyStreamDrumRequest(ballCount)
         return Request.SUCCESS_NOW_EMPTY
     }
 
 
 
-    suspend fun shootEntireCanSkip(
+    suspend fun shootDrumCanSkip(
         requested: Array<BallRequest.Name>,
         autoUpdatePatternWhenSucceed: Boolean = true
     ): RequestResult.Name
-        = shootEntireCanSkipLogic(
+        = shootDrumCanSkipLogic(
             requested,
             min(requested.size, MAX_BALL_COUNT),
             storageCells
                 .tryInitiatePredictSort(requested),
             autoUpdatePatternWhenSucceed)
-    suspend fun shootEntireCanSkip(
+    suspend fun shootDrumCanSkip(
         requested: Array<BallRequest.Name>,
         failsafe:  Array<BallRequest.Name>,
         autoUpdatePatternWhenSucceed:     Boolean = true,
@@ -362,7 +361,7 @@ class SortingStorageLogic
         var isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
         var trimmedRequestSize   = min(requested.size, MAX_BALL_COUNT)
 
-        val shootingResult = shootEntireCanSkipLogic(
+        val shootingResult = shootDrumCanSkipLogic(
                 requested, trimmedRequestSize,
                 isNowPerfectlySorted,
                 autoUpdatePatternWhenSucceed)
@@ -375,17 +374,18 @@ class SortingStorageLogic
         isNowPerfectlySorted = storageCells.tryInitiatePredictSort(failsafe)
         trimmedRequestSize   = min(failsafe.size, MAX_BALL_COUNT)
 
-        return shootEntireCanSkipLogic(
+        return shootDrumCanSkipLogic(
                 failsafe, trimmedRequestSize,
                 isNowPerfectlySorted,
                 autoUpdateUnfinishedWithFailsafe)
     }
-    suspend fun shootEntireCanSkipLogic(
+    suspend fun shootDrumCanSkipLogic(
         requested: Array<BallRequest.Name>,
         trimmedRequestSize: Int,
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = true): RequestResult.Name
     {
+        var isNowPerfectlySorted = isNowPerfectlySorted
         var shootingResult  = Request.COLOR_NOT_PRESENT
         var curRequestId    = NOTHING
 
@@ -394,15 +394,21 @@ class SortingStorageLogic
             if (isForcedToTerminate(DRUM_REQUEST))
                 return Request.TERMINATED
 
-            val requestResult = if (!isNowPerfectlySorted)
-                     storageCells.handleRequest(requested[curRequestId])
-                else Request.TURRET_SLOT
+            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
+                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
+                isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
 
-            val noRotationNeeded = isNowPerfectlySorted || requestResult == Request.TURRET_SLOT
+            if (isNowPerfectlySorted)
+            {
+                lazyStreamDrumRequest(storageCells.anyBallCount())
+                return Request.SUCCESS_NOW_EMPTY
+            }
+
+
+            val requestResult = storageCells.handleRequest(requested[curRequestId])
 
             shootingResult = shootRequestFinalPhase(
                 requestResult, DRUM_REQUEST,
-                noRotationNeeded,
                 autoUpdatePatternWhenSucceed)
 
             curRequestId++
@@ -412,17 +418,18 @@ class SortingStorageLogic
 
 
 
-    suspend fun shootEntireUntilPatternBreaks(
+    suspend fun shootDrumUntilPatternBreaks(
         requested: Array<BallRequest.Name>,
         autoUpdatePatternWhenSucceed: Boolean
     ): RequestResult.Name
-        = shootEntireUntilBreaksLogic(
+        = shootDrumUntilBreaksLogic(
             requested,
             min(requested.size, MAX_BALL_COUNT),
+            Request.COLOR_NOT_PRESENT,
             storageCells
                 .tryInitiatePredictSort(requested),
             autoUpdatePatternWhenSucceed)
-    suspend fun shootEntireUntilPatternBreaks(
+    suspend fun shootDrumUntilPatternBreaks(
         requested: Array<BallRequest.Name>,
         failsafe:  Array<BallRequest.Name>,
         autoUpdatePatternWhenSucceed:     Boolean = true,
@@ -432,8 +439,9 @@ class SortingStorageLogic
         var isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
         var trimmedRequestSize   = min(requested.size, MAX_BALL_COUNT)
 
-        val shootingResult = shootEntireUntilBreaksLogic(
+        val shootingResult = shootDrumUntilBreaksLogic(
                 requested, trimmedRequestSize,
+                Request.COLOR_NOT_PRESENT,
                 isNowPerfectlySorted,
                 autoUpdatePatternWhenSucceed)
 
@@ -446,18 +454,21 @@ class SortingStorageLogic
         isNowPerfectlySorted = storageCells.tryInitiatePredictSort(failsafe)
         trimmedRequestSize   = min(failsafe.size, MAX_BALL_COUNT)
 
-        return shootEntireUntilBreaksLogic(
+        return shootDrumUntilBreaksLogic(
                 failsafe, trimmedRequestSize,
+                Request.COLOR_NOT_PRESENT,
                 isNowPerfectlySorted,
                 autoUpdateUnfinishedWithFailsafe)
     }
-    suspend fun shootEntireUntilBreaksLogic(
+    suspend fun shootDrumUntilBreaksLogic(
         requested: Array<BallRequest.Name>,
         trimmedRequestSize: Int,
+        defaultError: RequestResult.Name,
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = true): RequestResult.Name
     {
-        var shootingResult  = Request.COLOR_NOT_PRESENT
+        var isNowPerfectlySorted = isNowPerfectlySorted
+        var shootingResult  = defaultError
         var curRequestId    = NOTHING
 
         while (curRequestId < trimmedRequestSize)
@@ -465,22 +476,26 @@ class SortingStorageLogic
             if (isForcedToTerminate(DRUM_REQUEST))
                 return Request.TERMINATED
 
-            val requestResult = if (!isNowPerfectlySorted)
-                    storageCells.handleRequest(requested[curRequestId])
-                else Request.TURRET_SLOT
+            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
+                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
+                isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
 
-            val noRotationNeeded = isNowPerfectlySorted || requestResult == Request.TURRET_SLOT
+            if (isNowPerfectlySorted)
+            {
+                lazyStreamDrumRequest(storageCells.anyBallCount())
+                return Request.SUCCESS_NOW_EMPTY
+            }
+
+
+            val requestResult = storageCells.handleRequest(requested[curRequestId])
 
             shootingResult = shootRequestFinalPhase(
                 requestResult, DRUM_REQUEST,
-                noRotationNeeded,
                 autoUpdatePatternWhenSucceed)
 
-            if (Request.wasTerminated(shootingResult))
-                return Request.TERMINATED
 
-            if (Request.didFail(shootingResult))
-                curRequestId += MAX_BALL_COUNT  //  Fast break if the next ball is not present
+            if (Request.wasTerminated(shootingResult)) return Request.TERMINATED
+            if (Request.didFail(      shootingResult)) return defaultError
 
             curRequestId++
         }
@@ -489,7 +504,7 @@ class SortingStorageLogic
 
 
 
-    suspend fun shootEntireRequestIsValid(
+    suspend fun shootDrumRequestEntireIsValid(
         requested: Array<BallRequest.Name>,
         autoUpdatePatternWhenSucceed: Boolean = true
     ): RequestResult.Name
@@ -498,16 +513,17 @@ class SortingStorageLogic
         val requestPGA   = countPGA(requested)
 
         if (canCompleteEntireRequest(curStoragePG, requestPGA))
-            return shootEntireValidRequestLogic(
+            return shootDrumUntilBreaksLogic(
                 requested,
                 min(requested.size, MAX_BALL_COUNT),
+                Request.FAIL_UNKNOWN,
                 storageCells
                     .tryInitiatePredictSort(requested),
                 autoUpdatePatternWhenSucceed)
 
         return Request.NOT_ENOUGH_COLORS
     }
-    suspend fun shootEntireRequestIsValid(
+    suspend fun shootDrumRequestEntireIsValid(
         requested: Array<BallRequest.Name>,
         failsafe:  Array<BallRequest.Name>,
         autoUpdatePatternWhenSucceed:     Boolean = true,
@@ -518,9 +534,10 @@ class SortingStorageLogic
         var requestPGA   = countPGA(requested)
 
         if (canCompleteEntireRequest(curStoragePG, requestPGA))  //  All good
-            return shootEntireValidRequestLogic(
+            return shootDrumUntilBreaksLogic(
                 requested,
                 min(requested.size, MAX_BALL_COUNT),
+                Request.FAIL_UNKNOWN,
                 storageCells
                     .tryInitiatePredictSort(requested),
                 autoUpdatePatternWhenSucceed)
@@ -531,9 +548,10 @@ class SortingStorageLogic
         requestPGA = countPGA(failsafe)
 
         if (canCompleteEntireRequest(curStoragePG, requestPGA))  //  Failsafe good
-            return shootEntireValidRequestLogic(
+            return shootDrumUntilBreaksLogic(
                 failsafe,
                 min(failsafe.size, MAX_BALL_COUNT),
+                Request.FAIL_UNKNOWN,
                 storageCells
                     .tryInitiatePredictSort(failsafe),
                 autoUpdateUnfinishedWithFailsafe)
@@ -575,41 +593,6 @@ class SortingStorageLogic
             && futureStorage.purple +
                futureStorage.green  +
                futureStorage.any   >= requestPGA.any
-    }
-    suspend fun shootEntireValidRequestLogic(
-        requested: Array<BallRequest.Name>,
-        trimmedRequestSize: Int,
-        isNowPerfectlySorted:         Boolean = false,
-        autoUpdatePatternWhenSucceed: Boolean): RequestResult.Name
-    {
-        var shootingResult  = Request.FAIL_UNKNOWN
-        var curRequestId    = NOTHING
-
-        while (curRequestId < trimmedRequestSize)
-        {
-            if (isForcedToTerminate(DRUM_REQUEST))
-                return Request.TERMINATED
-
-            val requestResult = if (!isNowPerfectlySorted)
-                storageCells.handleRequest(requested[curRequestId])
-                else Request.TURRET_SLOT
-
-            val noRotationNeeded = isNowPerfectlySorted || requestResult == Request.TURRET_SLOT
-
-            shootingResult = shootRequestFinalPhase(
-                requestResult, DRUM_REQUEST,
-                noRotationNeeded,
-                autoUpdatePatternWhenSucceed)
-
-            if (Request.wasTerminated(shootingResult))
-                return Request.TERMINATED
-
-            if (Request.didFail(shootingResult))
-                return shootingResult
-
-            curRequestId++
-        }
-        return shootingResult
     }
 
 

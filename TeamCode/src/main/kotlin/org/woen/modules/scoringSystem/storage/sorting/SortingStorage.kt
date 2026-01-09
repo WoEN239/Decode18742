@@ -49,7 +49,6 @@ import org.woen.telemetry.Configs.DELAY
 
 import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
-import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 //import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
@@ -396,8 +395,7 @@ class SortingStorage
 
 
         val shootingResult = _storageLogic.shootRequestFinalPhase(
-            requestResult, SINGLE_REQUEST,
-            requestResult == Request.TURRET_SLOT)
+            requestResult, SINGLE_REQUEST)
 
         if (shootingResult == Request.TERMINATED)
             return _storageLogic.terminateRequest(SINGLE_REQUEST)
@@ -422,7 +420,7 @@ class SortingStorage
         _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
         logM.logMd("MODE: LAZY StreamDrum request", PROCESS_NAME)
 
-        _storageLogic.lazyShootEverything(MAX_BALL_COUNT)
+        _storageLogic.lazyStreamDrumRequest(MAX_BALL_COUNT)
 
         _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
         return Request.SUCCESS_NOW_EMPTY
@@ -473,17 +471,17 @@ class SortingStorage
                     -> _storageLogic.fastStreamDrumRequest()
 
                 Shooting.Mode.FIRE_PATTERN_CAN_SKIP
-                    -> _storageLogic.shootEntireCanSkip(
+                    -> _storageLogic.shootDrumCanSkip(
                     standardPatternOrder,
                     autoUpdateUnfinishedForNextPattern)
 
                 Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
-                    -> _storageLogic.shootEntireUntilPatternBreaks(
+                    -> _storageLogic.shootDrumUntilPatternBreaks(
                     standardPatternOrder,
                         autoUpdateUnfinishedForNextPattern)
 
                 Shooting.Mode.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
-                    -> _storageLogic.shootEntireRequestIsValid(standardPatternOrder)
+                    -> _storageLogic.shootDrumRequestEntireIsValid(standardPatternOrder)
             }
 
         if  (Request.wasTerminated(requestResult))
@@ -542,20 +540,20 @@ class SortingStorage
                     -> _storageLogic.fastStreamDrumRequest()
 
                 Shooting.Mode.FIRE_PATTERN_CAN_SKIP
-                    -> _storageLogic.shootEntireCanSkip(
+                    -> _storageLogic.shootDrumCanSkip(
                     standardPatternOrder,
                     failsafePatternOrder,
                     autoUpdateUnfinishedForNextPattern,
                     autoUpdateUnfinishedWithFailsafe)
 
                 Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
-                    -> _storageLogic.shootEntireUntilPatternBreaks(
+                    -> _storageLogic.shootDrumUntilPatternBreaks(
                     standardPatternOrder,
                     failsafePatternOrder,
                     autoUpdateUnfinishedWithFailsafe)
 
                 Shooting.Mode.FIRE_ONLY_IF_ENTIRE_REQUEST_IS_VALID
-                    -> _storageLogic.shootEntireRequestIsValid(
+                    -> _storageLogic.shootDrumRequestEntireIsValid(
                     standardPatternOrder,
                     failsafePatternOrder,
                     autoUpdateUnfinishedWithFailsafe)
