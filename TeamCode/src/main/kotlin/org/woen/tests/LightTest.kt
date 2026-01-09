@@ -6,14 +6,18 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.utils.drivers.LEDLine
 
+
 @Config
-internal object LED_TEST{
+internal object LED_TEST
+{
     @JvmField
-    var SECTR = 3.0
+    var SECTOR = 3.0
 
     @JvmField
     var POWER = 1.0
 }
+
+
 
 @TeleOp
 class LightTest: LinearOpMode() {
@@ -37,22 +41,22 @@ class LightTest: LinearOpMode() {
             val g: Double
             val b: Double
 
-            val time = timer.seconds() % (3.0 * LED_TEST.SECTR)
+            val time = timer.seconds() % (3.0 * LED_TEST.SECTOR)
 
-            if(time < LED_TEST.SECTR){
-                r = time / LED_TEST.SECTR * LED_TEST.POWER
-                g = (LED_TEST.SECTR - time) / LED_TEST.SECTR * LED_TEST.POWER
+            if(time < LED_TEST.SECTOR){
+                r = time / LED_TEST.SECTOR * LED_TEST.POWER
+                g = (LED_TEST.SECTOR - time) / LED_TEST.SECTOR * LED_TEST.POWER
                 b = 0.0
             }
-            else if(time < 2.0 * LED_TEST.SECTR){
-                r = (2.0 * LED_TEST.SECTR - time) / LED_TEST.SECTR * LED_TEST.POWER
+            else if(time < 2.0 * LED_TEST.SECTOR){
+                r = (2.0 * LED_TEST.SECTOR - time) / LED_TEST.SECTOR * LED_TEST.POWER
                 g = 0.0
-                b = (time - LED_TEST.SECTR) / LED_TEST.SECTR * LED_TEST.POWER
+                b = (time - LED_TEST.SECTOR) / LED_TEST.SECTOR * LED_TEST.POWER
             }
             else{
                 r = 0.0
-                g = (time - 2.0 * LED_TEST.SECTR) / LED_TEST.SECTR * LED_TEST.POWER
-                b = (3.0 * LED_TEST.SECTR - time) / LED_TEST.SECTR * LED_TEST.POWER
+                g = (time - 2.0 * LED_TEST.SECTOR) / LED_TEST.SECTOR * LED_TEST.POWER
+                b = (3.0 * LED_TEST.SECTOR - time) / LED_TEST.SECTOR * LED_TEST.POWER
             }
 
             cr.power = r

@@ -5,6 +5,12 @@ import org.woen.hotRun.HotRun
 import org.woen.utils.drivers.LEDLine
 import org.woen.threading.hardware.IHardwareDevice
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.util.ElapsedTime
+
+import org.woen.modules.light.Light.LightColor.RED
+import org.woen.modules.light.Light.LightColor.BLUE
+import org.woen.modules.light.Light.LightColor.GREEN
+import org.woen.modules.light.Light.LightColor.ORANGE
 
 import org.woen.telemetry.Configs.LIGHT.BLUE_B_POWER
 import org.woen.telemetry.Configs.LIGHT.BLUE_G_POWER
@@ -20,46 +26,64 @@ import org.woen.telemetry.Configs.LIGHT.RED_G_POWER
 import org.woen.telemetry.Configs.LIGHT.RED_R_POWER
 
 
-
-class HardwareLight(private val _rName: String, private val _gName: String, private val _bName: String): IHardwareDevice {
+class HardwareLight(private val _rName: String,
+                    private val _gName: String,
+                    private val _bName: String)
+    : IHardwareDevice
+{
     private lateinit var _rPort: LEDLine
     private lateinit var _gPort: LEDLine
     private lateinit var _bPort: LEDLine
 
-    var color = Light.LightColor.GREEN
+    private val _shimmerTimer = ElapsedTime()
+    private var _shimmerResetColor = GREEN
+
+    var lightColor = BLUE
+
 
     
     override fun update()
     {
-        when(color)
+        when (lightColor)
         {
-            Light.LightColor.GREEN ->
+            GREEN ->
             {
+                _shimmerResetColor = GREEN
+
                 _rPort.power = GREEN_R_POWER
                 _gPort.power = GREEN_G_POWER
                 _bPort.power = GREEN_B_POWER
             }
-            Light.LightColor.BLUE ->
+            BLUE ->
             {
+                _shimmerResetColor = BLUE
+
                 _rPort.power = BLUE_R_POWER
                 _gPort.power = BLUE_G_POWER
                 _bPort.power = BLUE_B_POWER
             }
 
-            Light.LightColor.ORANGE ->
+            ORANGE ->
             {
+                _shimmerResetColor = ORANGE
+
                 _rPort.power = ORANGE_R_POWER
                 _gPort.power = ORANGE_G_POWER
                 _bPort.power = ORANGE_B_POWER
             }
-            Light.LightColor.RED ->
+            RED ->
             {
-                _rPort.power = RED_R_POWER
+                if (_shimmerResetColor != RED) _shimmerTimer.reset()
+                _shimmerResetColor = RED
+
+                _rPort.power = RED_R_POWER / (_shimmerTimer.seconds() + 0.001)
                 _gPort.power = RED_G_POWER
                 _bPort.power = RED_B_POWER
             }
         }
     }
+
+
 
     override fun init(hardwareMap: HardwareMap)
     {
@@ -71,6 +95,8 @@ class HardwareLight(private val _rName: String, private val _gName: String, priv
             _rPort.init()
             _gPort.init()
             _bPort.init()
+
+            _shimmerTimer.reset()
         }
     }
 
