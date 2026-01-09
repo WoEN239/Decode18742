@@ -158,7 +158,7 @@ object Configs {
         var POS_SENS = 0.1
 
         @JvmField
-        var TARGET_TIMER = 0.1
+        var TARGET_TIMER = 0.3
 
         @JvmField
         var RED_PARKING_ORIENTATION = Orientation(Vec2(0.948, -0.803), Angle.ofDeg(-180.0))
@@ -179,13 +179,13 @@ object Configs {
     @Config
     internal object ROAD_RUNNER {
         @JvmField
-        var ROAD_RUNNER_POS_X_P = 1.0
+        var ROAD_RUNNER_POS_X_P = 1.9
 
         @JvmField
-        var ROAD_RUNNER_POS_Y_P = 1.0
+        var ROAD_RUNNER_POS_Y_P = 1.9
 
         @JvmField
-        var ROAD_RUNNER_POS_H_P = 5.0
+        var ROAD_RUNNER_POS_H_P = 6.0
 
         @JvmField
         var ROAD_RUNNER_VEL_X_P = 0.0
@@ -215,7 +215,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = false
+        var CAMERA_ENABLE = true
 
         @JvmField
         var CAMERA_H_RED_DOWN = 4.0
@@ -248,7 +248,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.013, kF = 0.0035, kI = 0.0007)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.013, kF = 0.0035)
 
         @JvmField
         var PULLEY_TARGET_SENS = 0.4
@@ -362,7 +362,7 @@ object Configs {
         var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.731, -0.759), Angle.ofDeg(-138.043))
 
         @JvmField
-        var SHOOTING_ANGLE_POSITION = 0.62
+        var SHOOTING_ANGLE_POSITION = 0.5
 
         @JvmField
         var SHOOTING_SINGLE_PULLEY_VELOCITY = 15.0
@@ -374,7 +374,7 @@ object Configs {
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
 
         @JvmField
-        var SHOOTING_DRUM_PULLEY_VELOCITY = 17.07
+        var SHOOTING_DRUM_PULLEY_VELOCITY = 18.2
     }
 
     @Config
@@ -842,7 +842,7 @@ object Configs {
         @JvmField
         var INTAKE_COLOR_SENSOR_L = "colorSensorLeft"
         @JvmField
-        var INTAKE_COLOR_SENSOR_R = "colorSensorRight"
+        var INTAKE_COLOR_SENSOR_R = "rightColorSensor"
 
 
         @JvmField

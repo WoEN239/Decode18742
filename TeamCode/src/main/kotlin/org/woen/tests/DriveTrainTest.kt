@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import kotlin.math.abs
 import kotlin.math.max
@@ -47,6 +48,8 @@ class DriveTrainTest : LinearOpMode() {
 
         while (opModeIsActive()) {
             updateDriveTrain()
+
+            telemetry.update()
         }
     }
 
@@ -87,5 +90,10 @@ class DriveTrainTest : LinearOpMode() {
         rightBackDrive.power = rightBackPower
         leftBackDrive.power = leftBackPower
         rightForwardDrive.power = rightForwardPower
+
+        telemetry.addData("left forward current", leftForwardDrive.getCurrent(CurrentUnit.AMPS))
+        telemetry.addData("right back current", rightBackDrive.getCurrent(CurrentUnit.AMPS))
+        telemetry.addData("left back current", leftBackDrive.getCurrent(CurrentUnit.AMPS))
+        telemetry.addData("right forward current", rightForwardDrive.getCurrent(CurrentUnit.AMPS))
     }
 }

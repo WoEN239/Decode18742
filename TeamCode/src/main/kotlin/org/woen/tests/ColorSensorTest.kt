@@ -3,15 +3,17 @@ package org.woen.tests
 import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
 import com.qualcomm.hardware.ams.AMSColorSensor
+import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import com.qualcomm.robotcore.hardware.ColorSensor
 import com.qualcomm.robotcore.util.ElapsedTime
 import woen239.FixColorSensor.fixSensor
 
 @TeleOp
 class ColorSensorTest : LinearOpMode() {
     override fun runOpMode() {
-        val sensor = fixSensor(hardwareMap.get("colorSensorRight") as AdafruitI2cColorSensor)
+        val sensor = hardwareMap.get("rightColorSensor") as RevColorSensorV3//fixSensor(hardwareMap.get("colorSensorRight") as AdafruitI2cColorSensor)
 
         val maximumReading =
             (65535.coerceAtMost(1024 * (256 - AMSColorSensor.Parameters.atimeFromMs(24f)))).toDouble()

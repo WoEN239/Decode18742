@@ -6,6 +6,7 @@ import kotlin.math.max
 
 import woen239.FixColorSensor.fixSensor
 import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
+import com.qualcomm.hardware.rev.RevColorSensorV3
 
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.threading.hardware.IHardwareDevice
@@ -21,6 +22,7 @@ import org.woen.utils.events.SimpleEvent
 import org.woen.utils.events.SimpleEmptyEvent
 
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_L
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_R
 
 import org.woen.telemetry.Configs.STORAGE_SENSORS.LCS_GREEN_BALL_B_K
 import org.woen.telemetry.Configs.STORAGE_SENSORS.LCS_GREEN_BALL_G_K
@@ -54,7 +56,7 @@ class ColorSensorsData(var color: Ball.Name, var sensorsId: SensorsId)
 class HwSortingSensors(): IHardwareDevice
 {
     private lateinit var _intakeColorSensorL : AdafruitI2cColorSensor
-    private lateinit var _intakeColorSensorR : AdafruitI2cColorSensor
+    private lateinit var _intakeColorSensorR : RevColorSensorV3
 
 //    private lateinit var _turretOptic1 : AnalogInput
 //    private lateinit var _turretOptic2 : AnalogInput
@@ -73,9 +75,8 @@ class HwSortingSensors(): IHardwareDevice
         _intakeColorSensorL = fixSensor(
             hardwareMap.get(INTAKE_COLOR_SENSOR_L)
                     as AdafruitI2cColorSensor)
-//        _intakeColorSensorR = fixSensor(
-//            hardwareMap.get(INTAKE_COLOR_SENSOR_R)
-//                    as AdafruitI2cColorSensor)
+        _intakeColorSensorR = hardwareMap.get(INTAKE_COLOR_SENSOR_R)
+                    as RevColorSensorV3
 
 
 //        _turretOptic1 = hardwareMap.get(TURRET_OPTIC_1) as AnalogInput
@@ -91,7 +92,7 @@ class HwSortingSensors(): IHardwareDevice
 //            opticDetectedShotFiringEvent.invoke()
 
 
-        val argb1 = _intakeColorSensorL.normalizedColors
+        val argb1 = _intakeColorSensorR.normalizedColors
         val r1 = argb1.red   * CONST_MAXIMUM_READING
         val g1 = argb1.green * CONST_MAXIMUM_READING
         val b1 = argb1.blue  * CONST_MAXIMUM_READING

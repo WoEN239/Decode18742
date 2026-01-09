@@ -101,10 +101,15 @@ class ActionRunner private constructor() : DisposableHandle
     private val _doneShooting       = AtomicBoolean(false)
     private val _ballsInStorage     = AtomicInteger(3)
     private val _activeBallsInCycle = AtomicInteger(3)
+
     
     
     
-    
+
+
+
+
+
     private suspend fun simpleCloseAuto() {
         EventBusLI.invoke(
             RunSegmentEvent(
@@ -130,7 +135,7 @@ class ActionRunner private constructor() : DisposableHandle
                     ).trajectoryBuilder!!.strafeToLinearHeading(
                         Vector2d(-0.314, -0.716 * _yColorMultiplier),
                         -PI / 2.0 * _hColorMultiplier
-                    ).strafeTo(Vector2d(-0.314, -1.25 * _yColorMultiplier), _eatVelConstant)
+                    ).strafeTo(Vector2d(-0.314, -1.4 * _yColorMultiplier), _eatVelConstant)
                         .setReversed(true)
                         .splineTo(
                             Vector2d(-0.05, -1.35 * _yColorMultiplier),
@@ -170,7 +175,7 @@ class ActionRunner private constructor() : DisposableHandle
                             Vector2d(0.353, -0.712 * _yColorMultiplier),
                             -PI / 2.0 * _hColorMultiplier
                         )
-                        .strafeTo(Vector2d(0.353, -1.25 * _yColorMultiplier), _eatVelConstant)
+                        .strafeTo(Vector2d(0.353, -1.4 * _yColorMultiplier), _eatVelConstant)
                         .strafeToLinearHeading(
                             _shootingOrientation.pos.rrVec(),
                             _shootingOrientation.angle
@@ -192,7 +197,7 @@ class ActionRunner private constructor() : DisposableHandle
                             Vector2d(0.95, -0.712 * _yColorMultiplier),
                             -PI / 2.0 * _hColorMultiplier
                         )
-                        .strafeTo(Vector2d(1.0, -1.25 * _yColorMultiplier), _eatVelConstant)
+                        .strafeTo(Vector2d(1.0, -1.4 * _yColorMultiplier), _eatVelConstant)
                         .strafeToLinearHeading(
                             _shootingOrientation.pos.rrVec(),
                             _shootingOrientation.angle
@@ -218,6 +223,9 @@ class ActionRunner private constructor() : DisposableHandle
 
     private suspend fun closeAuto12()
     {
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_OBELISK))
+        //  Attempt to get pattern
+
         EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
@@ -232,16 +240,16 @@ class ActionRunner private constructor() : DisposableHandle
             )
         ).process.wait()
 
+        Thread.sleep(1000)
+
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
+
+        delay(1500)
 
 
         //------------------------------
         handleStreamShooting()
         //------------------------------
-
-
-        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_OBELISK))
-        //  Attempt to get pattern
-
 
 
         EventBusLI.invoke(
@@ -252,10 +260,10 @@ class ActionRunner private constructor() : DisposableHandle
                     ).trajectoryBuilder!!.strafeToLinearHeading(
                         Vector2d(-0.314, -0.716 * _yColorMultiplier),
                         -PI / 2.0 * _hColorMultiplier
-                    ).strafeTo(Vector2d(-0.314, -1.25 * _yColorMultiplier), _eatVelConstant)
+                    ).strafeTo(Vector2d(-0.314, -1.35 * _yColorMultiplier), _eatVelConstant)
                         .setReversed(true)
                         .splineTo(
-                            Vector2d(-0.05, -1.35 * _yColorMultiplier),
+                            Vector2d(0.0, -1.4 * _yColorMultiplier),
                             -PI / 2.0 * _hColorMultiplier
                         )
                         .build()
@@ -263,7 +271,6 @@ class ActionRunner private constructor() : DisposableHandle
             )
         ).process.wait()
 
-        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_BASKET))
         Thread.sleep(900)
 
         EventBusLI.invoke(
@@ -299,10 +306,14 @@ class ActionRunner private constructor() : DisposableHandle
                             Vector2d(0.353, -0.712 * _yColorMultiplier),
                             -PI / 2.0 * _hColorMultiplier
                         )
-                        .strafeTo(Vector2d(0.353, -1.25 * _yColorMultiplier), _eatVelConstant)
-                        .strafeToLinearHeading(
-                            _shootingOrientation.pos.rrVec(),
+                        .strafeTo(Vector2d(0.353, -1.45 * _yColorMultiplier), _eatVelConstant)
+                        .setTangent(PI / 2.0 * _hColorMultiplier)
+                        .splineToLinearHeading(
+                            Pose2d(
+                            _shootingOrientation.x, _shootingOrientation.y,
                             _shootingOrientation.angle
+                            ),
+                            -PI * 0.9 * _hColorMultiplier
                         )
                         .build()
                 )
@@ -327,7 +338,7 @@ class ActionRunner private constructor() : DisposableHandle
                             Vector2d(0.95, -0.712 * _yColorMultiplier),
                             -PI / 2.0 * _hColorMultiplier
                         )
-                        .strafeTo(Vector2d(1.0, -1.25 * _yColorMultiplier), _eatVelConstant)
+                        .strafeTo(Vector2d(1.0, -1.45 * _yColorMultiplier), _eatVelConstant)
                         .strafeToLinearHeading(
                             _shootingOrientation.pos.rrVec(),
                             _shootingOrientation.angle
@@ -402,7 +413,7 @@ class ActionRunner private constructor() : DisposableHandle
         ).process.wait()
 
 
-        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_BASKET))
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
 
 
         Thread.sleep(800)
@@ -430,8 +441,8 @@ class ActionRunner private constructor() : DisposableHandle
         //------------------------------
         handleStreamShooting()
         //------------------------------
-        
-        
+
+
 
         for (i in 1..3)
         {
@@ -459,8 +470,8 @@ class ActionRunner private constructor() : DisposableHandle
             //------------------------------
             handleSmartIntake()
             //------------------------------
-            
-            
+
+
 
             EventBusLI.invoke(
                 RunSegmentEvent(
@@ -507,14 +518,14 @@ class ActionRunner private constructor() : DisposableHandle
             )
         ).process.wait()
 
-        
-        
+
+
         //------------------------------
         handleSmartIntake()
         //------------------------------
 
-        
-        
+
+
         EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
@@ -690,7 +701,7 @@ class ActionRunner private constructor() : DisposableHandle
         HotRun.LAZY_INSTANCE.opModeStartEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)
                 _thread.start()
-            
+
             EventBusLI.subscribe(FullFinishedFiringEvent::class, {
                     _doneShooting.set(true)
             }   )

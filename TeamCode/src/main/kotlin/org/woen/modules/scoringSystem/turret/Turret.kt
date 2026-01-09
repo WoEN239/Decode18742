@@ -212,6 +212,8 @@ class Turret : IModule {
     }
 
     override fun opModeStart() {
+        _currentRotateState = RotateState.CONSTANT
+
         setTurretState(TurretState.SHOOT)
 
         if (!_isRotateZeroed) {

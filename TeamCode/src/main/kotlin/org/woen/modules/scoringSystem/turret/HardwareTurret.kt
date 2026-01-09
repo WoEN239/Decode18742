@@ -131,6 +131,7 @@ class HardwareTurret :
 
         _velocityFilter.start()
         _regulator.start()
+        _regulator.resetIntegral()
     }
 
     override fun opModeStop() {

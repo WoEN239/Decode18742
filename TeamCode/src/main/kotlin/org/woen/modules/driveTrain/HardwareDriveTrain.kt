@@ -98,6 +98,9 @@ class HardwareDriveTrain : IHardwareDevice {
             _forwardRegulator.start()
             _sideRegulator.start()
             _rotateRegulator.start()
+            _forwardRegulator.resetIntegral()
+            _sideRegulator.resetIntegral()
+            _rotateRegulator.resetIntegral()
         }
     }
 

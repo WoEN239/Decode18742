@@ -173,22 +173,27 @@ class DriveTrain : IModule {
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveModeEvent::class, {
-            _currentMode = it.mode
-            _currentProcess = it.process
+            if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO){
+                it.process.close()
+            }
+            else {
+                _currentMode = it.mode
+                _currentProcess = it.process
 
-            if (it.mode != DriveMode.DRIVE) {
-                _targetTimer.reset()
+                if (it.mode != DriveMode.DRIVE) {
+                    _targetTimer.reset()
 
-                if (it.mode == DriveMode.PARKING)
-                    _targetOrientation =
-                        HotRun.LAZY_INSTANCE.currentStartPosition.parkingOrientation
+                    if (it.mode == DriveMode.PARKING)
+                        _targetOrientation =
+                            HotRun.LAZY_INSTANCE.currentStartPosition.parkingOrientation
 
-                _xRegulator.start()
-                _xRegulator.resetIntegral()
-                _yRegulator.start()
-                _yRegulator.resetIntegral()
-                _hRegulator.start()
-                _hRegulator.resetIntegral()
+                    _xRegulator.start()
+                    _xRegulator.resetIntegral()
+                    _yRegulator.start()
+                    _yRegulator.resetIntegral()
+                    _hRegulator.start()
+                    _hRegulator.resetIntegral()
+                }
             }
         })
 

@@ -30,13 +30,13 @@ object MeepMeepTesting {
 
         val shootTime = 0.7
 
-        fun TrajectoryActionBuilder.circle() =
-            setTangent(0.4)
-                .meterSplineToLinearHeading(Pose2d(0.2, -1.4, -PI * 0.7), -PI * 0.5)
-            .waitSeconds(0.8)
-                .setTangent(PI / 2.0)
-                .meterSplineToLinearHeading(Pose2d(-0.776, -0.656, -PI * 0.75), -PI * 0.9)
-            .waitSeconds(shootTime)
+//        fun TrajectoryActionBuilder.circle() =
+//            setTangent(0.4)
+//                .meterSplineToLinearHeading(Pose2d(0.2, -1.4, -PI * 0.7), -PI * 0.5)
+//            .waitSeconds(0.8)
+//                .setTangent(PI / 2.0)
+//                .meterSplineToLinearHeading(Pose2d(-0.776, -0.656, -PI * 0.75), -PI * 0.9)
+//            .waitSeconds(shootTime)
 
         myBot.runAction(
             myBot.drive.actionBuilder(
@@ -46,38 +46,44 @@ object MeepMeepTesting {
                     -PI / 2.0
                 )
             )
-                .meterStrafeToLinearHeading(
-                    Vector2d(-0.776, -0.656),
-                    -PI * 0.75
-                )
-                .waitSeconds(shootTime)
-                .meterStrafeToLinearHeading(Vector2d(0.3, -0.79), -PI / 2.0)
-                .meterStrafeTo(Vector2d(0.3, -1.15), eatVelConstraint)
-                .meterStrafeTo(Vector2d(0.1, -1.35))
-                .waitSeconds(0.8)
-                .meterStrafeTo(Vector2d(0.1, -0.9))
-                .setTangent(PI / 2.0)
-                .meterSplineToLinearHeading(Pose2d(-0.776, -0.656, -PI * 0.75), -PI * 0.9)
-                .waitSeconds(shootTime)
-                .circle()
-                .circle()
-                .circle()
-                .circle()
-                .setTangent(0.0)
-                .meterStrafeToLinearHeading(
-                    Vector2d(-0.314, -0.79),
-                    -PI / 2.0
-                ).meterStrafeTo(Vector2d(-0.314, -1.15), eatVelConstraint)
-                .meterStrafeToLinearHeading(
-                    Vector2d(-0.776, -0.656),
-                    -PI * 0.75
-                )
-                .waitSeconds(shootTime)
-                .meterStrafeToLinearHeading(Vector2d(0.9, -0.79), -PI / 2.0)
-                .meterStrafeTo(Vector2d(0.9, -1.15), eatVelConstraint)
-                .meterStrafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
-                .waitSeconds(shootTime)
-                .meterStrafeTo(Vector2d(-1.2, -0.656))
+                .meterStrafeTo(Vector2d(-0.314, -1.4))
+                .waitSeconds(5.0)
+                .setReversed(true)
+                .meterSplineToLinearHeading(Pose2d(0.0, -1.4, PI), -PI / 2.0)
+                .waitSeconds(50.0)
+                .meterStrafeTo(Vector2d(-0.314, -1.4))
+//                .meterStrafeToLinearHeading(
+//                    Vector2d(-0.776, -0.656),
+//                    -PI * 0.75
+//                )
+//                .waitSeconds(shootTime)
+//                .meterStrafeToLinearHeading(Vector2d(0.3, -0.79), -PI / 2.0)
+//                .meterStrafeTo(Vector2d(0.3, -1.15), eatVelConstraint)
+//                .meterStrafeTo(Vector2d(0.1, -1.35))
+//                .waitSeconds(0.8)
+//                .meterStrafeTo(Vector2d(0.1, -0.9))
+//                .setTangent(PI / 2.0)
+//                .meterSplineToLinearHeading(Pose2d(-0.776, -0.656, -PI * 0.75), -PI * 0.9)
+//                .waitSeconds(shootTime)
+//                .circle()
+//                .circle()
+//                .circle()
+//                .circle()
+//                .setTangent(0.0)
+//                .meterStrafeToLinearHeading(
+//                    Vector2d(-0.314, -0.79),
+//                    -PI / 2.0
+//                ).meterStrafeTo(Vector2d(-0.314, -1.15), eatVelConstraint)
+//                .meterStrafeToLinearHeading(
+//                    Vector2d(-0.776, -0.656),
+//                    -PI * 0.75
+//                )
+//                .waitSeconds(shootTime)
+//                .meterStrafeToLinearHeading(Vector2d(0.9, -0.79), -PI / 2.0)
+//                .meterStrafeTo(Vector2d(0.9, -1.15), eatVelConstraint)
+//                .meterStrafeToLinearHeading(Vector2d(-0.776, -0.656), -PI * 0.75)
+//                .waitSeconds(shootTime)
+//                .meterStrafeTo(Vector2d(-1.2, -0.656))
                 .build()
         )
 

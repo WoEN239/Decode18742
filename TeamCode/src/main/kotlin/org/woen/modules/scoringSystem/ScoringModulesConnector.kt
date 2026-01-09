@@ -422,10 +422,10 @@ class ScoringModulesConnector
             delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
+        EventBusLI.invoke(SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
+
         EventBusLI.invoke(SetDriveModeEvent(
             DriveMode.SHOOTING)).process.wait()
-
-        EventBusLI.invoke(SetTurretShootTypeEvent(Shooting.ShotType.DRUM))
 
         logM.logMd("Started  - StreamDrum request", PROCESS_STARTING)
         val requestResult = _storage.streamDrumRequest()

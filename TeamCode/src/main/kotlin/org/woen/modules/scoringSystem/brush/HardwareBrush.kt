@@ -32,9 +32,9 @@ class HardwareBrush : IHardwareDevice {
     }
 
     fun voltageSafe() {
-        volt = _motor.getCurrent(CurrentUnit.AMPS)
-        isSafe = volt < Configs.BRUSH.BRUSH_TARGET_CURRENT
-        isSafe1 = volt < Configs.BRUSH.BRUSH_BIG_TARGET_CURRENT
+//        volt = _motor.getCurrent(CurrentUnit.AMPS)
+//        isSafe = volt < Configs.BRUSH.BRUSH_TARGET_CURRENT
+//        isSafe1 = volt < Configs.BRUSH.BRUSH_BIG_TARGET_CURRENT
     }
 
     fun setDir(dir: BrushDirection) {
