@@ -172,8 +172,8 @@ class Turret : IModule {
 //    }
 
     fun updateTurret() {
-        if (_currentShootType == ShotType.SINGLE)
-            _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_SINGLE_PULLEY_VELOCITY
+//        if (_currentShootType == ShotType.SINGLE)
+//            _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_SINGLE_PULLEY_VELOCITY
 
         if (_isRotateZeroed) {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
@@ -251,9 +251,9 @@ class Turret : IModule {
                 Angle(if (_isRotateZeroed) _hardwareTurret.currentRotatePosition else 0.0)
         })
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(SetTurretShootTypeEvent::class, {
-            _currentShootType = it.type
-        })
+//        ThreadedEventBus.LAZY_INSTANCE.subscribe(SetTurretShootTypeEvent::class, {
+//            _currentShootType = it.type
+//        })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetRotateStateEvent::class, {
             _currentRotateState = it.rotateState

@@ -34,7 +34,7 @@ class HardwareTurret :
         get() = (_targetTicksVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
         set(value) {
             _targetTicksVelocity =
-                (value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
+                (value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS) * Configs.TURRET.KOST_K
         }
     private var _targetTicksVelocity = 0.0
     val currentVelocity: Double

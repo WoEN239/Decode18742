@@ -94,17 +94,17 @@ class HwSorting : IHardwareDevice
     {
         _beltMotors.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_beltMotorsPower.get())
 
-        val beltsCurrent = _beltMotors.getCurrent(CurrentUnit.AMPS)
-        if (beltsCurrent > STORAGE_IS_FULL_BELTS_CURRENT)
-        {
-            if (_currentNoiseFilterTimer.milliseconds()
-                > DELAY.IGNORE_BELTS_CURRENT_AFTER_START_MS)
-            {
-                beltsCurrentPeakedEvent.invoke()
-                _currentNoiseFilterTimer.reset()
-            }
-        }
-        else _currentNoiseFilterTimer.reset()
+//        val beltsCurrent = _beltMotors.getCurrent(CurrentUnit.AMPS)
+//        if (beltsCurrent > STORAGE_IS_FULL_BELTS_CURRENT)
+//        {
+//            if (_currentNoiseFilterTimer.milliseconds()
+//                > DELAY.IGNORE_BELTS_CURRENT_AFTER_START_MS)
+//            {
+//                beltsCurrentPeakedEvent.invoke()
+//                _currentNoiseFilterTimer.reset()
+//            }
+//        }
+//        else _currentNoiseFilterTimer.reset()
     }
 
     override fun opModeStart()

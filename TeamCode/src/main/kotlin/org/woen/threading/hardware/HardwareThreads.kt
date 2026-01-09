@@ -69,10 +69,10 @@ class HardwareThreads private constructor() : DisposableHandle {
         Camera.LAZY_INSTANCE
         
         
-        EXPANSION.link.addModules(Turret(), Brush(), SimpleStorage())
+//        EXPANSION.link.addModules(Turret(), Brush(), SimpleStorage())
         
-//        EXPANSION.link.addModules(Turret(), Brush())
-//        ScoringModulesConnector()
-//        SortingAutoLogic()
+        EXPANSION.link.addModules(Turret(), Brush())
+        ScoringModulesConnector()
+        SortingAutoLogic()
     }
 }

@@ -381,6 +381,9 @@ object Configs {
 
         @JvmField
         var SHOOTING_DRUM_MAX_PULLEY_VELOCITY = 19.0
+
+        @JvmField
+        var KOST_K = 1.3
     }
 
     @Config
@@ -836,7 +839,7 @@ object Configs {
         @JvmField
         var BELT_POWER_SLOW_MODE = 8.0
         @JvmField
-        var BELT_POWER_SHOOT_MODE = 8.5
+        var BELT_POWER_SHOOT_MODE = 9.0
 
         @JvmField
         var TURRET_GATE_SERVO_OPEN_VALUE = 0.775

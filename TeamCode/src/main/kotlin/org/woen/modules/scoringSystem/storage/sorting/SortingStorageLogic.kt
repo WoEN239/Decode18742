@@ -15,13 +15,15 @@ import org.woen.enumerators.RequestResult
 import org.woen.modules.light.Light
 import org.woen.modules.light.SetLightColorEvent
 
+import org.woen.modules.scoringSystem.turret.StartShootingEvent
+import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
+
 import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
 
 import org.woen.utils.process.RunStatus
 import org.woen.telemetry.LogManager
@@ -50,6 +52,7 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
 import org.woen.telemetry.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING
+
 
 
 class SortingStorageLogic
@@ -322,7 +325,10 @@ class SortingStorageLogic
 
         logM.logMd("Firing time (without launcherServo): $beltPushTime", GENERIC_INFO)
 
+
         storageCells.hwSortingM.openTurretGate()
+
+        EventBusLI.invoke(StartShootingEvent())
         storageCells.hwSortingM.shootStartBelts()
 
         delay(beltPushTime)
