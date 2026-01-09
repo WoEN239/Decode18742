@@ -33,6 +33,8 @@ class RequestRotateStateEvent(var state: Turret.RotateState) : StoppingEvent
 
 class RequestRotateOnTarget(var onTarget: Boolean = false) : StoppingEvent
 
+class StartShootingEvent()
+
 class Turret : IModule {
     private val _hardwareTurret = HardwareTurret()
     private val _hardwareTurretServos = HardwareTurretServos()

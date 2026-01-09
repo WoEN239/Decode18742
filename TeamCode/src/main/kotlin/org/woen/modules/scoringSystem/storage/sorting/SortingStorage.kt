@@ -176,7 +176,7 @@ class SortingStorage
                     SmartCoroutineLI.launch {
                         logM.logMd("IS IDLE = starting predict sort",
                             PROCESS_STARTING)
-                        _storageLogic.safeInitiatePredictSort(it.requestedPattern)
+                        _storageLogic.safeInitiatePredictSort(it.requestedPattern.reversedArray())
                     }
                 else _storageLogic.runStatus
                     .safeRemoveThisProcessIdFromQueue(PREDICT_SORT)

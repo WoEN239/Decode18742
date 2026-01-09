@@ -257,7 +257,7 @@ class ActionRunner private constructor() : DisposableHandle
         EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
 
 
-        delay(500)
+        delay(300)
 
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(CloseCameraEvent())
@@ -297,7 +297,7 @@ class ActionRunner private constructor() : DisposableHandle
             Ball.Name.GREEN))
 
 
-        Thread.sleep(900)
+        Thread.sleep(400)
 
 
         EventBusLI.invoke(
@@ -692,7 +692,7 @@ class ActionRunner private constructor() : DisposableHandle
     {
         EventBusLI.invoke(StopLazyIntakeEvent())
 
-        delay(500)
+        delay(444)
 
         EventBusLI.invoke(
             StorageUpdateAfterLazyIntakeEvent(
@@ -712,7 +712,7 @@ class ActionRunner private constructor() : DisposableHandle
         _waitForSorting.set(false)
 
         var waitingForPredictSortFinishing: Long = 0
-        while(!_sortingIsFinished.get() && waitingForPredictSortFinishing < 2000)
+        while(!_sortingIsFinished.get() && waitingForPredictSortFinishing < 2222)
         {
             delay(DELAY.EVENT_AWAITING_MS)
             waitingForPredictSortFinishing += DELAY.EVENT_AWAITING_MS

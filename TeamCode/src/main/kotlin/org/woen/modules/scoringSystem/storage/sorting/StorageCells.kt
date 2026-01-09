@@ -234,7 +234,8 @@ class StorageCells
         var curSlot = StorageSlot.TURRET
         while (curSlot >= StorageSlot.BOTTOM)
         {
-            _storageCells[curSlot].set(inputFromTurretSlotToBottom[curSlot])
+            _storageCells[curSlot].set(
+                inputFromTurretSlotToBottom[StorageSlot.TURRET - curSlot])
             curSlot--
         }
 

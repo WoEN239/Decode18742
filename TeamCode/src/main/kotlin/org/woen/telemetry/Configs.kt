@@ -374,7 +374,7 @@ object Configs {
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
 
         @JvmField
-        var SHOOTING_DRUM_PULLEY_VELOCITY = 17.5
+        var SHOOTING_DRUM_PULLEY_VELOCITY = 18.5
     }
 
     @Config
@@ -665,9 +665,9 @@ object Configs {
         var PART_BALL_PUSHING_MS: Long = 333
         @JvmField
 //        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 300    //  9.0V configuration
-        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 488      //  8.5V configuration
-        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 333      //  8.5V configuration
-        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 155      //  8.5V configuration
+        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
+        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 444      //  8.5V configuration
+        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 222      //  8.5V configuration
 
 
         @JvmField
