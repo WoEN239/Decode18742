@@ -98,7 +98,7 @@ class ActionRunner private constructor() : DisposableHandle {
     )
 
     private val _shootingOrientation
-        get() = Configs.TURRET.SHOOTING_BLUE_ORIENTATION
+        get() = HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
 
 
     private val _pattern = DynamicPattern()
