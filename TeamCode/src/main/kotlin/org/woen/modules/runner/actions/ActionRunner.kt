@@ -14,6 +14,7 @@ import com.acmerobotics.roadrunner.MinVelConstraint
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.TranslationalVelConstraint
 import com.acmerobotics.roadrunner.Vector2d
+import org.woen.enumerators.Ball
 
 import org.woen.hotRun.HotRun
 import org.woen.modules.camera.CloseCameraEvent
@@ -37,8 +38,12 @@ import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
+import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
+import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageFinishedPredictSortEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageInitiatePredictSortEvent
+import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 import org.woen.modules.scoringSystem.storage.sorting.DynamicPattern
 import org.woen.threading.ThreadedEventBus
@@ -100,6 +105,8 @@ class ActionRunner private constructor() : DisposableHandle
     private val _patternWasDetected = AtomicBoolean(false)
 
     private val _doneShooting       = AtomicBoolean(false)
+    private val _waitForSorting     = AtomicBoolean(false)
+    private val _sortingIsFinished  = AtomicBoolean(false)
     private val _ballsInStorage     = AtomicInteger(3)
     private val _activeBallsInCycle = AtomicInteger(3)
 
@@ -227,6 +234,7 @@ class ActionRunner private constructor() : DisposableHandle
         EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_OBELISK))
         //  Attempt to get pattern
 
+
         EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
@@ -236,16 +244,21 @@ class ActionRunner private constructor() : DisposableHandle
                         _shootingOrientation.pos.rrVec(),
                         _shootingOrientation.angle
                     )
+
                         .build()
                 )
             )
         ).process.wait()
 
-        Thread.sleep(1000)
+
+        Thread.sleep(1500)
+
 
         EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
 
+
         delay(500)
+
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(CloseCameraEvent())
 
@@ -253,6 +266,9 @@ class ActionRunner private constructor() : DisposableHandle
         //------------------------------
         handleStreamShooting()
         //------------------------------
+
+
+        EventBusLI.invoke(StartLazyIntakeEvent())
 
 
         EventBusLI.invoke(
@@ -274,7 +290,15 @@ class ActionRunner private constructor() : DisposableHandle
             )
         ).process.wait()
 
+
+        stopIntakeStartSort(arrayOf(
+            Ball.Name.PURPLE,
+            Ball.Name.PURPLE,
+            Ball.Name.GREEN))
+
+
         Thread.sleep(900)
+
 
         EventBusLI.invoke(
             RunSegmentEvent(
@@ -292,11 +316,15 @@ class ActionRunner private constructor() : DisposableHandle
         ).process.wait()
 
 
+        waitForSortingEnd()
+
 
         //------------------------------
         handleCustomisableShooting()
         //------------------------------
 
+
+        EventBusLI.invoke(StartLazyIntakeEvent())
 
 
         EventBusLI.invoke(
@@ -324,11 +352,21 @@ class ActionRunner private constructor() : DisposableHandle
         ).process.wait()
 
 
+        stopIntakeStartSort(arrayOf(
+            Ball.Name.PURPLE,
+            Ball.Name.GREEN,
+            Ball.Name.PURPLE))
+
+
+        waitForSortingEnd()
+
 
         //------------------------------
         handleCustomisableShooting()
         //------------------------------
 
+
+        EventBusLI.invoke(StartLazyIntakeEvent())
 
 
         EventBusLI.invoke(
@@ -352,11 +390,18 @@ class ActionRunner private constructor() : DisposableHandle
         ).process.wait()
 
 
+        stopIntakeStartSort(arrayOf(
+            Ball.Name.GREEN,
+            Ball.Name.PURPLE,
+            Ball.Name.PURPLE))
+
+
+        waitForSortingEnd()
+
 
         //------------------------------
         handleCustomisableShooting()
         //------------------------------
-
 
 
         EventBusLI.invoke(
@@ -471,7 +516,7 @@ class ActionRunner private constructor() : DisposableHandle
 
 
             //------------------------------
-            handleSmartIntake()
+            handleSmartIntake(true)
             //------------------------------
 
 
@@ -524,7 +569,7 @@ class ActionRunner private constructor() : DisposableHandle
 
 
         //------------------------------
-        handleSmartIntake()
+        handleSmartIntake(true)
         //------------------------------
 
 
@@ -620,7 +665,7 @@ class ActionRunner private constructor() : DisposableHandle
     }
 
 
-    private suspend fun handleSmartIntake()
+    private suspend fun handleSmartIntake(doPredictSortAfterIntake: Boolean)
     {
         var waitingForIntakeFinishing: Long = 0
         while(_ballsInStorage.get() < _activeBallsInCycle.get()
@@ -635,7 +680,7 @@ class ActionRunner private constructor() : DisposableHandle
             _activeBallsInCycle.set(eatenBallCount)
 
 
-        if (_patternWasDetected.get())
+        if (doPredictSortAfterIntake && _patternWasDetected.get())
             EventBusLI.invoke(
                 StorageInitiatePredictSortEvent(
                     DynamicPattern.trimPattern(
@@ -643,12 +688,38 @@ class ActionRunner private constructor() : DisposableHandle
                         _pattern.permanent()
             )   )   )
     }
+    private suspend fun stopIntakeStartSort(inputFromTurretSlotToBottom: Array<Ball.Name>)
+    {
+        EventBusLI.invoke(StopLazyIntakeEvent())
+
+        delay(500)
+
+        EventBusLI.invoke(
+            StorageUpdateAfterLazyIntakeEvent(
+                inputFromTurretSlotToBottom))
+
+
+        _sortingIsFinished.set(false)
+        if (_patternWasDetected.get())
+            _waitForSorting.set(EventBusLI.invoke(
+                StorageInitiatePredictSortEvent(
+                    _pattern.permanent()
+            )   ).startingResult)
+    }
+    private suspend fun waitForSortingEnd()
+    {
+        if (!_waitForSorting.get()) return
+        _waitForSorting.set(false)
+
+        var waitingForPredictSortFinishing: Long = 0
+        while(!_sortingIsFinished.get() && waitingForPredictSortFinishing < 2000)
+        {
+            delay(DELAY.EVENT_AWAITING_MS)
+            waitingForPredictSortFinishing += DELAY.EVENT_AWAITING_MS
+        }
+    }
     private suspend fun handleStreamShooting()
     {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
-
-        return
-
         //--  Cycle STREAM Drum shooting (for optimisation see Configs.SORTING_SETTINGS)
         //--  USE_LAZY_DRUM = false   >>>   Maximizes speed, but is more risky
 
@@ -669,10 +740,6 @@ class ActionRunner private constructor() : DisposableHandle
     }
     private suspend fun handleCustomisableShooting()
     {
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
-
-        return
-
         _doneShooting.set(false)
         EventBusLI.invoke(DefaultFireEvent())
 
@@ -687,8 +754,8 @@ class ActionRunner private constructor() : DisposableHandle
             EventBusLI.invoke(TerminateRequestEvent())
         else
         {
-            repeat (_ballsInStorage.get())
-                { _pattern.addToTemporary() }
+//            repeat (_ballsInStorage.get())
+//                { _pattern.addToTemporary() }
 
             _ballsInStorage.set(0)
         }
@@ -714,16 +781,20 @@ class ActionRunner private constructor() : DisposableHandle
                 _thread.start()
         }
 
-//        EventBusLI.subscribe(FullFinishedFiringEvent::class, {
-//            _doneShooting.set(true)
-//        }   )
-//        EventBusLI.subscribe(FullFinishedIntakeEvent::class, {
-//            _ballsInStorage.set(it.ballCountInStorage)
-//        }   )
-//        EventBusLI.subscribe(OnPatternDetectedEvent::class, {
-//            _pattern.setPermanent(it.pattern.subsequence)
-//            _patternWasDetected.set(true)
-//        }   )
+
+        EventBusLI.subscribe(FullFinishedFiringEvent::class, {
+                _doneShooting.set(true)
+        }   )
+        EventBusLI.subscribe(FullFinishedIntakeEvent::class, {
+                _ballsInStorage.set(it.ballCountInStorage)
+        }   )
+        EventBusLI.subscribe(OnPatternDetectedEvent::class, {
+                _pattern.setPermanent(it.pattern.subsequence)
+                _patternWasDetected.set(true)
+        }   )
+        EventBusLI.subscribe(StorageFinishedPredictSortEvent::class, {
+                _sortingIsFinished.set(true)
+        }   )
 
         HotRun.LAZY_INSTANCE.opModeStopEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)

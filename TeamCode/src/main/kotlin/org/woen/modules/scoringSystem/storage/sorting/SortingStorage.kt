@@ -36,6 +36,8 @@ import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 
 import org.woen.modules.scoringSystem.storage.StorageInitiatePredictSortEvent
+import org.woen.modules.scoringSystem.storage.StorageFinishedPredictSortEvent
+
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
@@ -136,7 +138,8 @@ class SortingStorage
 
                 if (canStartLazyIntake)
                     SmartCoroutineLI.launch {
-                        logM.logMd("IS IDLE = starting lazy intake", PROCESS_STARTING)
+                        logM.logMd("IS IDLE = starting lazy intake",
+                            PROCESS_STARTING)
                         startLazyIntake()
                     }
 
@@ -153,9 +156,12 @@ class SortingStorage
                 it.startingResult = canStartUpdate
 
                 if (canStartUpdate)
+                {
+                    logM.logMd("IS IDLE = updating after lazy intake",
+                        PROCESS_STARTING)
                     _storageLogic.safeUpdateAfterLazyIntake(
                         it.inputFromTurretSlotToBottom)
-
+                }
                 else _storageLogic.resumeLogicAfterIntake(UPDATE_AFTER_LAZY_INTAKE)
         }   )
 
@@ -168,11 +174,14 @@ class SortingStorage
 
                 if (canInitiate)
                     SmartCoroutineLI.launch {
+                        logM.logMd("IS IDLE = starting predict sort",
+                            PROCESS_STARTING)
                         _storageLogic.safeInitiatePredictSort(it.requestedPattern)
                     }
-
                 else _storageLogic.runStatus
                     .safeRemoveThisProcessIdFromQueue(PREDICT_SORT)
+
+            EventBusLI.invoke(StorageFinishedPredictSortEvent())
         }   )
         EventBusLI.subscribe(FillStorageWithUnknownColorsEvent::class, {
 
@@ -183,7 +192,7 @@ class SortingStorage
                 if (canStartStorageCalibration)
                     SmartCoroutineLI.launch {
                         _storageLogic.safeStartStorageCalibrationWithCurrent()
-                    }
+                    }.join()
 
                 else _storageLogic.runStatus
                     .safeRemoveThisProcessIdFromQueue(STORAGE_CALIBRATION)

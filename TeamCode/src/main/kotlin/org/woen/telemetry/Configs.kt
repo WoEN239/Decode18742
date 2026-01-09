@@ -140,7 +140,7 @@ object Configs {
         var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
         @JvmField
-        var H_REGULATOR_PARAMETERS = RegulatorParameters(kP = 8.0, limitU = MAX_DRIVE_ANGLE_VELOCITY)
+        var H_REGULATOR_PARAMETERS = RegulatorParameters(kP = 7.0, limitU = MAX_DRIVE_ANGLE_VELOCITY)
 
         @JvmField
         var X_REGULATOR_PARAMETERS = RegulatorParameters(kP = 4.0, kD = 0.1, limitU = MAX_DRIVE_VELOCITY)
@@ -374,7 +374,7 @@ object Configs {
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
 
         @JvmField
-        var SHOOTING_DRUM_PULLEY_VELOCITY = 15.9
+        var SHOOTING_DRUM_PULLEY_VELOCITY = 17.5
     }
 
     @Config
@@ -428,22 +428,22 @@ object Configs {
 
 
         @JvmField
-        var RCS_GREEN_BALL_R_K = 0.0
+        var RCS_GREEN_BALL_R_K = 47.0 / (47.0 + 175.0 + 136.0)
         @JvmField
-        var RCS_GREEN_BALL_G_K = 1.0 - 0.39
+        var RCS_GREEN_BALL_G_K = 175.0 / (47.0 + 175.0 + 136.0)
         @JvmField
-        var RCS_GREEN_BALL_B_K = 0.39
+        var RCS_GREEN_BALL_B_K = 136.0 / (47.0 + 175.0 + 136.0)
 
         @JvmField
-        var RCS_GREEN_BALL_THRESHOLD = 33.0
+        var RCS_GREEN_BALL_THRESHOLD = 35.0
 
 
         @JvmField
-        var RCS_PURPLE_BALL_R_K = 0.78
+        var RCS_PURPLE_BALL_R_K = 201.0 / (201.0 + 254.0 + 412.0)
         @JvmField
-        var RCS_PURPLE_BALL_G_K = (1.0 - 0.78) / 2.0
+        var RCS_PURPLE_BALL_G_K = 254.0 / (201.0 + 254.0 + 412.0)
         @JvmField
-        var RCS_PURPLE_BALL_B_K = (1.0 - 0.78) / 2.0
+        var RCS_PURPLE_BALL_B_K = 412.0 / (201.0 + 254.0 + 412.0)
 
         @JvmField
         var RCS_PURPLE_BALL_THRESHOLD = 30.0
@@ -703,7 +703,7 @@ object Configs {
     internal object SORTING_SETTINGS {
 
         @JvmField
-        var INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = Shooting.StockPattern.Sequence.Storage.EMPTY
+        var INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = Shooting.StockPattern.Sequence.Storage.GPP
 
 
         @JvmField
@@ -745,10 +745,10 @@ object Configs {
 
 
         @JvmField
-        var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 1000
+        var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 2000
 
         @JvmField
-        var MAX_ATTEMPTS_FOR_PATTERN_DETECTION = 2
+        var MAX_ATTEMPTS_FOR_PATTERN_DETECTION = 0
 
         @JvmField
         var TRY_RECALIBRATE_IF_SOMETHING_FAILS = true

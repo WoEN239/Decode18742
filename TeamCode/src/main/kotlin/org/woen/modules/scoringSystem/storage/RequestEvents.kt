@@ -22,6 +22,8 @@ class StorageInitiatePredictSortEvent(
     var requestedPattern: Array<BallRequest.Name>,
     var startingResult: Boolean = false) : StoppingEvent
 
+class StorageFinishedPredictSortEvent()
+
 
 
 class TerminateRequestEvent()

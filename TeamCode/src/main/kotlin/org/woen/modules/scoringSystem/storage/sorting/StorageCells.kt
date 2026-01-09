@@ -17,6 +17,7 @@ import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.Alias.STORAGE_SLOT_COUNT
 
+import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
@@ -34,6 +35,7 @@ import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.SORTING_SETTINGS.INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
+
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -168,6 +170,12 @@ class StorageCells
                 globalMaximum = localMaximum
 
                 logM.logMd("Found new global maximum: $globalMaximum", GENERIC_INFO)
+
+                if (globalMaximum == requested.size * TRUE_MATCH_WEIGHT)
+                {
+                    logM.logMd("Found optimal state, ending search in advance", LOGIC_STEPS)
+                    return PredictSortResult(doRotations, globalMaximum)
+                }
             }
 
             startRequestId++
@@ -223,12 +231,14 @@ class StorageCells
     {
         if (inputFromTurretSlotToBottom.size > MAX_BALL_COUNT) return
 
-        var curSlot = StorageSlot.BOTTOM
-        while (curSlot <= StorageSlot.TURRET)
+        var curSlot = StorageSlot.TURRET
+        while (curSlot >= StorageSlot.BOTTOM)
         {
             _storageCells[curSlot].set(inputFromTurretSlotToBottom[curSlot])
-            curSlot++
+            curSlot--
         }
+
+        logAllStorageData()
     }
     suspend fun updateAfterIntake(inputBall: Ball.Name)
     {
