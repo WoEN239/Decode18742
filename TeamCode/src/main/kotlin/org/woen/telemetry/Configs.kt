@@ -908,7 +908,7 @@ object Configs {
     }
 
     @Config
-    internal object BATTERY{
+    internal object BATTERY {
         @JvmField
         var LOW_VOLTAGE = 9.5
 
@@ -947,5 +947,9 @@ object Configs {
         var RED_G_POWER = 0.0
         @JvmField
         var RED_B_POWER = 0.0
+
+
+        @JvmField
+        var RED_FLASHING_SPEED = 4.0
     }
 }

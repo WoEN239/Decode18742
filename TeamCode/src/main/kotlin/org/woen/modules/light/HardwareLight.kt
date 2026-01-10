@@ -1,6 +1,8 @@
 package org.woen.modules.light
 
 
+import kotlin.math.abs
+
 import org.woen.hotRun.HotRun
 import org.woen.utils.drivers.LEDLine
 import org.woen.threading.hardware.IHardwareDevice
@@ -22,8 +24,10 @@ import org.woen.telemetry.Configs.LIGHT.ORANGE_B_POWER
 import org.woen.telemetry.Configs.LIGHT.ORANGE_G_POWER
 import org.woen.telemetry.Configs.LIGHT.ORANGE_R_POWER
 import org.woen.telemetry.Configs.LIGHT.RED_B_POWER
+import org.woen.telemetry.Configs.LIGHT.RED_FLASHING_SPEED
 import org.woen.telemetry.Configs.LIGHT.RED_G_POWER
 import org.woen.telemetry.Configs.LIGHT.RED_R_POWER
+
 
 
 class HardwareLight(private val _rName: String,
@@ -76,7 +80,11 @@ class HardwareLight(private val _rName: String,
                 if (_shimmerResetColor != RED) _shimmerTimer.reset()
                 _shimmerResetColor = RED
 
-                _rPort.power = RED_R_POWER / (_shimmerTimer.seconds() * 8 + 1.0)
+                _rPort.power = abs(
+                    RED_R_POWER -
+                        (_shimmerTimer.seconds() * RED_FLASHING_SPEED)
+                            % (2 * RED_R_POWER)
+                )
                 _gPort.power = RED_G_POWER
                 _bPort.power = RED_B_POWER
             }
