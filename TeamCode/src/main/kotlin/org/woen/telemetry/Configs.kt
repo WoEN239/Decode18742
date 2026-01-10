@@ -119,7 +119,7 @@ object Configs {
         var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kI = 0.5, kP = 8.0)
 
         @JvmField
-        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 2.0, kI = 0.25)
+        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 1.9, kI = 0.25)
 
         @JvmField
         var MAX_DRIVE_VELOCITY = 2.0
@@ -185,7 +185,7 @@ object Configs {
         var ROAD_RUNNER_POS_Y_P = 1.9
 
         @JvmField
-        var ROAD_RUNNER_POS_H_P = 6.0
+        var ROAD_RUNNER_POS_H_P = 5.0
 
         @JvmField
         var ROAD_RUNNER_VEL_X_P = 0.0
@@ -444,7 +444,7 @@ object Configs {
         var RCS_GREEN_BALL_B_K = 136.0 / (47.0 + 175.0 + 136.0)
 
         @JvmField
-        var RCS_GREEN_BALL_THRESHOLD = 35.0
+        var RCS_GREEN_BALL_THRESHOLD = 40.0
 
 
         @JvmField
@@ -455,7 +455,7 @@ object Configs {
         var RCS_PURPLE_BALL_B_K = 412.0 / (201.0 + 254.0 + 412.0)
 
         @JvmField
-        var RCS_PURPLE_BALL_THRESHOLD = 30.0
+        var RCS_PURPLE_BALL_THRESHOLD = 40.0
 
 
         @JvmField
@@ -674,16 +674,20 @@ object Configs {
         var PART_BALL_PUSHING_MS: Long = 333
 
         @JvmField
-        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 450        //  9.0V configuration
+        var EXTRA_LONG_SHOOTING_MS: Long = 500
+        @JvmField
+        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 400        //  9.0V configuration
 //        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
+        @JvmField
         var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 300
 //        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 444      //  8.5V configuration
+        @JvmField
         var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 200
 //        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 222      //  8.5V configuration
 
 
         @JvmField
-        var SORTING_REALIGNING_FORWARD_MS: Long = 222
+        var SORTING_REALIGNING_FORWARD_MS: Long = 444
         @JvmField
         var SORTING_REALIGNING_REVERSE_MS: Long = 65
 

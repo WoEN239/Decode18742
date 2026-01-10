@@ -76,7 +76,7 @@ class HardwareLight(private val _rName: String,
                 if (_shimmerResetColor != RED) _shimmerTimer.reset()
                 _shimmerResetColor = RED
 
-                _rPort.power = RED_R_POWER / (_shimmerTimer.seconds() + 0.001)
+                _rPort.power = RED_R_POWER / (_shimmerTimer.seconds() * 8 + 1.0)
                 _gPort.power = RED_G_POWER
                 _bPort.power = RED_B_POWER
             }

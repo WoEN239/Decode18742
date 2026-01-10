@@ -13,8 +13,10 @@ import org.woen.telemetry.Configs
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
+import org.woen.threading.ThreadedGamepad
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Angle
+import kotlin.math.PI
 import kotlin.math.abs
 
 
@@ -42,7 +44,8 @@ class Turret : IModule {
     enum class RotateState {
         TO_BASKET,
         TO_OBELISK,
-        CONSTANT
+        CONSTANT,
+        PARKING
     }
 
     enum class TurretState {
@@ -192,6 +195,8 @@ class Turret : IModule {
                         odometry.odometryOrientation.angle
                     ))).rot()
                             - odometry.odometryOrientation.angle)
+
+                    RotateState.PARKING -> PI / 2.0
                 }
             ).angle
         }
@@ -289,5 +294,18 @@ class Turret : IModule {
             _hardwareTurretServos.rawAnglePosition = Configs.TURRET.SHOOTING_ANGLE_MAX_POSITION
             _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_DRUM_MIN_PULLEY_VELOCITY
         })
+
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(ThreadedGamepad.createClickDownListener({it.ps}, {
+            if(_currentRotateState != RotateState.PARKING) {
+                _currentRotateState = RotateState.PARKING
+                _hardwareTurretServos.rawAnglePosition = Configs.TURRET.SHOOTING_ANGLE_MIN_POSITION
+                _hardwareTurret.targetVelocity = 0.0
+            }
+            else{
+                _currentRotateState = RotateState.CONSTANT
+                _hardwareTurretServos.rawAnglePosition = Configs.TURRET.SHOOTING_ANGLE_MAX_POSITION
+                _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_DRUM_MIN_PULLEY_VELOCITY
+            }
+        }))
     }
 }

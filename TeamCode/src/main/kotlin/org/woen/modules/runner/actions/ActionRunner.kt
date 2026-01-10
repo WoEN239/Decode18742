@@ -14,6 +14,7 @@ import com.acmerobotics.roadrunner.MinVelConstraint
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.TranslationalVelConstraint
 import com.acmerobotics.roadrunner.Vector2d
+import kotlinx.coroutines.launch
 import org.woen.enumerators.Ball
 
 import org.woen.hotRun.HotRun
@@ -38,6 +39,7 @@ import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
+import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
@@ -233,8 +235,7 @@ class ActionRunner private constructor() : DisposableHandle {
                     EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeToLinearHeading(
-                        _shootingOrientation.pos.rrVec(),
-                        _shootingOrientation.angle
+                        Vector2d(-0.583, -0.542 * _yColorMultiplier), -PI * 0.75 * _hColorMultiplier
                     )
 
                         .build()
@@ -243,16 +244,29 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
 
-        Thread.sleep(1200)
+        Thread.sleep(800)
 
 
         EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
 
 
-        delay(300)
-
-
         ThreadedEventBus.LAZY_INSTANCE.invoke(CloseCameraEvent())
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeToLinearHeading(
+                        _shootingOrientation.pos.rrVec(),
+                        _shootingOrientation.angle
+                    )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+        Thread.sleep(100)
 
 
         //------------------------------
@@ -274,7 +288,7 @@ class ActionRunner private constructor() : DisposableHandle {
                     ).strafeTo(Vector2d(-0.314, -1.35 * _yColorMultiplier), _eatVelConstant)
                         .setReversed(true)
                         .splineTo(
-                            Vector2d(0.0, -1.44 * _yColorMultiplier),
+                            Vector2d(0.05, -1.44 * _yColorMultiplier),
                             -PI / 2.0 * _hColorMultiplier
                         )
                         .build()
@@ -292,7 +306,7 @@ class ActionRunner private constructor() : DisposableHandle {
         )
 
 
-        Thread.sleep(200)
+        Thread.sleep(333)
 
 
         EventBusLI.invoke(
@@ -437,7 +451,8 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
     }
 
-    private suspend fun closeAuto24() {
+    private suspend fun closeAuto24()
+    {
         EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
@@ -673,11 +688,12 @@ class ActionRunner private constructor() : DisposableHandle {
     }
 
 
-    private suspend fun handleSmartIntake(doPredictSortAfterIntake: Boolean) {
+    private suspend fun handleSmartIntake(doPredictSortAfterIntake: Boolean)
+    {
         var waitingForIntakeFinishing: Long = 0
         while (_ballsInStorage.get() < _activeBallsInCycle.get()
-            && waitingForIntakeFinishing < 5000
-        ) {
+            && waitingForIntakeFinishing < 5000)
+        {
             delay(DELAY.EVENT_AWAITING_MS)
             waitingForIntakeFinishing += DELAY.EVENT_AWAITING_MS
         }
@@ -701,10 +717,6 @@ class ActionRunner private constructor() : DisposableHandle {
 
         delay(400)
 
-        EventBusLI.invoke(SwitchBrushStateEvent(
-            Brush.BrushState.REVERSE, 1500))
-
-
         EventBusLI.invoke(
             StorageUpdateAfterLazyIntakeEvent(
                 inputFromTurretSlotToBottom
@@ -720,6 +732,12 @@ class ActionRunner private constructor() : DisposableHandle {
                     )
                 ).startingResult
             )
+
+        SmartCoroutineLI.launch {
+            delay(777)
+            EventBusLI.invoke(SwitchBrushStateEvent(
+                Brush.BrushState.REVERSE, 1500))
+        }
     }
 
     private suspend fun waitForSortingEnd() {

@@ -19,7 +19,7 @@ internal object LED_TEST
 
 
 
-@TeleOp
+@TeleOp(name = "!ЖМИ СЮДА ЧТОБЫ СВЕТИТЬСЯ")
 class LightTest: LinearOpMode() {
     override fun runOpMode() {
         val er = LEDLine(hardwareMap, "expansionR")

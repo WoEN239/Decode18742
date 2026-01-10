@@ -152,6 +152,7 @@ class SortingStorage
         }   )
         EventBusLI.subscribe(StopLazyIntakeEvent::class, {
 
+                EventBusLI.invoke(SetLightColorEvent(LightColor.BLUE))
                 _storageLogic.lazyIntakeIsActive.set(false)
         }   )
 
