@@ -55,6 +55,8 @@ class RunStatus
     fun isUsedByAnyProcess() = !_processQueue.isEmpty()
     fun isUsedByThisProcess(targetProcessId: Int): Boolean
     {
+        if (_processQueue.isEmpty()) return false
+
         for (curProcess in _processQueue)
             if (curProcess == targetProcessId) return true
 
@@ -62,6 +64,8 @@ class RunStatus
     }
     fun isUsedByAnotherProcess(exceptionProcessId: Int): Boolean
     {
+        if (_processQueue.isEmpty()) return false
+
         for (curProcess in _processQueue)
             if (curProcess != exceptionProcessId) return true
 
@@ -73,12 +77,15 @@ class RunStatus
     fun clearAllProcesses() = _processQueue.clear()
     fun safeRemoveThisProcessIdFromQueue(processId: Int)
     {
-        do
-        {
-            val position  =     _processQueue.indexOf(processId)
-            if (position != -1) _processQueue.removeAt(position)
+        if (_processQueue.isEmpty()) return
+
+        try {
+            do {
+                val position = _processQueue.indexOf(processId)
+                if (position != -1) _processQueue.removeAt(position)
+            } while (position != -1)
         }
-        while (position != -1)
+        finally { }
     }
     fun safeRemoveOnlyOneInstanceOfThisProcessFromQueue(processId: Int)
     {
@@ -171,12 +178,15 @@ class RunStatus
     }
     fun safeRemoveThisProcessFromTerminationList(processId: Int)
     {
-        do
-        {
-            val position  =     _terminationList.indexOf(processId)
-            if (position != -1) _terminationList.removeAt(position)
+        if (_terminationList.isEmpty()) return
+
+        try {
+            do {
+                val position = _terminationList.indexOf(processId)
+                if (position != -1) _terminationList.removeAt(position)
+            } while (position != -1)
         }
-        while (position != -1)
+        finally { }
     }
 
     fun clearAllTermination() = _terminationList.clear()

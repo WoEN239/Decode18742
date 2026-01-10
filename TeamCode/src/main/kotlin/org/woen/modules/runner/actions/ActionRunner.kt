@@ -226,32 +226,32 @@ class ActionRunner private constructor() : DisposableHandle {
     }
 
     private suspend fun closeAuto12() {
-//        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_OBELISK))
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_OBELISK))
         //  Attempt to get pattern
 
 
-//        EventBusLI.invoke(
-//            RunSegmentEvent(
-//                RRTrajectorySegment(
-//                    EventBusLI.invoke(
-//                        RequireRRBuilderEvent()
-//                    ).trajectoryBuilder!!.strafeToLinearHeading(
-//                        Vector2d(-0.583, -0.542 * _yColorMultiplier), -PI * 0.75 * _hColorMultiplier
-//                    )
-//
-//                        .build()
-//                )
-//            )
-//        ).process.wait()
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeToLinearHeading(
+                        Vector2d(-0.583, -0.542 * _yColorMultiplier), -PI * 0.75 * _hColorMultiplier
+                    )
+
+                        .build()
+                )
+            )
+        ).process.wait()
 
 
-//        Thread.sleep(888)
+        Thread.sleep(888)
 
 
-//        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
 
 
-//        ThreadedEventBus.LAZY_INSTANCE.invoke(CloseCameraEvent())
+        ThreadedEventBus.LAZY_INSTANCE.invoke(CloseCameraEvent())
 
         EventBusLI.invoke(
             RunSegmentEvent(
@@ -271,13 +271,11 @@ class ActionRunner private constructor() : DisposableHandle {
 
 
         //------------------------------
-//        handleStreamShooting()
+        handleStreamShooting()
         //------------------------------
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
 
-
-//        EventBusLI.invoke(StartLazyIntakeEvent())
+        EventBusLI.invoke(StartLazyIntakeEvent())
 
 
         EventBusLI.invoke(
@@ -300,13 +298,13 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
 
-//        stopIntakeStartSort(
-//            arrayOf(
-//                Ball.Name.PURPLE,
-//                Ball.Name.PURPLE,
-//                Ball.Name.GREEN
-//            )
-//        )
+        stopIntakeStartSort(
+            arrayOf(
+                Ball.Name.PURPLE,
+                Ball.Name.PURPLE,
+                Ball.Name.GREEN
+            )
+        )
 
 
         Thread.sleep(333)
@@ -328,17 +326,15 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
 
-//        waitForSortingEnd()
+        waitForSortingEnd()
 
 
         //------------------------------
-//        handleCustomisableShooting()
+        handleCustomisableShooting()
         //------------------------------
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
 
-
-//        EventBusLI.invoke(StartLazyIntakeEvent())
+        EventBusLI.invoke(StartLazyIntakeEvent())
 
 
         EventBusLI.invoke(
@@ -358,13 +354,13 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
 
-//        stopIntakeStartSort(
-//            arrayOf(
-//                Ball.Name.PURPLE,
-//                Ball.Name.GREEN,
-//                Ball.Name.PURPLE
-//            )
-//        )
+        stopIntakeStartSort(
+            arrayOf(
+                Ball.Name.PURPLE,
+                Ball.Name.GREEN,
+                Ball.Name.PURPLE
+            )
+        )
 
 
         EventBusLI.invoke(
@@ -387,17 +383,15 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
 
-//        waitForSortingEnd()
+        waitForSortingEnd()
 
 
         //------------------------------
-//        handleCustomisableShooting()
+        handleCustomisableShooting()
         //------------------------------
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
 
-
-//        EventBusLI.invoke(StartLazyIntakeEvent())
+        EventBusLI.invoke(StartLazyIntakeEvent())
 
 
         EventBusLI.invoke(
@@ -414,12 +408,12 @@ class ActionRunner private constructor() : DisposableHandle {
         )   )   ).process.wait()
 
 
-//        stopIntakeStartSort(
-//            arrayOf(
-//                Ball.Name.GREEN,
-//                Ball.Name.PURPLE,
-//                Ball.Name.PURPLE
-//        )   )
+        stopIntakeStartSort(
+            arrayOf(
+                Ball.Name.GREEN,
+                Ball.Name.PURPLE,
+                Ball.Name.PURPLE
+        )   )
 
 
         EventBusLI.invoke(
@@ -438,14 +432,12 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
 
-//        waitForSortingEnd()
+        waitForSortingEnd()
 
 
         //------------------------------
-//        handleCustomisableShooting()
+        handleCustomisableShooting()
         //------------------------------
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent()).process.wait()
 
 
         EventBusLI.invoke(
