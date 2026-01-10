@@ -236,7 +236,7 @@ class ActionRunner private constructor() : DisposableHandle {
                     EventBusLI.invoke(
                         RequireRRBuilderEvent()
                     ).trajectoryBuilder!!.strafeToLinearHeading(
-                        Vector2d(-0.583, -0.542 * _yColorMultiplier), -PI * 0.75 * _hColorMultiplier
+                        Vector2d(-0.683, -0.642 * _yColorMultiplier), -PI * 0.75 * _hColorMultiplier
                     )
 
                         .build()
@@ -289,7 +289,7 @@ class ActionRunner private constructor() : DisposableHandle {
                     ).strafeTo(Vector2d(-0.314, -1.35 * _yColorMultiplier), _eatVelConstant)
                         .setReversed(true)
                         .splineTo(
-                            Vector2d(0.05, -1.44 * _yColorMultiplier),
+                            Vector2d(-0.05, -1.44 * _yColorMultiplier),
                             -PI / 2.0 * _hColorMultiplier
                         )
                         .build()
@@ -307,7 +307,7 @@ class ActionRunner private constructor() : DisposableHandle {
         )
 
 
-        Thread.sleep(333)
+        Thread.sleep(444)
 
 
         EventBusLI.invoke(
@@ -746,7 +746,7 @@ class ActionRunner private constructor() : DisposableHandle {
         _waitForSorting.set(false)
 
         var waitingForPredictSortFinishing: Long = 0
-        while (!_sortingIsFinished.get() && waitingForPredictSortFinishing < 2222) {
+        while (!_sortingIsFinished.get() && waitingForPredictSortFinishing < 3333) {
             delay(DELAY.EVENT_AWAITING_MS)
             waitingForPredictSortFinishing += DELAY.EVENT_AWAITING_MS
         }

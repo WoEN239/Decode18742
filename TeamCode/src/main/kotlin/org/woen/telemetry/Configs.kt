@@ -685,9 +685,9 @@ object Configs {
 
 
         @JvmField
-        var SORTING_REALIGNING_FORWARD_MS: Long = 250
+        var SORTING_REALIGNING_FORWARD_MS: Long = 777
         @JvmField
-        var SORTING_REALIGNING_REVERSE_MS: Long = 65
+        var SORTING_REALIGNING_REVERSE_MS: Long = 75
 
 
         @JvmField

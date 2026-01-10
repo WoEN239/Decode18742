@@ -69,7 +69,9 @@ import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION
-
+import org.woen.threading.ThreadManager
+import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 
 class SortingStorage
@@ -206,6 +208,29 @@ class SortingStorage
     }
     private fun subscribeToGamepadEvents()
     {
+//        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
+//            createClickDownListener(
+//                { it.cross }, {
+//
+//                    logM.logMd("WE ARE DYING HEEEEEEELP", LOGIC_STEPS)
+//
+//                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//
+//                        _storageLogic.storageCells.hwSortingM.openGate()
+//                        _storageLogic.storageCells.hwSortingM.forwardBeltsTime(500)
+//
+//                        delay(100)
+//
+//                        _storageLogic.storageCells.hwSortingM.openPush()
+//                        _storageLogic.storageCells.hwSortingM.closePush()
+//
+//                        delay(100)
+//
+//                        _storageLogic.storageCells.hwSortingM.forwardBeltsTime(500)
+//
+//                }   }
+//        )   )
+
 //        ThreadedGamepad.LAZY_INSTANCE.addListener(
 //            createClickDownListener(
 //                { it.touchpadWasPressed() }, {

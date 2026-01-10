@@ -194,6 +194,16 @@ class HwSortingManager
 
         logM.logMd("OPENED push", HARDWARE)
     }
+    suspend fun closePush()
+    {
+        logM.logMd("Started CLOSING push", HARDWARE)
+        _hwSorting.closePush()
+
+        while (!_hwSorting.pushServo.atTargetAngle)
+            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+
+        logM.logMd("CLOSED push", HARDWARE)
+    }
     suspend fun openLaunch()
     {
         logM.logMd("Started OPENING kick", HARDWARE)
@@ -337,6 +347,7 @@ class HwSortingManager
         reverseBelts()
 //        delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 10)
         closeGateWithPush()
+        stopBelts()
     }
 
     suspend fun smartPushNextBall()

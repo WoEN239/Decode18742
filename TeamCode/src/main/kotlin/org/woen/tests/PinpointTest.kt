@@ -42,6 +42,7 @@ class PinpointTest : LinearOpMode() {
             telem.addData("velH", pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS))
             telem.addData("xPos", pinpoint.encoderX)
             telem.addData("yPos", pinpoint.encoderY)
+            telem.addData("hz", pinpoint.frequency)
 
             telem.update()
         }
