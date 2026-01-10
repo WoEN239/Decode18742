@@ -356,10 +356,10 @@ object Configs {
 //        var MAX_SHOOTING_DISTANCE = 3.0
 
         @JvmField
-        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.783, 0.742), Angle.ofDeg(135.0))
+        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.783, 0.742), Angle.ofDeg(133.0))
 
         @JvmField
-        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.783, -0.742), Angle.ofDeg(-135.0))
+        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.783, -0.742), Angle.ofDeg(-133.0))
 
         @JvmField
         var SHOOTING_ANGLE_MIN_POSITION = 0.3
@@ -377,13 +377,13 @@ object Configs {
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
 
         @JvmField
-        var SHOOTING_DRUM_MIN_PULLEY_VELOCITY = 14.5
+        var SHOOTING_DRUM_MIN_PULLEY_VELOCITY = 14.2
 
         @JvmField
-        var SHOOTING_DRUM_MAX_PULLEY_VELOCITY = 19.0
+        var SHOOTING_DRUM_MAX_PULLEY_VELOCITY = 18.8
 
         @JvmField
-        var KOST_K = 1.2
+        var KOST_K = 1.0//1.24
     }
 
     @Config
@@ -674,9 +674,7 @@ object Configs {
         var PART_BALL_PUSHING_MS: Long = 333
 
         @JvmField
-        var EXTRA_LONG_SHOOTING_MS: Long = 500
-        @JvmField
-        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 400        //  9.0V configuration
+        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 440        //  9.0V configuration
 //        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
         @JvmField
         var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 300
@@ -687,7 +685,7 @@ object Configs {
 
 
         @JvmField
-        var SORTING_REALIGNING_FORWARD_MS: Long = 444
+        var SORTING_REALIGNING_FORWARD_MS: Long = 250
         @JvmField
         var SORTING_REALIGNING_REVERSE_MS: Long = 65
 
@@ -763,7 +761,7 @@ object Configs {
 
 
         @JvmField
-        var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 2000
+        var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 1000
 
         @JvmField
         var MAX_ATTEMPTS_FOR_PATTERN_DETECTION = 0

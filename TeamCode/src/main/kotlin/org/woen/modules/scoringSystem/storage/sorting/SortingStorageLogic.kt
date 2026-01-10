@@ -318,7 +318,6 @@ class SortingStorageLogic
 
         val beltPushTime = when (ballCount)
         {
-            4    -> DELAY.EXTRA_LONG_SHOOTING_MS
             3    -> DELAY.FIRE_3_BALLS_FOR_SHOOTING_MS
             2    -> DELAY.FIRE_2_BALLS_FOR_SHOOTING_MS
             else -> DELAY.FIRE_1_BALLS_FOR_SHOOTING_MS
@@ -408,7 +407,7 @@ class SortingStorageLogic
             if (isNowPerfectlySorted)
             {
                 //lazyStreamDrumRequest(storageCells.anyBallCount())
-                lazyStreamDrumRequest(4)
+                lazyStreamDrumRequest(MAX_BALL_COUNT)
                 return Request.SUCCESS_NOW_EMPTY
             }
 
@@ -491,7 +490,7 @@ class SortingStorageLogic
             if (isNowPerfectlySorted)
             {
 //                lazyStreamDrumRequest(storageCells.anyBallCount())
-                lazyStreamDrumRequest(4)
+                lazyStreamDrumRequest(MAX_BALL_COUNT)
                 return Request.SUCCESS_NOW_EMPTY
             }
 
