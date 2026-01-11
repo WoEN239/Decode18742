@@ -140,7 +140,7 @@ object Configs {
         var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
         @JvmField
-        var H_REGULATOR_PARAMETERS = RegulatorParameters(kP = 7.0, limitU = MAX_DRIVE_ANGLE_VELOCITY)
+        var H_REGULATOR_PARAMETERS = RegulatorParameters(kP = 6.5, limitU = MAX_DRIVE_ANGLE_VELOCITY)
 
         @JvmField
         var X_REGULATOR_PARAMETERS = RegulatorParameters(kP = 4.0, kD = 0.1, limitU = MAX_DRIVE_VELOCITY)
@@ -152,13 +152,13 @@ object Configs {
         var SHOOTING_P = 4.0
 
         @JvmField
-        var H_SENS = 0.1
+        var H_SENS = 0.05
 
         @JvmField
         var POS_SENS = 0.1
 
         @JvmField
-        var TARGET_TIMER = 0.3
+        var TARGET_TIMER = 0.6
 
         @JvmField
         var RED_PARKING_ORIENTATION = Orientation(Vec2(0.948, -0.803), Angle.ofDeg(-180.0))
@@ -356,10 +356,10 @@ object Configs {
 //        var MAX_SHOOTING_DISTANCE = 3.0
 
         @JvmField
-        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.783, 0.742), Angle.ofDeg(133.0))
+        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.783, 0.742), Angle.ofDeg(135.0))
 
         @JvmField
-        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.783, -0.742), Angle.ofDeg(-133.0))
+        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.783, -0.742), Angle.ofDeg(-135.0))
 
         @JvmField
         var SHOOTING_ANGLE_MIN_POSITION = 0.3
@@ -377,13 +377,13 @@ object Configs {
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
 
         @JvmField
-        var SHOOTING_DRUM_MIN_PULLEY_VELOCITY = 14.2
+        var SHOOTING_DRUM_MIN_PULLEY_VELOCITY = 14.5
 
         @JvmField
-        var SHOOTING_DRUM_MAX_PULLEY_VELOCITY = 18.8
+        var SHOOTING_DRUM_MAX_PULLEY_VELOCITY = 19.0
 
         @JvmField
-        var KOST_K = 1.2
+        var KOST_K = 1.0
     }
 
     @Config
@@ -674,10 +674,10 @@ object Configs {
         var PART_BALL_PUSHING_MS: Long = 333
 
         @JvmField
-        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 480        //  9.0V configuration
+        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 400        //  9.0V configuration
 //        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
         @JvmField
-        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 300
+        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 400
 //        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 444      //  8.5V configuration
         @JvmField
         var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 200
@@ -841,7 +841,7 @@ object Configs {
         @JvmField
         var BELT_POWER_SLOW_MODE = 8.0
         @JvmField
-        var BELT_POWER_SHOOT_MODE = 9.0
+        var BELT_POWER_SHOOT_MODE = 9.2
 
         @JvmField
         var TURRET_GATE_SERVO_OPEN_VALUE = 0.775

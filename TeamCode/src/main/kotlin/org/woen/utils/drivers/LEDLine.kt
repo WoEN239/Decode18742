@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo
 
 
 class LEDLine(
-    hardwareMap: HardwareMap, name: String, signalPin: SignalPin = SignalPin.MINUS,
+    hardwareMap: HardwareMap, name: String, private val _signalPin: SignalPin = SignalPin.MINUS,
     private val _maxBorder: Double = 0.999999, private val _minBorder: Double = 0.650051
 ) {
     enum class SignalPin {
@@ -32,7 +32,8 @@ class LEDLine(
     }
 
     fun init(){
-        _port.direction = Servo.Direction.REVERSE
+        if(_signalPin == SignalPin.MINUS)
+            _port.direction = Servo.Direction.REVERSE
 
         (_port as PwmControl).pwmRange = PwmControl.PwmRange(0.0, 20000.0, 7000.0)
     }

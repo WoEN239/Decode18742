@@ -40,12 +40,12 @@ class HardwareBrush : IHardwareDevice {
     fun setDir(dir: BrushDirection) {
         motorPower = when (dir) {
             BrushDirection.FORWARD ->
-                ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER)
+                1.0 //ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER)
 
             BrushDirection.STOP -> 0.0
 
             BrushDirection.REVERSE ->
-                -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER)
+                -1.0 //-ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER)
         }
     }
 

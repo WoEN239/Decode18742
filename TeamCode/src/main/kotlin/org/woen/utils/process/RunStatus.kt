@@ -51,22 +51,49 @@ class RunStatus
     }
 
 
-
     fun isNotBusy()          =  _processQueue.isEmpty()
     fun isUsedByAnyProcess() = !_processQueue.isEmpty()
-    fun isUsedByThisProcess(targetProcessId: Int)
-        = _processQueue.contains(targetProcessId)
-    fun isUsedByAnotherProcess(exceptionProcessId: Int)
-        = _processQueue.any { it != exceptionProcessId }
+    fun isUsedByThisProcess(targetProcessId: Int): Boolean
+    {
+        if (_processQueue.isEmpty()) return false
 
+        for (curProcess in _processQueue)
+            if (curProcess == targetProcessId) return true
+
+        return false
+    }
+    fun isUsedByAnotherProcess(exceptionProcessId: Int): Boolean
+    {
+        if (_processQueue.isEmpty()) return false
+
+        for (curProcess in _processQueue)
+            if (curProcess != exceptionProcessId) return true
+
+        return false
+    }
 
 
     fun addProcessToQueue(processId: Int) = _processQueue.add(processId)
     fun clearAllProcesses() = _processQueue.clear()
     fun safeRemoveThisProcessIdFromQueue(processId: Int)
-        = _processQueue.removeAll { it == processId }
+    {
+        if (_processQueue.isEmpty()) return
+
+        try {
+            var position = 0
+            do {
+                position = _processQueue.indexOf(processId)
+                if (position != -1 && position < _processQueue.size)
+                    _processQueue.removeAt(position)
+            } while (position != -1)
+        }
+        finally { }
+    }
     fun safeRemoveOnlyOneInstanceOfThisProcessFromQueue(processId: Int)
-        = _processQueue.remove(processId)
+    {
+        val position  =     _processQueue.indexOf(processId)
+        if (position != -1) _processQueue.removeAt(position)
+    }
 
 
 
@@ -146,10 +173,24 @@ class RunStatus
 
 
     fun isForcedToTerminateThisProcess(processId: Int) = _terminationList.contains(processId)
-    fun addProcessToTerminationList   (processId: Int) = _terminationList.add(processId)
-
+    fun addProcessToTerminationList(processId: Int)
+    {
+//        safeRemoveThisProcessIdFromQueue(processId)
+        _terminationList.add(processId)
+    }
     fun safeRemoveThisProcessFromTerminationList(processId: Int)
-        = _terminationList.removeAll { it == processId }
+    {
+        if (_terminationList.isEmpty()) return
+
+        try {
+            var position = 0
+            do {
+                position = _terminationList.indexOf(processId)
+                if (position != -1) _terminationList.removeAt(position)
+            } while (position != -1)
+        }
+        finally { }
+    }
 
     fun clearAllTermination() = _terminationList.clear()
 

@@ -325,7 +325,7 @@ class SortingStorageLogic
 
         logM.logMd("Firing time (without launcherServo): $beltPushTime", GENERIC_INFO)
 
-
+        storageCells.hwSortingM.stopBelts()
         storageCells.hwSortingM.openTurretGate()
 
         EventBusLI.invoke(StartShootingEvent())
@@ -391,36 +391,36 @@ class SortingStorageLogic
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = true): RequestResult.Name
     {
-        var isNowPerfectlySorted = isNowPerfectlySorted
-        var shootingResult  = Request.COLOR_NOT_PRESENT
-        var curRequestId    = NOTHING
-
-        while (curRequestId < trimmedRequestSize)
-        {
-            if (isForcedToTerminate(DRUM_REQUEST))
-                return Request.TERMINATED
-
-            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
-                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
-                isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
-
-            if (isNowPerfectlySorted)
-            {
+//        var isNowPerfectlySorted = isNowPerfectlySorted
+//        var shootingResult  = Request.COLOR_NOT_PRESENT
+//        var curRequestId    = NOTHING
+//
+//        while (curRequestId < trimmedRequestSize)
+//        {
+//            if (isForcedToTerminate(DRUM_REQUEST))
+//                return Request.TERMINATED
+//
+//            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
+//                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
+//                isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
+//
+//            if (isNowPerfectlySorted)
+//            {
                 //lazyStreamDrumRequest(storageCells.anyBallCount())
-                lazyStreamDrumRequest(MAX_BALL_COUNT)
+                lazyStreamDrumRequest(2)
                 return Request.SUCCESS_NOW_EMPTY
-            }
-
-
-            val requestResult = storageCells.handleRequest(requested[curRequestId])
-
-            shootingResult = shootRequestFinalPhase(
-                requestResult, DRUM_REQUEST,
-                autoUpdatePatternWhenSucceed)
-
-            curRequestId++
-        }
-        return shootingResult
+//            }
+//
+//
+//            val requestResult = storageCells.handleRequest(requested[curRequestId])
+//
+//            shootingResult = shootRequestFinalPhase(
+//                requestResult, DRUM_REQUEST,
+//                autoUpdatePatternWhenSucceed)
+//
+//            curRequestId++
+//        }
+//        return shootingResult
     }
 
 
@@ -474,40 +474,40 @@ class SortingStorageLogic
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = true): RequestResult.Name
     {
-        var isNowPerfectlySorted = isNowPerfectlySorted
-        var shootingResult  = defaultError
-        var curRequestId    = NOTHING
-
-        while (curRequestId < trimmedRequestSize)
-        {
-            if (isForcedToTerminate(DRUM_REQUEST))
-                return Request.TERMINATED
-
-            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
-                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
-                isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
-
-            if (isNowPerfectlySorted)
-            {
+//        var isNowPerfectlySorted = isNowPerfectlySorted
+//        var shootingResult  = defaultError
+//        var curRequestId    = NOTHING
+//
+//        while (curRequestId < trimmedRequestSize)
+//        {
+//            if (isForcedToTerminate(DRUM_REQUEST))
+//                return Request.TERMINATED
+//
+//            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
+//                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
+//                isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
+//
+//            if (isNowPerfectlySorted)
+//            {
 //                lazyStreamDrumRequest(storageCells.anyBallCount())
-                lazyStreamDrumRequest(MAX_BALL_COUNT)
+                lazyStreamDrumRequest(2)
                 return Request.SUCCESS_NOW_EMPTY
-            }
-
-
-            val requestResult = storageCells.handleRequest(requested[curRequestId])
-
-            shootingResult = shootRequestFinalPhase(
-                requestResult, DRUM_REQUEST,
-                autoUpdatePatternWhenSucceed)
-
-
-            if (Request.wasTerminated(shootingResult)) return Request.TERMINATED
-            if (Request.didFail(      shootingResult)) return defaultError
-
-            curRequestId++
-        }
-        return shootingResult
+//            }
+//
+//
+//            val requestResult = storageCells.handleRequest(requested[curRequestId])
+//
+//            shootingResult = shootRequestFinalPhase(
+//                requestResult, DRUM_REQUEST,
+//                autoUpdatePatternWhenSucceed)
+//
+//
+//            if (Request.wasTerminated(shootingResult)) return Request.TERMINATED
+//            if (Request.didFail(      shootingResult)) return defaultError
+//
+//            curRequestId++
+//        }
+//        return shootingResult
     }
 
 

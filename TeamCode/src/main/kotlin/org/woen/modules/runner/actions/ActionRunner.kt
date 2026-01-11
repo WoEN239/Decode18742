@@ -391,52 +391,52 @@ class ActionRunner private constructor() : DisposableHandle {
         //------------------------------
 
 
-        EventBusLI.invoke(StartLazyIntakeEvent())
+//        EventBusLI.invoke(StartLazyIntakeEvent())
 
 
-        EventBusLI.invoke(
-            RunSegmentEvent(
-                RRTrajectorySegment(
-                    EventBusLI.invoke(
-                        RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!
-                        .strafeToLinearHeading(
-                            Vector2d(0.95, -0.712 * _yColorMultiplier),
-                            -PI / 2.0 * _hColorMultiplier
-                        )
-                        .strafeTo(Vector2d(1.0, -1.45 * _yColorMultiplier), _eatVelConstant).build()
-        )   )   ).process.wait()
+//        EventBusLI.invoke(
+//            RunSegmentEvent(
+//                RRTrajectorySegment(
+//                    EventBusLI.invoke(
+//                        RequireRRBuilderEvent()
+//                    ).trajectoryBuilder!!
+//                        .strafeToLinearHeading(
+//                            Vector2d(0.95, -0.712 * _yColorMultiplier),
+//                            -PI / 2.0 * _hColorMultiplier
+//                        )
+//                        .strafeTo(Vector2d(1.0, -1.45 * _yColorMultiplier), _eatVelConstant).build()
+//        )   )   ).process.wait()
+//
+//
+//        stopIntakeStartSort(
+//            arrayOf(
+//                Ball.Name.GREEN,
+//                Ball.Name.PURPLE,
+//                Ball.Name.PURPLE
+//        )   )
+//
+//
+//        EventBusLI.invoke(
+//            RunSegmentEvent(
+//                RRTrajectorySegment(
+//                    EventBusLI.invoke(
+//                        RequireRRBuilderEvent()
+//                    ).trajectoryBuilder!!
+//                        .strafeToLinearHeading(
+//                            _shootingOrientation.pos.rrVec(),
+//                            _shootingOrientation.angle
+//                        )
+//                        .build()
+//                )
+//            )
+//        ).process.wait()
 
 
-        stopIntakeStartSort(
-            arrayOf(
-                Ball.Name.GREEN,
-                Ball.Name.PURPLE,
-                Ball.Name.PURPLE
-        )   )
-
-
-        EventBusLI.invoke(
-            RunSegmentEvent(
-                RRTrajectorySegment(
-                    EventBusLI.invoke(
-                        RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!
-                        .strafeToLinearHeading(
-                            _shootingOrientation.pos.rrVec(),
-                            _shootingOrientation.angle
-                        )
-                        .build()
-                )
-            )
-        ).process.wait()
-
-
-        waitForSortingEnd()
+//        waitForSortingEnd()
 
 
         //------------------------------
-        handleCustomisableShooting()
+//        handleCustomisableShooting()
         //------------------------------
 
 

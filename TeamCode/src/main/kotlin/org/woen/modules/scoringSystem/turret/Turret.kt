@@ -282,7 +282,7 @@ class Turret : IModule {
 
             timer.reset()
 
-            val shootTime = Configs.SIMPLE_STORAGE.SHOOTING_TIME
+            val shootTime = Configs.DELAY.FIRE_3_BALLS_FOR_SHOOTING_MS
 
             while (timer.seconds() < shootTime) {
                 _hardwareTurretServos.rawAnglePosition =
@@ -290,6 +290,8 @@ class Turret : IModule {
 
                 _hardwareTurret.targetVelocity = (Configs.TURRET.SHOOTING_DRUM_MAX_PULLEY_VELOCITY - Configs.TURRET.SHOOTING_DRUM_MIN_PULLEY_VELOCITY) * (timer.seconds() / shootTime) + Configs.TURRET.SHOOTING_DRUM_MIN_PULLEY_VELOCITY
             }
+
+            delay(50)
 
             _hardwareTurretServos.rawAnglePosition = Configs.TURRET.SHOOTING_ANGLE_MAX_POSITION
             _hardwareTurret.targetVelocity = Configs.TURRET.SHOOTING_DRUM_MIN_PULLEY_VELOCITY
