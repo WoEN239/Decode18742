@@ -685,9 +685,11 @@ object Configs {
 
 
         @JvmField
-        var SORTING_REALIGNING_FORWARD_MS: Long = 777
+        var SHOOTING_REALIGNING_FORWARD_MS: Long = 222
         @JvmField
-        var SORTING_REALIGNING_REVERSE_MS: Long = 75
+        var SORTING_REALIGNING_FORWARD_MS:  Long = 444
+        @JvmField
+        var SORTING_REALIGNING_REVERSE_MS:  Long = 75
 
 
         @JvmField
@@ -792,10 +794,9 @@ object Configs {
 
         @JvmField
         var PREFERRED_INTAKE_SLOT_SEARCHING_ORDER = arrayOf(
-            StorageSlot.BOTTOM,
-            StorageSlot.CENTER,
             StorageSlot.TURRET,
-            StorageSlot.MOBILE)
+            StorageSlot.CENTER,
+            StorageSlot.BOTTOM)
 
         @JvmField
         var PREFERRED_REQUEST_SLOT_SEARCHING_ORDER = arrayOf(

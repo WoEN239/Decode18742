@@ -224,16 +224,15 @@ class SortingStorageLogic
 
         val fullRotations = when (requestResult.name())
         {
-            Request.MOBILE_SLOT -> 3
+            Request.MOBILE_SLOT -> 2
             Request.BOTTOM_SLOT -> 2
             Request.CENTER_SLOT -> 1
             else -> -1
         }
 
-        logM.logMd("rotating cur slot", LOGIC_STEPS)
-        if (fullRotations >= NOTHING)
-            repeat(fullRotations)
-                { storageCells.fullRotate() }
+        logM.logMd("rotating cur slot times: $fullRotations", LOGIC_STEPS)
+        repeat(fullRotations)
+            { storageCells.fullRotate() }
 
         logM.logMd("sorting finished - success", PROCESS_ENDING)
         logM.logMd("Getting ready to shoot",     PROCESS_STARTING)
@@ -323,7 +322,7 @@ class SortingStorageLogic
             else -> DELAY.FIRE_1_BALLS_FOR_SHOOTING_MS
         }
 
-        logM.logMd("Firing time (without launcherServo): $beltPushTime", GENERIC_INFO)
+        logM.logMd("Firing time: $beltPushTime", GENERIC_INFO)
 
         storageCells.hwSortingM.stopBelts()
         storageCells.hwSortingM.openTurretGate()
@@ -339,7 +338,7 @@ class SortingStorageLogic
     suspend fun fastStreamDrumRequest(): RequestResult.Name
     {
         val ballCount = storageCells.anyBallCount()
-        logM.logMd("Expected shots count: $ballCount", GENERIC_INFO)
+        logM.logMd("Expected shot count: $ballCount", GENERIC_INFO)
 
         lazyStreamDrumRequest(ballCount)
         return Request.SUCCESS_NOW_EMPTY
@@ -406,7 +405,7 @@ class SortingStorageLogic
 //
 //            if (isNowPerfectlySorted)
 //            {
-                //lazyStreamDrumRequest(storageCells.anyBallCount())
+//                lazyStreamDrumRequest(storageCells.anyBallCount())
                 lazyStreamDrumRequest(2)
                 return Request.SUCCESS_NOW_EMPTY
 //            }

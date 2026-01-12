@@ -347,7 +347,7 @@ class HwSortingManager
         reverseBelts()
 //        delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 10)
         closeGateWithPush()
-        stopBelts()
+        forwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
     }
 
     suspend fun smartPushNextBall()

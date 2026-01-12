@@ -24,9 +24,9 @@ import org.woen.telemetry.Configs.LIGHT.ORANGE_B_POWER
 import org.woen.telemetry.Configs.LIGHT.ORANGE_G_POWER
 import org.woen.telemetry.Configs.LIGHT.ORANGE_R_POWER
 import org.woen.telemetry.Configs.LIGHT.RED_B_POWER
-import org.woen.telemetry.Configs.LIGHT.RED_FLASHING_SPEED
 import org.woen.telemetry.Configs.LIGHT.RED_G_POWER
 import org.woen.telemetry.Configs.LIGHT.RED_R_POWER
+import org.woen.telemetry.Configs.LIGHT.RED_FLASHING_SPEED
 
 
 
