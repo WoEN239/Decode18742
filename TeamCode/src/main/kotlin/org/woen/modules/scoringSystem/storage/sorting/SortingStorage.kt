@@ -69,9 +69,7 @@ import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION
-import org.woen.threading.ThreadManager
-import org.woen.threading.ThreadedGamepad
-import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
+
 
 
 class SortingStorage
@@ -94,8 +92,8 @@ class SortingStorage
                 terminateIntake()
                 terminateRequest()
 
-//                _storageLogic.storageCells.hwSortingM.resetParametersAndLogicToDefault()
-//                _storageLogic.storageCells.resetParametersToDefault()
+                _storageLogic.storageCells.hwSortingM.resetParametersAndLogicToDefault()
+                _storageLogic.storageCells.resetParametersToDefault()
                 _storageLogic.resetParametersToDefault()
             }
         }
@@ -111,17 +109,17 @@ class SortingStorage
                 _storageLogic.canShoot.set(true)
         }   )
 
-//        EventBusLI.subscribe(BallCountInStorageEvent::class, {
-//                it.count = _storageLogic.storageCells.anyBallCount()
-//        }   )
+        EventBusLI.subscribe(BallCountInStorageEvent::class, {
+                it.count = _storageLogic.storageCells.anyBallCount()
+        }   )
 
-//        EventBusLI.subscribe(StorageHandleIdenticalColorsEvent::class, {
-//
-//                val result = _storageLogic.storageCells.handleIdenticalColorRequest()
-//
-//                it.maxIdenticalColorCount = result.maxIdenticalColorCount
-//                it.identicalColor = result.identicalColor
-//        }   )
+        EventBusLI.subscribe(StorageHandleIdenticalColorsEvent::class, {
+
+                val result = _storageLogic.storageCells.handleIdenticalColorRequest()
+
+                it.maxIdenticalColorCount = result.maxIdenticalColorCount
+                it.identicalColor = result.identicalColor
+        }   )
 
 
         EventBusLI.subscribe(OnPatternDetectedEvent::class, {
@@ -358,7 +356,7 @@ class SortingStorage
 //    }
 //    suspend fun hwSmartPushNextBall()
 //        = _storageLogic.storageCells.hwSortingM.smartPushNextBall()
-//    fun alreadyFull() = _storageLogic.storageCells.alreadyFull()
+    fun alreadyFull() = _storageLogic.storageCells.alreadyFull()
 
 
 
@@ -371,7 +369,7 @@ class SortingStorage
         _storageLogic.runStatus.setCurrentActiveProcess(LAZY_INTAKE)
         _storageLogic.lazyIntakeIsActive.set(true)
 
-//        _storageLogic.storageCells.hwSortingM.slowStartBelts()
+        _storageLogic.storageCells.hwSortingM.slowStartBelts()
 
         while (_storageLogic.lazyIntakeIsActive.get())
         {
@@ -381,7 +379,7 @@ class SortingStorage
                 _storageLogic.terminateIntake(LAZY_INTAKE)
         }
 
-//        _storageLogic.storageCells.hwSortingM.stopBelts()
+        _storageLogic.storageCells.hwSortingM.stopBelts()
         _storageLogic.lazyIntakeIsActive.set(false)
 
         logM.logMd("Stopped LazyIntake", PROCESS_ENDING)
@@ -392,7 +390,7 @@ class SortingStorage
 
     suspend fun handleIntake(inputBall: Ball.Name): IntakeResult.Name
     {
-//        if (_storageLogic.storageCells.alreadyFull()) return Intake.FAIL_IS_FULL
+        if (_storageLogic.storageCells.alreadyFull()) return Intake.FAIL_IS_FULL
 
         if (_storageLogic.noIntakeRaceConditionProblems(INTAKE))
         {
@@ -415,26 +413,25 @@ class SortingStorage
     }
     suspend fun handleRequest(request: BallRequest.Name):  RequestResult.Name
     {
-//        if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
+        if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
         if (_storageLogic.cantHandleRequestRaceCondition(SINGLE_REQUEST))
             return _storageLogic.terminateRequest(SINGLE_REQUEST)
 
         _storageLogic.runStatus.setCurrentActiveProcess(SINGLE_REQUEST)
 
         logM.logMd("searching for request slot", LOGIC_STEPS)
-//        val requestResult = _storageLogic.storageCells.handleRequest(request)
-//        logM.logMd("FINISHED searching, result: ${requestResult.name()}", PROCESS_ENDING)
-//
-//
-//        val shootingResult = _storageLogic.shootRequestFinalPhase(
-//            requestResult, SINGLE_REQUEST)
-//
-//        if (shootingResult == Request.TERMINATED)
-//            return _storageLogic.terminateRequest(SINGLE_REQUEST)
-//
-//        _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST)
-//        return shootingResult
-        return Request.SUCCESS_NOW_EMPTY
+        val requestResult = _storageLogic.storageCells.handleRequest(request)
+        logM.logMd("FINISHED searching, result: ${requestResult.name()}", PROCESS_ENDING)
+
+
+        val shootingResult = _storageLogic.shootRequestFinalPhase(
+            requestResult, SINGLE_REQUEST)
+
+        if (shootingResult == Request.TERMINATED)
+            return _storageLogic.terminateRequest(SINGLE_REQUEST)
+
+        _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST)
+        return shootingResult
     }
 
 
@@ -460,7 +457,7 @@ class SortingStorage
     }
     private suspend fun fastStreamDrumRequest(): RequestResult.Name
     {
-//        if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
+        if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
         if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
             return _storageLogic.terminateRequest(DRUM_REQUEST)
 
@@ -481,7 +478,7 @@ class SortingStorage
         includePreviousUnfinishedToRequest: Boolean = true,
         autoUpdateUnfinishedForNextPattern: Boolean = true):       RequestResult.Name
     {
-//        if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
+        if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
         if (requestOrder.isEmpty())  return Request.ILLEGAL_ARGUMENT
         if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
             return _storageLogic.terminateRequest(DRUM_REQUEST)
@@ -522,9 +519,9 @@ class SortingStorage
         else
         {
             delay(Delay.HALF_PUSH)
-//            _storageLogic.resumeLogicAfterRequest(
-//                DRUM_REQUEST,
-//                _storageLogic.storageCells.isNotEmpty())
+            _storageLogic.resumeLogicAfterRequest(
+                DRUM_REQUEST,
+                _storageLogic.storageCells.isNotEmpty())
         }
         return requestResult
     }
@@ -541,7 +538,7 @@ class SortingStorage
             failsafeOrder.contentEquals(requestOrder))
             return shootEntireDrumRequest(shootingMode, requestOrder, includePreviousUnfinishedToRequest)
 
-//        if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
+        if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
         if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
             return _storageLogic.terminateRequest(DRUM_REQUEST)
 
@@ -597,9 +594,9 @@ class SortingStorage
         else
         {
             delay(Delay.HALF_PUSH)
-//            _storageLogic.resumeLogicAfterRequest(
-//                DRUM_REQUEST,
-//                _storageLogic.storageCells.isNotEmpty())
+            _storageLogic.resumeLogicAfterRequest(
+                DRUM_REQUEST,
+                _storageLogic.storageCells.isNotEmpty())
         }
         return requestResult
     }

@@ -57,7 +57,7 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_ADDITIONAl_PREDICT_SORTIN
 
 class SortingStorageLogic
 {
-//    val storageCells           = StorageCells()
+    val storageCells           = StorageCells()
     val dynamicMemoryPattern   = DynamicPattern()
 
     val canShoot               = AtomicBoolean(false)
@@ -98,7 +98,7 @@ class SortingStorageLogic
     {
         runStatus.setCurrentActiveProcess(PREDICT_SORT)
 
-//        storageCells.initiatePredictSort(requested)
+        storageCells.initiatePredictSort(requested)
 
         runStatus.clearCurrentActiveProcess()
         runStatus.safeRemoveThisProcessIdFromQueue(PREDICT_SORT)
@@ -120,7 +120,7 @@ class SortingStorageLogic
     {
         runStatus.setCurrentActiveProcess(STORAGE_CALIBRATION)
 
-//        storageCells.safeFillWithUnknown()
+        storageCells.safeFillWithUnknown()
 
         runStatus.clearCurrentActiveProcess()
         runStatus.safeRemoveThisProcessIdFromQueue(STORAGE_CALIBRATION)
@@ -142,7 +142,7 @@ class SortingStorageLogic
     {
         runStatus.setCurrentActiveProcess(UPDATE_AFTER_LAZY_INTAKE)
 
-//        storageCells.updateAfterLazyIntake(inputFromTurretSlotToBottom)
+        storageCells.updateAfterLazyIntake(inputFromTurretSlotToBottom)
 
         runStatus.clearCurrentActiveProcess()
         runStatus.safeRemoveThisProcessIdFromQueue(UPDATE_AFTER_LAZY_INTAKE)
@@ -152,13 +152,13 @@ class SortingStorageLogic
 
     suspend fun safeSortIntake(inputBall: Ball.Name): IntakeResult.Name
     {
-//        if (storageCells.alreadyFull()) return Intake.FAIL_IS_FULL   //  Intake failed
+        if (storageCells.alreadyFull()) return Intake.FAIL_IS_FULL   //  Intake failed
 
         runningIntakeInstances.getAndAdd(1)
         pleaseWaitForIntakeEnd.set(true)
         logM.logMd("Sorting intake", LOGIC_STEPS)
 
-//        storageCells.updateAfterIntake(inputBall)
+        storageCells.updateAfterIntake(inputBall)
         runningIntakeInstances.getAndAdd(-1)
 
         if (runningIntakeInstances.get() == 0)
@@ -215,11 +215,11 @@ class SortingStorageLogic
 
         if (doExtraRecalibration)
         {
-//            storageCells.hwSortingM.reverseBeltsTime(Delay.PART_PUSH)
-//            storageCells.hwSortingM.closeTurretGate()
-//            storageCells.hwSortingM.slowStartBelts()
+            storageCells.hwSortingM.reverseBeltsTime(Delay.PART_PUSH)
+            storageCells.hwSortingM.closeTurretGate()
+            storageCells.hwSortingM.slowStartBelts()
             delay(Delay.HALF_PUSH)
-//            storageCells.hwSortingM.stopBelts()
+            storageCells.hwSortingM.stopBelts()
         }
 
         val fullRotations = when (requestResult.name())
@@ -231,8 +231,8 @@ class SortingStorageLogic
         }
 
         logM.logMd("rotating cur slot times: $fullRotations", LOGIC_STEPS)
-//        repeat(fullRotations)
-//            { storageCells.fullRotate() }
+        repeat(fullRotations)
+            { storageCells.fullRotate() }
 
         logM.logMd("sorting finished - success", PROCESS_ENDING)
         logM.logMd("Getting ready to shoot",     PROCESS_STARTING)
@@ -252,21 +252,20 @@ class SortingStorageLogic
 
         logM.logMd("Finished updating", PROCESS_ENDING)
 
-//        return if (updateResult.didSucceed())
-//        {
-//            val isLastBall = storageCells.onlyOneBallLeft()
-//            storageCells.hwSortingM.helpPushLastBall.set(isLastBall)
+        return if (updateResult.didSucceed())
+        {
+            val isLastBall = storageCells.onlyOneBallLeft()
+            storageCells.hwSortingM.helpPushLastBall.set(isLastBall)
 
-//            val doWaitBeforeNextShot = DO_WAIT_BEFORE_NEXT_SHOT && !isLastBall
+            val doWaitBeforeNextShot = DO_WAIT_BEFORE_NEXT_SHOT && !isLastBall
 
-//            if (!fullWaitForShotFired(processId, doWaitBeforeNextShot, autoUpdatePatternWhenSucceed))
-//                 Request.TERMINATED
-//            else if (storageCells.isNotEmpty())
-//                 Request.SUCCESS
-//            else Request.SUCCESS_NOW_EMPTY
-//        }
-//        else updateResult.name()
-        return Request.SUCCESS_NOW_EMPTY
+            if (!fullWaitForShotFired(processId, doWaitBeforeNextShot, autoUpdatePatternWhenSucceed))
+                 Request.TERMINATED
+            else if (storageCells.isNotEmpty())
+                 Request.SUCCESS
+            else Request.SUCCESS_NOW_EMPTY
+        }
+        else updateResult.name()
     }
 
     private suspend fun requestRaceConditionIsPresent(processId: Int):  Boolean
@@ -276,7 +275,7 @@ class SortingStorageLogic
 
 
         runStatus.addProcessToQueue(processId)
-//        storageCells.hwSortingM.stopAwaitingEating(true)
+        storageCells.hwSortingM.stopAwaitingEating(true)
 
         delay(DELAY.REQUEST_RACE_CONDITION_MS)
         return !runStatus.isThisProcessHighestPriority(processId)
@@ -325,23 +324,23 @@ class SortingStorageLogic
 
         logM.logMd("Firing time: $beltPushTime", GENERIC_INFO)
 
-//        storageCells.hwSortingM.stopBelts()
-//        storageCells.hwSortingM.openTurretGate()
+        storageCells.hwSortingM.stopBelts()
+        storageCells.hwSortingM.openTurretGate()
 
         EventBusLI.invoke(StartShootingEvent())
-//        storageCells.hwSortingM.shootStartBelts()
+        storageCells.hwSortingM.shootStartBelts()
 
         delay(beltPushTime)
-//        storageCells.hwSortingM.pushLastBallFast()
+        storageCells.hwSortingM.pushLastBallFast()
 
-//        storageCells.fullEmptyStorageCells()
+        storageCells.fullEmptyStorageCells()
     }
     suspend fun fastStreamDrumRequest(): RequestResult.Name
     {
-//        val ballCount = storageCells.anyBallCount()
-//        logM.logMd("Expected shot count: $ballCount", GENERIC_INFO)
-//
-//        lazyStreamDrumRequest(ballCount)
+        val ballCount = storageCells.anyBallCount()
+        logM.logMd("Expected shot count: $ballCount", GENERIC_INFO)
+
+        lazyStreamDrumRequest(ballCount)
         return Request.SUCCESS_NOW_EMPTY
     }
 
@@ -350,13 +349,13 @@ class SortingStorageLogic
     suspend fun shootDrumCanSkip(
         requested: Array<BallRequest.Name>,
         autoUpdatePatternWhenSucceed: Boolean = true
-    ): RequestResult.Name = Request.SUCCESS_NOW_EMPTY
-//        = shootDrumCanSkipLogic(
-//            requested,
-//            min(requested.size, MAX_BALL_COUNT),
-//            storageCells
-//                .tryInitiatePredictSort(requested),
-//            autoUpdatePatternWhenSucceed)
+    ): RequestResult.Name
+        = shootDrumCanSkipLogic(
+            requested,
+            min(requested.size, MAX_BALL_COUNT),
+            storageCells
+                .tryInitiatePredictSort(requested),
+            autoUpdatePatternWhenSucceed)
     suspend fun shootDrumCanSkip(
         requested: Array<BallRequest.Name>,
         failsafe:  Array<BallRequest.Name>,
@@ -364,27 +363,26 @@ class SortingStorageLogic
         autoUpdateUnfinishedWithFailsafe: Boolean = true
     ): RequestResult.Name
     {
-//        var isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
-//        var trimmedRequestSize   = min(requested.size, MAX_BALL_COUNT)
-//
-//        val shootingResult = shootDrumCanSkipLogic(
-//                requested, trimmedRequestSize,
-//                isNowPerfectlySorted,
-//                autoUpdatePatternWhenSucceed)
-//
-//        if (Request.didSucceed(shootingResult) ||
-//            Request.wasTerminated(shootingResult))
-//            return shootingResult
-//        else if (autoUpdateUnfinishedWithFailsafe) dynamicMemoryPattern.setTemporary(failsafe)
-//
-//        isNowPerfectlySorted = storageCells.tryInitiatePredictSort(failsafe)
-//        trimmedRequestSize   = min(failsafe.size, MAX_BALL_COUNT)
-//
-//        return shootDrumCanSkipLogic(
-//                failsafe, trimmedRequestSize,
-//                isNowPerfectlySorted,
-//                autoUpdateUnfinishedWithFailsafe)
-        return Request.SUCCESS_NOW_EMPTY
+        var isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
+        var trimmedRequestSize   = min(requested.size, MAX_BALL_COUNT)
+
+        val shootingResult = shootDrumCanSkipLogic(
+                requested, trimmedRequestSize,
+                isNowPerfectlySorted,
+                autoUpdatePatternWhenSucceed)
+
+        if (Request.didSucceed(shootingResult) ||
+            Request.wasTerminated(shootingResult))
+            return shootingResult
+        else if (autoUpdateUnfinishedWithFailsafe) dynamicMemoryPattern.setTemporary(failsafe)
+
+        isNowPerfectlySorted = storageCells.tryInitiatePredictSort(failsafe)
+        trimmedRequestSize   = min(failsafe.size, MAX_BALL_COUNT)
+
+        return shootDrumCanSkipLogic(
+                failsafe, trimmedRequestSize,
+                isNowPerfectlySorted,
+                autoUpdateUnfinishedWithFailsafe)
     }
     suspend fun shootDrumCanSkipLogic(
         requested: Array<BallRequest.Name>,
@@ -429,14 +427,14 @@ class SortingStorageLogic
     suspend fun shootDrumUntilPatternBreaks(
         requested: Array<BallRequest.Name>,
         autoUpdatePatternWhenSucceed: Boolean
-    ): RequestResult.Name = Request.SUCCESS_NOW_EMPTY
-//        = shootDrumUntilBreaksLogic(
-//            requested,
-//            min(requested.size, MAX_BALL_COUNT),
-//            Request.COLOR_NOT_PRESENT,
-//            storageCells
-//                .tryInitiatePredictSort(requested),
-//            autoUpdatePatternWhenSucceed)
+    ): RequestResult.Name
+        = shootDrumUntilBreaksLogic(
+            requested,
+            min(requested.size, MAX_BALL_COUNT),
+            Request.COLOR_NOT_PRESENT,
+            storageCells
+                .tryInitiatePredictSort(requested),
+            autoUpdatePatternWhenSucceed)
     suspend fun shootDrumUntilPatternBreaks(
         requested: Array<BallRequest.Name>,
         failsafe:  Array<BallRequest.Name>,
@@ -444,30 +442,29 @@ class SortingStorageLogic
         autoUpdateUnfinishedWithFailsafe: Boolean = true
     ): RequestResult.Name
     {
-//        var isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
-//        var trimmedRequestSize   = min(requested.size, MAX_BALL_COUNT)
-//
-//        val shootingResult = shootDrumUntilBreaksLogic(
-//                requested, trimmedRequestSize,
-//                Request.COLOR_NOT_PRESENT,
-//                isNowPerfectlySorted,
-//                autoUpdatePatternWhenSucceed)
-//
-//        if (Request.didSucceed   (shootingResult) ||
-//            Request.wasTerminated(shootingResult))
-//            return shootingResult
-//        else if (autoUpdateUnfinishedWithFailsafe)
-//            dynamicMemoryPattern.setTemporary(failsafe)
-//
-//        isNowPerfectlySorted = storageCells.tryInitiatePredictSort(failsafe)
-//        trimmedRequestSize   = min(failsafe.size, MAX_BALL_COUNT)
-//
-//        return shootDrumUntilBreaksLogic(
-//                failsafe, trimmedRequestSize,
-//                Request.COLOR_NOT_PRESENT,
-//                isNowPerfectlySorted,
-//                autoUpdateUnfinishedWithFailsafe)
-        return Request.SUCCESS_NOW_EMPTY
+        var isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
+        var trimmedRequestSize   = min(requested.size, MAX_BALL_COUNT)
+
+        val shootingResult = shootDrumUntilBreaksLogic(
+                requested, trimmedRequestSize,
+                Request.COLOR_NOT_PRESENT,
+                isNowPerfectlySorted,
+                autoUpdatePatternWhenSucceed)
+
+        if (Request.didSucceed   (shootingResult) ||
+            Request.wasTerminated(shootingResult))
+            return shootingResult
+        else if (autoUpdateUnfinishedWithFailsafe)
+            dynamicMemoryPattern.setTemporary(failsafe)
+
+        isNowPerfectlySorted = storageCells.tryInitiatePredictSort(failsafe)
+        trimmedRequestSize   = min(failsafe.size, MAX_BALL_COUNT)
+
+        return shootDrumUntilBreaksLogic(
+                failsafe, trimmedRequestSize,
+                Request.COLOR_NOT_PRESENT,
+                isNowPerfectlySorted,
+                autoUpdateUnfinishedWithFailsafe)
     }
     suspend fun shootDrumUntilBreaksLogic(
         requested: Array<BallRequest.Name>,
@@ -519,17 +516,17 @@ class SortingStorageLogic
         autoUpdatePatternWhenSucceed: Boolean = true
     ): RequestResult.Name
     {
-//        val curStoragePG = storageCells.ballCountPGA()
-//        val requestPGA   = countPGA(requested)
-//
-//        if (canCompleteEntireRequest(curStoragePG, requestPGA))
-//            return shootDrumUntilBreaksLogic(
-//                requested,
-//                min(requested.size, MAX_BALL_COUNT),
-//                Request.FAIL_UNKNOWN,
-//                storageCells
-//                    .tryInitiatePredictSort(requested),
-//                autoUpdatePatternWhenSucceed)
+        val curStoragePG = storageCells.ballCountPGA()
+        val requestPGA   = countPGA(requested)
+
+        if (canCompleteEntireRequest(curStoragePG, requestPGA))
+            return shootDrumUntilBreaksLogic(
+                requested,
+                min(requested.size, MAX_BALL_COUNT),
+                Request.FAIL_UNKNOWN,
+                storageCells
+                    .tryInitiatePredictSort(requested),
+                autoUpdatePatternWhenSucceed)
 
         return Request.NOT_ENOUGH_COLORS
     }
@@ -540,56 +537,56 @@ class SortingStorageLogic
         autoUpdateUnfinishedWithFailsafe: Boolean = true
     ): RequestResult.Name
     {
-//        val curStoragePG = storageCells.ballCountPGA()
-//        var requestPGA   = countPGA(requested)
-//
-//        if (canCompleteEntireRequest(curStoragePG, requestPGA))  //  All good
-//            return shootDrumUntilBreaksLogic(
-//                requested,
-//                min(requested.size, MAX_BALL_COUNT),
-//                Request.FAIL_UNKNOWN,
-//                storageCells
-//                    .tryInitiatePredictSort(requested),
-//                autoUpdatePatternWhenSucceed)
-//
-//        if (autoUpdateUnfinishedWithFailsafe)
-//            dynamicMemoryPattern.setTemporary(failsafe)
-//
-//        requestPGA = countPGA(failsafe)
-//
-//        if (canCompleteEntireRequest(curStoragePG, requestPGA))  //  Failsafe good
-//            return shootDrumUntilBreaksLogic(
-//                failsafe,
-//                min(failsafe.size, MAX_BALL_COUNT),
-//                Request.FAIL_UNKNOWN,
-//                storageCells
-//                    .tryInitiatePredictSort(failsafe),
-//                autoUpdateUnfinishedWithFailsafe)
+        val curStoragePG = storageCells.ballCountPGA()
+        var requestPGA   = countPGA(requested)
+
+        if (canCompleteEntireRequest(curStoragePG, requestPGA))  //  All good
+            return shootDrumUntilBreaksLogic(
+                requested,
+                min(requested.size, MAX_BALL_COUNT),
+                Request.FAIL_UNKNOWN,
+                storageCells
+                    .tryInitiatePredictSort(requested),
+                autoUpdatePatternWhenSucceed)
+
+        if (autoUpdateUnfinishedWithFailsafe)
+            dynamicMemoryPattern.setTemporary(failsafe)
+
+        requestPGA = countPGA(failsafe)
+
+        if (canCompleteEntireRequest(curStoragePG, requestPGA))  //  Failsafe good
+            return shootDrumUntilBreaksLogic(
+                failsafe,
+                min(failsafe.size, MAX_BALL_COUNT),
+                Request.FAIL_UNKNOWN,
+                storageCells
+                    .tryInitiatePredictSort(failsafe),
+                autoUpdateUnfinishedWithFailsafe)
 
         return Request.NOT_ENOUGH_COLORS
     }
 
-//    private fun countPGA(order: Array<BallRequest.Name>): CountPGA
-//    {
-//        val intPGAN = intArrayOf(NOTHING, NOTHING, NOTHING, NOTHING)
-//        //  Purple, Green, AbstractAny, Nothing
-//
-//        var curRequestId = NOTHING
-//        val ballCountInRequest = min(order.size, MAX_BALL_COUNT)
-//
-//        while (curRequestId < ballCountInRequest)
-//        {
-//            intPGAN[
-//                BallRequest.toAbstractBallId
-//                (
-//                    order[curRequestId]
-//                )
-//            ]++
-//
-//            curRequestId++
-//        }
-//        return storageCells.toCountPGA(intPGAN)
-//    }
+    private fun countPGA(order: Array<BallRequest.Name>): CountPGA
+    {
+        val intPGAN = intArrayOf(NOTHING, NOTHING, NOTHING, NOTHING)
+        //  Purple, Green, AbstractAny, Nothing
+
+        var curRequestId = NOTHING
+        val ballCountInRequest = min(order.size, MAX_BALL_COUNT)
+
+        while (curRequestId < ballCountInRequest)
+        {
+            intPGAN[
+                BallRequest.toAbstractBallId
+                (
+                    order[curRequestId]
+                )
+            ]++
+
+            curRequestId++
+        }
+        return storageCells.toCountPGA(intPGAN)
+    }
     private fun canCompleteEntireRequest(curStoragePG: CountPGA, requestPGA: CountPGA): Boolean
     {
         val futureStorage = CountPGA(
@@ -618,14 +615,14 @@ class SortingStorageLogic
         if (doAutoCalibration)
         {
             logM.logMd("Reversing belts for calibration", PROCESS_STARTING)
-//            storageCells.hwSortingM.reverseBeltsTime(Delay.PART_PUSH)
+            storageCells.hwSortingM.reverseBeltsTime(Delay.PART_PUSH)
             logM.logMd("Finished reversing", PROCESS_ENDING)
 
             logM.logMd("Starting calibration", PROCESS_STARTING)
-//            storageCells.hwSortingM.forwardBeltsTime(Delay.HALF_PUSH)
-//            storageCells.hwSortingM.fullCalibrate()
+            storageCells.hwSortingM.forwardBeltsTime(Delay.HALF_PUSH)
+            storageCells.hwSortingM.fullCalibrate()
         }
-//        else storageCells.hwSortingM.fullCalibrate()
+        else storageCells.hwSortingM.fullCalibrate()
 
 
         logM.logMd("Phase 2 - RESUME AFTER REQUEST, process: $processId", LOGIC_STEPS)
@@ -633,7 +630,7 @@ class SortingStorageLogic
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
         runStatus.clearCurrentActiveProcess()
-//        storageCells.hwSortingM.resumeAwaitingEating()
+        storageCells.hwSortingM.resumeAwaitingEating()
 
         logM.logMd("FINISHED resume logic", PROCESS_ENDING)
     }
@@ -644,8 +641,8 @@ class SortingStorageLogic
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
         runStatus.clearCurrentActiveProcess()
 
-//        EventBusLI.invoke(FullFinishedIntakeEvent(
-//            storageCells.anyBallCount()))
+        EventBusLI.invoke(FullFinishedIntakeEvent(
+            storageCells.anyBallCount()))
     }
 
 
@@ -656,7 +653,7 @@ class SortingStorageLogic
         autoUpdatePatternWhenSucceed : Boolean = true
     ): Boolean
     {
-//        storageCells.hwSortingM.openTurretGate()
+        storageCells.hwSortingM.openTurretGate()
         logM.logMd("waiting for shot - event send", EVENTS_FEEDBACK)
         shotWasFired.set(false)
         canShoot.set(false)
@@ -673,7 +670,7 @@ class SortingStorageLogic
         if (!canShoot.get()) return false
 
         timePassedWaiting = 0
-//        storageCells.hwSortingM.smartPushNextBall()
+        storageCells.hwSortingM.smartPushNextBall()
 
         while (!shotWasFired.get() &&
             timePassedWaiting < DELAY.SSL_MAX_SHOT_AWAITING_MS)
@@ -687,7 +684,7 @@ class SortingStorageLogic
         logM.logMd("fired? ${shotWasFired.get()}," +
                 " delta time: $timePassedWaiting", GENERIC_INFO)
 
-//        storageCells.updateAfterRequest()
+        storageCells.updateAfterRequest()
 
         if (doWaitBeforeNextShot) delay(BETWEEN_SHOTS_MS)
 
