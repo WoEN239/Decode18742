@@ -14,7 +14,7 @@ import org.woen.utils.motor.MotorOnly
 
 
 class HardwareBrush : IHardwareDevice {
-    private lateinit var _motor: DcMotorEx
+//    private lateinit var _motor: DcMotorEx
     var isSafe = true
     var isSafe1 = true
     var volt = 0.0
@@ -22,7 +22,7 @@ class HardwareBrush : IHardwareDevice {
 
     override fun update() {
         voltageSafe()
-        _motor.power = motorPower
+//        _motor.power = motorPower
     }
 
     enum class BrushDirection {
@@ -50,10 +50,10 @@ class HardwareBrush : IHardwareDevice {
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _motor = MotorOnly(hardwareMap.get("brushMotor") as DcMotorEx)
+//        _motor = MotorOnly(hardwareMap.get("brushMotor") as DcMotorEx)
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+//            _motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         }
     }
 

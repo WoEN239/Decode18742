@@ -35,9 +35,9 @@ class HardwareLight(private val _rName: String,
                     private val _bName: String)
     : IHardwareDevice
 {
-    private lateinit var _rPort: LEDLine
-    private lateinit var _gPort: LEDLine
-    private lateinit var _bPort: LEDLine
+//    private lateinit var _rPort: LEDLine
+//    private lateinit var _gPort: LEDLine
+//    private lateinit var _bPort: LEDLine
 
     private val _shimmerTimer = ElapsedTime()
     private var _shimmerResetColor = GREEN
@@ -54,39 +54,39 @@ class HardwareLight(private val _rName: String,
             {
                 _shimmerResetColor = GREEN
 
-                _rPort.power = GREEN_R_POWER
-                _gPort.power = GREEN_G_POWER
-                _bPort.power = GREEN_B_POWER
+//                _rPort.power = GREEN_R_POWER
+//                _gPort.power = GREEN_G_POWER
+//                _bPort.power = GREEN_B_POWER
             }
             BLUE ->
             {
                 _shimmerResetColor = BLUE
 
-                _rPort.power = BLUE_R_POWER
-                _gPort.power = BLUE_G_POWER
-                _bPort.power = BLUE_B_POWER
+//                _rPort.power = BLUE_R_POWER
+//                _gPort.power = BLUE_G_POWER
+//                _bPort.power = BLUE_B_POWER
             }
 
             ORANGE ->
             {
                 _shimmerResetColor = ORANGE
 
-                _rPort.power = ORANGE_R_POWER
-                _gPort.power = ORANGE_G_POWER
-                _bPort.power = ORANGE_B_POWER
+//                _rPort.power = ORANGE_R_POWER
+//                _gPort.power = ORANGE_G_POWER
+//                _bPort.power = ORANGE_B_POWER
             }
             RED ->
             {
                 if (_shimmerResetColor != RED) _shimmerTimer.reset()
                 _shimmerResetColor = RED
 
-                _rPort.power = abs(
-                    RED_R_POWER -
-                        (_shimmerTimer.seconds() * RED_FLASHING_SPEED)
-                            % (2 * RED_R_POWER)
-                )
-                _gPort.power = RED_G_POWER
-                _bPort.power = RED_B_POWER
+//                _rPort.power = abs(
+//                    RED_R_POWER -
+//                        (_shimmerTimer.seconds() * RED_FLASHING_SPEED)
+//                            % (2 * RED_R_POWER)
+//                )
+//                _gPort.power = RED_G_POWER
+//                _bPort.power = RED_B_POWER
             }
         }
     }
@@ -95,14 +95,14 @@ class HardwareLight(private val _rName: String,
 
     override fun init(hardwareMap: HardwareMap)
     {
-        _rPort = LEDLine(hardwareMap, _rName)
-        _gPort = LEDLine(hardwareMap, _gName)
-        _bPort = LEDLine(hardwareMap, _bName)
+//        _rPort = LEDLine(hardwareMap, _rName)
+//        _gPort = LEDLine(hardwareMap, _gName)
+//        _bPort = LEDLine(hardwareMap, _bName)
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _rPort.init()
-            _gPort.init()
-            _bPort.init()
+//            _rPort.init()
+//            _gPort.init()
+//            _bPort.init()
 
             _shimmerTimer.reset()
         }

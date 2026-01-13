@@ -9,8 +9,8 @@ import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
 
 class HardwareTurretServos: IHardwareDevice {
-    private lateinit var _angleSevo: Servo
-    private lateinit var _rotateServo: Servo
+//    private lateinit var _angleSevo: Servo
+//    private lateinit var _rotateServo: Servo
 
     var rawAnglePosition = 0.0
 
@@ -42,21 +42,21 @@ class HardwareTurretServos: IHardwareDevice {
         }
 
     override fun update() {
-        _angleSevo.position = rawAnglePosition
-        _rotateServo.position = rawRotatePosition
+//        _angleSevo.position = rawAnglePosition
+//        _rotateServo.position = rawRotatePosition
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _angleSevo = hardwareMap.get("turretAngleServo") as Servo
+//        _angleSevo = hardwareMap.get("turretAngleServo") as Servo
 
-        _rotateServo = hardwareMap.get("turretRotateServo") as Servo
+//        _rotateServo = hardwareMap.get("turretRotateServo") as Servo
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            (_rotateServo as PwmControl).pwmRange = PwmControl.PwmRange(500.0, 2500.0)
+//            (_rotateServo as PwmControl).pwmRange = PwmControl.PwmRange(500.0, 2500.0)
 
-            _rotateServo.direction = Servo.Direction.REVERSE
+//            _rotateServo.direction = Servo.Direction.REVERSE
 
-            _angleSevo.direction = Servo.Direction.REVERSE
+//            _angleSevo.direction = Servo.Direction.REVERSE
         }
 
         targetRotatePosition = 0.0

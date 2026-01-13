@@ -18,10 +18,10 @@ import kotlin.math.abs
 import kotlin.math.max
 
 class HardwareDriveTrain : IHardwareDevice {
-    private lateinit var _leftForwardMotor: MotorOnly
-    private lateinit var _leftBackMotor: MotorOnly
-    private lateinit var _rightBackMotor: MotorOnly
-    private lateinit var _rightForwardMotor: MotorOnly
+//    private lateinit var _leftForwardMotor: MotorOnly
+//    private lateinit var _leftBackMotor: MotorOnly
+//    private lateinit var _rightBackMotor: MotorOnly
+//    private lateinit var _rightForwardMotor: MotorOnly
 
     private val _forwardRegulator = Regulator(Configs.DRIVE_TRAIN.DRIVE_FORWARD_REGULATOR_PARAMS)
     private val _sideRegulator = Regulator(Configs.DRIVE_TRAIN.DRIVE_SIDE_REGULATOR_PARAMS)
@@ -63,19 +63,19 @@ class HardwareDriveTrain : IHardwareDevice {
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _leftForwardMotor = MotorOnly(hardwareMap.get("leftForwardDrive") as DcMotorEx)
-        _leftBackMotor = MotorOnly(hardwareMap.get("leftBackDrive") as DcMotorEx)
-        _rightBackMotor = MotorOnly(hardwareMap.get("rightBackDrive") as DcMotorEx)
-        _rightForwardMotor = MotorOnly(hardwareMap.get("rightForwardDrive") as DcMotorEx)
+//        _leftForwardMotor = MotorOnly(hardwareMap.get("leftForwardDrive") as DcMotorEx)
+//        _leftBackMotor = MotorOnly(hardwareMap.get("leftBackDrive") as DcMotorEx)
+//        _rightBackMotor = MotorOnly(hardwareMap.get("rightBackDrive") as DcMotorEx)
+//        _rightForwardMotor = MotorOnly(hardwareMap.get("rightForwardDrive") as DcMotorEx)
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _leftBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            _leftForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            _rightBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            _rightForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+//            _leftBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+//            _leftForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+//            _rightBackMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+//            _rightForwardMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-            _leftForwardMotor.direction = DcMotorSimple.Direction.REVERSE
-            _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
+//            _leftForwardMotor.direction = DcMotorSimple.Direction.REVERSE
+//            _leftBackMotor.direction = DcMotorSimple.Direction.REVERSE
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
@@ -144,10 +144,10 @@ class HardwareDriveTrain : IHardwareDevice {
             rfPower /= absMax
         }
 
-        _leftForwardMotor.power = lfPower
-        _rightBackMotor.power = rbPower
-        _leftBackMotor.power = lbPower
-        _rightForwardMotor.power = rfPower
+//        _leftForwardMotor.power = lfPower
+//        _rightBackMotor.power = rbPower
+//        _leftBackMotor.power = lbPower
+//        _rightForwardMotor.power = rfPower
     }
 
     private fun setVoltage(direction: Vec2, rotate: Double) {

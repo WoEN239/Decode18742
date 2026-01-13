@@ -215,7 +215,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = true
+        var CAMERA_ENABLE = false
 
         @JvmField
         var CAMERA_H_RED_DOWN = 4.0

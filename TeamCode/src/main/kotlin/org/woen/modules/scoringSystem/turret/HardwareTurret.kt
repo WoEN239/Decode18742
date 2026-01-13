@@ -25,8 +25,8 @@ import kotlin.math.abs
 
 class HardwareTurret :
     IHardwareDevice {
-    private lateinit var _motor: DcMotorEx
-    private lateinit var _rotateEncoder: EncoderOnly
+//    private lateinit var _motor: DcMotorEx
+//    private lateinit var _rotateEncoder: EncoderOnly
 
     private var _oldMotorPosition = 0.0
     private var _motorVelocity = 0.0
@@ -64,16 +64,16 @@ class HardwareTurret :
 
     override fun update() {
 
-        _pulleyMotorAmps = _motor.getCurrent(CurrentUnit.AMPS)
+//        _pulleyMotorAmps = _motor.getCurrent(CurrentUnit.AMPS)
 
-        val currentMotorPosition = _motor.currentPosition.toDouble()
+//        val currentMotorPosition = _motor.currentPosition.toDouble()
 
-        val rawVelocity = (currentMotorPosition - _oldMotorPosition) / _deltaTime.seconds()
+//        val rawVelocity = (currentMotorPosition - _oldMotorPosition) / _deltaTime.seconds()
 
-        _motorVelocity =
-            _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
+//        _motorVelocity =
+//            _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
 
-        _oldMotorPosition = currentMotorPosition
+//        _oldMotorPosition = currentMotorPosition
 
         if (abs(currentVelocity - targetVelocity) < Configs.TURRET.PULLEY_TARGET_SENS) {
             velocityAtTarget = _targetTimer.seconds() > Configs.TURRET.PULLEY_TARGET_TIMER
@@ -90,27 +90,27 @@ class HardwareTurret :
             _targetTicksVelocity
         )
 
-        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_pulleyU)
+//        _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_pulleyU)
 
         _deltaTime.reset()
     }
 
     fun resetRotateEncoder(){
-        _rotateEncoder.resetEncoder()
+//        _rotateEncoder.resetEncoder()
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _motor = hardwareMap.get("pulleyMotor") as DcMotorEx
+//        _motor = hardwareMap.get("pulleyMotor") as DcMotorEx
 
-        _rotateEncoder = EncoderOnly(hardwareMap.get("brushMotor") as DcMotorEx)
+//        _rotateEncoder = EncoderOnly(hardwareMap.get("brushMotor") as DcMotorEx)
 
         Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.onSet += {
             _velocityFilter.coef = it
         }
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            _motor.mode = DcMotor.RunMode.RESET_ENCODERS
-            _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+//            _motor.mode = DcMotor.RunMode.RESET_ENCODERS
+//            _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {

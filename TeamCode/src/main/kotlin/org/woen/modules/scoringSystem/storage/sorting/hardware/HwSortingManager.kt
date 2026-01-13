@@ -167,11 +167,11 @@ class HwSortingManager
         logM.logMd("STARTED full calibration", HARDWARE_HIGH)
         _hwSorting.fullCalibrate()
 
-        while (!_hwSorting.gateServo.atTargetAngle
-            || !_hwSorting.pushServo.atTargetAngle
-            || !_hwSorting.launchServo.atTargetAngle
-            || !_hwSorting.turretGateServo.atTargetAngle)
-                delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+//        while (!_hwSorting.gateServo.atTargetAngle
+//            || !_hwSorting.pushServo.atTargetAngle
+//            || !_hwSorting.launchServo.atTargetAngle
+//            || !_hwSorting.turretGateServo.atTargetAngle)
+//                delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         logM.logMd("Full calibration completed", HARDWARE_HIGH)
     }
@@ -180,8 +180,8 @@ class HwSortingManager
         logM.logMd("Started OPENING sorting gate", HARDWARE)
         _hwSorting.openGate()
 
-        while (!_hwSorting.gateServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+//        while (!_hwSorting.gateServo.atTargetAngle)
+//            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         logM.logMd("OPENED sorting gate", HARDWARE)
     }
@@ -190,8 +190,8 @@ class HwSortingManager
         logM.logMd("Started OPENING push", HARDWARE)
         _hwSorting.openPush()
 
-        while (!_hwSorting.pushServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+//        while (!_hwSorting.pushServo.atTargetAngle)
+//            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         logM.logMd("OPENED push", HARDWARE)
     }
@@ -200,8 +200,8 @@ class HwSortingManager
         logM.logMd("Started CLOSING push", HARDWARE)
         _hwSorting.closePush()
 
-        while (!_hwSorting.pushServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+//        while (!_hwSorting.pushServo.atTargetAngle)
+//            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         logM.logMd("CLOSED push", HARDWARE)
     }
@@ -210,8 +210,8 @@ class HwSortingManager
         logM.logMd("Started OPENING kick", HARDWARE)
         _hwSorting.openLaunch()
 
-        while (!_hwSorting.launchServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+//        while (!_hwSorting.launchServo.atTargetAngle)
+//            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         logM.logMd("OPENED kick", HARDWARE)
     }
@@ -220,8 +220,8 @@ class HwSortingManager
         logM.logMd("Started CLOSING kick", HARDWARE)
         _hwSorting.closeLaunch()
 
-        while (!_hwSorting.launchServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+//        while (!_hwSorting.launchServo.atTargetAngle)
+//            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         logM.logMd("CLOSED kick", HARDWARE)
     }
@@ -231,9 +231,9 @@ class HwSortingManager
         _hwSorting.closeGate()
         _hwSorting.closePush()
 
-        while (!_hwSorting.pushServo.atTargetAngle
-            || !_hwSorting.gateServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+//        while (!_hwSorting.pushServo.atTargetAngle
+//            || !_hwSorting.gateServo.atTargetAngle)
+//            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         logM.logMd("CLOSED sorting gate & push", HARDWARE)
     }
@@ -244,8 +244,8 @@ class HwSortingManager
         logM.logMd("Started OPENING turret gate", HARDWARE)
         _hwSorting.openTurretGate()
 
-        while (!_hwSorting.turretGateServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+//        while (!_hwSorting.turretGateServo.atTargetAngle)
+//            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         logM.logMd("OPENED turret gate successfully", HARDWARE)
     }
@@ -254,8 +254,8 @@ class HwSortingManager
         logM.logMd("Started CLOSING turret gate", HARDWARE)
         _hwSorting.closeTurretGate()
 
-        while (!_hwSorting.turretGateServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+//        while (!_hwSorting.turretGateServo.atTargetAngle)
+//            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
 
         logM.logMd("CLOSED turret gate successfully", HARDWARE)
     }
@@ -265,28 +265,28 @@ class HwSortingManager
     fun shootStartBelts()
     {
         logM.logMd("SHOOT Started hw belts", HARDWARE)
-        _hwSorting.shootStartBeltMotors()
+//        _hwSorting.shootStartBeltMotors()
     }
     fun slowStartBelts()
     {
         logM.logMd("SLOW Started hw belts", HARDWARE)
-        _hwSorting.slowStartBeltMotors()
+//        _hwSorting.slowStartBeltMotors()
     }
     fun startBelts()
     {
         logM.logMd("Started hw belts", HARDWARE)
-        _hwSorting.startBeltMotors()
+//        _hwSorting.startBeltMotors()
     }
     fun reverseBelts()
     {
         logM.logMd("Reversing hw belts", HARDWARE)
-        _hwSorting.reverseBeltMotors()
+//        _hwSorting.reverseBeltMotors()
     }
 
     fun stopBelts()
     {
         logM.logMd("Stopped hw belts", HARDWARE)
-        _hwSorting.stopBeltMotors()
+//        _hwSorting.stopBeltMotors()
     }
 
 

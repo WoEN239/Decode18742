@@ -49,41 +49,41 @@ import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MO
 
 class HwSorting : IHardwareDevice
 {
-    private lateinit var _beltMotors : MotorOnly
-    private val _beltMotorsPower = AtomicReference(0.0)
+//    private lateinit var _beltMotors : MotorOnly
+//    private val _beltMotorsPower = AtomicReference(0.0)
 
     val beltsCurrentPeakedEvent  = SimpleEmptyEvent()
     private val _currentNoiseFilterTimer = ElapsedTime()
 
 
 
-    val gateServo = ThreadedServo(
-        GATE_SERVO,
-        startAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE)
-
-    val pushServo = ThreadedServo(
-        PUSH_SERVO,
-        startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE)
-
-    val launchServo = ThreadedServo(
-        LAUNCH_SERVO,
-        startAngle = 1.5 * PI * LAUNCH_SERVO_CLOSE_VALUE)
-
-    val turretGateServo = ThreadedServo(
-        TURRET_GATE_SERVO,
-        startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE)
+//    val gateServo = ThreadedServo(
+//        GATE_SERVO,
+//        startAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE)
+//
+//    val pushServo = ThreadedServo(
+//        PUSH_SERVO,
+//        startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE)
+//
+//    val launchServo = ThreadedServo(
+//        LAUNCH_SERVO,
+//        startAngle = 1.5 * PI * LAUNCH_SERVO_CLOSE_VALUE)
+//
+//    val turretGateServo = ThreadedServo(
+//        TURRET_GATE_SERVO,
+//        startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE)
 
 
 
     constructor()
     {
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
-            gateServo, pushServo, launchServo, turretGateServo)
+//        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
+//            gateServo, pushServo, launchServo, turretGateServo)
     }
 
     override fun init(hardwareMap : HardwareMap)
     {
-        _beltMotors = MotorOnly(hardwareMap.get(SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
+//        _beltMotors = MotorOnly(hardwareMap.get(SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
     }
 
 
@@ -92,7 +92,7 @@ class HwSorting : IHardwareDevice
 
     override fun update()
     {
-        _beltMotors.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_beltMotorsPower.get())
+//        _beltMotors.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_beltMotorsPower.get())
 
 //        val beltsCurrent = _beltMotors.getCurrent(CurrentUnit.AMPS)
 //        if (beltsCurrent > STORAGE_IS_FULL_BELTS_CURRENT)
@@ -109,66 +109,67 @@ class HwSorting : IHardwareDevice
 
     override fun opModeStart()
     {
-        _beltMotors.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        _beltMotors.direction = BELT_MOTORS_DIRECTION
+//        _beltMotors.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+//        _beltMotors.direction = BELT_MOTORS_DIRECTION
 
         fullCalibrate()
     }
-    override fun opModeStop()  = stopBeltMotors()
+    override fun opModeStop() {}
+//    = stopBeltMotors()
 
 
 
-    fun shootStartBeltMotors() = _beltMotorsPower.set(  BELT_POWER_SHOOT_MODE)
-    fun slowStartBeltMotors()  = _beltMotorsPower.set(  BELT_POWER_SLOW_MODE)
-    fun startBeltMotors()      = _beltMotorsPower.set(  BELT_POWER_FAST_MODE)
-    fun reverseBeltMotors()    = _beltMotorsPower.set( -BELT_POWER_FAST_MODE)
-    fun stopBeltMotors()       = _beltMotorsPower.set(0.0)
+//    fun shootStartBeltMotors() = _beltMotorsPower.set(  BELT_POWER_SHOOT_MODE)
+//    fun slowStartBeltMotors()  = _beltMotorsPower.set(  BELT_POWER_SLOW_MODE)
+//    fun startBeltMotors()      = _beltMotorsPower.set(  BELT_POWER_FAST_MODE)
+//    fun reverseBeltMotors()    = _beltMotorsPower.set( -BELT_POWER_FAST_MODE)
+//    fun stopBeltMotors()       = _beltMotorsPower.set(0.0)
 
 
 
     fun openGate()
     {
-        gateServo.targetPosition = GATE_SERVO_OPEN_VALUE
+//        gateServo.targetPosition = GATE_SERVO_OPEN_VALUE
     }
     fun closeGate()
     {
-        gateServo.targetPosition = GATE_SERVO_CLOSE_VALUE
+//        gateServo.targetPosition = GATE_SERVO_CLOSE_VALUE
     }
 
     fun openPush()
     {
-        pushServo.targetPosition = PUSH_SERVO_OPEN_VALUE
+//        pushServo.targetPosition = PUSH_SERVO_OPEN_VALUE
     }
     fun closePush()
     {
-        pushServo.targetPosition = PUSH_SERVO_CLOSE_VALUE
+//        pushServo.targetPosition = PUSH_SERVO_CLOSE_VALUE
     }
 
     fun openLaunch()
     {
-        launchServo.targetPosition = LAUNCH_SERVO_OPEN_VALUE
+//        launchServo.targetPosition = LAUNCH_SERVO_OPEN_VALUE
     }
     fun closeLaunch()
     {
-        launchServo.targetPosition = LAUNCH_SERVO_CLOSE_VALUE
+//        launchServo.targetPosition = LAUNCH_SERVO_CLOSE_VALUE
     }
 
 
 
     fun openTurretGate()
     {
-        turretGateServo.targetPosition = TURRET_GATE_SERVO_OPEN_VALUE
+//        turretGateServo.targetPosition = TURRET_GATE_SERVO_OPEN_VALUE
     }
     fun closeTurretGate()
     {
-        turretGateServo.targetPosition = TURRET_GATE_SERVO_CLOSE_VALUE
+//        turretGateServo.targetPosition = TURRET_GATE_SERVO_CLOSE_VALUE
     }
 
 
 
     fun fullCalibrate()
     {
-        stopBeltMotors()
+//        stopBeltMotors()
 
         closeGate()
         closePush()

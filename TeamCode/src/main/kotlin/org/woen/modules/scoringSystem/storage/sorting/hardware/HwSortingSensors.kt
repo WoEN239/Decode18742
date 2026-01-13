@@ -56,7 +56,7 @@ class ColorSensorsData(var color: Ball.Name, var sensorsId: SensorsId)
 class HwSortingSensors(): IHardwareDevice
 {
 //    private lateinit var _intakeColorSensorL : AdafruitI2cColorSensor
-    private lateinit var _intakeColorSensorR : RevColorSensorV3
+//    private lateinit var _intakeColorSensorR : RevColorSensorV3
 
 //    private lateinit var _turretOptic1 : AnalogInput
 //    private lateinit var _turretOptic2 : AnalogInput
@@ -75,8 +75,8 @@ class HwSortingSensors(): IHardwareDevice
 //        _intakeColorSensorL = fixSensor(
 //            hardwareMap.get(INTAKE_COLOR_SENSOR_L)
 //                    as AdafruitI2cColorSensor)
-        _intakeColorSensorR = hardwareMap.get(INTAKE_COLOR_SENSOR_R)
-                    as RevColorSensorV3
+//        _intakeColorSensorR = hardwareMap.get(INTAKE_COLOR_SENSOR_R)
+//                    as RevColorSensorV3
 
 
 //        _turretOptic1 = hardwareMap.get(TURRET_OPTIC_1) as AnalogInput
@@ -93,7 +93,7 @@ class HwSortingSensors(): IHardwareDevice
 
 
 //        testLCS()
-        testRCS()
+//        testRCS()
     }
 
 //    private fun testLCS()
@@ -142,44 +142,44 @@ class HwSortingSensors(): IHardwareDevice
 //    }
     private fun testRCS()
     {
-        val argb2 = _intakeColorSensorR.normalizedColors
-        val r2 = argb2.red   * CONST_MAXIMUM_READING
-        val g2 = argb2.green * CONST_MAXIMUM_READING
-        val b2 = argb2.blue  * CONST_MAXIMUM_READING
-
-        if (
-            (RCS_GREEN_BALL_R_K * r2 + RCS_GREEN_BALL_B_K * b2 + RCS_GREEN_BALL_G_K * g2) -
-            max(r2 * (1 - RCS_GREEN_BALL_R_K),
-                max(
-                    b2 * (1 - RCS_GREEN_BALL_B_K),
-                    g2 * (1 - RCS_GREEN_BALL_G_K)
-                )
-            ) > RCS_GREEN_BALL_THRESHOLD)
-        {
-            colorSensorsDetectedIntakeEvent.invoke(
-                ColorSensorsData(Ball.Name.GREEN, SensorsId.RIGHT))
-
-            logM.logTag("GREEN BALL DETECTED",
-                "StorageSensors", HARDWARE)
-        }
-        else if (
-            (RCS_PURPLE_BALL_R_K * r2 + RCS_PURPLE_BALL_B_K * b2 + RCS_PURPLE_BALL_G_K * g2) -
-            max(r2 * (1 - RCS_PURPLE_BALL_R_K),
-                max(
-                    b2 * (1 - RCS_PURPLE_BALL_B_K),
-                    g2 * (1 - RCS_PURPLE_BALL_G_K)
-                )
-            ) > RCS_PURPLE_BALL_THRESHOLD)
-        {
-            colorSensorsDetectedIntakeEvent.invoke(
-                ColorSensorsData(Ball.Name.PURPLE, SensorsId.RIGHT))
-
-            logM.logTag(
-                "PURPLE BALL DETECTED",
-                "StorageSensors", HARDWARE)
-        }
-        else colorSensorsDetectedIntakeEvent.invoke(
-            ColorSensorsData(Ball.Name.NONE, SensorsId.RIGHT))
+//        val argb2 = _intakeColorSensorR.normalizedColors
+//        val r2 = argb2.red   * CONST_MAXIMUM_READING
+//        val g2 = argb2.green * CONST_MAXIMUM_READING
+//        val b2 = argb2.blue  * CONST_MAXIMUM_READING
+//
+//        if (
+//            (RCS_GREEN_BALL_R_K * r2 + RCS_GREEN_BALL_B_K * b2 + RCS_GREEN_BALL_G_K * g2) -
+//            max(r2 * (1 - RCS_GREEN_BALL_R_K),
+//                max(
+//                    b2 * (1 - RCS_GREEN_BALL_B_K),
+//                    g2 * (1 - RCS_GREEN_BALL_G_K)
+//                )
+//            ) > RCS_GREEN_BALL_THRESHOLD)
+//        {
+//            colorSensorsDetectedIntakeEvent.invoke(
+//                ColorSensorsData(Ball.Name.GREEN, SensorsId.RIGHT))
+//
+//            logM.logTag("GREEN BALL DETECTED",
+//                "StorageSensors", HARDWARE)
+//        }
+//        else if (
+//            (RCS_PURPLE_BALL_R_K * r2 + RCS_PURPLE_BALL_B_K * b2 + RCS_PURPLE_BALL_G_K * g2) -
+//            max(r2 * (1 - RCS_PURPLE_BALL_R_K),
+//                max(
+//                    b2 * (1 - RCS_PURPLE_BALL_B_K),
+//                    g2 * (1 - RCS_PURPLE_BALL_G_K)
+//                )
+//            ) > RCS_PURPLE_BALL_THRESHOLD)
+//        {
+//            colorSensorsDetectedIntakeEvent.invoke(
+//                ColorSensorsData(Ball.Name.PURPLE, SensorsId.RIGHT))
+//
+//            logM.logTag(
+//                "PURPLE BALL DETECTED",
+//                "StorageSensors", HARDWARE)
+//        }
+//        else colorSensorsDetectedIntakeEvent.invoke(
+//            ColorSensorsData(Ball.Name.NONE, SensorsId.RIGHT))
     }
 
 
