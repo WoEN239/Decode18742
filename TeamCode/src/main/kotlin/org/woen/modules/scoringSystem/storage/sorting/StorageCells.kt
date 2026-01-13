@@ -12,7 +12,6 @@ import org.woen.enumerators.StorageSlot
 import org.woen.telemetry.LogManager
 
 import org.woen.modules.scoringSystem.storage.Alias.Delay
-import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
@@ -232,12 +231,12 @@ class StorageCells
     {
         if (inputFromTurretSlotToBottom.size > MAX_BALL_COUNT) return
 
-        var curSlot     = StorageSlot.BOTTOM
-        while (curSlot <= StorageSlot.TURRET)
+        var curSlot = StorageSlot.TURRET
+        while (curSlot >= StorageSlot.BOTTOM)
         {
-            _storageCells[Intake.INPUT_ORDER[curSlot]].set(
-                 inputFromTurretSlotToBottom[curSlot])
-            curSlot++
+            _storageCells[curSlot].set(
+                inputFromTurretSlotToBottom[StorageSlot.TURRET - curSlot])
+            curSlot--
         }
 
         logAllStorageData()
@@ -254,17 +253,13 @@ class StorageCells
             curSlot++
             rotationTime += Delay.PART_PUSH
         }
-        curSlot--
-
-        if (curSlot >= StorageSlot.BOTTOM) _storageCells[curSlot].set(inputBall)
+        if (curSlot - 1 >= StorageSlot.BOTTOM) _storageCells[curSlot - 1].set(inputBall)
 
         logM.logMd("software storage processing finished", PROCESS_ENDING)
         logM.logMd("new storage: ", GENERIC_INFO)
         logAllStorageData()
 
-        hwSortingM.reinstantiableForwardBeltsTime(
-            rotationTime,
-            curSlot == StorageSlot.TURRET)
+        hwSortingM.reinstantiableForwardBeltsTime(rotationTime)
     }
     fun updateAfterRequest()
     {
@@ -291,6 +286,7 @@ class StorageCells
         logM.logMd("storage before full rotation:", GENERIC_INFO)
         logAllStorageData()
 
+        hwSortingM.stopAwaitingEating(true)
         hwReAdjustStorage()
 
         hwSortingM.rotateMobileSlot()
@@ -298,6 +294,7 @@ class StorageCells
         _storageCells[StorageSlot.MOBILE].set(_storageCells[StorageSlot.TURRET])
         _storageCells[StorageSlot.TURRET].empty()
 
+        hwSortingM.forwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
         hwReAdjustStorage()
 
         logM.logMd("finished full rotation, new storage:", PROCESS_ENDING)
@@ -353,8 +350,8 @@ class StorageCells
 
     private fun logAllStorageData()
     {
-        logM.logMd(""
-              + "B:  ${_storageCells[StorageSlot.BOTTOM].name()}; "
+        logM.logMd("" +
+                "B:  ${_storageCells[StorageSlot.BOTTOM].name()}; "
               + "C:  ${_storageCells[StorageSlot.CENTER].name()}; "
               + "MO: ${_storageCells[StorageSlot.TURRET].name()}; "
               + "MI: ${_storageCells[StorageSlot.MOBILE].name()}\n",
