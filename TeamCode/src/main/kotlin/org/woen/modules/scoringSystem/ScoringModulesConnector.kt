@@ -334,11 +334,11 @@ class ScoringModulesConnector
         val intakeResult = _storage.handleIntake(inputToBottomSlot)
 
 
-        if (_storage.alreadyFull())
-        {
-            _canRestartBrushes.set(false)
-            reverseBrushes(TIME_FOR_BRUSH_REVERSING)
-        }
+//        if (_storage.alreadyFull())
+//        {
+//            _canRestartBrushes.set(false)
+//            reverseBrushes(TIME_FOR_BRUSH_REVERSING)
+//        }
 
         logM.logMd("FINISHED - INTAKE, result: $intakeResult", PROCESS_ENDING)
         _runningIntakeInstances.getAndAdd(-1)
