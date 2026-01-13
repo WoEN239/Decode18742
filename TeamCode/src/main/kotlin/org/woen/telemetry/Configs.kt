@@ -699,7 +699,7 @@ object Configs {
         var SSL_MAX_SHOT_AWAITING_MS: Long = 245       //  8.5V configuration
 
         @JvmField
-        var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33333
+        var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 333
 
 
 

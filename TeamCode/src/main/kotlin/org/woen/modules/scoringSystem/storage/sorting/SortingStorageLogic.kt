@@ -328,7 +328,7 @@ class SortingStorageLogic
         storageCells.hwSortingM.stopBelts()
         storageCells.hwSortingM.openTurretGate()
 
-        EventBusLI.invoke(StartShootingEvent())
+//        EventBusLI.invoke(StartShootingEvent())
         storageCells.hwSortingM.shootStartBelts()
 
         delay(beltPushTime)

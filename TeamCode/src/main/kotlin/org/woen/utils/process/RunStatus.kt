@@ -3,7 +3,7 @@ package org.woen.utils.process
 
 import kotlin.math.abs
 import org.woen.telemetry.Configs.PROCESS_ID.UNDEFINED_PROCESS_ID
-import org.woen.telemetry.ThreadedTelemetry
+
 
 
 class RunStatus
@@ -55,30 +55,18 @@ class RunStatus
     }
 
 
+
     @Synchronized
     fun isNotBusy()          =  _processQueue.isEmpty()
     @Synchronized
     fun isUsedByAnyProcess() = !_processQueue.isEmpty()
     @Synchronized
-    fun isUsedByThisProcess(targetProcessId: Int): Boolean
-    {
-        if (_processQueue.isEmpty()) return false
-
-        for (curProcess in _processQueue)
-            if (curProcess == targetProcessId) return true
-
-        return false
-    }
+    fun isUsedByThisProcess(targetProcessId: Int)
+            = _processQueue.contains(targetProcessId)
     @Synchronized
-    fun isUsedByAnotherProcess(exceptionProcessId: Int): Boolean
-    {
-        if (_processQueue.isEmpty()) return false
+    fun isUsedByAnotherProcess(exceptionProcessId: Int)
+            = _processQueue.any { it != exceptionProcessId }
 
-        for (curProcess in _processQueue)
-            if (curProcess != exceptionProcessId) return true
-
-        return false
-    }
 
 
     @Synchronized
@@ -87,29 +75,10 @@ class RunStatus
     fun clearAllProcesses() = _processQueue.clear()
     @Synchronized
     fun safeRemoveThisProcessIdFromQueue(processId: Int)
-    {
-        if (_processQueue.isEmpty()) return
-
-        try
-        {
-            var position = 0
-            do
-            {
-                position = _processQueue.indexOf(processId)
-                if (position != -1 && position < _processQueue.size)
-                    _processQueue.removeAt(position)
-            } while (position != -1)
-        }
-        catch (e: Exception) {
-            ThreadedTelemetry.LAZY_INSTANCE.log(e.toString())
-        }
-    }
+            = _processQueue.removeAll { it == processId }
     @Synchronized
     fun safeRemoveOnlyOneInstanceOfThisProcessFromQueue(processId: Int)
-    {
-        val position  =     _processQueue.indexOf(processId)
-        if (position != -1) _processQueue.removeAt(position)
-    }
+            = _processQueue.remove(processId)
 
 
 
@@ -138,7 +107,7 @@ class RunStatus
         }
 
         return containsRequestedId &&
-            processId == returnPrioritized(maxId, minId, zeroPositive, zeroNegative)
+                processId == returnPrioritized(maxId, minId, zeroPositive, zeroNegative)
     }
     @Synchronized
     fun getHighestPriorityProcessId(): Int
@@ -194,27 +163,11 @@ class RunStatus
     @Synchronized
     fun isForcedToTerminateThisProcess(processId: Int) = _terminationList.contains(processId)
     @Synchronized
-    fun addProcessToTerminationList(processId: Int)
-    {
-//        safeRemoveThisProcessIdFromQueue(processId)
-        _terminationList.add(processId)
-    }
+    fun addProcessToTerminationList   (processId: Int) = _terminationList.add(processId)
+
     @Synchronized
     fun safeRemoveThisProcessFromTerminationList(processId: Int)
-    {
-        if (_terminationList.isEmpty()) return
-
-        try {
-            var position = 0
-            do {
-                position = _terminationList.indexOf(processId)
-                if (position != -1) _terminationList.removeAt(position)
-            } while (position != -1)
-        }
-        catch (e: Exception) {
-            ThreadedTelemetry.LAZY_INSTANCE.log(e.toString())
-        }
-    }
+            = _terminationList.removeAll { it == processId }
 
     @Synchronized
     fun clearAllTermination() = _terminationList.clear()

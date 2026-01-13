@@ -73,6 +73,6 @@ class HardwareThreads private constructor() : DisposableHandle {
         
         EXPANSION.link.addModules(Turret(), Brush())
         ScoringModulesConnector()
-        SortingAutoLogic()
+//        SortingAutoLogic()
     }
 }
