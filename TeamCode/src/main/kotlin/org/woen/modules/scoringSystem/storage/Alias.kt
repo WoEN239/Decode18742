@@ -21,11 +21,6 @@ object Alias
 
 
         val INPUT_ORDER = Configs.SORTING_SETTINGS.PREFERRED_INTAKE_SLOT_SEARCHING_ORDER
-
-
-        val F_IS_FULL = IntakeResult(
-            IntakeResult.FAIL_STORAGE_IS_FULL,
-            IntakeResult.Name.FAIL_STORAGE_IS_FULL)
     }
     object Request
     {

@@ -15,7 +15,7 @@ import org.woen.enumerators.RequestResult
 import org.woen.modules.light.Light
 import org.woen.modules.light.SetLightColorEvent
 
-import org.woen.modules.scoringSystem.turret.StartShootingEvent
+//import org.woen.modules.scoringSystem.turret.StartShootingEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
 
 import org.woen.modules.scoringSystem.storage.Alias.Delay
@@ -33,7 +33,7 @@ import org.woen.telemetry.Configs.DELAY.BETWEEN_SHOTS_MS
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.DO_WAIT_BEFORE_NEXT_SHOT
 
-import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
+//import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
 import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
@@ -50,8 +50,8 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
-import org.woen.telemetry.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
-import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING
+//import org.woen.telemetry.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
+//import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING
 
 
 
@@ -327,9 +327,17 @@ class SortingStorageLogic
         storageCells.hwSortingM.stopBelts()
         storageCells.hwSortingM.openTurretGate()
 
-        EventBusLI.invoke(StartShootingEvent())
-        storageCells.hwSortingM.shootStartBelts()
 
+
+        //!---  The disabled line below is currently broken, and produces unintended behaviour
+        //!---   the program is silently crashing (probably Thread getting killed)
+        //!---  I do not recommend to use it as it is a holding stick
+        //!---   but if really necessary, wait until Turret.kt logic for this event is fixed
+//        EventBusLI.invoke(StartShootingEvent())
+
+
+
+        storageCells.hwSortingM.shootStartBelts()
         delay(beltPushTime)
         storageCells.hwSortingM.pushLastBallFast()
 

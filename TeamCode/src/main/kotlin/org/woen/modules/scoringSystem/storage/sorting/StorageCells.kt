@@ -362,6 +362,7 @@ class StorageCells
     }
     fun storageData() = _storageCells
 
+    @Synchronized
     fun anyBallCount(): Int
     {
         var count = NOTHING
@@ -375,9 +376,15 @@ class StorageCells
 
         return count
     }
+
+    @Synchronized
     fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT
+    @Synchronized
     fun notFullYet()  = anyBallCount() < MAX_BALL_COUNT
+    @Synchronized
     fun onlyOneBallLeft() = anyBallCount() == 1
+
+    @Synchronized
     fun isEmpty(): Boolean
     {
         return _storageCells[StorageSlot.BOTTOM].isEmpty()
@@ -385,6 +392,7 @@ class StorageCells
             && _storageCells[StorageSlot.TURRET].isEmpty()
             && _storageCells[StorageSlot.MOBILE].isEmpty()
     }
+    @Synchronized
     fun isNotEmpty(): Boolean
     {
         return _storageCells[StorageSlot.BOTTOM].isFilled()
@@ -394,19 +402,7 @@ class StorageCells
     }
 
 
-    fun selectedBallCount(ball: Ball.Name): Int
-    {
-        var count = NOTHING
-        var curSlotId = StorageSlot.BOTTOM
-
-        while (curSlotId < STORAGE_SLOT_COUNT)
-        {
-            if (_storageCells[curSlotId].hasBall(ball)) count++
-            curSlotId++
-        }
-
-        return count
-    }
+    @Synchronized
     fun ballCountPGA(): CountPGA
     {
         val intPG     = intArrayOf(NOTHING, NOTHING, NOTHING)

@@ -23,6 +23,7 @@ import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
+//import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 
@@ -69,9 +70,7 @@ import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION
-import org.woen.threading.ThreadManager
-import org.woen.threading.ThreadedGamepad
-import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
+
 
 
 class SortingStorage
@@ -208,44 +207,21 @@ class SortingStorage
     }
     private fun subscribeToGamepadEvents()
     {
-//        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-//            createClickDownListener(
-//                { it.cross }, {
-//
-//                    logM.logMd("WE ARE DYING HEEEEEEELP", LOGIC_STEPS)
-//
-//                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-//
-//                        _storageLogic.storageCells.hwSortingM.openGate()
-//                        _storageLogic.storageCells.hwSortingM.forwardBeltsTime(500)
-//
-//                        delay(100)
-//
-//                        _storageLogic.storageCells.hwSortingM.openPush()
-//                        _storageLogic.storageCells.hwSortingM.closePush()
-//
-//                        delay(100)
-//
-//                        _storageLogic.storageCells.hwSortingM.forwardBeltsTime(500)
-//
-//                }   }
-//        )   )
-
-//        ThreadedGamepad.LAZY_INSTANCE.addListener(
+//        GamepadLI.addGamepad1Listener(
 //            createClickDownListener(
 //                { it.touchpadWasPressed() }, {
 //
-//                    logM.logMd("SSM: Touchpad start 100 rotation test")
+//                    logM.logMd("SSM: Touchpad start 100 rotation test", PROCESS_STARTING)
 //
-//                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//                    SmartCoroutineLI.launch {
 //                        unsafeTestSorting()
 //                }   }
 //        )   )
 //
-//        GamepadLI.addListener(
+//        GamepadLI.addGamepad1Listener(
 //            createClickDownListener({ it.ps }, {
 //
-//                     ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//                    SmartCoroutineLI.launch {
 //
 //                        val pattern = arrayOf(
 //                            BallRequest.Name.PREFER_GREEN,
@@ -253,7 +229,8 @@ class SortingStorage
 //                            BallRequest.Name.PREFER_PURPLE)
 //
 //                        val canInitiate = _storageLogic.canInitiatePredictSort()
-//                        logM.logMd("SSM: initiating result: $canInitiate")
+//                        logM.logMd("SSM: initiating result: $canInitiate",
+//                            PROCESS_STARTING)
 //
 //                        if (canInitiate)
 //                            _storageLogic.safeInitiatePredictSort(pattern)
@@ -280,20 +257,20 @@ class SortingStorage
     {
         if (USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION)
         {
-//            GamepadLI.addListener(
-//            createClickDownListener({ it.triangle }, {
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.triangle }, {
 //
 //                        _storageLogic.dynamicMemoryPattern.resetTemporary()
 //            }   )   )
 //
-//            GamepadLI.addListener(
-//            createClickDownListener({ it.square },   {
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.square }, {
 //
 //                        _storageLogic.dynamicMemoryPattern.addToTemporary()
 //            }   )   )
 //
-//            GamepadLI.addListener(
-//            createClickDownListener({ it.circle },   {
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.circle }, {
 //
 //                        _storageLogic.dynamicMemoryPattern.removeFromTemporary()
 //            }   )   )
@@ -306,7 +283,7 @@ class SortingStorage
 
 
 
-    fun terminateRequest()
+    private fun terminateRequest()
     {
         logM.logMd("attempting request termination", ATTEMPTING_LOGIC)
         val activeRequestProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
@@ -319,7 +296,7 @@ class SortingStorage
             _storageLogic.runStatus.addProcessToTerminationList(activeRequestProcessId)
         }
     }
-    suspend fun terminateIntake()
+    private suspend fun terminateIntake()
     {
         logM.logMd("attempting intake termination", ATTEMPTING_LOGIC)
 

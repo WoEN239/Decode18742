@@ -4,10 +4,11 @@ package org.woen.telemetry
 import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.ceil
+import kotlin.math.atan2
+import kotlin.jvm.JvmField
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-import org.woen.enumerators.BallRequest
 
 import org.woen.enumerators.Shooting
 import org.woen.enumerators.StorageSlot
@@ -17,10 +18,7 @@ import org.woen.utils.units.Angle
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Orientation
 import org.woen.utils.process.RunStatus
-
 import org.woen.utils.regulator.RegulatorParameters
-import kotlin.jvm.JvmField
-import kotlin.math.atan2
 
 
 /*
@@ -699,7 +697,7 @@ object Configs {
         var SSL_MAX_SHOT_AWAITING_MS: Long = 245       //  8.5V configuration
 
         @JvmField
-        var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33333
+        var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33333 / 3
 
 
 
