@@ -12,9 +12,6 @@ import org.woen.enumerators.BallRequest
 import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 
-import org.woen.modules.light.Light
-import org.woen.modules.light.SetLightColorEvent
-
 //import org.woen.modules.scoringSystem.turret.StartShootingEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
 
@@ -43,6 +40,7 @@ import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAG
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SSL_DEBUG_LEVELS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SSL_DEBUG_SETTING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
+import org.woen.telemetry.Configs.DEBUG_LEVELS.RACE_CONDITION
 import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
@@ -69,6 +67,7 @@ class SortingStorageLogic
     val runStatus = RunStatus(PRIORITY_SETTING_FOR_SORTING_STORAGE)
     val logM = LogManager(SSL_DEBUG_SETTING,
         SSL_DEBUG_LEVELS, "SSL")
+
 
 
     fun resetParametersToDefault()
@@ -161,24 +160,21 @@ class SortingStorageLogic
         storageCells.updateAfterIntake(inputBall)
         runningIntakeInstances.getAndAdd(-1)
 
-        if (runningIntakeInstances.get() == 0)
-            EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
-
         return Intake.SUCCESS
     }
 
     private suspend fun intakeRaceConditionIsPresent(processId: Int):  Boolean
     {
-        logM.logMd("CHECKING RACE CONDITION", PROCESS_NAME)
+        logM.logMd("CHECKING RACE CONDITION", RACE_CONDITION)
         if (runStatus.isUsedByAnotherProcess(processId)) return true
 
-        logM.logMd("Currently not busy", GENERIC_INFO)
+        logM.logMd("Currently not busy", RACE_CONDITION)
         runStatus.addProcessToQueue(processId)
         delay(DELAY.INTAKE_RACE_CONDITION_MS)
 
         logM.logMd("Highest processId: " +
                 "${runStatus.getHighestPriorityProcessId()}",
-            GENERIC_INFO)
+            RACE_CONDITION)
         return !runStatus.isThisProcessHighestPriority(processId)
     }
     suspend fun noIntakeRaceConditionProblems(processId: Int): Boolean
@@ -303,6 +299,7 @@ class SortingStorageLogic
         resumeLogicAfterRequest(processId)
         return Request.TERMINATED
     }
+    @Synchronized
     fun isForcedToTerminate(processId: Int)
         = runStatus.isForcedToTerminateThisProcess(processId)
 
@@ -642,11 +639,12 @@ class SortingStorageLogic
 
         logM.logMd("FINISHED resume logic", PROCESS_ENDING)
     }
+    @Synchronized
     fun resumeLogicAfterIntake(processId: Int)
     {
         pleaseWaitForIntakeEnd.set(false)
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
-        runStatus.safeRemoveThisProcessFromTerminationList(processId)
+        runStatus.safeRemoveOnlyOneInstanceOfThisProcessFromQueue(processId)
         runStatus.clearCurrentActiveProcess()
 
         EventBusLI.invoke(FullFinishedIntakeEvent(

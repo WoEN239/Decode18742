@@ -495,6 +495,9 @@ object Configs {
 
         @JvmField
         var UPDATE_AFTER_LAZY_INTAKE = 7
+
+        @JvmField
+        var SORTING_TESTING = 8
     }
 
 
@@ -509,15 +512,16 @@ object Configs {
         val GAMEPAD_FEEDBACK = 3u
         val EVENTS_FEEDBACK  = 4u
 
-        val ATTEMPTING_LOGIC = 5u
-        val PROCESS_STARTING = 6u
-        val PROCESS_ENDING   = 7u
+        val RACE_CONDITION   = 5u
+        val ATTEMPTING_LOGIC = 6u
+        val PROCESS_STARTING = 7u
+        val PROCESS_ENDING   = 8u
 
-        val GENERIC_INFO = 8u
-        val LOGIC_STEPS  = 9u
+        val GENERIC_INFO = 9u
+        val LOGIC_STEPS  = 10u
 
-        val PROCESS_NAME = 10u
-        val TERMINATION  = 11u
+        val PROCESS_NAME = 11u
+        val TERMINATION  = 12u
 
 
 

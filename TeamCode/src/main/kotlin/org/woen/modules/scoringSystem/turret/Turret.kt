@@ -23,7 +23,6 @@ import kotlin.math.abs
 class SetTurretMode(val mode: Turret.TurretMode)
 
 class CurrentlyShooting()
-class TurretCurrentPeaked()
 
 class RequestTurretCurrentRotation(var rotation: Angle = Angle.ZERO) : StoppingEvent
 

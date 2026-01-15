@@ -112,7 +112,7 @@ class SortingAutoLogic
         val waitDuration = ElapsedTime()
         _patternDetectionAttempts.getAndAdd(1)
 
-        while(waitDuration.milliseconds() < MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS)
+        while (waitDuration.milliseconds() < MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS)
         {
             if (_patternWasDetected.get())
             {

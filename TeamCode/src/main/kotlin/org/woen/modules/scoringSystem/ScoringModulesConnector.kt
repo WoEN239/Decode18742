@@ -30,7 +30,6 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
 import org.woen.modules.scoringSystem.turret.CurrentlyShooting
-//import org.woen.modules.scoringSystem.turret.TurretCurrentPeaked
 import org.woen.modules.scoringSystem.turret.SetTurretShootTypeEvent
 
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
@@ -59,15 +58,17 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.SMC_DEBUG_LEVELS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SMC_DEBUG_SETTING
 
 import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
 //import org.woen.telemetry.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
-import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
+import org.woen.telemetry.Configs.DEBUG_LEVELS.RACE_CONDITION
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TELEOP_PATTERN_SHOOTING_MODE
+
 
 
 class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -132,9 +133,9 @@ class ScoringModulesConnector
         }   )
 
 
-//        EventBusLI.subscribe(TurretCurrentPeaked::class, {
+//        EventBusLI.subscribe(OpticDetectedShot::class, {
 //
-//                logM.logMd("RECEIVED - Turret current peaked", EVENTS_FEEDBACK)
+//                logM.logMd("RECEIVED - Optic: Shot fired", EVENTS_FEEDBACK)
 //                _shotWasFired.set(true)
 //        }   )
 
@@ -162,7 +163,7 @@ class ScoringModulesConnector
         GamepadLI.addGamepad1Listener(createClickDownListener(
                 { it.right_trigger > 0.5 }, {
 
-                    logM.logMd("Gamepad try start lazy intake", GAMEPAD_FEEDBACK)
+                    logM.logMd("Gamepad: try start lazy intake", GAMEPAD_FEEDBACK)
                     val startingResult = EventBusLI.invoke(StartLazyIntakeEvent())
 
                     if (startingResult.startingResult) startBrushes()
@@ -174,7 +175,8 @@ class ScoringModulesConnector
                         reverseBrushes(TIME_FOR_BRUSH_REVERSING)
                     }
 
-                    logM.logMd("\ntry start LazyIntake: ${startingResult.startingResult}", PROCESS_STARTING)
+                    logM.logMd("\ntry start LazyIntake: ${startingResult.startingResult}",
+                        ATTEMPTING_LOGIC)
         }   )   )
 
 
@@ -187,7 +189,7 @@ class ScoringModulesConnector
 //
 //                    logM.logMd("\nSTART - PURPLE Intake - GAMEPAD", GAMEPAD_FEEDBACK)
 //                    logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
-//                        GENERIC_INFO)
+//                        RACE_CONDITION)
 //        }   )   )
 //
 //        GamepadLI.addGamepad1Listener(createClickDownListener(
@@ -199,7 +201,7 @@ class ScoringModulesConnector
 //
 //                    logM.logMd("\nSTART - GREEN Intake - GAMEPAD", GAMEPAD_FEEDBACK)
 //                    logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
-//                        GENERIC_INFO)
+//                        RACE_CONDITION)
 //        }   )   )
 
         GamepadLI.addGamepad1Listener(createClickDownListener(
@@ -212,7 +214,7 @@ class ScoringModulesConnector
 
                     logM.logMd("\nSTOP  - INTAKE - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
-                        GENERIC_INFO)
+                        RACE_CONDITION)
         }   )   )
 
 
@@ -227,7 +229,7 @@ class ScoringModulesConnector
 
                     logM.logMd("STOP  - ANY Request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
-                        GENERIC_INFO)
+                        RACE_CONDITION)
         }   )   )
 
         GamepadLI.addGamepad1Listener(createClickDownListener(
@@ -240,7 +242,7 @@ class ScoringModulesConnector
 
                     logM.logMd("\nSTART - STREAM Drum request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
-                        GENERIC_INFO)
+                        RACE_CONDITION)
         }   )   )
 
         GamepadLI.addGamepad1Listener(createClickDownListener(
@@ -253,7 +255,7 @@ class ScoringModulesConnector
 
                     logM.logMd("\nSTART - GPP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
-                        GENERIC_INFO)
+                        RACE_CONDITION)
         }   )   )
         GamepadLI.addGamepad1Listener(createClickDownListener(
                 { it.dpad_up }, {
@@ -265,7 +267,7 @@ class ScoringModulesConnector
 
                     logM.logMd("\nSTART - PGP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
-                        GENERIC_INFO)
+                        RACE_CONDITION)
         }   )   )
 
         GamepadLI.addGamepad1Listener(createClickDownListener(
@@ -278,7 +280,7 @@ class ScoringModulesConnector
 
                     logM.logMd("\nSTART - PPG Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
-                        GENERIC_INFO)
+                        RACE_CONDITION)
         }   )   )
 
 //        GamepadLI.addListener(
@@ -291,7 +293,7 @@ class ScoringModulesConnector
 //                    EventBusLI.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
 //
 //                    logM.logMd("\nSTART - PURPLE Request - GAMEPAD")
-//                    logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+//                    logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}", RACE_CONDITION)
 //        }   )   )
 //
 //        GamepadLI.addListener(
@@ -304,7 +306,7 @@ class ScoringModulesConnector
 //                    EventBusLI.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
 //
 //                    logM.logMd("\nSTART - GREEN Request - GAMEPAD")
-//                    logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}", GENERIC_INFO)
+//                    logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}", RACE_CONDITION)
 //        }   )   )
     }
     private fun resetParametersToDefault()
@@ -321,11 +323,13 @@ class ScoringModulesConnector
 
     private suspend fun startIntakeProcess(inputToBottomSlot: Ball.Name): IntakeResult.Name
     {
+        logM.logMd("Checking race condition before intake", RACE_CONDITION)
         if (isBusy)
         {
             reverseAndThenStartBrushesAfterTimePeriod(
                 TIME_FOR_BRUSH_REVERSING)
 
+            logM.logMd("Intake race condition: IS_BUSY", RACE_CONDITION)
             return Intake.FAIL_IS_BUSY
         }
         _runningIntakeInstances.getAndAdd(1)
@@ -383,6 +387,7 @@ class ScoringModulesConnector
         if (_isAlreadyFiring.get()) return Request.FAIL_IS_BUSY
         _isAlreadyFiring.set(true)
 
+        logM.logMd("Checking race condition before shooting", RACE_CONDITION)
         while (isBusy || _runningIntakeInstances.get() > 0)
         {
             delay(DELAY.EVENT_AWAITING_MS)
@@ -418,6 +423,7 @@ class ScoringModulesConnector
         if (_isAlreadyFiring.get()) return Request.FAIL_IS_BUSY
         _isAlreadyFiring.set(true)
 
+        logM.logMd("Checking race condition before shooting", RACE_CONDITION)
         while (isBusy || _runningIntakeInstances.get() > 0)
             delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
@@ -440,6 +446,7 @@ class ScoringModulesConnector
         if (_isAlreadyFiring.get()) return Request.FAIL_IS_BUSY
         _isAlreadyFiring.set(true)
 
+        logM.logMd("Checking race condition before shooting", RACE_CONDITION)
         while (isBusy || _runningIntakeInstances.get() > 0)
             delay(DELAY.EVENT_AWAITING_MS)
         setBusy()

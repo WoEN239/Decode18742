@@ -23,6 +23,8 @@ import org.woen.utils.regulator.Regulator
 import kotlin.math.PI
 import kotlin.math.abs
 
+
+
 class HardwareTurret :
     IHardwareDevice {
     private lateinit var _motor: DcMotorEx
@@ -40,8 +42,6 @@ class HardwareTurret :
     val currentVelocity: Double
         get() = (_motorVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
 
-    var shotWasFired = false
-        private set
     private var _pulleyMotorAmps = 0.0
 
     private val _regulator = Regulator(Configs.TURRET.PULLEY_REGULATOR)

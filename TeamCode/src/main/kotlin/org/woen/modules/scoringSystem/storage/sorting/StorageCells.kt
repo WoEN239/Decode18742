@@ -34,7 +34,6 @@ import org.woen.telemetry.Configs.SORTING_SETTINGS.MIN_SEQUENCE_SCORE_FOR_PREDIC
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
-import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.SORTING_SETTINGS.INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
 
 
@@ -80,6 +79,7 @@ class StorageCells
         if (notFullYet()) hwSortingM.resumeAwaitingEating()
     }
 
+    @Synchronized
     fun fullEmptyStorageCells()
     {
         _storageCells[StorageSlot.BOTTOM].empty()
@@ -228,11 +228,12 @@ class StorageCells
             curSlot++
         }
     }
+    @Synchronized
     fun updateAfterLazyIntake(inputFromTurretSlotToBottom: Array<Ball.Name>)
     {
         if (inputFromTurretSlotToBottom.size > MAX_BALL_COUNT) return
 
-        var curSlot     = StorageSlot.BOTTOM
+        var    curSlot  = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.TURRET)
         {
             _storageCells[Intake.INPUT_ORDER[curSlot]].set(
@@ -266,6 +267,7 @@ class StorageCells
             rotationTime,
             curSlot == StorageSlot.TURRET)
     }
+    @Synchronized
     fun updateAfterRequest()
     {
         hwSortingM.stopAwaitingEating(true)
@@ -305,6 +307,7 @@ class StorageCells
     }
 
 
+    @Synchronized
     private fun swReAdjustStorage(): Boolean
     {
         logM.logMd("SwReadjust start", PROCESS_STARTING)

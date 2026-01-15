@@ -45,10 +45,9 @@ import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
 
-//import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
-
 import org.woen.telemetry.LogManager
 import org.woen.telemetry.Configs.DELAY
+//import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
@@ -66,6 +65,7 @@ import org.woen.telemetry.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.SINGLE_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
+//import org.woen.telemetry.Configs.PROCESS_ID.SORTING_TESTING
 import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
@@ -213,9 +213,12 @@ class SortingStorage
 //
 //                    logM.logMd("SSM: Touchpad start 100 rotation test", PROCESS_STARTING)
 //
+//                    _storageLogic.runStatus.addProcessToQueue(SORTING_TESTING)
 //                    SmartCoroutineLI.launch {
 //                        unsafeTestSorting()
-//                }   }
+//                    }
+//                    _storageLogic.runStatus.safeRemoveThisProcessIdFromQueue(SORTING_TESTING)
+//                }
 //        )   )
 //
 //        GamepadLI.addGamepad1Listener(
@@ -246,6 +249,18 @@ class SortingStorage
         EventBusLI.subscribe(WaitForTerminateIntakeEvent::class, {
 
                 terminateIntake()
+
+                val activeIntake = _storageLogic.runStatus.getCurrentActiveProcess()
+
+                if (activeIntake == INTAKE || activeIntake == LAZY_INTAKE)
+                {
+                    var timeout: Long = 0
+                    while (_storageLogic.pleaseWaitForIntakeEnd.get() && timeout < 1500)
+                    {
+                        delay(DELAY.EVENT_AWAITING_MS)
+                        timeout += DELAY.EVENT_AWAITING_MS
+                    }
+                }
         }   )
 
         EventBusLI.subscribe(TerminateRequestEvent::class, {
@@ -274,6 +289,31 @@ class SortingStorage
 //
 //                        _storageLogic.dynamicMemoryPattern.removeFromTemporary()
 //            }   )   )
+//
+//
+//
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.dpad_left }, {
+//
+//                        _storageLogic.dynamicMemoryPattern.setPermanent(
+//                            Shooting.StockPattern.Sequence.Request.GPP)
+//            }   )   )
+//
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.dpad_up }, {
+//
+//                        _storageLogic.dynamicMemoryPattern.setPermanent(
+//                            Shooting.StockPattern.Sequence.Request.PGP)
+//            }   )   )
+//
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.dpad_right }, {
+//
+//                        _storageLogic.dynamicMemoryPattern.setPermanent(
+//                            Shooting.StockPattern.Sequence.Request.PPG)
+//            }   )   )
+
+
             logM.logMd("Init settings: USE SECOND DRIVER", GAMEPAD_FEEDBACK)
         }
         else logM.logMd("Init settings: DON'T use second driver", GAMEPAD_FEEDBACK)
@@ -296,7 +336,7 @@ class SortingStorage
             _storageLogic.runStatus.addProcessToTerminationList(activeRequestProcessId)
         }
     }
-    private suspend fun terminateIntake()
+    private fun terminateIntake()
     {
         logM.logMd("attempting intake termination", ATTEMPTING_LOGIC)
 
@@ -309,18 +349,14 @@ class SortingStorage
             logM.logMd("\n\tTerminating all intakes", LOGIC_STEPS)
 
             if (!_storageLogic.pleaseWaitForIntakeEnd.get())
-                _storageLogic.runStatus
+                 _storageLogic.runStatus
                     .addProcessToTerminationList(activeProcessId)
-
-            while (_storageLogic.runStatus
-                    .isUsedByThisProcess(activeProcessId))
-                delay(DELAY.EVENT_AWAITING_MS)
         }
     }
 
 //    fun unsafeTestSorting()
 //    {
-//        val fill = arrayOf(Ball.Name.PURPLE, Ball.Name.GREEN, Ball.Name.PURPLE)
+//        val fill = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
 //        _storageLogic.storageCells.safeUpdateAfterLazyIntake(fill)
 //
 //        SmartCoroutineLI.launch {
@@ -381,7 +417,10 @@ class SortingStorage
             val intakeResult = _storageLogic.safeSortIntake(inputBall)
 
             if (_storageLogic.runningIntakeInstances.get() == 0)
+            {
                 _storageLogic.resumeLogicAfterIntake(INTAKE)
+                EventBusLI.invoke(SetLightColorEvent(LightColor.BLUE))
+            }
             return intakeResult
         }
 
