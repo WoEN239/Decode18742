@@ -467,11 +467,16 @@ object Configs {
     internal object PROCESS_ID {
 
         @JvmField
-        var PRIORITY_SETTING_FOR_SORTING_STORAGE = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
+        var PRIORITY_SETTING_FOR_SORTING_STORAGE   = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
+        @JvmField
+        var PRIORITY_SETTING_FOR_SCORING_CONNECTOR = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
 
 
         @JvmField
         var UNDEFINED_PROCESS_ID = 0
+
+        @JvmField
+        var IDLE = 0
 
 
         @JvmField
@@ -481,23 +486,27 @@ object Configs {
         var LAZY_INTAKE = 2
 
         @JvmField
-        var DRUM_REQUEST = 3
-
-        @JvmField
-        var SINGLE_REQUEST = 4
+        var RUNNING_INTAKE_INSTANCE = 3
 
 
         @JvmField
-        var PREDICT_SORT = 5
+        var DRUM_REQUEST = 4
 
         @JvmField
-        var STORAGE_CALIBRATION = 6
+        var SINGLE_REQUEST = 5
+
 
         @JvmField
-        var UPDATE_AFTER_LAZY_INTAKE = 7
+        var PREDICT_SORT = 6
 
         @JvmField
-        var SORTING_TESTING = 8
+        var STORAGE_CALIBRATION = 7
+
+        @JvmField
+        var UPDATE_AFTER_LAZY_INTAKE = 8
+
+        @JvmField
+        var SORTING_TESTING = 9
     }
 
 

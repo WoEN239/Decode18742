@@ -23,6 +23,7 @@ import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
 
+//import org.woen.utils.process.RunStatus
 import org.woen.telemetry.LogManager
 import org.woen.telemetry.Configs.DELAY
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
@@ -65,8 +66,10 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.RACE_CONDITION
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS
+//import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SCORING_CONNECTOR
+
 import org.woen.telemetry.Configs.SORTING_SETTINGS.TELEOP_PATTERN_SHOOTING_MODE
+import org.woen.telemetry.Configs.SORTING_SETTINGS.SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS
 
 
 
@@ -76,7 +79,8 @@ class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
 
 class ScoringModulesConnector
 {
-    private val _storage = SortingStorage()
+    private val _storage   = SortingStorage()
+//    private val _runStatus = RunStatus(PRIORITY_SETTING_FOR_SCORING_CONNECTOR)
     val logM = LogManager(SMC_DEBUG_SETTING, SMC_DEBUG_LEVELS, "SMC")
 
 

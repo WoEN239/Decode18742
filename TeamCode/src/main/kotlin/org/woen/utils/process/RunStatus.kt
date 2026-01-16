@@ -64,11 +64,14 @@ class RunStatus
     @Synchronized
     fun isUsedByAnyProcess() = !_processQueue.isEmpty()
     @Synchronized
-    fun isUsedByThisProcess(targetProcessId: Int)
-            = _processQueue.contains(targetProcessId)
+    fun isUsedByThisProcess(processId: Int)
+            = _processQueue.contains(processId)
     @Synchronized
-    fun isUsedByAnotherProcess(exceptionProcessId: Int)
-            = _processQueue.any { it != exceptionProcessId }
+    fun isUsedByAnotherProcess(vararg exceptionProcessesId: Int): Boolean
+            = _processQueue.any { it !in exceptionProcessesId }
+    @Synchronized
+    fun countOfThisProcess(processId: Int)
+            = _processQueue.count { it == processId }
 
 
 
@@ -169,8 +172,8 @@ class RunStatus
     fun addProcessToTerminationList   (processId: Int) = _terminationList.add(processId)
 
     @Synchronized
-    fun safeRemoveThisProcessFromTerminationList(processId: Int)
-            = _terminationList.removeAll { it == processId }
+    fun safeRemoveThisProcessFromTerminationList(vararg processId: Int)
+            = _terminationList.removeAll { it in processId }
 
     @Synchronized
     fun clearAllTermination() = _terminationList.clear()

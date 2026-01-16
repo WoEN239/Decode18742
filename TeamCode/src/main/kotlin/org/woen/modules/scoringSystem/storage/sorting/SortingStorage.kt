@@ -65,6 +65,7 @@ import org.woen.telemetry.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.SINGLE_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
+import org.woen.telemetry.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
 //import org.woen.telemetry.Configs.PROCESS_ID.SORTING_TESTING
 import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
@@ -153,8 +154,7 @@ class SortingStorage
         }   )
         EventBusLI.subscribe(StopLazyIntakeEvent::class, {
 
-                EventBusLI.invoke(SetLightColorEvent(LightColor.BLUE))
-                _storageLogic.lazyIntakeIsActive.set(false)
+                stopLazyIntake()
         }   )
 
         EventBusLI.subscribe(StorageUpdateAfterLazyIntakeEvent::class, {
@@ -244,23 +244,22 @@ class SortingStorage
     {
         EventBusLI.subscribe(TerminateIntakeEvent::class, {
 
-                terminateIntake()
+                it.stoppingResult = terminateIntake()
         }   )
         EventBusLI.subscribe(WaitForTerminateIntakeEvent::class, {
 
-                terminateIntake()
+                var successfullyTerminated: Boolean
+                var timeout: Long = 0
 
-                val activeIntake = _storageLogic.runStatus.getCurrentActiveProcess()
-
-                if (activeIntake == INTAKE || activeIntake == LAZY_INTAKE)
+                do
                 {
-                    var timeout: Long = 0
-                    while (_storageLogic.pleaseWaitForIntakeEnd.get() && timeout < 1500)
-                    {
-                        delay(DELAY.EVENT_AWAITING_MS)
-                        timeout += DELAY.EVENT_AWAITING_MS
-                    }
+                    successfullyTerminated = terminateIntake()
+                    delay(DELAY.EVENT_AWAITING_MS)
+                    timeout += DELAY.EVENT_AWAITING_MS
                 }
+                while (!successfullyTerminated && timeout < 1500)
+
+                it.stoppingResult = successfullyTerminated
         }   )
 
         EventBusLI.subscribe(TerminateRequestEvent::class, {
@@ -336,7 +335,7 @@ class SortingStorage
             _storageLogic.runStatus.addProcessToTerminationList(activeRequestProcessId)
         }
     }
-    private fun terminateIntake()
+    private fun terminateIntake(): Boolean
     {
         logM.logMd("attempting intake termination", ATTEMPTING_LOGIC)
 
@@ -348,10 +347,17 @@ class SortingStorage
         {
             logM.logMd("\n\tTerminating all intakes", LOGIC_STEPS)
 
-            if (!_storageLogic.pleaseWaitForIntakeEnd.get())
-                 _storageLogic.runStatus
+            if (!_storageLogic.runStatus.isUsedByThisProcess(
+                    RUNNING_INTAKE_INSTANCE))
+            {
+                _storageLogic.runStatus
                     .addProcessToTerminationList(activeProcessId)
+
+                return true
+            }
+            else return false
         }
+        else return true
     }
 
 //    fun unsafeTestSorting()
@@ -375,30 +381,26 @@ class SortingStorage
 
 
 
-    private suspend fun startLazyIntake()
+    private fun startLazyIntake()
     {
         logM.logMd("Started LazyIntake", PROCESS_STARTING)
 
         EventBusLI.invoke(SetLightColorEvent(LightColor.ORANGE))
 
         _storageLogic.runStatus.setCurrentActiveProcess(LAZY_INTAKE)
-        _storageLogic.lazyIntakeIsActive.set(true)
 
         _storageLogic.storageCells.hwSortingM.slowStartBelts()
-
-        while (_storageLogic.lazyIntakeIsActive.get())
+    }
+    private fun stopLazyIntake()
+    {
+        if (_storageLogic.runStatus.isUsedByThisProcess(
+                LAZY_INTAKE))
         {
-            delay(DELAY.EVENT_AWAITING_MS)
-
-            if (_storageLogic.isForcedToTerminate(LAZY_INTAKE))
-                _storageLogic.terminateIntake(LAZY_INTAKE)
+            logM.logMd("Stopping LazyIntake", PROCESS_STARTING)
+            _storageLogic.storageCells.hwSortingM.stopBelts()
+            _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
+            EventBusLI.invoke(SetLightColorEvent(LightColor.BLUE))
         }
-
-        _storageLogic.storageCells.hwSortingM.stopBelts()
-        _storageLogic.lazyIntakeIsActive.set(false)
-
-        logM.logMd("Stopped LazyIntake", PROCESS_ENDING)
-        _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
     }
 
 
@@ -407,26 +409,17 @@ class SortingStorage
     {
         if (_storageLogic.storageCells.alreadyFull()) return Intake.FAIL_IS_FULL
 
-        if (_storageLogic.noIntakeRaceConditionProblems(INTAKE))
+        if (_storageLogic.noIntakeRaceConditionProblems(INTAKE,
+                INTAKE, RUNNING_INTAKE_INSTANCE))
         {
             _storageLogic.runStatus.setCurrentActiveProcess(INTAKE)
-
-            if (_storageLogic.isForcedToTerminate(INTAKE))
-                return _storageLogic.terminateIntake(INTAKE)
-
             val intakeResult = _storageLogic.safeSortIntake(inputBall)
 
-            if (_storageLogic.runningIntakeInstances.get() == 0)
-            {
-                _storageLogic.resumeLogicAfterIntake(INTAKE)
-                EventBusLI.invoke(SetLightColorEvent(LightColor.BLUE))
-            }
+            _storageLogic.resumeLogicAfterIntake(INTAKE)
             return intakeResult
         }
 
-        if (_storageLogic.runningIntakeInstances.get() == 0)
-            _storageLogic.resumeLogicAfterIntake(INTAKE)
-
+        _storageLogic.resumeLogicAfterIntake(INTAKE)
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
     suspend fun handleRequest(request: BallRequest.Name):  RequestResult.Name
