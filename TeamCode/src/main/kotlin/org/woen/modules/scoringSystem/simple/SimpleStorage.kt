@@ -3,7 +3,6 @@ package org.woen.modules.scoringSystem.simple
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.woen.enumerators.Shooting.ShotType
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.DriveTrain
@@ -22,9 +21,13 @@ import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedServo
 import org.woen.utils.process.Process
 
+
+
 data class SimpleShootEvent(val process: Process = Process())
 class TerminateSimpleShootEvent()
 class StopBeltEvent()
+
+
 
 class SimpleStorage : IModule {
     private val _hardwareStorage = HardwareSimpleStorage()
@@ -64,7 +67,7 @@ class SimpleStorage : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
             _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                ThreadedEventBus.LAZY_INSTANCE.invoke(ShotType.DRUM)
+//                ThreadedEventBus.LAZY_INSTANCE.invoke(ShotType.DRUM)
 
                 val process =
                     ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process

@@ -30,7 +30,7 @@ import org.woen.telemetry.Configs.DELAY.BETWEEN_SHOTS_MS
 
 import org.woen.telemetry.Configs.SORTING_SETTINGS.DO_WAIT_BEFORE_NEXT_SHOT
 
-//import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
+import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
 import org.woen.telemetry.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
 import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
 import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
@@ -48,8 +48,8 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
-//import org.woen.telemetry.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
-//import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING
+import org.woen.telemetry.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
+import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING
 
 
 
@@ -395,36 +395,36 @@ class SortingStorageLogic
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = true): RequestResult.Name
     {
-//        var isNowPerfectlySorted = isNowPerfectlySorted
-//        var shootingResult  = Request.COLOR_NOT_PRESENT
-//        var curRequestId    = NOTHING
-//
-//        while (curRequestId < trimmedRequestSize)
-//        {
-//            if (isForcedToTerminate(DRUM_REQUEST))
-//                return Request.TERMINATED
-//
-//            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
-//                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
-//                isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
-//
-//            if (isNowPerfectlySorted)
-//            {
-//                lazyStreamDrumRequest(storageCells.anyBallCount())
-                lazyStreamDrumRequest(2)
+        var isNowPerfectlySorted = isNowPerfectlySorted
+        var shootingResult  = Request.COLOR_NOT_PRESENT
+        var curRequestId    = NOTHING
+
+        while (curRequestId < trimmedRequestSize)
+        {
+            if (isForcedToTerminate(DRUM_REQUEST))
+                return Request.TERMINATED
+
+            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
+                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
+                isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
+
+            if (isNowPerfectlySorted)
+            {
+                lazyStreamDrumRequest(storageCells.anyBallCount())
+//                lazyStreamDrumRequest(2)
                 return Request.SUCCESS_NOW_EMPTY
-//            }
-//
-//
-//            val requestResult = storageCells.handleRequest(requested[curRequestId])
-//
-//            shootingResult = shootRequestFinalPhase(
-//                requestResult, DRUM_REQUEST,
-//                autoUpdatePatternWhenSucceed)
-//
-//            curRequestId++
-//        }
-//        return shootingResult
+            }
+
+
+            val requestResult = storageCells.handleRequest(requested[curRequestId])
+
+            shootingResult = shootRequestFinalPhase(
+                requestResult, DRUM_REQUEST,
+                autoUpdatePatternWhenSucceed)
+
+            curRequestId++
+        }
+        return shootingResult
     }
 
 
@@ -478,40 +478,40 @@ class SortingStorageLogic
         isNowPerfectlySorted:         Boolean = false,
         autoUpdatePatternWhenSucceed: Boolean = true): RequestResult.Name
     {
-//        var isNowPerfectlySorted = isNowPerfectlySorted
-//        var shootingResult  = defaultError
-//        var curRequestId    = NOTHING
-//
-//        while (curRequestId < trimmedRequestSize)
-//        {
-//            if (isForcedToTerminate(DRUM_REQUEST))
-//                return Request.TERMINATED
-//
-//            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
-//                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
-//                isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
-//
-//            if (isNowPerfectlySorted)
-//            {
-//                lazyStreamDrumRequest(storageCells.anyBallCount())
-                lazyStreamDrumRequest(2)
+        var isNowPerfectlySorted = isNowPerfectlySorted
+        var shootingResult  = defaultError
+        var curRequestId    = NOTHING
+
+        while (curRequestId < trimmedRequestSize)
+        {
+            if (isForcedToTerminate(DRUM_REQUEST))
+                return Request.TERMINATED
+
+            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
+                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
+                isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
+
+            if (isNowPerfectlySorted)
+            {
+                lazyStreamDrumRequest(storageCells.anyBallCount())
+//                lazyStreamDrumRequest(2)
                 return Request.SUCCESS_NOW_EMPTY
-//            }
-//
-//
-//            val requestResult = storageCells.handleRequest(requested[curRequestId])
-//
-//            shootingResult = shootRequestFinalPhase(
-//                requestResult, DRUM_REQUEST,
-//                autoUpdatePatternWhenSucceed)
-//
-//
-//            if (Request.wasTerminated(shootingResult)) return Request.TERMINATED
-//            if (Request.didFail(      shootingResult)) return defaultError
-//
-//            curRequestId++
-//        }
-//        return shootingResult
+            }
+
+
+            val requestResult = storageCells.handleRequest(requested[curRequestId])
+
+            shootingResult = shootRequestFinalPhase(
+                requestResult, DRUM_REQUEST,
+                autoUpdatePatternWhenSucceed)
+
+
+            if (Request.wasTerminated(shootingResult)) return Request.TERMINATED
+            if (Request.didFail(      shootingResult)) return defaultError
+
+            curRequestId++
+        }
+        return shootingResult
     }
 
 

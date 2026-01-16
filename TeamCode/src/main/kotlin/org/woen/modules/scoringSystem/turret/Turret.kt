@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.woen.enumerators.Shooting.ShotType
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.RequireOdometryEvent
@@ -25,8 +24,6 @@ class SetTurretMode(val mode: Turret.TurretMode)
 class CurrentlyShooting()
 
 class RequestTurretCurrentRotation(var rotation: Angle = Angle.ZERO) : StoppingEvent
-
-class SetTurretShootTypeEvent(val type: ShotType)
 
 class SetRotateStateEvent(val rotateState: Turret.RotateState)
 
@@ -62,8 +59,6 @@ class Turret : IModule {
     private var _currentTurretState = TurretState.STOP
 
     private var _currentMode = TurretMode.SHORT
-
-    private var _currentShootType = ShotType.DRUM
 
     private var _isRotateZeroed = false
     private var _currentRotateState = RotateState.CONSTANT

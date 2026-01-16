@@ -15,30 +15,37 @@ class DynamicPattern
 
 
 
+    @Synchronized
     fun fullReset()
     {
         _permanentPattern = arrayOf()
         _temporaryPattern = arrayListOf()
     }
+    @Synchronized
     fun setPermanent(permanent: Array<BallRequest.Name>)
     {
         _permanentPattern = permanent.copyOf()
     }
 
+    @Synchronized
     fun resetTemporary() = _temporaryPattern.clear()
+    @Synchronized
     fun setTemporary(temporary: ArrayList<BallRequest.Name>)
     {
         _temporaryPattern = ArrayList(temporary)
     }
+    @Synchronized
     fun setTemporary(temporary: Array<BallRequest.Name>)
     {
         _temporaryPattern = ArrayList(temporary.toList())
     }
+    @Synchronized
     fun removeFromTemporary()
     {
         if (_temporaryPattern.isNotEmpty())
             _temporaryPattern.removeAt(0)
     }
+    @Synchronized
     fun addToTemporary()
     {
         val tempCount = _temporaryPattern.size
