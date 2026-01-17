@@ -125,7 +125,7 @@ class HwSortingManager
                 logM.logMd("BELTS - Initiating current protection", HARDWARE_HIGH)
 
                 if (USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS)
-                    EventBusLI.invoke(WaitForTerminateIntakeEvent())
+//                    EventBusLI.invoke(WaitForTerminateIntakeEvent())
 
                 if (SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION)
                 {

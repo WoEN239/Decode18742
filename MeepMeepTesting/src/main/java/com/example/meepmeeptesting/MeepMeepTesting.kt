@@ -49,7 +49,7 @@ object MeepMeepTesting {
                 .meterStrafeTo(Vector2d(-0.314, -1.4))
                 .waitSeconds(5.0)
                 .setReversed(true)
-                .meterSplineToLinearHeading(Pose2d(0.0, -1.4, PI), -PI / 2.0)
+                .meterStrafeTo(Vector2d(0.0, -1.4))
                 .waitSeconds(50.0)
                 .meterStrafeTo(Vector2d(-0.314, -1.4))
 //                .meterStrafeToLinearHeading(

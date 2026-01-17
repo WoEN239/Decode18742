@@ -1023,10 +1023,10 @@ class ActionRunner private constructor() : DisposableHandle {
         }
 
 
-        EventBusLI.subscribe(FullFinishedFiringEvent::class, {
-            ThreadedTelemetry.LAZY_INSTANCE.log("I RECEIVED FIRING EVENT")
-            _doneShooting.set(true)
-        })
+//        EventBusLI.subscribe(FullFinishedFiringEvent::class, {
+//            ThreadedTelemetry.LAZY_INSTANCE.log("I RECEIVED FIRING EVENT")
+//            _doneShooting.set(true)
+//        })
 //        EventBusLI.subscribe(FullFinishedIntakeEvent::class, {
 //            _ballsInStorage.set(it.ballCountInStorage)
 //        })
@@ -1034,9 +1034,9 @@ class ActionRunner private constructor() : DisposableHandle {
             _pattern.setPermanent(it.pattern.subsequence)
             _patternWasDetected.set(true)
         })
-        EventBusLI.subscribe(StorageFinishedPredictSortEvent::class, {
-            _sortingIsFinished.set(true)
-        })
+//        EventBusLI.subscribe(StorageFinishedPredictSortEvent::class, {
+//            _sortingIsFinished.set(true)
+//        })
 
         HotRun.LAZY_INSTANCE.opModeStopEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)

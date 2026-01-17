@@ -52,9 +52,9 @@ class Regulator(val parameters: RegulatorParameters) {
         if (err * _errOld < 0.0f && parameters.resetI)
             resetIntegral()
 
-        val volts = ThreadedBattery.LAZY_INSTANCE.currentVoltage
-
         val limitU = parameters.limitU
+
+        val volts = if(limitU < 0.0) ThreadedBattery.LAZY_INSTANCE.currentVoltage else 0.0
 
         if (
             (limitU > 0.0 && u < limitU && u > -limitU) ||

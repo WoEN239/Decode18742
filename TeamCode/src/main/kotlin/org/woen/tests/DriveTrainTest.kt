@@ -34,6 +34,7 @@ class DriveTrainTest : LinearOpMode() {
 
         leftForwardDrive.direction = DcMotorSimple.Direction.REVERSE
         leftBackDrive.direction = DcMotorSimple.Direction.REVERSE
+        rightBackDrive.direction = DcMotorSimple.Direction.REVERSE
 
         while (!isStarted()) {
             if (gamepad1.left_bumper || gamepad1.square || gamepad1.right_bumper || gamepad1.circle ||
