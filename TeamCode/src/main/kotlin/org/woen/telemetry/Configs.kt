@@ -248,38 +248,14 @@ object Configs {
         @JvmField
         var PULLEY_REGULATOR = RegulatorParameters(kP = 0.012, kF = 0.0035)
 
-        @JvmField
-        var PULLEY_TARGET_SENS = 0.4
-
-        @JvmField
-        var PULLEY_TARGET_TIMER = 0.1
-
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, -3.66 / 2.0 + 0.25)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, -3.66 / 2.0 + 0.1)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, 3.66 / 2.0 - 0.25)
-
-//        @JvmField
-//        var TURRET_HEIGHT = 0.32
-//
-//        @JvmField
-//        var BALL_MASS = 0.075
-//
-//        @JvmField
-//        var BASKET_TARGET_HEIGHT = 1.16
-//
-//        @JvmField
-//        var TIME_STEP = 0.05
-//
-//        @JvmField
-//        var CALCULATING_G = 9.78
-//
-//        @JvmField
-//        var APPROXIMATION_MAX_ITERATIONS = 100
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, 3.66 / 2.0 - 0.1)
 
         @JvmField
         var MIN_TURRET_ANGLE_SERVO = 0.25
@@ -293,65 +269,23 @@ object Configs {
         @JvmField
         var MAX_TURRET_ANGLE = PI / 2.0 - atan2(7.0, 16.0)
 
-//        @JvmField
-//        var PULLEY_SOLO_U = 0.345
-//
-//        @JvmField
-//        var SOLO_AIR_FORCE_K = 0.0
-//
-//        @JvmField
-//        var PULLEY_DRUM_U = 0.328
-//
-//        @JvmField
-//        var DRUM_AIR_FORCE_K = 0.0
-
-        @JvmField
-        var TURRET_SHOOT_POS = Vec2(0.0, 0.06)
-
         @JvmField
         var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.115)
 
         @JvmField
-        var TURRET_SHOOT_DETECT_CURRENT: Double = 3.7
+        var ZERO_ROTATE_POS = PI / 2.0
 
         @JvmField
-        var SHOOT_TRIGGER_DELAY = 0.007
-//
-//        @JvmField
-//        var MINIMAL_PULLEY_VELOCITY = 5.0
-//
-//        @JvmField
-//        var MAX_MOTOR_RPS = 85.0
+        var ROTATE_SERVO_RATIO = (30.0 / 18.0) * (60.0 / 120.0)
 
         @JvmField
-        var ZERO_ROTATE_POS = 1.0 - 0.663
+        var ROTATE_SERVO_REGULATOR = RegulatorParameters(kP = 0.2, kD = 0.00005, kPow = 0.0001, limitU = 1.0)
 
         @JvmField
-        var ZEROING_TIME = 1.0
+        var MAX_ROTATE = PI / 2.0
 
         @JvmField
-        var ROTATE_SERVO_RATIO = (25.0 / 20.0) * (40.0 / 110.0)
-
-        @JvmField
-        var ROTATE_SERVO_TURNS = PI * 2.0 * 5.0
-
-        @JvmField
-        var ROTATE_ENCODER_RATIO = 40.0 / 110.0
-
-        @JvmField
-        var ENCODER_TICKS_IN_REVOLUTION = 8192.0
-
-        @JvmField
-        var MAX_ROTATE = ((1.0 - 0.54) - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
-
-        @JvmField
-        var MIN_ROTATE = ((1.0 - 0.74) - ZERO_ROTATE_POS) * ROTATE_SERVO_TURNS * ROTATE_SERVO_RATIO
-
-        @JvmField
-        var DRIVE_ROTATE_WINDOW = Math.toRadians(15.0)
-//
-//        @JvmField
-//        var MAX_SHOOTING_DISTANCE = 3.0
+        var MIN_ROTATE = -PI / 2.0
 
         @JvmField
         var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.783, 0.742), Angle.ofDeg(135.0))
@@ -360,28 +294,19 @@ object Configs {
         var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.783, -0.742), Angle.ofDeg(-135.0))
 
         @JvmField
-        var SHOOTING_ANGLE_MIN_POSITION = 0.3
-
-        @JvmField
-        var SHOOTING_ANGLE_MAX_POSITION = (1.0 - 0.37)
-
-        @JvmField
-        var SHOOTING_SINGLE_PULLEY_VELOCITY = 5.0
-
-        @JvmField
-        var ROTATE_SENS = Math.toRadians(10.0)
-
-        @JvmField
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
 
         @JvmField
-        var SHOOTING_DRUM_MIN_PULLEY_VELOCITY = 14.5
+        var GRAVITY_G = 9.80665
 
         @JvmField
-        var SHOOTING_DRUM_MAX_PULLEY_VELOCITY = 19.0
+        var SCORE_HEIGHT = 1.0
 
         @JvmField
-        var KOST_K = 1.0
+        var TURRET_HEIGHT = 0.2
+
+        @JvmField
+        var SCORE_ANGLE = Math.toRadians(-30.0)
     }
 
     @Config

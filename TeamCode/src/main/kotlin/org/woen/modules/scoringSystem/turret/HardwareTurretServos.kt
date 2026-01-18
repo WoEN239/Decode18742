@@ -7,19 +7,20 @@ import com.qualcomm.robotcore.hardware.Servo
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
+import org.woen.utils.drivers.InfinityAxon
 
-class HardwareTurretServos: IHardwareDevice {
+class HardwareTurretServos : IHardwareDevice {
     private lateinit var _angleSevo: Servo
-    private lateinit var _rotateServo: Servo
+    private lateinit var _rotateServo: InfinityAxon
 
-    var rawAnglePosition = 0.0
+    private var _rawAnglePosition = 0.0
 
     var anglePosition: Double
-        get() = (rawAnglePosition - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) /
+        get() = (_rawAnglePosition - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) /
                 (Configs.TURRET.MAX_TURRET_ANGLE_SERVO - Configs.TURRET.MIN_TURRET_ANGLE_SERVO) *
                 (Configs.TURRET.MAX_TURRET_ANGLE - Configs.TURRET.MIN_TURRET_ANGLE) + Configs.TURRET.MIN_TURRET_ANGLE
         set(value) {
-            rawAnglePosition = (clamp(
+            _rawAnglePosition = (clamp(
                 value, Configs.TURRET.MIN_TURRET_ANGLE, Configs.TURRET.MAX_TURRET_ANGLE
             )
                     - Configs.TURRET.MIN_TURRET_ANGLE) /
@@ -28,49 +29,51 @@ class HardwareTurretServos: IHardwareDevice {
                     Configs.TURRET.MIN_TURRET_ANGLE_SERVO
         }
 
-    var rawRotatePosition = 0.0
-
-    var targetRotatePosition: Double
-        get() =
-            (rawRotatePosition - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_TURNS * Configs.TURRET.ROTATE_SERVO_RATIO
+    var targetRotatePosition
+        get() = (_rotateServo.targetPosition - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_RATIO
         set(value) {
-            rawRotatePosition = clamp(
-                value, Configs.TURRET.MIN_ROTATE,
-                Configs.TURRET.MAX_ROTATE
-            ) / Configs.TURRET.ROTATE_SERVO_RATIO / Configs.TURRET.ROTATE_SERVO_TURNS +
-                    Configs.TURRET.ZERO_ROTATE_POS
+            _rotateServo.targetPosition =
+                (clamp(value, Configs.TURRET.MIN_ROTATE, Configs.TURRET.MAX_ROTATE)
+                        + Configs.TURRET.ZERO_ROTATE_POS) / Configs.TURRET.ROTATE_SERVO_RATIO
         }
 
+    val rotateAtTarget
+        get() = _rotateServo.atTarget
+
+    val currentRotatePosition
+        get() = (_rotateServo.position - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_RATIO
+
     override fun update() {
-        _angleSevo.position = rawAnglePosition
-        _rotateServo.position = rawRotatePosition
+        _angleSevo.position = _rawAnglePosition
+
+        _rotateServo.update()
     }
 
     override fun init(hardwareMap: HardwareMap) {
         _angleSevo = hardwareMap.get("turretAngleServo") as Servo
-
-        _rotateServo = hardwareMap.get("turretRotateServo") as Servo
+        _rotateServo = InfinityAxon(
+            "rotateServo",
+            "rotateEncoder",
+            hardwareMap,
+            regulator = Configs.TURRET.ROTATE_SERVO_REGULATOR
+        )
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
-            (_rotateServo as PwmControl).pwmRange = PwmControl.PwmRange(500.0, 2500.0)
-
-            _rotateServo.direction = Servo.Direction.REVERSE
-
             _angleSevo.direction = Servo.Direction.REVERSE
+            _rotateServo.init()
+            (_angleSevo as PwmControl).pwmRange = PwmControl.PwmRange(500.0, 2500.0)
         }
-
-        targetRotatePosition = 0.0
     }
 
     override fun opModeStart() {
-        
+        _rotateServo.start()
     }
 
     override fun opModeStop() {
-        
+
     }
 
     override fun dispose() {
-        
+
     }
 }
