@@ -27,8 +27,8 @@ import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 
-import org.woen.modules.scoringSystem.turret.CurrentlyShooting
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
+import org.woen.modules.scoringSystem.storage.OdometryIsAlignedForShootingEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
 
@@ -107,7 +107,7 @@ class SortingStorage
                 _storageLogic.shotWasFired.set(true)
         }   )
 
-        EventBusLI.subscribe(CurrentlyShooting::class, {
+        EventBusLI.subscribe(OdometryIsAlignedForShootingEvent::class, {
                 _storageLogic.canShoot.set(true)
         }   )
 

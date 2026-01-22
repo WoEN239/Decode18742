@@ -30,11 +30,10 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
-import org.woen.modules.scoringSystem.turret.CurrentlyShooting
-
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
+import org.woen.modules.scoringSystem.storage.OdometryIsAlignedForShootingEvent
 
 //import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
@@ -488,7 +487,7 @@ class ScoringModulesConnector
         logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
 
 
-        EventBusLI.invoke(CurrentlyShooting())
+        EventBusLI.invoke(OdometryIsAlignedForShootingEvent())
         _currentlyShooting.set(false)
         _requestWasTerminated.set(false)
 

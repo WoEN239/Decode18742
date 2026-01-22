@@ -9,6 +9,9 @@ import org.woen.threading.StoppingEvent
 
 
 
+class OdometryIsAlignedForShootingEvent()
+
+
 class StorageGiveSingleRequest(
     var ballRequest: BallRequest.Name)
 class StorageGiveStreamDrumRequest()
