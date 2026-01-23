@@ -248,6 +248,12 @@ object Configs {
         @JvmField
         var PULLEY_REGULATOR = RegulatorParameters(kP = 0.012, kF = 0.0035)
 
+        @JvmField
+        var REGULATOR_SENS = 0.5
+
+        @JvmField
+        var TARGET_TIMER = 0.1
+
         @EventConfig
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 

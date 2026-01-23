@@ -11,6 +11,7 @@ import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.regulator.Regulator
 import kotlin.math.PI
+import kotlin.math.abs
 
 
 class HardwareTurret :
@@ -40,6 +41,11 @@ class HardwareTurret :
 
     private var _pulleyU = 0.0
 
+    private val _targetTimer = ElapsedTime()
+
+    var pulleyAtTarget = false
+        private set
+
     override fun update() {
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
@@ -51,6 +57,13 @@ class HardwareTurret :
         _oldMotorPosition = currentMotorPosition
 
         val err = _targetTicksVelocity - _motorVelocity
+
+        if(abs(err) > Configs.TURRET.REGULATOR_SENS)
+            pulleyAtTarget = _targetTimer.seconds() > Configs.TURRET.TARGET_TIMER
+        else {
+            _targetTimer.reset()
+            pulleyAtTarget = false
+        }
 
         _pulleyU = _regulator.update(
             err,
@@ -84,6 +97,7 @@ class HardwareTurret :
         _velocityFilter.start()
         _regulator.start()
         _regulator.resetIntegral()
+        _targetTimer.reset()
 
         _oldMotorPosition = 0.0
 

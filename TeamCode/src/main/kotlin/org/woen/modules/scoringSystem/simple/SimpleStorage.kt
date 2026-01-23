@@ -10,7 +10,7 @@ import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
 import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
-import org.woen.modules.scoringSystem.turret.StartShootingEvent
+import org.woen.modules.scoringSystem.turret.WaitRotateAtTarget
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
@@ -67,10 +67,9 @@ class SimpleStorage : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
             _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-//                ThreadedEventBus.LAZY_INSTANCE.invoke(ShotType.DRUM)
-
-                val process =
+                val driveProcess =
                     ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
+                val aimProcess = ThreadedEventBus.LAZY_INSTANCE.invoke(WaitRotateAtTarget()).process
 
                 _isShooting = true
 
@@ -82,14 +81,11 @@ class SimpleStorage : IModule {
 
                 _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 
-//                ThreadedEventBus.LAZY_INSTANCE.invoke(WaitTurretAtTarget()).process.wait()
-
                 while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)
 
-                process.wait()
-
-                ThreadedEventBus.LAZY_INSTANCE.invoke(StartShootingEvent())
+                driveProcess.wait()
+                aimProcess.wait()
 
                 _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.SHOOT
 

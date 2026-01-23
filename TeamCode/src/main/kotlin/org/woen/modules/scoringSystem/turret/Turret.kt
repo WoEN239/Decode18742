@@ -2,6 +2,7 @@ package org.woen.modules.scoringSystem.turret
 
 
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
@@ -11,6 +12,7 @@ import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
+import org.woen.utils.process.Process
 import org.woen.utils.units.Angle
 import kotlin.math.atan
 import kotlin.math.cos
@@ -26,7 +28,14 @@ class SetRotateStateEvent(val rotateState: Turret.RotateState)
 
 class RequestRotateStateEvent(var state: Turret.RotateState) : StoppingEvent
 
-class RequestRotateOnTarget(var onTarget: Boolean = false) : StoppingEvent
+data class RequestTurretAtTarget(var atTarget: Boolean = false): StoppingEvent
+data class WaitTurretAtTarget(val process: Process = Process())
+
+data class RequestPulleyAtTarget(var atTarget: Boolean = false): StoppingEvent
+data class WaitPulleyAtTarget(val process: Process = Process())
+
+data class RequestRotateAtTarget(var atTarget: Boolean = false): StoppingEvent
+data class WaitRotateAtTarget(val process: Process = Process())
 
 class Turret : IModule {
     private val _hardwareTurret = HardwareTurret()
@@ -131,8 +140,37 @@ class Turret : IModule {
             it.state = _currentRotateState
         })
 
-        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestRotateOnTarget::class, {
-            it.onTarget = _hardwareTurretServos.rotateAtTarget
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretAtTarget::class, {
+            it.atTarget = _hardwareTurret.pulleyAtTarget && _hardwareTurretServos.rotateAtTarget
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitTurretAtTarget::class, {
+            while (!_hardwareTurret.pulleyAtTarget || !_hardwareTurretServos.rotateAtTarget)
+                delay(5)
+
+            it.process.close()
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestRotateAtTarget::class, {
+            it.atTarget = _hardwareTurretServos.rotateAtTarget
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitRotateAtTarget::class, {
+            while (!_hardwareTurretServos.rotateAtTarget)
+                delay(5)
+
+            it.process.wait()
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestPulleyAtTarget::class, {
+            it.atTarget = _hardwareTurret.pulleyAtTarget
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitPulleyAtTarget::class, {
+            while (!_hardwareTurret.pulleyAtTarget)
+                delay(5)
+
+            it.process.close()
         })
     }
 }

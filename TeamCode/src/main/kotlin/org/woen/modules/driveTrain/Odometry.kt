@@ -3,7 +3,6 @@ package org.woen.modules.driveTrain
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
-import org.woen.modules.scoringSystem.turret.SetTurretMode
 import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
@@ -85,12 +84,6 @@ class Odometry : IModule {
 
             val shortLocate = checkToLocate(Configs.DRIVE_TRAIN.SHOOT_SHORT_TRIANGLE)
             val longLocate = checkToLocate(Configs.DRIVE_TRAIN.SHOOT_LONG_TRIANGLE)
-
-            if(shortLocate)
-                ThreadedEventBus.LAZY_INSTANCE.invoke(SetTurretMode(Turret.TurretMode.SHORT))
-
-            if(longLocate)
-                ThreadedEventBus.LAZY_INSTANCE.invoke(SetTurretMode(Turret.TurretMode.LONG))
 
             val locate = shortLocate || longLocate
 
