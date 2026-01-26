@@ -58,9 +58,9 @@ def is_ramp_below(frame,ball_x1,ball_x2,ball_y1,ball_y2,color):
     return False
 
 
-match_thresh = 0.3
-min_area = 1000
-max_area = 4000
+match_thresh = 1
+min_area = 500
+max_area = 5000
 
 # for example our team is red
 cv2.namedWindow(f"RESULT",cv2.WINDOW_NORMAL)
@@ -72,10 +72,10 @@ for i in range(12):
     coords = []
     
     for j in range(5):
-        for k in range(3):
-            green_thresh_low_rt = (50,20,200-j*25)
+        for k in range(4):
+            green_thresh_low_rt = (50,20,150-j*25)
             green_thresh_high_rt = (90,255,255)
-            purple_thresh_low_rt = (120,20,200-j*25)
+            purple_thresh_low_rt = (120,20,150-j*25)
             purple_thresh_high_rt = (160,255,255)
 
             green_mask = cv2.inRange(frame_hsv, green_thresh_low_rt, green_thresh_high_rt)
@@ -84,11 +84,11 @@ for i in range(12):
             combined_mask = cv2.bitwise_or(green_mask, purple_mask)
 
             kernel = np.ones((4,4), np.uint8)
-            combined_mask_eroded = cv2.erode(combined_mask, kernel, iterations=1+k)
-            combined_mask_eroded_dilated = cv2.dilate(combined_mask_eroded, kernel, iterations=1)
-            combined_mask_eroded_dilated_opened = cv2.morphologyEx(combined_mask_eroded_dilated, cv2.MORPH_OPEN, kernel)
+            combined_mask_opened = cv2.morphologyEx(combined_mask,cv2.MORPH_OPEN,kernel,iterations=3)
+            combined_mask_opened_eroded = cv2.erode(combined_mask_opened,kernel,iterations=4-k)
 
-            contours,_ = cv2.findContours(combined_mask_eroded_dilated_opened,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+            combined_mask_processed = combined_mask_opened_eroded
+            contours,_ = cv2.findContours(combined_mask_processed,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
             for contour in contours:
                 match = compare_contours(contour)

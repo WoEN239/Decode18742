@@ -4,7 +4,7 @@ import json
 
 contours_list = []
 
-for i in range(148):
+for i in range(94):
     frame_orig = cv2.imread(f"ball_mask{i+1}.png")
     frame_gray = cv2.cvtColor(frame_orig, cv2.COLOR_BGR2GRAY)
     _, frame_binary = cv2.threshold(frame_gray, 127, 255, cv2.CHAIN_APPROX_SIMPLE)
