@@ -8,7 +8,15 @@ path = "contours_data.json"
 with open(path, "r") as f:
     contours_data = json.load(f)
 
-contours_data = [[np.array(cnt) for cnt in sublist] for sublist in contours_data]
+# Convert lists back to numpy arrays in correct OpenCV format
+converted_data = []
+for frame in contours_data:
+    frame_contours = []
+    for contour_set in frame:
+        converted_set = [np.array(cnt, dtype=np.int32) for cnt in contour_set]
+        frame_contours.extend(converted_set)
+    converted_data.append(frame_contours)
+contours_data = converted_data
 
 RED = 0
 BLUE = 1
@@ -28,8 +36,8 @@ purple_thresh_high = (150,255,255)
 def compare_contours(contour):
     global contours_data
     best_match = float('inf')
-    for sublist in contours_data:
-        for stored_contour in sublist:
+    for frame_contours in contours_data:
+        for stored_contour in frame_contours:
             match = cv2.matchShapes(contour, stored_contour, cv2.CONTOURS_MATCH_I1, 0.0)
             if match < best_match:
                 best_match = match
@@ -60,7 +68,7 @@ def is_ramp_below(frame,ball_x1,ball_x2,ball_y1,ball_y2,color):
 
 match_thresh = 1
 min_area = 500
-max_area = 5000
+max_area = 2500
 
 # for example our team is red
 cv2.namedWindow(f"RESULT",cv2.WINDOW_NORMAL)
@@ -71,25 +79,25 @@ for i in range(12):
 
     coords = []
     
-    for j in range(5):
-        for k in range(4):
-            green_thresh_low_rt = (50,20,150-j*25)
-            green_thresh_high_rt = (90,255,255)
-            purple_thresh_low_rt = (120,20,150-j*25)
-            purple_thresh_high_rt = (160,255,255)
-
+    for j in range(3):
+        green_thresh_low_rt = (50,20,170-j*25)
+        green_thresh_high_rt = (90,255,255)
+        purple_thresh_low_rt = (120,20,170-j*25)
+        purple_thresh_high_rt = (160,255,255)
+        for k in range(2): 
             green_mask = cv2.inRange(frame_hsv, green_thresh_low_rt, green_thresh_high_rt)
             purple_mask = cv2.inRange(frame_hsv, purple_thresh_low_rt, purple_thresh_high_rt)
 
             combined_mask = cv2.bitwise_or(green_mask, purple_mask)
 
             kernel = np.ones((4,4), np.uint8)
-            combined_mask_opened = cv2.morphologyEx(combined_mask,cv2.MORPH_OPEN,kernel,iterations=3)
-            combined_mask_opened_eroded = cv2.erode(combined_mask_opened,kernel,iterations=4-k)
+            combined_mask_opened = cv2.morphologyEx(combined_mask,cv2.MORPH_OPEN,kernel,iterations=2)
+            combined_mask_opened_eroded = cv2.erode(combined_mask_opened,kernel,iterations=2-k)
 
             combined_mask_processed = combined_mask_opened_eroded
-            contours,_ = cv2.findContours(combined_mask_processed,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
+            contours,_ = cv2.findContours(combined_mask_processed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                
             for contour in contours:
                 match = compare_contours(contour)
                 if cv2.contourArea(contour) > min_area and cv2.contourArea(contour) < max_area and match < match_thresh:

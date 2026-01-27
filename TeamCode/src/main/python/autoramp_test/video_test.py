@@ -75,7 +75,7 @@ while True:
 
     coords = []
     
-    for j in range(3):
+    for j in range(2):
         for u in range(3):
             green_thresh_low_rt = (50,20,140-j*25)
             green_thresh_high_rt = (90,255,255)
@@ -128,8 +128,10 @@ while True:
         cv2.putText(frame,str(k+1),(result_coords[k][0],result_coords[k][1]-10),cv2.FONT_HERSHEY_SIMPLEX,0.9,(0,255,0),2)
 
     cv2.putText(frame, str(len(result_coords)) + " balls in ramp", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    cv2.imshow(f"RESULT",frame)  
-    cv2.waitKey(0)
+    cv2.imshow(f"RESULT",frame)
+    
+    if cv2.waitKey(1) == "q":
+        break
 
 cap.release()
 cv2.destroyAllWindows()
