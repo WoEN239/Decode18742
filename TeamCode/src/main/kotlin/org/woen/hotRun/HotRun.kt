@@ -48,6 +48,7 @@ class HotRun private constructor() {
             ThreadedGamepad.restart()
             ThreadedBattery.restart()
             HardwareThreads.restart()
+            RobotState.restart()
         }
     }
 

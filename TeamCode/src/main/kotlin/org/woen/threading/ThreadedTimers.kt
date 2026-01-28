@@ -5,13 +5,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.woen.hotRun.HotRun
 import org.woen.utils.smartMutex.SmartMutex
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
-class ThreadedTimers private constructor() : DisposableHandle {
+class ThreadedTimers: DisposableHandle {
     companion object {
         private var _nullableInstance: ThreadedTimers? = null
 
@@ -99,5 +101,11 @@ class ThreadedTimers private constructor() : DisposableHandle {
 
     override fun dispose() {
         _timersExecutor.shutdown()
+    }
+
+    private constructor(){
+        HotRun.LAZY_INSTANCE.opModeStopEvent += {
+            _timersCoroutineScope.cancel()
+        }
     }
 }
