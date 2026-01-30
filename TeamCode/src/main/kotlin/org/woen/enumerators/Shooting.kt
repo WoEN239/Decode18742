@@ -48,6 +48,40 @@ class Shooting
                     BallRequest.Name.PURPLE,
                     BallRequest.Name.PURPLE,
                     BallRequest.Name.GREEN)
+
+                object Name
+                {
+                    val STREAM = arrayOf(
+                        BallRequest.Name.ANY_CLOSEST,
+                        BallRequest.Name.ANY_CLOSEST,
+                        BallRequest.Name.ANY_CLOSEST)
+                    val EMPTY = arrayOf(
+                        BallRequest.Name.NONE,
+                        BallRequest.Name.NONE,
+                        BallRequest.Name.NONE)
+
+                    val PPP = arrayOf(
+                        BallRequest.Name.PURPLE,
+                        BallRequest.Name.PURPLE,
+                        BallRequest.Name.PURPLE)
+                    val GGG = arrayOf(
+                        BallRequest.Name.GREEN,
+                        BallRequest.Name.GREEN,
+                        BallRequest.Name.GREEN)
+
+                    val GPP = arrayOf(
+                        BallRequest.Name.GREEN,
+                        BallRequest.Name.PURPLE,
+                        BallRequest.Name.PURPLE)
+                    val PGP = arrayOf(
+                        BallRequest.Name.PURPLE,
+                        BallRequest.Name.GREEN,
+                        BallRequest.Name.PURPLE)
+                    val PPG = arrayOf(
+                        BallRequest.Name.PURPLE,
+                        BallRequest.Name.PURPLE,
+                        BallRequest.Name.GREEN)
+                }
             }
 
 
@@ -90,6 +124,40 @@ class Shooting
                     Ball(Ball.PURPLE, Ball.Name.PURPLE),
                     Ball(Ball.PURPLE, Ball.Name.PURPLE),
                     Ball(Ball.NONE,   Ball.Name.NONE))
+
+                object Name
+                {
+                    val STREAM = arrayOf(
+                        Ball.Name.UNKNOWN_COLOR,
+                        Ball.Name.UNKNOWN_COLOR,
+                        Ball.Name.UNKNOWN_COLOR)
+                    val EMPTY = arrayOf(
+                        Ball.Name.NONE,
+                        Ball.Name.NONE,
+                        Ball.Name.NONE)
+
+                    val PPP = arrayOf(
+                        Ball.Name.PURPLE,
+                        Ball.Name.PURPLE,
+                        Ball.Name.PURPLE)
+                    val GGG = arrayOf(
+                        Ball.Name.GREEN,
+                        Ball.Name.GREEN,
+                        Ball.Name.GREEN)
+
+                    val GPP = arrayOf(
+                        Ball.Name.GREEN,
+                        Ball.Name.PURPLE,
+                        Ball.Name.PURPLE)
+                    val PGP = arrayOf(
+                        Ball.Name.PURPLE,
+                        Ball.Name.GREEN,
+                        Ball.Name.PURPLE)
+                    val PPG = arrayOf(
+                        Ball.Name.PURPLE,
+                        Ball.Name.PURPLE,
+                        Ball.Name.GREEN)
+                }
             }
         }
 

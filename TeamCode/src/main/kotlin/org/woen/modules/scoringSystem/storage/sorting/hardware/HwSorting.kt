@@ -43,7 +43,7 @@ import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO
 import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.SORTING_STORAGE_BELT_MOTORS
+import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.STORAGE_BELT_MOTOR
 
 
 
@@ -83,7 +83,7 @@ class HwSorting : IHardwareDevice
 
     override fun init(hardwareMap : HardwareMap)
     {
-        _beltMotors = MotorOnly(hardwareMap.get(SORTING_STORAGE_BELT_MOTORS) as DcMotorEx)
+        _beltMotors = MotorOnly(hardwareMap.get(STORAGE_BELT_MOTOR) as DcMotorEx)
     }
 
 

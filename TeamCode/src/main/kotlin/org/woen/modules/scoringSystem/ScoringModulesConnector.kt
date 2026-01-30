@@ -52,6 +52,7 @@ import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
+import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SMC_DEBUG_LEVELS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.SMC_DEBUG_SETTING
@@ -205,6 +206,18 @@ class ScoringModulesConnector
 //                    logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}",
 //                        RACE_CONDITION)
 //        }   )   )
+
+        GamepadLI.addGamepad1Listener(createClickDownListener(
+            { it.square }, {
+
+                EventBusLI.invoke(StorageUpdateAfterLazyIntakeEvent(
+                        Shooting
+                            .StockPattern
+                            .Sequence
+                            .Storage
+                            .Name.GPP
+                    )   )
+        }   )   )
 
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.left_trigger > 0.5 }, {

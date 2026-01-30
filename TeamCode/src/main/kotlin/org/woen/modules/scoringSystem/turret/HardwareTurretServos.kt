@@ -52,8 +52,8 @@ class HardwareTurretServos : IHardwareDevice {
     override fun init(hardwareMap: HardwareMap) {
         _angleSevo = hardwareMap.get("turretAngleServo") as Servo
         _rotateServo = InfinityAxon(
-            "rotateServo",
-            "rotateEncoder",
+            "turretRotateServo",
+            "turretRotateEncoder",
             hardwareMap,
             regulator = Configs.TURRET.ROTATE_SERVO_REGULATOR
         )

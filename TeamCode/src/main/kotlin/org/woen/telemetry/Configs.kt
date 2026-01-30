@@ -213,7 +213,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = true
+        var CAMERA_ENABLE = false
 
         @JvmField
         var CAMERA_H_RED_DOWN = 4.0
@@ -762,19 +762,19 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO_OPEN_VALUE = 0.38
+        var GATE_SERVO_OPEN_VALUE = 0.355
         @JvmField
-        var GATE_SERVO_CLOSE_VALUE = 0.765
+        var GATE_SERVO_CLOSE_VALUE = 0.78
 
         @JvmField
-        var PUSH_SERVO_OPEN_VALUE = 0.58
+        var PUSH_SERVO_OPEN_VALUE = 0.31
         @JvmField
-        var PUSH_SERVO_CLOSE_VALUE = 0.84
+        var PUSH_SERVO_CLOSE_VALUE = 0.545
 
         @JvmField
-        var LAUNCH_SERVO_OPEN_VALUE = 0.33
+        var LAUNCH_SERVO_OPEN_VALUE = 0.58
         @JvmField
-        var LAUNCH_SERVO_CLOSE_VALUE = 0.7
+        var LAUNCH_SERVO_CLOSE_VALUE = 0.96
 
 
 
@@ -815,7 +815,7 @@ object Configs {
 
 
         @JvmField
-        var SORTING_STORAGE_BELT_MOTORS = "beltMotors"
+        var STORAGE_BELT_MOTOR = "beltMotor"
 
 
         @JvmField
