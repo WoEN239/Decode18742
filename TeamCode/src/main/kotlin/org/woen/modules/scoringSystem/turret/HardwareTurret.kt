@@ -2,6 +2,7 @@ package org.woen.modules.scoringSystem.turret
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.telemetry.Configs
@@ -77,6 +78,7 @@ class HardwareTurret :
 
     override fun init(hardwareMap: HardwareMap) {
         _motor = hardwareMap.get("pulleyMotor") as DcMotorEx
+        _motor.direction = DcMotorSimple.Direction.REVERSE
 
         Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.onSet += {
             _velocityFilter.coef = it

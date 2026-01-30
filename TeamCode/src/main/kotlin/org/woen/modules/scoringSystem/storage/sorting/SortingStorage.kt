@@ -342,7 +342,7 @@ class SortingStorage
         val activeProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
         _storageLogic.lazyIntakeIsActive.set(false)
 
-        if (activeProcessId == LAZY_INTAKE &&
+        if (activeProcessId == LAZY_INTAKE ||
             activeProcessId == INTAKE)
         {
             logM.logMd("\n\tTerminating all intakes", LOGIC_STEPS)
@@ -352,6 +352,8 @@ class SortingStorage
             {
                 _storageLogic.runStatus
                     .addProcessToTerminationList(activeProcessId)
+
+                stopLazyIntake()
 
                 return true
             }

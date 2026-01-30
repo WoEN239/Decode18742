@@ -65,6 +65,7 @@ import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.RACE_CONDITION
+import org.woen.telemetry.Configs.DRIVE_TRAIN.DRIVE_TO_SHOOTING_ZONE
 
 //import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SCORING_CONNECTOR
 
@@ -441,8 +442,9 @@ class ScoringModulesConnector
             delay(DELAY.EVENT_AWAITING_MS)
         setBusy()
 
-        EventBusLI.invoke(SetDriveModeEvent(
-            DriveMode.SHOOTING)).process.wait()
+        if (DRIVE_TO_SHOOTING_ZONE)
+            EventBusLI.invoke(SetDriveModeEvent(
+                DriveMode.SHOOTING)).process.wait()
 
         logM.logMd("Started  - StreamDrum request", PROCESS_STARTING)
         val requestResult = _storage.streamDrumRequest()
@@ -478,16 +480,19 @@ class ScoringModulesConnector
         logM.logMd("Starting Drivetrain rotation", PROCESS_STARTING)
 
 
-        val drivingToSHootingZone = EventBusLI.invoke(
-                SetDriveModeEvent(
-                    DriveMode.SHOOTING)).process
-
-        do
+        if (DRIVE_TO_SHOOTING_ZONE)
         {
-            delay(DELAY.EVENT_AWAITING_MS)
-            val nowInShootingZone = drivingToSHootingZone.closed.get()
+            val drivingToShootingZone = EventBusLI.invoke(
+                SetDriveModeEvent(DriveMode.SHOOTING)
+            ).process
+
+            do
+            {
+                delay(DELAY.EVENT_AWAITING_MS)
+                val nowInShootingZone = drivingToShootingZone.closed.get()
+            }
+            while (!nowInShootingZone && !terminateRequest)
         }
-        while (!nowInShootingZone && !terminateRequest)
 
         if (terminateRequest)
         {

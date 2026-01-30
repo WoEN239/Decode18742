@@ -111,6 +111,9 @@ object Configs {
     @Config
     internal object DRIVE_TRAIN {
         @JvmField
+        var DRIVE_TO_SHOOTING_ZONE = false
+
+        @JvmField
         var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 1.0, kP = 12.0)
 
         @JvmField
@@ -762,9 +765,9 @@ object Configs {
 
 
         @JvmField
-        var GATE_SERVO_OPEN_VALUE = 0.355
+        var GATE_SERVO_OPEN_VALUE = 0.78
         @JvmField
-        var GATE_SERVO_CLOSE_VALUE = 0.78
+        var GATE_SERVO_CLOSE_VALUE = 0.355
 
         @JvmField
         var PUSH_SERVO_OPEN_VALUE = 0.31
@@ -779,18 +782,18 @@ object Configs {
 
 
         @JvmField
-        var BELT_POWER_FAST_MODE = 8.0
+        var BELT_POWER_FAST_MODE = 11.0
 
         @JvmField
-        var BELT_POWER_SLOW_MODE = 8.0
+        var BELT_POWER_SLOW_MODE = 10.0
         @JvmField
-        var BELT_POWER_SHOOT_MODE = 9.2
+        var BELT_POWER_SHOOT_MODE = 11.0
 
         @JvmField
-        var TURRET_GATE_SERVO_OPEN_VALUE = 0.775
+        var TURRET_GATE_SERVO_OPEN_VALUE = 0.7
 
         @JvmField
-        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.601
+        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.36
     }
 
 
