@@ -1,6 +1,7 @@
 package org.woen.modules.scoringSystem.turret
 
 
+import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -78,38 +79,45 @@ class Turret : IModule {
                 }
             ).angle
 
-            val y = Configs.TURRET.SCORE_HEIGHT - Configs.TURRET.TURRET_HEIGHT
-            val x = basketErr.length()
+            val sl = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.SHORT_POINT).length()
+            val ll = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.LONG_POINT).length()
 
-            val alpha = atan((2 * y / x) - tan(Configs.TURRET.SCORE_ANGLE))
+            val l = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - odometry.odometryOrientation.pos).length()
 
-            val v0 =
-                sqrt((Configs.TURRET.GRAVITY_G * x.pow(2)) / (2 * cos(alpha).pow(2) * (x * tan(alpha) - y)))
-
-            val t = x / (v0 * cos(alpha))
-
-            val robotGlobalVelocity =
-                odometry.odometryVelocity.turn(odometry.odometryOrientation.angle)
-
-            val robotV = robotGlobalVelocity.length()
-            val difH = robotGlobalVelocity.rot() - basketErr.rot()
-
-            val vR = -cos(difH) * robotV
-            val vT = sin(difH) * robotV
-
-            val vxComp = x / t + vR
-
-            val vXNew = sqrt(vxComp.pow(2) + vT.pow(2))
-            val vY = v0 * sin(alpha)
-
-            val newX = vXNew * t
-
-            _hardwareTurretServos.anglePosition = atan(vY / vXNew)
-            _hardwareTurret.targetVelocity = sqrt(
-                (Configs.TURRET.GRAVITY_G * newX.pow(2)) / (2.0 * cos(_hardwareTurretServos.anglePosition)
-                    .pow(2)
-                        * (newX * tan(_hardwareTurretServos.anglePosition) - y))
-            ) / Configs.TURRET.PULLEY_U
+            _hardwareTurret.targetVelocity = (clamp(l, sl, ll) - sl)
+//
+//            val y = Configs.TURRET.SCORE_HEIGHT - Configs.TURRET.TURRET_HEIGHT
+//            val x = basketErr.length()
+//
+//            val alpha = atan((2 * y / x) - tan(Configs.TURRET.SCORE_ANGLE))
+//
+//            val v0 =
+//                sqrt((Configs.TURRET.GRAVITY_G * x.pow(2)) / (2 * cos(alpha).pow(2) * (x * tan(alpha) - y)))
+//
+//            val t = x / (v0 * cos(alpha))
+//
+//            val robotGlobalVelocity =
+//                odometry.odometryVelocity.turn(odometry.odometryOrientation.angle)
+//
+//            val robotV = robotGlobalVelocity.length()
+//            val difH = robotGlobalVelocity.rot() - basketErr.rot()
+//
+//            val vR = -cos(difH) * robotV
+//            val vT = sin(difH) * robotV
+//
+//            val vxComp = x / t + vR
+//
+//            val vXNew = sqrt(vxComp.pow(2) + vT.pow(2))
+//            val vY = v0 * sin(alpha)
+//
+//            val newX = vXNew * t
+//
+//            _hardwareTurretServos.anglePosition = atan(vY / vXNew)
+//            _hardwareTurret.targetVelocity = sqrt(
+//                (Configs.TURRET.GRAVITY_G * newX.pow(2)) / (2.0 * cos(_hardwareTurretServos.anglePosition)
+//                    .pow(2)
+//                        * (newX * tan(_hardwareTurretServos.anglePosition) - y))
+//            ) / Configs.TURRET.PULLEY_U
         }
     }
 
