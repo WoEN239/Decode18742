@@ -44,7 +44,7 @@ class HardwareTurretServos : IHardwareDevice {
         get() = (_rotateServo.position - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_RATIO
 
     override fun update() {
-        _angleSevo.position = _rawAnglePosition
+//        _angleSevo.position = _rawAnglePosition
 
         _rotateServo.update()
     }

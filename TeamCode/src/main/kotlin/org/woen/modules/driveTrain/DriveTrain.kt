@@ -162,7 +162,7 @@ class DriveTrain : IModule {
                             lx
                         ).turn(
                             if (currentRunColor == HotRun.RunColor.BLUE) (_currentRobotRotation * -1.0 -
-                                    Angle.ofDeg(90.0)).angle
+                                    Angle.ofDeg(180.0)).angle
                             else
                                 (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle
                         ) * /* Vec2(if (_currentMode == DriveMode.SHOOTING)*/ Vec2(Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY/* else 1.0*/),

@@ -1,6 +1,7 @@
 package org.woen.modules.scoringSystem.turret
 
 
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -8,6 +9,7 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.RequireOdometryEvent
 import org.woen.telemetry.Configs
+import org.woen.tests.PULLEY_TEST_CONFIG
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -39,7 +41,7 @@ data class WaitRotateAtTarget(val process: Process = Process())
 
 class Turret : IModule {
     private val _hardwareTurret = HardwareTurret()
-//    private val _hardwareTurretServos = HardwareTurretServos()
+    private val _hardwareTurretServos = HardwareTurretServos()
 
     enum class RotateState {
         TO_BASKET,
@@ -51,15 +53,20 @@ class Turret : IModule {
 
     private var _currentRotateState = RotateState.CONSTANT
 
+    private val _timer = ElapsedTime()
+
     override suspend fun process() {
         _turretJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
 
-            val basketErr =
-                HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
-                    odometry.odometryOrientation.angle
-                ))
+            //_hardwareTurret.targetVelocity = (sin(_timer.seconds() / 2.0) / 2.0 + 0.5) * 20.0
+            _hardwareTurret.targetVelocity = PULLEY_TEST_CONFIG.TARGET
 
+//            val basketErr =
+//                HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
+//                    odometry.odometryOrientation.angle
+//                ))
+//
 //            _hardwareTurretServos.targetRotatePosition = Angle(
 //                when (_currentRotateState) {
 //                    RotateState.TO_BASKET ->
@@ -73,33 +80,33 @@ class Turret : IModule {
 //                            - odometry.odometryOrientation.angle)
 //                }
 //            ).angle
-
-            val y = Configs.TURRET.SCORE_HEIGHT - Configs.TURRET.TURRET_HEIGHT
-            val x = basketErr.length()
-
-            val alpha = atan((2 * y / x) - tan(Configs.TURRET.SCORE_ANGLE))
-
-            val v0 =
-                sqrt((Configs.TURRET.GRAVITY_G * x.pow(2)) / (2 * cos(alpha).pow(2) * (x * tan(alpha) - y)))
-
-            val t = x / (v0 * cos(alpha))
-
-            val robotGlobalVelocity =
-                odometry.odometryVelocity.turn(odometry.odometryOrientation.angle)
-
-            val robotV = robotGlobalVelocity.length()
-            val difH = robotGlobalVelocity.rot() - basketErr.rot()
-
-            val vR = -cos(difH) * robotV
-            val vT = sin(difH) * robotV
-
-            val vxComp = x / t + vR
-
-            val vXNew = sqrt(vxComp.pow(2) + vT.pow(2))
-            val vY = v0 * sin(alpha)
-
-            val newX = vXNew * t
-
+//
+//            val y = Configs.TURRET.SCORE_HEIGHT - Configs.TURRET.TURRET_HEIGHT
+//            val x = basketErr.length()
+//
+//            val alpha = atan((2 * y / x) - tan(Configs.TURRET.SCORE_ANGLE))
+//
+//            val v0 =
+//                sqrt((Configs.TURRET.GRAVITY_G * x.pow(2)) / (2 * cos(alpha).pow(2) * (x * tan(alpha) - y)))
+//
+//            val t = x / (v0 * cos(alpha))
+//
+//            val robotGlobalVelocity =
+//                odometry.odometryVelocity.turn(odometry.odometryOrientation.angle)
+//
+//            val robotV = robotGlobalVelocity.length()
+//            val difH = robotGlobalVelocity.rot() - basketErr.rot()
+//
+//            val vR = -cos(difH) * robotV
+//            val vT = sin(difH) * robotV
+//
+//            val vxComp = x / t + vR
+//
+//            val vXNew = sqrt(vxComp.pow(2) + vT.pow(2))
+//            val vY = v0 * sin(alpha)
+//
+//            val newX = vXNew * t
+//
 //            _hardwareTurretServos.anglePosition = atan(vY / vXNew)
 //            _hardwareTurret.targetVelocity = sqrt(
 //                (Configs.TURRET.GRAVITY_G * newX.pow(2)) / (2.0 * cos(_hardwareTurretServos.anglePosition)
@@ -114,6 +121,8 @@ class Turret : IModule {
 
     override fun opModeStart() {
         _currentRotateState = RotateState.CONSTANT
+
+        _timer.reset()
     }
 
     override fun opModeStop() {
@@ -126,11 +135,11 @@ class Turret : IModule {
 
     constructor() {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareTurret)
-//        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareTurretServos)
-//
-//        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretCurrentRotation::class, {
-//            it.rotation = Angle(_hardwareTurretServos.currentRotatePosition)
-//        })
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareTurretServos)
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretCurrentRotation::class, {
+            it.rotation = Angle(_hardwareTurretServos.currentRotatePosition)
+        })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetRotateStateEvent::class, {
             _currentRotateState = it.rotateState
@@ -140,27 +149,27 @@ class Turret : IModule {
             it.state = _currentRotateState
         })
 
-//        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretAtTarget::class, {
-//            it.atTarget = _hardwareTurret.pulleyAtTarget && _hardwareTurretServos.rotateAtTarget
-//        })
-//
-//        ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitTurretAtTarget::class, {
-//            while (!_hardwareTurret.pulleyAtTarget || !_hardwareTurretServos.rotateAtTarget)
-//                delay(5)
-//
-//            it.process.close()
-//        })
-//
-//        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestRotateAtTarget::class, {
-//            it.atTarget = _hardwareTurretServos.rotateAtTarget
-//        })
-//
-//        ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitRotateAtTarget::class, {
-//            while (!_hardwareTurretServos.rotateAtTarget)
-//                delay(5)
-//
-//            it.process.wait()
-//        })
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretAtTarget::class, {
+            it.atTarget = _hardwareTurret.pulleyAtTarget && _hardwareTurretServos.rotateAtTarget
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitTurretAtTarget::class, {
+            while (!_hardwareTurret.pulleyAtTarget || !_hardwareTurretServos.rotateAtTarget)
+                delay(5)
+
+            it.process.close()
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestRotateAtTarget::class, {
+            it.atTarget = _hardwareTurretServos.rotateAtTarget
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitRotateAtTarget::class, {
+            while (!_hardwareTurretServos.rotateAtTarget)
+                delay(5)
+
+            it.process.wait()
+        })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestPulleyAtTarget::class, {
             it.atTarget = _hardwareTurret.pulleyAtTarget

@@ -18,8 +18,8 @@ class PinpointTest : LinearOpMode() {
 
         pinpoint.setEncoderResolution(OdometryComputer.GoBildaOdometryPods.goBILDA_4_BAR_POD)
         pinpoint.setEncoderDirections(
-            OdometryComputer.EncoderDirection.REVERSED,
-            OdometryComputer.EncoderDirection.REVERSED
+            OdometryComputer.EncoderDirection.FORWARD,
+            OdometryComputer.EncoderDirection.FORWARD
         )
         pinpoint.setOffsets(Configs.ODOMETRY.X_ODOMETER_POSITION, Configs.ODOMETRY.Y_ODOMETER_POSITION,
             DistanceUnit.METER)

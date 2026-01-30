@@ -102,10 +102,10 @@ object Configs {
         var START_BLUE_FAR_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI))
 
         @JvmField
-        var X_ODOMETER_POSITION = 0.0919
+        var X_ODOMETER_POSITION = -0.0995
 
         @JvmField
-        var Y_ODOMETER_POSITION = -0.1404
+        var Y_ODOMETER_POSITION = -0.0895
     }
 
     @Config
@@ -249,7 +249,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.012, kF = 0.0035)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.01, kF = 0.003/*, limitU = 12.0*/)
 
         @JvmField
         var REGULATOR_SENS = 0.5
@@ -316,6 +316,9 @@ object Configs {
 
         @JvmField
         var SCORE_ANGLE = Math.toRadians(-30.0)
+
+        @JvmField
+        var PULLEY_RATION = 30.0 / 40.0
     }
 
     @Config
@@ -851,6 +854,9 @@ object Configs {
 
         @JvmField
         var PUSH_TIME = 0.5
+
+        @JvmField
+        var COLOR_THRESHOLD = 70.0
     }
 
     @Config

@@ -6,13 +6,11 @@ import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.DriveTrain
-import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
 import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.modules.scoringSystem.turret.WaitRotateAtTarget
 import org.woen.telemetry.Configs
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -22,15 +20,14 @@ import org.woen.threading.hardware.ThreadedServo
 import org.woen.utils.process.Process
 
 
-
 data class SimpleShootEvent(val process: Process = Process())
 class TerminateSimpleShootEvent()
 class StopBeltEvent()
 
 
-
 class SimpleStorage : IModule {
-    private val _hardwareStorage = HardwareSimpleStorage()
+    private val _hardwareExpansionStorage = ExpansionHardwareSimpleStorage()
+    private val _hardwareControlStorage = ControlHardwareSimpleStorage()
 
     private var _storageJob: Job? = null
 
@@ -48,7 +45,7 @@ class SimpleStorage : IModule {
     private var _isShooting = false
 
     private fun terminateShoot() {
-        _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+        _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.FORWARD))
 
@@ -59,11 +56,8 @@ class SimpleStorage : IModule {
     }
 
     constructor() {
-        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(
-            _hardwareStorage,
-            _gateServo,
-            _launchServo
-        )
+        HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareExpansionStorage)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_gateServo, _launchServo, _hardwareControlStorage)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
             _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
@@ -77,7 +71,7 @@ class SimpleStorage : IModule {
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
 
                 _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 
@@ -87,7 +81,7 @@ class SimpleStorage : IModule {
                 driveProcess.wait()
                 aimProcess.wait()
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.SHOOT
+                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.SHOOT
 
                 delay((Configs.SIMPLE_STORAGE.SHOOTING_TIME * 1000.0).toLong())
 
@@ -96,7 +90,7 @@ class SimpleStorage : IModule {
                 while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
 
                 ThreadedGamepad.LAZY_INSTANCE.rumble1(0.5)
 
@@ -105,7 +99,8 @@ class SimpleStorage : IModule {
                 while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                     delay(5)
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE
+                _hardwareExpansionStorage.beltState =
+                    ExpansionHardwareSimpleStorage.BeltState.RUN_REVERSE
 
                 delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
 
@@ -118,7 +113,8 @@ class SimpleStorage : IModule {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(TerminateSimpleShootEvent::class, {
             _currentShootCoroutine?.cancel()
 
-            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE
+            _hardwareExpansionStorage.beltState =
+                ExpansionHardwareSimpleStorage.BeltState.RUN_REVERSE
 
             delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
 
@@ -126,40 +122,50 @@ class SimpleStorage : IModule {
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(StopBeltEvent::class, {
-            _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+            _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
         })
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(createClickDownListener({ it.left_bumper }, {
-            ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateSimpleShootEvent())
-        }))
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
+            createClickDownListener(
+                { it.left_bumper },
+                {
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateSimpleShootEvent())
+                })
+        )
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(createClickDownListener({ it.right_bumper }, {
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
+            createClickDownListener(
+                { it.right_bumper },
+                {
 //            val located =
 //                ThreadedEventBus.LAZY_INSTANCE.invoke(RequireRobotLocatedShootingArea()).isLocated
 //
 //            if (located)
-                ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
-        }))
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
+                })
+        )
 
-//        _hardwareStorage.currentTriggerEvent += {
+//        _hardwareExpansionStorage.currentTriggerEvent += {
 //            if (!_isShooting) {
 //                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.REVERSE))
 //
-//                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+//                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
 //            }
 //        }
     }
 
     override suspend fun process() {
-        if(!_isShooting) {
+        if(_hardwareControlStorage.isBall && !_isShooting){
             _storageJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                if (_hardwareStorage.isBall) {
-                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN
+                _isShooting = true
 
-                    delay((Configs.SIMPLE_STORAGE.PUSH_TIME * 1000.0).toLong())
+                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.RUN
 
-                    _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
-                }
+                delay((Configs.SIMPLE_STORAGE.PUSH_TIME * 1000.0).toLong())
+
+                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
+
+                _isShooting = false
             }
         }
     }
@@ -168,15 +174,16 @@ class SimpleStorage : IModule {
         get() = _storageJob != null && !_storageJob!!.isCompleted
 
     override fun opModeStart() {
-        if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
+        if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL) {
             ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
                 _isShooting = true
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.RUN_REVERSE
+                _hardwareExpansionStorage.beltState =
+                    ExpansionHardwareSimpleStorage.BeltState.RUN_REVERSE
 
                 delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
 
-                _hardwareStorage.beltState = HardwareSimpleStorage.BeltState.STOP
+                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
 
                 _isShooting = false
             }

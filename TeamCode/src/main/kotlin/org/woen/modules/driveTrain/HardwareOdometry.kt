@@ -55,7 +55,7 @@ class HardwareOdometry : IHardwareDevice {
 
             _computer.setEncoderResolution(OdometryComputer.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             _computer.setEncoderDirections(
-                OdometryComputer.EncoderDirection.REVERSED,
+                OdometryComputer.EncoderDirection.FORWARD,
                 OdometryComputer.EncoderDirection.FORWARD
             )
         }

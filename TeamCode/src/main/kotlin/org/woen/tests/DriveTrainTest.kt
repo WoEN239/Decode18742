@@ -32,8 +32,9 @@ class DriveTrainTest : LinearOpMode() {
         rightForwardDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         rightBackDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-        leftForwardDrive.direction = DcMotorSimple.Direction.REVERSE
         leftBackDrive.direction = DcMotorSimple.Direction.REVERSE
+        leftForwardDrive.direction = DcMotorSimple.Direction.REVERSE
+        rightForwardDrive.direction = DcMotorSimple.Direction.REVERSE
         rightBackDrive.direction = DcMotorSimple.Direction.REVERSE
 
         while (!isStarted()) {

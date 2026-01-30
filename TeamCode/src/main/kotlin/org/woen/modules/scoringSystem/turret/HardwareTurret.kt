@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
+import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
@@ -22,16 +23,16 @@ class HardwareTurret :
     private var _motorVelocity = 0.0
 
     var targetVelocity: Double
-        get() = (_targetTicksVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
+        get() = (_targetTicksVelocity * Configs.TURRET.PULLEY_RATION * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
         set(value) {
             _targetTicksVelocity =
-                (value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)
+                ((value * Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION) / (2.0 * PI * Configs.TURRET.PULLEY_RADIUS)) / Configs.TURRET.PULLEY_RATION
         }
 
     private var _targetTicksVelocity = 0.0
 
     val currentVelocity: Double
-        get() = (_motorVelocity * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
+        get() = (_motorVelocity * Configs.TURRET.PULLEY_RATION * 2.0 * PI * Configs.TURRET.PULLEY_RADIUS) / Configs.TURRET.PULLEY_TICKS_IN_REVOLUTION
 
 
     private val _regulator = Regulator(Configs.TURRET.PULLEY_REGULATOR)
@@ -78,7 +79,6 @@ class HardwareTurret :
 
     override fun init(hardwareMap: HardwareMap) {
         _motor = hardwareMap.get("pulleyMotor") as DcMotorEx
-        _motor.direction = DcMotorSimple.Direction.REVERSE
 
         Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.onSet += {
             _velocityFilter.coef = it
@@ -90,6 +90,10 @@ class HardwareTurret :
             it.addData("current ticks pulley velocity", _motorVelocity)
             it.addData("target ticks pulley velocity", _targetTicksVelocity)
             it.addData("pulleyU", _pulleyU)
+        }
+
+        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            _motor.direction = DcMotorSimple.Direction.REVERSE
         }
     }
 
