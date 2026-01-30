@@ -19,6 +19,7 @@ import org.woen.utils.units.Triangle
 import org.woen.utils.units.Orientation
 import org.woen.utils.process.RunStatus
 import org.woen.utils.regulator.RegulatorParameters
+import java.lang.Math.toRadians
 
 
 /*
@@ -153,7 +154,7 @@ object Configs {
         var SHOOTING_P = 4.0
 
         @JvmField
-        var H_SENS = 0.05
+        var H_SENS = 0.3
 
         @JvmField
         var POS_SENS = 0.1
@@ -261,25 +262,25 @@ object Configs {
         var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, -3.66 / 2.0 + 0.1)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, -3.66 / 2.0 + 0.2)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, 3.66 / 2.0 - 0.1)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, 3.66 / 2.0 - 0.2)
 
         @JvmField
-        var MIN_TURRET_ANGLE_SERVO = 0.25
+        var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.45
 
         @JvmField
-        var MAX_TURRET_ANGLE_SERVO = 0.8
+        var MAX_TURRET_ANGLE_SERVO = 1.0 - 0.27
 
         @JvmField
-        var MIN_TURRET_ANGLE = PI / 2.0 - atan2(10.0, 15.0)
+        var MIN_TURRET_ANGLE = PI / 2.0 - toRadians(45.0)
 
         @JvmField
-        var MAX_TURRET_ANGLE = PI / 2.0 - atan2(7.0, 16.0)
+        var MAX_TURRET_ANGLE = PI / 2.0 - toRadians(25.0)
 
         @JvmField
-        var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.115)
+        var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.145)
 
         @JvmField
         var ZERO_ROTATE_POS = PI / 2.0
@@ -315,10 +316,13 @@ object Configs {
         var TURRET_HEIGHT = 0.2
 
         @JvmField
-        var SCORE_ANGLE = Math.toRadians(-30.0)
+        var SCORE_ANGLE = toRadians(-30.0)
 
         @JvmField
         var PULLEY_RATION = 30.0 / 40.0
+
+        @JvmField
+        var PULLEY_U = 0.275
     }
 
     @Config
@@ -847,16 +851,16 @@ object Configs {
         var BELTS_POWER = 11.0
 
         @JvmField
-        var BELTS_SHOOT_POWER = 9.0
+        var BELTS_SHOOT_POWER = 11.0
 
         @JvmField
-        var SHOOTING_TIME = 0.4
+        var SHOOTING_TIME = 0.5
 
         @JvmField
         var PUSH_TIME = 0.5
 
         @JvmField
-        var COLOR_THRESHOLD = 70.0
+        var COLOR_THRESHOLD = 60.0
     }
 
     @Config

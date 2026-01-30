@@ -66,13 +66,14 @@ class DriveTrain : IModule {
                     _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
 
                 DriveMode.SHOOTING -> {
-                    _targetOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
+                    _targetOrientation = Orientation(Vec2.ZERO, Angle((HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - odometry.odometryOrientation.pos).rot()))
 
                     _hardwareDriveTrain.drive(
-                        Vec2(
-                            _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.pos.x),
-                            _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.pos.y)
-                        ).turn(-odometry.odometryOrientation.angle),
+                        //Vec2(
+//                            _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.pos.x),
+//                            _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.pos.y)
+//                        ).turn(-odometry.odometryOrientation.angle),
+                            _targetTranslateVelocity,
                         /*if ((hErr > Configs.TURRET.MIN_ROTATE && hErr < Configs.TURRET.MAX_ROTATE) || (hErr < Configs.TURRET.MIN_ROTATE && _targetRotateVelocity < 0.0) ||
                             (hErr > Configs.TURRET.MAX_ROTATE && _targetRotateVelocity > 0.0)
                         )
@@ -99,9 +100,9 @@ class DriveTrain : IModule {
                 }
             }
 
-            if (abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS &&
-                abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS &&
-                (abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS || _currentMode == DriveMode.SHOOTING)
+            if ((abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS || _currentMode == DriveMode.SHOOTING) &&
+                        (abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS || _currentMode == DriveMode.SHOOTING) &&
+                abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS
             ) {
                 if (_targetTimer.seconds() > Configs.DRIVE_TRAIN.TARGET_TIMER)
                     _currentProcess.close()

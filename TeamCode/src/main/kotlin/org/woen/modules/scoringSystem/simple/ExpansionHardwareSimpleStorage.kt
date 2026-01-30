@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 import org.woen.hotRun.HotRun
 import org.woen.utils.motor.MotorOnly
@@ -14,6 +16,7 @@ import org.woen.utils.events.SimpleEvent
 
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.threading.ThreadManager
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 
@@ -28,7 +31,29 @@ class ExpansionHardwareSimpleStorage : IHardwareDevice {
 
     private lateinit var _beltMotor: MotorOnly
 
+    private var _isStart = false
+
     var beltState = BeltState.STOP
+        get() {
+            return field
+        }
+        set(value) {
+            field = value
+
+            if(value == BeltState.SHOOT) {
+                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                    _isStart = true
+
+                    val timer = ElapsedTime()
+
+                    while (timer.seconds() < 0.15)
+                        _beltMotor.power =
+                            ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_SHOOT_POWER * (timer.seconds() / 0.15))
+
+                    _isStart = false
+                }
+            }
+        }
     var beltsCurrent = 0.0
 
     val currentTriggerEvent = SimpleEvent<Int>()
@@ -39,14 +64,16 @@ class ExpansionHardwareSimpleStorage : IHardwareDevice {
         if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
             return
 
-        _beltMotor.power = when (beltState) {
-            BeltState.STOP -> 0.0
+        if(!_isStart) {
+            _beltMotor.power = when (beltState) {
+                BeltState.STOP -> 0.0
 
-            BeltState.RUN_REVERSE -> -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
+                BeltState.RUN_REVERSE -> -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
 
-            BeltState.RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
+                BeltState.RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
 
-            BeltState.SHOOT -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_SHOOT_POWER)
+                BeltState.SHOOT -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_SHOOT_POWER)
+            }
         }
 
         beltsCurrent = _beltMotor.getCurrent(CurrentUnit.AMPS)

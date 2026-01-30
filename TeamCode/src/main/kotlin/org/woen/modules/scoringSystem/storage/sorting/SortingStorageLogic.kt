@@ -13,7 +13,6 @@ import org.woen.enumerators.RequestResult
 import org.woen.modules.light.Light.LightColor
 import org.woen.modules.light.SetLightColorEvent
 
-//import org.woen.modules.scoringSystem.turret.StartShootingEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
 
 import org.woen.modules.scoringSystem.storage.Alias.Delay
@@ -321,16 +320,6 @@ class SortingStorageLogic
 
         storageCells.hwSortingM.stopBelts()
         storageCells.hwSortingM.openTurretGate()
-
-
-
-        //!---  The disabled line below is currently broken, and produces unintended behaviour
-        //!---   the program is silently crashing (probably Thread getting killed)
-        //!---  I do not recommend to use it as it is a holding stick
-        //!---   but if really necessary, wait until Turret.kt logic for this event is fixed
-//        EventBusLI.invoke(StartShootingEvent())
-
-
 
         storageCells.hwSortingM.shootStartBelts()
         delay(beltPushTime)

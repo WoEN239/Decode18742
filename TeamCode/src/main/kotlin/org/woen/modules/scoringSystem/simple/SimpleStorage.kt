@@ -1,5 +1,6 @@
 package org.woen.modules.scoringSystem.simple
 
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -11,6 +12,7 @@ import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.modules.scoringSystem.turret.WaitRotateAtTarget
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -65,9 +67,9 @@ class SimpleStorage : IModule {
                     ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
                 val aimProcess = ThreadedEventBus.LAZY_INSTANCE.invoke(WaitRotateAtTarget()).process
 
-                _isShooting = true
-
                 _storageJob?.join()
+
+                _isShooting = true
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
 
@@ -79,7 +81,7 @@ class SimpleStorage : IModule {
                     delay(5)
 
                 driveProcess.wait()
-                aimProcess.wait()
+//                aimProcess.wait()
 
                 _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.SHOOT
 
