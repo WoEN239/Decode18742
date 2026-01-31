@@ -298,10 +298,10 @@ object Configs {
         var MIN_ROTATE = -PI / 2.0
 
         @JvmField
-        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.783, 0.742), Angle.ofDeg(135.0))
+        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.927, 0.842), Angle.ofDeg(135.0))
 
         @JvmField
-        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.783, -0.742), Angle.ofDeg(-135.0))
+        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.927, -0.842), Angle.ofDeg(-135.0))
 
         @JvmField
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)

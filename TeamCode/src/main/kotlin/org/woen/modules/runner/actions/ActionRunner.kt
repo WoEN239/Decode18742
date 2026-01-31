@@ -114,7 +114,8 @@ class ActionRunner private constructor() : DisposableHandle {
     private val _activeBallsInCycle = AtomicInteger(3)
 
 
-    private suspend fun simpleCloseAuto() {
+    private suspend fun simpleCloseAuto()
+    {
         EventBusLI.invoke(
             RunSegmentEvent(
                 RRTrajectorySegment(
@@ -246,7 +247,7 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
 
-        Thread.sleep(888)
+        lookForObelisk()
 
 
         EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
@@ -312,7 +313,7 @@ class ActionRunner private constructor() : DisposableHandle {
         //------------------------------
 
 
-        Thread.sleep(444)
+        waitForDoorOpening()
 
 
         EventBusLI.invoke(
@@ -435,7 +436,7 @@ class ActionRunner private constructor() : DisposableHandle {
         ).process.wait()
 
 
-        Thread.sleep(888)
+        lookForObelisk()
 
 
         EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
@@ -500,7 +501,7 @@ class ActionRunner private constructor() : DisposableHandle {
         //------------------------------
 
 
-        Thread.sleep(444)
+        waitForDoorOpening()
 
 
         EventBusLI.invoke(
@@ -643,6 +644,189 @@ class ActionRunner private constructor() : DisposableHandle {
 
         //------------------------------
         handleCustomisableShooting()
+        //------------------------------
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeTo(Vector2d(-1.2, -0.656 * _yColorMultiplier))
+                        .build()
+                )
+            )
+        ).process.wait()
+    }
+    private suspend fun simpleCloseAuto12()
+    {
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.TO_OBELISK))
+        //  Attempt to get pattern
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeToLinearHeading(
+                        Vector2d(-0.683, -0.642 * _yColorMultiplier), -PI * 0.75 * _hColorMultiplier
+                    )
+
+                        .build()
+                )
+            )
+        ).process.wait()
+
+
+        lookForObelisk()  //  ну мы же не сортируем - поэтому зачем
+
+
+        EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
+
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(CloseCameraEvent())
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeToLinearHeading(
+                        _shootingOrientation.pos.rrVec(),
+                        _shootingOrientation.angle
+                    )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+        Thread.sleep(100)
+
+
+        //------------------------------
+        EventBusLI.invoke(SimpleShootEvent()).process.wait()
+        //------------------------------
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeToLinearHeading(
+                        Vector2d(-0.314, -0.716 * _yColorMultiplier),
+                        -PI / 2.0 * _hColorMultiplier
+                    ).strafeTo(Vector2d(-0.314, -1.35 * _yColorMultiplier), _eatVelConstant)
+                        .setReversed(true)
+                        .splineTo(
+                            Vector2d(-0.05, -1.44 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
+                        )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+
+        waitForDoorOpening()  //  калитка
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!
+                        .strafeToLinearHeading(
+                            _shootingOrientation.pos.rrVec(),
+                            _shootingOrientation.angle
+                        )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+
+        //------------------------------
+        EventBusLI.invoke(SimpleShootEvent()).process.wait()
+        //------------------------------
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!
+                        .strafeToLinearHeading(
+                            Vector2d(0.353, -0.712 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
+                        )
+                        .strafeTo(Vector2d(0.353, -1.45 * _yColorMultiplier), _eatVelConstant)
+                        .build()
+                )
+            )
+        ).process.wait()
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!
+                        .setTangent(PI / 2.0 * _hColorMultiplier)
+                        .splineToLinearHeading(
+                            Pose2d(
+                                _shootingOrientation.x, _shootingOrientation.y,
+                                _shootingOrientation.angle
+                            ),
+                            -PI * 0.9 * _hColorMultiplier
+                        )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+
+        //------------------------------
+        EventBusLI.invoke(SimpleShootEvent()).process.wait()
+        //------------------------------
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!
+                        .strafeToLinearHeading(
+                            Vector2d(0.95, -0.712 * _yColorMultiplier),
+                            -PI / 2.0 * _hColorMultiplier
+                        )
+                        .strafeTo(Vector2d(1.0, -1.45 * _yColorMultiplier), _eatVelConstant).build()
+                )   )   ).process.wait()
+
+
+        EventBusLI.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    EventBusLI.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!
+                        .strafeToLinearHeading(
+                            _shootingOrientation.pos.rrVec(),
+                            _shootingOrientation.angle
+                        )
+                        .build()
+                )
+            )
+        ).process.wait()
+
+
+        //------------------------------
+        EventBusLI.invoke(SimpleShootEvent()).process.wait()
         //------------------------------
 
 
@@ -895,6 +1079,7 @@ class ActionRunner private constructor() : DisposableHandle {
     }
 
 
+
     private suspend fun handleSmartIntake(doPredictSortAfterIntake: Boolean)
     {
         var waitingForIntakeFinishing: Long = 0
@@ -918,7 +1103,6 @@ class ActionRunner private constructor() : DisposableHandle {
 //                        _pattern.permanent()
 //            )   )   )
     }
-
     private suspend fun stopIntakeStartSort(inputFromTurretSlotToBottom: Array<Ball.Name>)
     {
         EventBusLI.invoke(StopLazyIntakeEvent())
@@ -981,7 +1165,6 @@ class ActionRunner private constructor() : DisposableHandle {
         else _ballsInStorage.set(0)
         //------------------------------------------------------------------------------------
     }
-
     private suspend fun handleCustomisableShooting()
     {
         _doneShooting.set(false)
@@ -1006,11 +1189,19 @@ class ActionRunner private constructor() : DisposableHandle {
     }
 
 
+    private fun lookForObelisk()
+            = Thread.sleep(888)
+    private fun waitForDoorOpening()
+        = Thread.sleep(444)
+
+
+
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
             if (HotRun.LAZY_INSTANCE.currentStartPosition.position == HotRun.RunPosition.CLOSE) {
 //                simpleCloseAuto()
-                closeAuto12()
+//                closeAuto12()
+                simpleCloseAuto12()
             }
         }
     })

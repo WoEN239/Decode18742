@@ -79,12 +79,15 @@ class Turret : IModule {
                 }
             ).angle
 
-            val sl = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.SHORT_POINT).length()
-            val ll = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.LONG_POINT).length()
+//            val sl = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.SHORT_POINT).length()
+//            val ll = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.LONG_POINT).length()
+//
+//            val l = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - odometry.odometryOrientation.pos).length()
+//
+//            _hardwareTurret.targetVelocity = (clamp(l, sl, ll) - sl)
 
-            val l = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - odometry.odometryOrientation.pos).length()
-
-            _hardwareTurret.targetVelocity = (clamp(l, sl, ll) - sl)
+            _hardwareTurret.targetVelocity = Configs.TURRET.SHORT_PULLEY_VELOCITY
+            _hardwareTurretServos.anglePosition = Configs.TURRET.SHORT_ANGLE_POSITION
 //
 //            val y = Configs.TURRET.SCORE_HEIGHT - Configs.TURRET.TURRET_HEIGHT
 //            val x = basketErr.length()
