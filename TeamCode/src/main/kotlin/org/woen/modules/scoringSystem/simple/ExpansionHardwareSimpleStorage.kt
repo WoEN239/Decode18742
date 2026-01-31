@@ -23,6 +23,7 @@ import org.woen.threading.hardware.ThreadedBattery
 
 class ExpansionHardwareSimpleStorage : IHardwareDevice {
     enum class BeltState {
+        LAZY_RUN,
         STOP,
         RUN_REVERSE,
         RUN,
@@ -72,7 +73,9 @@ class ExpansionHardwareSimpleStorage : IHardwareDevice {
 
                 BeltState.RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
 
-                BeltState.SHOOT -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_SHOOT_POWER)
+                BeltState.LAZY_RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
+
+                BeltState.SHOOT -> 1.0//ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_SHOOT_POWER)
             }
         }
 

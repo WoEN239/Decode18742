@@ -10,6 +10,7 @@ import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
+import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
 import org.woen.modules.scoringSystem.turret.WaitRotateAtTarget
 import org.woen.telemetry.Configs
 import org.woen.telemetry.ThreadedTelemetry
@@ -49,7 +50,7 @@ class SimpleStorage : IModule {
     private fun terminateShoot() {
         _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.FORWARD))
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
 
         _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.DRIVE))
@@ -147,6 +148,28 @@ class SimpleStorage : IModule {
                 })
         )
 
+        GamepadLI.addGamepad1Listener(
+            createClickDownListener(
+                { it.right_trigger > 0.5 }, {
+                    if(!_isShooting) {
+                        _hardwareExpansionStorage.beltState =
+                            ExpansionHardwareSimpleStorage.BeltState.LAZY_RUN
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.FORWARD))
+                    }
+                }
+        )   )
+        GamepadLI.addGamepad1Listener(
+            createClickDownListener(
+                { it.left_trigger > 0.5 }, {
+                    if (_hardwareExpansionStorage.beltState ==
+                        ExpansionHardwareSimpleStorage.BeltState.LAZY_RUN) {
+                        _hardwareExpansionStorage.beltState =
+                            ExpansionHardwareSimpleStorage.BeltState.STOP
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
+                    }
+                }
+        )   )
+
 //        _hardwareExpansionStorage.currentTriggerEvent += {
 //            if (!_isShooting) {
 //                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.REVERSE))
@@ -157,19 +180,19 @@ class SimpleStorage : IModule {
     }
 
     override suspend fun process() {
-        if(_hardwareControlStorage.isBall && !_isShooting){
-            _storageJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                _isShooting = true
-
-                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.RUN
-
-                delay((Configs.SIMPLE_STORAGE.PUSH_TIME * 1000.0).toLong())
-
-                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
-
-                _isShooting = false
-            }
-        }
+//        if(_hardwareControlStorage.isBall && !_isShooting){
+//            _storageJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+//                _isShooting = true
+//
+//                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.RUN
+//
+//                delay((Configs.SIMPLE_STORAGE.PUSH_TIME * 1000.0).toLong())
+//
+//                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
+//
+//                _isShooting = false
+//            }
+//        }
     }
 
     override val isBusy: Boolean

@@ -250,7 +250,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.009, kF = 0.003/*, limitU = 12.0*/)
+        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.042/*, limitU = 12.0*/)
 
         @JvmField
         var REGULATOR_SENS = 0.5
@@ -259,7 +259,7 @@ object Configs {
         var TARGET_TIMER = 0.1
 
         @EventConfig
-        var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.3)
+        var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.5)
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, -3.66 / 2.0 + 0.2)
@@ -298,10 +298,10 @@ object Configs {
         var MIN_ROTATE = -PI / 2.0
 
         @JvmField
-        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.927, 0.842), Angle.ofDeg(135.0))
+        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.738, 0.576), Angle.ofDeg(135.0))
 
         @JvmField
-        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.927, -0.842), Angle.ofDeg(-135.0))
+        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.738, -0.576), Angle.ofDeg(-135.0))
 
         @JvmField
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
@@ -325,7 +325,7 @@ object Configs {
         var PULLEY_U = 0.275
 
         @JvmField
-        var SHORT_PULLEY_VELOCITY = 17.0 //(-0.927, -0.842)
+        var SHORT_PULLEY_VELOCITY = 16.0  //(-0.927, -0.842)
 
         @JvmField
         var SHORT_POINT = Vec2(-0.927, -0.842)
@@ -806,6 +806,8 @@ object Configs {
 
 
 
+        @JvmField
+        var BELT_POWER_LAZY_MODE = 10.0
         @JvmField
         var BELT_POWER_FAST_MODE = 11.0
 

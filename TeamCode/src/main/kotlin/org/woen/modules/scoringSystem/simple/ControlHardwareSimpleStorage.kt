@@ -18,28 +18,28 @@ class ControlHardwareSimpleStorage : IHardwareDevice {
         private set
 
     override fun update() {
-        val rightColorRaw = _rightColorSensor.normalizedColors
-        val leftColorRaw = _leftColorSensor.normalizedColors
-
-        val rightRed = rightColorRaw.red * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
-        val rightGreen = rightColorRaw.green * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
-        val rightBlue = rightColorRaw.blue * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
-
-        val leftRed = leftColorRaw.red * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
-        val leftGreen = leftColorRaw.green * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
-        val leftBlue = leftColorRaw.blue * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
-
-        isBall = (rightRed > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD ||
-                    rightGreen > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD ||
-                    rightBlue > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD ||
-                    leftRed > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD ||
-                    leftGreen > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD ||
-                    leftBlue > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD)
+//        val rightColorRaw = _rightColorSensor.normalizedColors
+//        val leftColorRaw = _leftColorSensor.normalizedColors
+//
+//        val rightRed = rightColorRaw.red * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
+//        val rightGreen = rightColorRaw.green * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
+//        val rightBlue = rightColorRaw.blue * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
+//
+//        val leftRed = leftColorRaw.red * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
+//        val leftGreen = leftColorRaw.green * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
+//        val leftBlue = leftColorRaw.blue * Configs.STORAGE_SENSORS.VAR_MAXIMUM_READING
+//
+//        isBall = (rightRed > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD ||
+//                    rightGreen > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD ||
+//                    rightBlue > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD ||
+//                    leftRed > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD ||
+//                    leftGreen > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD ||
+//                    leftBlue > Configs.SIMPLE_STORAGE.COLOR_THRESHOLD)
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _leftColorSensor = hardwareMap.get("leftColorSensor") as RevColorSensorV3
-        _rightColorSensor = hardwareMap.get("rightColorSensor") as RevColorSensorV3
+//        _leftColorSensor = hardwareMap.get("leftColorSensor") as RevColorSensorV3
+//        _rightColorSensor = hardwareMap.get("rightColorSensor") as RevColorSensorV3
 
         _gateServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO) as Servo
         _pushServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO) as Servo
