@@ -86,7 +86,7 @@ class DriveTrain : IModule {
                                 -err1 * Configs.DRIVE_TRAIN.SHOOTING_P
                         }*/ _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle
                         //_targetRotateVelocity
-                    ))
+                    )
                 }
 
                 DriveMode.PARKING -> {
