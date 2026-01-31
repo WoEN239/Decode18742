@@ -89,7 +89,7 @@ while True:
 
             kernel = np.ones((4,4), np.uint8)
             combined_mask_eroded = cv2.morphologyEx(combined_mask,cv2.MORPH_OPEN,kernel,iterations=3-u)
-            combined_mask_eroded_opened = cv2.erode(combined_mask_eroded,kernel,iterations=3+u)
+            combined_mask_eroded_opened = cv2.erode(combined_mask_eroded,kernel,iterations=3-u)
     
 
             combined_mask_processed = combined_mask_eroded_opened
@@ -129,7 +129,7 @@ while True:
 
     cv2.putText(frame, str(len(result_coords)) + " balls in ramp", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
     cv2.imshow(f"RESULT",frame)
-    
+
     if cv2.waitKey(1) == "q":
         break
 

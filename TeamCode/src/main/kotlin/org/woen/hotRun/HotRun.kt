@@ -44,7 +44,7 @@ class HotRun private constructor() {
             ActionRunner.restart()
             ThreadedTimers.restart()
             ThreadedEventBus.restart()
-            Camera.restart()
+            //Camera.restart()
             ThreadedGamepad.restart()
             ThreadedBattery.restart()
             HardwareThreads.restart()
@@ -135,7 +135,7 @@ class HotRun private constructor() {
         ThreadedGamepad.LAZY_INSTANCE.init(opMode.gamepad1, opMode.gamepad2)
         HardwareThreads.LAZY_INSTANCE
         ActionRunner.LAZY_INSTANCE
-        Camera.LAZY_INSTANCE
+        //Camera.LAZY_INSTANCE
 
         opModeInitEvent.invoke()
 
