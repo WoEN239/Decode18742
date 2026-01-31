@@ -11,7 +11,6 @@ import kotlinx.coroutines.InternalCoroutinesApi
 import org.firstinspires.ftc.ftccommon.external.OnCreate
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import org.woen.hotRun.HotRun
 import org.woen.threading.ThreadManager
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.smartMutex.SmartMutex
@@ -111,9 +110,11 @@ class ThreadedTelemetry : DisposableHandle {
 
     private val _driveTelemetryMutex = SmartMutex()
 
+    var telemetryEnabled = false
+
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted) {
-            if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.STOP && Configs.TELEMETRY.TELEMETRY_ENABLE) {
+            if (telemetryEnabled && Configs.TELEMETRY.TELEMETRY_ENABLE) {
                 onTelemetrySend.invoke(this)
 
                 val telemetry = this

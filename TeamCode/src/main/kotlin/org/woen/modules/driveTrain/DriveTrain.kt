@@ -68,7 +68,7 @@ class DriveTrain : IModule {
                 DriveMode.SHOOTING -> {
                     _targetOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
 
-                    _hardwareDriveTrain.drive( _targetTranslateVelocity, _targetRotateVelocity)
+                    _hardwareDriveTrain.drive(
                         Vec2(
                             _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.pos.x),
                             _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.pos.y)
@@ -86,7 +86,7 @@ class DriveTrain : IModule {
                                 -err1 * Configs.DRIVE_TRAIN.SHOOTING_P
                         }*/ _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle
                         //_targetRotateVelocity
-                    )
+                    ))
                 }
 
                 DriveMode.PARKING -> {

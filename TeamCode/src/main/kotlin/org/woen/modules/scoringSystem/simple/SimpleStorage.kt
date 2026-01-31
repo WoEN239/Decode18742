@@ -1,6 +1,5 @@
 package org.woen.modules.scoringSystem.simple
 
-import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -13,7 +12,6 @@ import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
 import org.woen.modules.scoringSystem.turret.WaitRotateAtTarget
 import org.woen.telemetry.Configs
-import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -60,56 +58,66 @@ class SimpleStorage : IModule {
 
     constructor() {
         HardwareThreads.LAZY_INSTANCE.EXPANSION.addDevices(_hardwareExpansionStorage)
-        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_gateServo, _launchServo, _hardwareControlStorage)
+        HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(
+            _gateServo,
+            _launchServo,
+            _hardwareControlStorage
+        )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
-            _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                val driveProcess =
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
-                val aimProcess = ThreadedEventBus.LAZY_INSTANCE.invoke(WaitRotateAtTarget()).process
+            if (_currentShootCoroutine?.isActive == false) {
+                _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                    val driveProcess =
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
+                    val aimProcess =
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(WaitRotateAtTarget()).process
 
-                _storageJob?.join()
+                    _storageJob?.join()
 
-                _isShooting = true
+                    _isShooting = true
 
-                ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
 
-                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
+                    _hardwareExpansionStorage.beltState =
+                        ExpansionHardwareSimpleStorage.BeltState.STOP
 
-                _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
+                    _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
 
-                while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted)
-                    delay(5)
+                    while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted)
+                        delay(5)
 
-                driveProcess.wait()
+                    driveProcess.wait()
 //                aimProcess.wait()
 
-                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.SHOOT
+                    _hardwareExpansionStorage.beltState =
+                        ExpansionHardwareSimpleStorage.BeltState.SHOOT
 
-                delay((Configs.SIMPLE_STORAGE.SHOOTING_TIME * 1000.0).toLong())
+                    delay((Configs.SIMPLE_STORAGE.SHOOTING_TIME * 1000.0).toLong())
 
-                _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
+                    _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
 
-                while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
-                    delay(5)
+                    while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
+                        delay(5)
 
-                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
+                    _hardwareExpansionStorage.beltState =
+                        ExpansionHardwareSimpleStorage.BeltState.STOP
 
-                ThreadedGamepad.LAZY_INSTANCE.rumble1(0.5)
+                    ThreadedGamepad.LAZY_INSTANCE.rumble1(0.5)
 
-                _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
+                    _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
 
-                while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
-                    delay(5)
+                    while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
+                        delay(5)
 
-                _hardwareExpansionStorage.beltState =
-                    ExpansionHardwareSimpleStorage.BeltState.RUN_REVERSE
+                    _hardwareExpansionStorage.beltState =
+                        ExpansionHardwareSimpleStorage.BeltState.RUN_REVERSE
 
-                delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
+                    delay((Configs.SIMPLE_STORAGE.REVERS_TIME * 1000.0).toLong())
 
-                terminateShoot()
+                    terminateShoot()
 
-                it.process.close()
+                    it.process.close()
+                }
             }
         })
 
@@ -151,24 +159,25 @@ class SimpleStorage : IModule {
         GamepadLI.addGamepad1Listener(
             createClickDownListener(
                 { it.right_trigger > 0.5 }, {
-                    if(!_isShooting) {
+                    if (!_isShooting) {
                         _hardwareExpansionStorage.beltState =
                             ExpansionHardwareSimpleStorage.BeltState.LAZY_RUN
                         ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.FORWARD))
                     }
                 }
-        )   )
+            ))
         GamepadLI.addGamepad1Listener(
             createClickDownListener(
                 { it.left_trigger > 0.5 }, {
                     if (_hardwareExpansionStorage.beltState ==
-                        ExpansionHardwareSimpleStorage.BeltState.LAZY_RUN) {
+                        ExpansionHardwareSimpleStorage.BeltState.LAZY_RUN
+                    ) {
                         _hardwareExpansionStorage.beltState =
                             ExpansionHardwareSimpleStorage.BeltState.STOP
                         ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
                     }
                 }
-        )   )
+            ))
 
 //        _hardwareExpansionStorage.currentTriggerEvent += {
 //            if (!_isShooting) {

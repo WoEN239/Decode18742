@@ -137,6 +137,8 @@ class HotRun private constructor() {
         ActionRunner.LAZY_INSTANCE
         //Camera.LAZY_INSTANCE
 
+        ThreadedTelemetry.LAZY_INSTANCE.telemetryEnabled = true
+
         opModeInitEvent.invoke()
 
         ThreadedTelemetry.LAZY_INSTANCE.log("init completed")
@@ -168,6 +170,8 @@ class HotRun private constructor() {
             for (i in opMode.hardwareMap.servoController) i.pwmDisable()
 
             ThreadedTelemetry.LAZY_INSTANCE.log("op mode stoped")
+
+            ThreadedTelemetry.LAZY_INSTANCE.telemetryEnabled = false
         }
     }
 }

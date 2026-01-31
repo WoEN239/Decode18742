@@ -85,7 +85,7 @@ object Configs {
     @Config
     internal object THREAD_POOL {
         @JvmField
-        var THREAD_POOL_THREADS_COUNT = 5
+        var THREAD_POOL_THREADS_COUNT = 2
     }
 
     @Config
