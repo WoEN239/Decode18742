@@ -69,10 +69,11 @@ class DriveTrain : IModule {
                     _targetOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
 
                     _hardwareDriveTrain.drive(
-                        Vec2(
+                        /*Vec2(
                             _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.pos.x),
                             _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.pos.y)
-                        ).turn(-odometry.odometryOrientation.angle),
+                        ).turn(-odometry.odometryOrientation.angle)*/
+                        _targetTranslateVelocity,
                         /*if ((hErr > Configs.TURRET.MIN_ROTATE && hErr < Configs.TURRET.MAX_ROTATE) || (hErr < Configs.TURRET.MIN_ROTATE && _targetRotateVelocity < 0.0) ||
                             (hErr > Configs.TURRET.MAX_ROTATE && _targetRotateVelocity > 0.0)
                         )
@@ -84,9 +85,9 @@ class DriveTrain : IModule {
                                 -err2 * Configs.DRIVE_TRAIN.SHOOTING_P
                             else
                                 -err1 * Configs.DRIVE_TRAIN.SHOOTING_P
-                        }*/ _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle
+                        }*/ _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
                         //_targetRotateVelocity
-                    ))
+                    )
                 }
 
                 DriveMode.PARKING -> {
@@ -100,8 +101,8 @@ class DriveTrain : IModule {
                 }
             }
 
-            if ((abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS) &&
-                        (abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS) &&
+            if ((abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS || _currentMode == DriveMode.SHOOTING) &&
+                        (abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS || _currentMode == DriveMode.SHOOTING) &&
                 (abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS)
             ) {
                 if (_targetTimer.seconds() > Configs.DRIVE_TRAIN.TARGET_TIMER)
@@ -161,12 +162,12 @@ class DriveTrain : IModule {
                         Vec2(
                             ly,
                             lx
-                        ).turn(
+                        )/*.turn(
                             if (currentRunColor == HotRun.RunColor.BLUE) (_currentRobotRotation * -1.0 -
                                     Angle.ofDeg(90.0)).angle
                             else
                                 (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle
-                        ) * /* Vec2(if (_currentMode == DriveMode.SHOOTING)*/ Vec2(Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY/* else 1.0*/),
+                        ) */ * /* Vec2(if (_currentMode == DriveMode.SHOOTING)*/ Vec2(Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY/* else 1.0*/),
                         rx * Configs.DRIVE_TRAIN.MAX_DRIVE_ANGLE_VELOCITY
                     )
                 )

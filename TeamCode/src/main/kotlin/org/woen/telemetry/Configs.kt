@@ -84,7 +84,7 @@ object Configs {
     @Config
     internal object THREAD_POOL {
         @JvmField
-        var THREAD_POOL_THREADS_COUNT = 2
+        var THREAD_POOL_THREADS_COUNT = 5
     }
 
     @Config
@@ -114,13 +114,13 @@ object Configs {
         var DRIVE_TO_SHOOTING_ZONE = false
 
         @JvmField
-        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 1.0, kP = 12.0)
+        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 0.0, kP = 12.0)
 
         @JvmField
-        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kI = 0.5, kP = 8.0)
+        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kI = 0.0, kP = 8.0)
 
         @JvmField
-        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 1.9, kI = 0.25)
+        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 1.9, kI = 0.0)
 
         @JvmField
         var MAX_DRIVE_VELOCITY = 2.0
@@ -249,7 +249,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kP = 0.042/*, limitU = 12.0*/)
+        var PULLEY_REGULATOR = RegulatorParameters(kF = 0.004/*, limitU = 12.0*/)
 
         @JvmField
         var REGULATOR_SENS = 0.5

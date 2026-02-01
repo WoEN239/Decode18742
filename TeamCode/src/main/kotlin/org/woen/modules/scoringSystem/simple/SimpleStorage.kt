@@ -44,6 +44,7 @@ class SimpleStorage : IModule {
 
     private var _currentShootCoroutine: Job? = null
     private var _isShooting = false
+    private var _a = false
 
     private fun terminateShoot() {
         _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
@@ -54,6 +55,7 @@ class SimpleStorage : IModule {
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.DRIVE))
 
         _isShooting = false
+        _a = false
     }
 
     constructor() {
@@ -65,8 +67,9 @@ class SimpleStorage : IModule {
         )
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SimpleShootEvent::class, {
-            if (_currentShootCoroutine?.isActive == false) {
+            if(!_a){
                 _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                    _a = true
                     val driveProcess =
                         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
                     val aimProcess =

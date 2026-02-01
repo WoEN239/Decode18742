@@ -74,4 +74,8 @@ class HardwareOdometry : IHardwareDevice {
     override fun dispose() {
 
     }
+
+    fun reset(){
+        _computer.resetPosAndIMU()
+    }
 }

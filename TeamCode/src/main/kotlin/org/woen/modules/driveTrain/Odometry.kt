@@ -9,6 +9,7 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
+import org.woen.threading.ThreadedGamepad
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.units.Color
 import org.woen.utils.units.Line
@@ -140,5 +141,9 @@ class Odometry : IModule {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequireRobotLocatedShootingArea::class, {
             it.isLocated = _robotLocatedInShootingArea
         })
+
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(ThreadedGamepad.createClickDownListener({it.circle}, {
+            _hardwareOdometry.reset()
+        }))
     }
 }
