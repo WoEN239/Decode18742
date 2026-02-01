@@ -1,5 +1,6 @@
 package org.woen.modules.driveTrain
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.RobotLog
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
@@ -15,7 +16,7 @@ import woen239.odometry.OdometryComputer
 import kotlin.math.PI
 
 class HardwareOdometry : IHardwareDevice {
-    private lateinit var _computer: OdometryComputer
+    private lateinit var _computer: GoBildaPinpointDriver
     var currentOrientation = Orientation()
     var velocity = Vec2.ZERO
     var headingVelocity = 0.0
@@ -41,7 +42,7 @@ class HardwareOdometry : IHardwareDevice {
     }
 
     override fun init(hardwareMap: HardwareMap) {
-        _computer = hardwareMap.get("odometry") as OdometryComputer
+        _computer = hardwareMap.get("odometry") as GoBildaPinpointDriver
         _computer.recalibrateIMU()
         _computer.resetPosAndIMU()
 
@@ -53,10 +54,10 @@ class HardwareOdometry : IHardwareDevice {
                 DistanceUnit.METER
             )
 
-            _computer.setEncoderResolution(OdometryComputer.GoBildaOdometryPods.goBILDA_4_BAR_POD)
+            _computer.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             _computer.setEncoderDirections(
-                OdometryComputer.EncoderDirection.FORWARD,
-                OdometryComputer.EncoderDirection.FORWARD
+                GoBildaPinpointDriver.EncoderDirection.FORWARD,
+                GoBildaPinpointDriver.EncoderDirection.FORWARD
             )
         }
 

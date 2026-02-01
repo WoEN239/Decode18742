@@ -4,7 +4,6 @@ package org.woen.telemetry
 import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.ceil
-import kotlin.math.atan2
 import kotlin.jvm.JvmField
 
 import com.acmerobotics.dashboard.config.Config
@@ -326,6 +325,12 @@ object Configs {
 
         @JvmField
         var SHORT_PULLEY_VELOCITY = 16.0  //(-0.927, -0.842)
+
+        @JvmField
+        var VELOCITY_THRESHOLD = 0.5
+
+        @JvmField
+        var VELOCITY_K = 12.0
 
         @JvmField
         var SHORT_POINT = Vec2(-0.927, -0.842)

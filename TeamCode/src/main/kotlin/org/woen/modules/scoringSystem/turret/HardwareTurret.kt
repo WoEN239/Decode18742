@@ -67,7 +67,13 @@ class HardwareTurret :
             pulleyAtTarget = false
         }
 
-        _pulleyU = _regulator.update(
+        _pulleyU = if(err > Configs.TURRET.VELOCITY_THRESHOLD) {
+            _regulator.resetIntegral()
+            _regulator.start()
+
+            Configs.TURRET.VELOCITY_K
+        }
+        else _regulator.update(
             err,
             _targetTicksVelocity
         )

@@ -1,6 +1,7 @@
 package org.woen.tests
 
 import com.acmerobotics.dashboard.FtcDashboard
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
@@ -12,14 +13,14 @@ import woen239.odometry.OdometryComputer
 @TeleOp
 class PinpointTest : LinearOpMode() {
     override fun runOpMode() {
-        val pinpoint = hardwareMap.get("odometry") as OdometryComputer
+        val pinpoint = hardwareMap.get("odometry") as GoBildaPinpointDriver
         pinpoint.resetPosAndIMU()
         pinpoint.recalibrateIMU()
 
-        pinpoint.setEncoderResolution(OdometryComputer.GoBildaOdometryPods.goBILDA_4_BAR_POD)
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
         pinpoint.setEncoderDirections(
-            OdometryComputer.EncoderDirection.FORWARD,
-            OdometryComputer.EncoderDirection.FORWARD
+            GoBildaPinpointDriver.EncoderDirection.FORWARD,
+            GoBildaPinpointDriver.EncoderDirection.FORWARD
         )
         pinpoint.setOffsets(Configs.ODOMETRY.X_ODOMETER_POSITION, Configs.ODOMETRY.Y_ODOMETER_POSITION,
             DistanceUnit.METER)
