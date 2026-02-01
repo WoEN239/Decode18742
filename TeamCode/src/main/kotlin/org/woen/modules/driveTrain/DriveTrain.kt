@@ -235,5 +235,17 @@ class DriveTrain : IModule {
             it.addData("targetOrientation", _targetOrientation)
             it.addData("currentOrientation", odometry.odometryOrientation)
         }
+
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(ThreadedGamepad.createClickDownListener({it.left_bumper}, {
+            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                _currentProcess = Process()
+
+                _currentMode = DriveMode.SHOOTING
+
+                _currentProcess.wait()
+
+                _currentMode = DriveMode.DRIVE
+            }
+        }))
     }
 }

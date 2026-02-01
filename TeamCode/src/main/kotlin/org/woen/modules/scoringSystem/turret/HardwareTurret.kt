@@ -60,20 +60,21 @@ class HardwareTurret :
 
         val err = _targetTicksVelocity - _motorVelocity
 
-        if(abs(err) > Configs.TURRET.REGULATOR_SENS)
+        if (abs(err) > Configs.TURRET.REGULATOR_SENS)
             pulleyAtTarget = _targetTimer.seconds() > Configs.TURRET.TARGET_TIMER
         else {
             _targetTimer.reset()
             pulleyAtTarget = false
         }
 
-        _pulleyU = if(err > Configs.TURRET.VELOCITY_THRESHOLD) {
-            _regulator.resetIntegral()
-            _regulator.start()
-
-            Configs.TURRET.VELOCITY_K
-        }
-        else _regulator.update(
+        _pulleyU =
+//            if (err > Configs.TURRET.VELOCITY_THRESHOLD) {
+//            _regulator.resetIntegral()
+//            _regulator.start()
+//
+//            Configs.TURRET.VELOCITY_K
+//        } else
+            _regulator.update(
             err,
             _targetTicksVelocity
         )

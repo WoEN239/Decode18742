@@ -43,8 +43,6 @@ class HardwareOdometry : IHardwareDevice {
 
     override fun init(hardwareMap: HardwareMap) {
         _computer = hardwareMap.get("odometry") as GoBildaPinpointDriver
-        _computer.recalibrateIMU()
-        _computer.resetPosAndIMU()
 
         currentOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
 

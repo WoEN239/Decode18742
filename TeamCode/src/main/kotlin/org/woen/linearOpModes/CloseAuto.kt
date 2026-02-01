@@ -1,5 +1,6 @@
 package org.woen.linearOpModes
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
@@ -11,6 +12,11 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 @Autonomous
 class CloseAuto: LinearOpMode() {
     override fun runOpMode() {
+        val _computer = hardwareMap.get("odometry") as GoBildaPinpointDriver
+
+        _computer.recalibrateIMU()
+        _computer.resetPosAndIMU()
+
         val leftForwardDrive = hardwareMap.get("leftForwardDrive") as DcMotorEx
         val leftBackDrive = hardwareMap.get("leftBackDrive") as DcMotorEx
         val rightForwardDrive = hardwareMap.get("rightForwardDrive") as DcMotorEx

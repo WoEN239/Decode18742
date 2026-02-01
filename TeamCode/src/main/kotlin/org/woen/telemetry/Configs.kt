@@ -249,7 +249,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kF = 0.004/*, limitU = 12.0*/)
+        var PULLEY_REGULATOR = RegulatorParameters(kF = 0.0045, kP = 0.011 /*, limitU = 12.0*/)
 
         @JvmField
         var REGULATOR_SENS = 0.5
@@ -324,13 +324,16 @@ object Configs {
         var PULLEY_U = 0.275
 
         @JvmField
-        var SHORT_PULLEY_VELOCITY = 16.0  //(-0.927, -0.842)
+        var SHORT_PULLEY_VELOCITY = 17.2  //(-0.927, -0.842)
 
         @JvmField
-        var VELOCITY_THRESHOLD = 0.5
+        var VELOCITY_THRESHOLD = 0.45
 
         @JvmField
         var VELOCITY_K = 12.0
+
+        @JvmField
+        var VELOCITY_K_SHORT = 6.0
 
         @JvmField
         var SHORT_POINT = Vec2(-0.927, -0.842)

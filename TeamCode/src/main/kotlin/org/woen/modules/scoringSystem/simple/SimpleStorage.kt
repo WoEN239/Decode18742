@@ -70,8 +70,8 @@ class SimpleStorage : IModule {
             if(!_a){
                 _currentShootCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
                     _a = true
-                    val driveProcess =
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
+//                    val driveProcess =
+//                        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.SHOOTING)).process
                     val aimProcess =
                         ThreadedEventBus.LAZY_INSTANCE.invoke(WaitRotateAtTarget()).process
 
@@ -89,7 +89,7 @@ class SimpleStorage : IModule {
                     while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                         delay(5)
 
-                    driveProcess.wait()
+//                    driveProcess.wait()
 //                aimProcess.wait()
 
                     _hardwareExpansionStorage.beltState =
@@ -139,13 +139,13 @@ class SimpleStorage : IModule {
             _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
         })
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-            createClickDownListener(
-                { it.left_bumper },
-                {
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateSimpleShootEvent())
-                })
-        )
+//        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
+//            createClickDownListener(
+//                { it.left_bumper },
+//                {
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(TerminateSimpleShootEvent())
+//                })
+//        )
 
         ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             createClickDownListener(
