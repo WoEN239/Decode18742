@@ -78,7 +78,7 @@ class Brush : IModule {
 
             BrushState.REVERSE -> {
                 reverse(timerRevers.get())
-                turnOn.set(BrushState.STOP)
+                if (turnOn.get() == BrushState.REVERSE) turnOn.set(BrushState.STOP)
                 tmr2.reset()
                 tmr1.reset()
                 f11 = false

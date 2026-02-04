@@ -91,7 +91,6 @@ class ScoringModulesConnector
     val logM = LogManager(SMC_DEBUG_SETTING, SMC_DEBUG_LEVELS, "SMC")
 
 //    private val _shotWasFired      = AtomicBoolean(false)
-    private val _canRestartBrushes = AtomicBoolean(false)
 
 
 
@@ -327,7 +326,6 @@ class ScoringModulesConnector
         _runStatus.fullResetToActiveState()
 
 //        _shotWasFired.set(false)
-        _canRestartBrushes.set(false)
     }
 
 
@@ -350,11 +348,8 @@ class ScoringModulesConnector
         val intakeResult = _storage.handleIntake(inputToBottomSlot)
 
 
-        if (_storage.alreadyFull())
-        {
-            _canRestartBrushes.set(false)
-            reverseBrushes(TIME_FOR_BRUSH_REVERSING)
-        }
+        if (_storage.alreadyFull()) reverseBrushes(TIME_FOR_BRUSH_REVERSING)
+
 
         logM.logMd("FINISHED - INTAKE, result: $intakeResult", PROCESS_ENDING)
 
@@ -367,25 +362,22 @@ class ScoringModulesConnector
     private fun startBrushes()
         = EventBusLI.invoke(SwitchBrushStateEvent(
                 Brush.BrushState.FORWARD))
-
     private fun reverseBrushes(reverseTime: Long)
-    {
-        EventBusLI.invoke(SwitchBrushStateEvent(
-                Brush.BrushState.REVERSE,
-                reverseTime
-        )   )
-    }
+        = EventBusLI.invoke(SwitchBrushStateEvent(
+                Brush.BrushState.REVERSE, reverseTime))
+
     private fun reverseAndThenStartBrushesAfterTimePeriod(reverseTime: Long)
     {
-        _canRestartBrushes.set(true)
         reverseBrushes(reverseTime)
-
         EventBusLI.invoke(ReverseAndThenStartBrushesAgain(reverseTime))
     }
     private suspend fun startBrushesAfterDelay(delay: Long)
     {
         delay(delay)
-        if (_canRestartBrushes.get()) startBrushes()
+        logM.logMd("Going to restart brushes: ${!_storage.alreadyFull()}",
+            LOGIC_STEPS)
+
+        if (!_storage.alreadyFull()) startBrushes()
     }
 
 
@@ -434,7 +426,9 @@ class ScoringModulesConnector
                     Request.TERMINATED, DRUM_REQUEST)
         }
 
+        logM.logMd("Initial  race condition check passed", RACE_CONDITION)
         _runStatus.addProcessToQueue(DRUM_REQUEST)
+
         if (!tryDrivingToShootingZone(DRUM_REQUEST))
             return resumeLogicAfterShooting(
                 Request.TERMINATED, DRUM_REQUEST)
@@ -471,6 +465,9 @@ class ScoringModulesConnector
 
     private suspend fun tryDrivingToShootingZone(processId: Int): Boolean
     {
+        logM.logMd("Attempting to drive to shooting zone: $DRIVE_TO_SHOOTING_ZONE",
+            ATTEMPTING_LOGIC)
+
         if (DRIVE_TO_SHOOTING_ZONE)
         {
             val imDriving = EventBusLI.invoke(SetDriveModeEvent(
@@ -480,7 +477,12 @@ class ScoringModulesConnector
                 !_runStatus.isForcedToTerminateThisProcess(processId))
                 delay(DELAY.EVENT_AWAITING_MS)
         }
-        return _runStatus.isForcedToTerminateThisProcess(processId)
+
+        logM.logMd("Finished driving, terminated: " +
+                "${_runStatus.isForcedToTerminateThisProcess(processId)}",
+            PROCESS_ENDING)
+
+        return !_runStatus.isForcedToTerminateThisProcess(processId)
     }
     private suspend fun readyUpForShooting()
     {

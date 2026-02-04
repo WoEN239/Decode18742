@@ -89,7 +89,7 @@ class RunStatus
 
 
     @Synchronized
-    fun isThisProcessHighestPriority(processId: Int): Boolean
+    fun isThisProcessHighestPriority(processId: Int, vararg exceptionProcessesId: Int): Boolean
     {
         if (_processQueue.isEmpty()) return false
 
@@ -103,20 +103,23 @@ class RunStatus
         {
             if (curProcess == processId) containsRequestedId = true
 
-            if (curProcess > maxId) maxId = curProcess
-            if (curProcess < minId) minId = curProcess
+            if (!exceptionProcessesId.contains(curProcess))
+            {
+                if (curProcess > maxId) maxId = curProcess
+                if (curProcess < minId) minId = curProcess
 
-            if (curProcess > 0 && curProcess < zeroPositive)
-                zeroPositive = curProcess
-            if (curProcess < 0 && curProcess > zeroNegative)
-                zeroNegative = curProcess
+                if (curProcess > 0 && curProcess < zeroPositive)
+                    zeroPositive = curProcess
+                if (curProcess < 0 && curProcess > zeroNegative)
+                    zeroNegative = curProcess
+            }
         }
 
         return containsRequestedId &&
                 processId == returnPrioritized(maxId, minId, zeroPositive, zeroNegative)
     }
     @Synchronized
-    fun getHighestPriorityProcessId(): Int
+    fun getHighestPriorityProcessId(vararg exceptionProcessesId: Int): Int
     {
         if (_processQueue.isEmpty()) return UNDEFINED_PROCESS_ID
 
@@ -127,13 +130,16 @@ class RunStatus
 
         for (curProcess in _processQueue)
         {
-            if (curProcess > maxId) maxId = curProcess
-            if (curProcess < minId) minId = curProcess
+            if (!exceptionProcessesId.contains(curProcess))
+            {
+                if (curProcess > maxId) maxId = curProcess
+                if (curProcess < minId) minId = curProcess
 
-            if (curProcess > 0 && curProcess < zeroPositive)
-                zeroPositive = curProcess
-            if (curProcess < 0 && curProcess > zeroNegative)
-                zeroNegative = curProcess
+                if (curProcess > 0 && curProcess < zeroPositive)
+                    zeroPositive = curProcess
+                if (curProcess < 0 && curProcess > zeroNegative)
+                    zeroNegative = curProcess
+            }
         }
         return returnPrioritized(maxId, minId, zeroPositive, zeroNegative)
     }

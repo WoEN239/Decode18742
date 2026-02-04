@@ -52,6 +52,7 @@ import org.woen.telemetry.Configs.DELAY
 import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
 import org.woen.telemetry.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
 //import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
+import org.woen.telemetry.Configs.DEBUG_LEVELS.RACE_CONDITION
 import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
 import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
@@ -133,7 +134,7 @@ class SortingStorage
     {
         EventBusLI.subscribe(StartLazyIntakeEvent::class, {
 
-                logM.logMd("check race condition", ATTEMPTING_LOGIC)
+                logM.logMd("Checking race condition", ATTEMPTING_LOGIC)
 
                 val canStartLazyIntake = _storageLogic
                     .noIntakeRaceConditionProblems(LAZY_INTAKE)
@@ -394,8 +395,7 @@ class SortingStorage
     }
     private fun stopLazyIntake()
     {
-        if (_storageLogic.runStatus.isUsedByThisProcess(
-                LAZY_INTAKE))
+        if (_storageLogic.runStatus.isUsedByThisProcess(LAZY_INTAKE))
         {
             logM.logMd("Stopping LazyIntake", PROCESS_STARTING)
             _storageLogic.storageCells.hwSortingM.stopBelts()
@@ -411,8 +411,9 @@ class SortingStorage
         if (_storageLogic.storageCells.alreadyFull()) return Intake.FAIL_IS_FULL
 
         if (_storageLogic.noIntakeRaceConditionProblems(INTAKE,
-                INTAKE, RUNNING_INTAKE_INSTANCE))
+                RUNNING_INTAKE_INSTANCE))
         {
+            logM.logMd("Race condition: intake is possible", RACE_CONDITION)
             _storageLogic.runStatus.setCurrentActiveProcess(INTAKE)
             val intakeResult = _storageLogic.safeSortIntake(inputBall)
 

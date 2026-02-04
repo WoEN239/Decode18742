@@ -170,16 +170,18 @@ class SortingStorageLogic
     {
         logM.logMd("CHECKING RACE CONDITION", RACE_CONDITION)
         if (runStatus.isUsedByAnotherProcess(
-            *exceptionProcessesId)) return true
+            processId, *exceptionProcessesId)) return true
 
         logM.logMd("Currently not busy", RACE_CONDITION)
         runStatus.addProcessToQueue(processId)
         delay(DELAY.INTAKE_RACE_CONDITION_MS)
 
         logM.logMd("Highest processId: " +
-                "${runStatus.getHighestPriorityProcessId()}",
+                "${runStatus.getHighestPriorityProcessId(*exceptionProcessesId)}",
             RACE_CONDITION)
-        return !runStatus.isThisProcessHighestPriority(processId)
+
+        return !runStatus.isThisProcessHighestPriority(
+            processId, *exceptionProcessesId)
     }
     suspend fun noIntakeRaceConditionProblems(
         processId: Int,
@@ -187,10 +189,7 @@ class SortingStorageLogic
     {
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
 
-        return if (exceptionProcessesId.isEmpty())
-             !intakeRaceConditionIsPresent(processId,
-                processId)
-        else !intakeRaceConditionIsPresent(processId,
+        return !intakeRaceConditionIsPresent(processId,
                 *exceptionProcessesId)
     }
 

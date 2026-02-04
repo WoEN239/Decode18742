@@ -48,7 +48,7 @@ object Configs {
         var BRUSH_STOP_TIME = 0.5
 
         @JvmField
-        var TIME_FOR_BRUSH_REVERSING: Long = 1555
+        var TIME_FOR_BRUSH_REVERSING: Long = 999
 
         @JvmField
         var BRUSH_POWER = 11.5
@@ -474,6 +474,7 @@ object Configs {
 
             GAMEPAD_FEEDBACK,
             EVENTS_FEEDBACK,
+            RACE_CONDITION,
 
             ATTEMPTING_LOGIC,
             PROCESS_STARTING,
@@ -495,6 +496,7 @@ object Configs {
 
             GAMEPAD_FEEDBACK,
             EVENTS_FEEDBACK,
+            RACE_CONDITION,
 
             ATTEMPTING_LOGIC,
             PROCESS_STARTING,
@@ -528,6 +530,7 @@ object Configs {
         var SMC_DEBUG_LEVELS = arrayListOf(
             GAMEPAD_FEEDBACK,
             EVENTS_FEEDBACK,
+            RACE_CONDITION,
 
             ATTEMPTING_LOGIC,
             PROCESS_STARTING,
@@ -651,7 +654,7 @@ object Configs {
     internal object SORTING_SETTINGS {
 
         @JvmField
-        var INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = Shooting.StockPattern.Sequence.Storage.GPP
+        var INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = Shooting.StockPattern.Sequence.Storage.EMPTY
 
 
         @JvmField
