@@ -1,24 +1,20 @@
 package org.woen.telemetry
 
 
-import kotlin.math.PI
-import kotlin.math.max
-import kotlin.math.ceil
-import kotlin.jvm.JvmField
-
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-
 import org.woen.enumerators.Shooting
 import org.woen.enumerators.StorageSlot
-
-import org.woen.utils.units.Vec2
-import org.woen.utils.units.Angle
-import org.woen.utils.units.Triangle
-import org.woen.utils.units.Orientation
 import org.woen.utils.process.RunStatus
 import org.woen.utils.regulator.RegulatorParameters
+import org.woen.utils.units.Angle
+import org.woen.utils.units.Orientation
+import org.woen.utils.units.Triangle
+import org.woen.utils.units.Vec2
 import java.lang.Math.toRadians
+import kotlin.math.PI
+import kotlin.math.ceil
+import kotlin.math.max
 
 
 /*
@@ -50,6 +46,7 @@ object Configs {
 
         @JvmField
         var BRUSH_STOP_TIME = 0.5
+
         @JvmField
         var TIME_FOR_BRUSH_REVERSING: Long = 1555
 
@@ -90,13 +87,15 @@ object Configs {
     @Config
     internal object ODOMETRY {
         @JvmField
-        var START_RED_CLOSE_ORIENTATION = Orientation(Vec2(-(1.205 + 0.38 / 2.0 + 0.01), 0.93 + 0.38 / 2.0 - 0.01), Angle(PI))
+        var START_RED_CLOSE_ORIENTATION =
+            Orientation(Vec2(-(1.205 + 0.38 / 2.0 + 0.01), 0.93 + 0.38 / 2.0 - 0.01), Angle(PI))
 
         @JvmField
         var START_RED_FAR_ORIENTATION = Orientation(Vec2(1.63, 0.39), Angle(PI))
 
         @JvmField
-        var START_BLUE_CLOSE_ORIENTATION = Orientation(Vec2(-(1.205 + 0.38 / 2.0 + 0.01), -0.93 - 0.38 / 2.0 + 0.01), Angle(PI))
+        var START_BLUE_CLOSE_ORIENTATION =
+            Orientation(Vec2(-(1.205 + 0.38 / 2.0 + 0.01), -0.93 - 0.38 / 2.0 + 0.01), Angle(PI))
 
         @JvmField
         var START_BLUE_FAR_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI))
@@ -141,13 +140,16 @@ object Configs {
         var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
         @JvmField
-        var H_REGULATOR_PARAMETERS = RegulatorParameters(kP = 6.5, limitU = MAX_DRIVE_ANGLE_VELOCITY)
+        var H_REGULATOR_PARAMETERS =
+            RegulatorParameters(kP = 6.5, limitU = MAX_DRIVE_ANGLE_VELOCITY)
 
         @JvmField
-        var X_REGULATOR_PARAMETERS = RegulatorParameters(kP = 4.0, kD = 0.1, limitU = MAX_DRIVE_VELOCITY)
+        var X_REGULATOR_PARAMETERS =
+            RegulatorParameters(kP = 4.0, kD = 0.1, limitU = MAX_DRIVE_VELOCITY)
 
         @JvmField
-        var Y_REGULATOR_PARAMETERS = RegulatorParameters(kP = 4.0, kD = 0.1, limitU = MAX_DRIVE_VELOCITY)
+        var Y_REGULATOR_PARAMETERS =
+            RegulatorParameters(kP = 4.0, kD = 0.1, limitU = MAX_DRIVE_VELOCITY)
 
         @JvmField
         var SHOOTING_P = 4.0
@@ -288,7 +290,8 @@ object Configs {
         var ROTATE_SERVO_RATIO = (30.0 / 18.0) * (60.0 / 120.0)
 
         @JvmField
-        var ROTATE_SERVO_REGULATOR = RegulatorParameters(kP = 0.2, kD = 0.00005, kPow = 0.0001, limitU = 1.0)
+        var ROTATE_SERVO_REGULATOR =
+            RegulatorParameters(kP = 0.2, kD = 0.00005, kPow = 0.0001, limitU = 1.0)
 
         @JvmField
         var MAX_ROTATE = PI / 2.0
@@ -300,7 +303,7 @@ object Configs {
         var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.738, 0.576), Angle.ofDeg(135.0))
 
         @JvmField
-        var SHOOTING_BLUE_ORIENTATION =  Orientation(Vec2(-0.738, -0.576), Angle.ofDeg(-135.0))
+        var SHOOTING_BLUE_ORIENTATION = Orientation(Vec2(-0.738, -0.576), Angle.ofDeg(-135.0))
 
         @JvmField
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
@@ -353,80 +356,22 @@ object Configs {
 
     @Config
     internal object STORAGE_SENSORS {
+        @JvmField
+        var MAXIMUM_READING = (65535.coerceAtMost(
+            1024 * (256 - max(
+                0,
+                256 - ceil((24 / 2.4f).toDouble()).toInt()
+            ))
+        )).toDouble()
 
         @JvmField
-        var OPTIC_SEES_NOT_BLACK = 0.4
-
-
-        @JvmField
-        var CONST_MAXIMUM_READING = 10240.0
-        @JvmField
-        var ACCUMULATION_INTERVAL_MS = 24
+        var GREEN_THRESHOLD = 30.0
 
         @JvmField
-        var VAR_MAXIMUM_READING = (
-                65535.coerceAtMost(
-                    1024 * (256 - max(
-                        0, 256 - ceil(
-                            (
-                                    ACCUMULATION_INTERVAL_MS
-                                            / 2.4f
-                                ).toDouble()
-                        ).toInt()
-                    ))
-                )
-                ).toDouble()
-
+        var MIN_PURPLE_H = 3.1
 
         @JvmField
-        var LCS_GREEN_BALL_R_K = 0.0
-        @JvmField
-        var LCS_GREEN_BALL_G_K = 1.0 - 0.39
-        @JvmField
-        var LCS_GREEN_BALL_B_K = 0.44
-
-        @JvmField
-        var LCS_GREEN_BALL_THRESHOLD = 40.0
-
-
-        @JvmField
-        var LCS_PURPLE_BALL_R_K = 0.78
-        @JvmField
-        var LCS_PURPLE_BALL_G_K = (1.0 - 0.78) / 2.0
-        @JvmField
-        var LCS_PURPLE_BALL_B_K = (1.0 - 0.78) / 2.0
-
-        @JvmField
-        var LCS_PURPLE_BALL_THRESHOLD = 28.5
-
-
-
-        @JvmField
-        var RCS_GREEN_BALL_R_K = 47.0 / (47.0 + 175.0 + 136.0)
-        @JvmField
-        var RCS_GREEN_BALL_G_K = 175.0 / (47.0 + 175.0 + 136.0)
-        @JvmField
-        var RCS_GREEN_BALL_B_K = 136.0 / (47.0 + 175.0 + 136.0)
-
-        @JvmField
-        var RCS_GREEN_BALL_THRESHOLD = 40.0
-
-
-        @JvmField
-        var RCS_PURPLE_BALL_R_K = 201.0 / (201.0 + 254.0 + 412.0)
-        @JvmField
-        var RCS_PURPLE_BALL_G_K = 254.0 / (201.0 + 254.0 + 412.0)
-        @JvmField
-        var RCS_PURPLE_BALL_B_K = 412.0 / (201.0 + 254.0 + 412.0)
-
-        @JvmField
-        var RCS_PURPLE_BALL_THRESHOLD = 40.0
-
-
-        @JvmField
-        var MIN_TIME_FOR_INTAKE_DETECTION_MS: Long = 12
-        @JvmField
-        var MIN_TIME_FOR_INTAKE_NOT_DETECTION_MS: Long = 25
+        var MAX_PURPLE_H = 4.0
     }
 
 
@@ -434,7 +379,8 @@ object Configs {
     internal object PROCESS_ID {
 
         @JvmField
-        var PRIORITY_SETTING_FOR_SORTING_STORAGE   = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
+        var PRIORITY_SETTING_FOR_SORTING_STORAGE = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
+
         @JvmField
         var PRIORITY_SETTING_FOR_SCORING_CONNECTOR = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
 
@@ -477,33 +423,31 @@ object Configs {
     }
 
 
-    object DEBUG_LEVELS
-    {
+    object DEBUG_LEVELS {
         var SHOW_DEBUG_SUPPRESS_WARNINGS = true
 
-        val HARDWARE_LOW  = 0u
-        val HARDWARE      = 1u
+        val HARDWARE_LOW = 0u
+        val HARDWARE = 1u
         val HARDWARE_HIGH = 2u
 
         val GAMEPAD_FEEDBACK = 3u
-        val EVENTS_FEEDBACK  = 4u
+        val EVENTS_FEEDBACK = 4u
 
-        val RACE_CONDITION   = 5u
+        val RACE_CONDITION = 5u
         val ATTEMPTING_LOGIC = 6u
         val PROCESS_STARTING = 7u
-        val PROCESS_ENDING   = 8u
+        val PROCESS_ENDING = 8u
 
         val GENERIC_INFO = 9u
-        val LOGIC_STEPS  = 10u
+        val LOGIC_STEPS = 10u
 
         val PROCESS_NAME = 11u
-        val TERMINATION  = 12u
-
+        val TERMINATION = 12u
 
 
         //  Sorting cells
         var CELLS_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-        var CELLS_DEBUG_LEVELS  = arrayListOf(
+        var CELLS_DEBUG_LEVELS = arrayListOf(
             HARDWARE,
             HARDWARE_HIGH,
 
@@ -518,12 +462,13 @@ object Configs {
             LOGIC_STEPS,
 
             PROCESS_NAME,
-            TERMINATION)
+            TERMINATION
+        )
 
 
         //  Sorting Storage Logic
         var SSL_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-        var SSL_DEBUG_LEVELS  = arrayListOf(
+        var SSL_DEBUG_LEVELS = arrayListOf(
             HARDWARE,
             HARDWARE_HIGH,
 
@@ -538,12 +483,13 @@ object Configs {
             LOGIC_STEPS,
 
             PROCESS_NAME,
-            TERMINATION)
+            TERMINATION
+        )
 
 
         //  Sorting storage module
         var SSM_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-        var SSM_DEBUG_LEVELS  = arrayListOf(
+        var SSM_DEBUG_LEVELS = arrayListOf(
             HARDWARE,
             HARDWARE_HIGH,
 
@@ -558,12 +504,13 @@ object Configs {
             LOGIC_STEPS,
 
             PROCESS_NAME,
-            TERMINATION)
+            TERMINATION
+        )
 
 
         //  Sorting Auto Logic
         var SAL_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-        var SAL_DEBUG_LEVELS  = arrayListOf(
+        var SAL_DEBUG_LEVELS = arrayListOf(
             ATTEMPTING_LOGIC,
             PROCESS_STARTING,
             PROCESS_ENDING,
@@ -572,12 +519,13 @@ object Configs {
             LOGIC_STEPS,
 
             PROCESS_NAME,
-            TERMINATION)
+            TERMINATION
+        )
 
 
         //  Scoring modules connector
         var SMC_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-        var SMC_DEBUG_LEVELS  = arrayListOf(
+        var SMC_DEBUG_LEVELS = arrayListOf(
             GAMEPAD_FEEDBACK,
             EVENTS_FEEDBACK,
 
@@ -589,12 +537,13 @@ object Configs {
             LOGIC_STEPS,
 
             PROCESS_NAME,
-            TERMINATION)
+            TERMINATION
+        )
 
 
         //  Hardware sorting manager
         var HSM_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-        var HSM_DEBUG_LEVELS  = arrayListOf(
+        var HSM_DEBUG_LEVELS = arrayListOf(
             HARDWARE,
             HARDWARE_HIGH,
 
@@ -609,14 +558,14 @@ object Configs {
             LOGIC_STEPS,
 
             PROCESS_NAME,
-            TERMINATION)
+            TERMINATION
+        )
 
 
         //  Color sensors and optics - storage sensors
         var SENSORS_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-        var SENSORS_DEBUG_LEVELS  = arrayListOf(HARDWARE, HARDWARE_HIGH)
+        var SENSORS_DEBUG_LEVELS = arrayListOf(HARDWARE, HARDWARE_HIGH)
     }
-
 
 
     @Config
@@ -624,6 +573,7 @@ object Configs {
 
         @JvmField
         var INTAKE_RACE_CONDITION_MS: Long = 15
+
         @JvmField
         var LAZY_INTAKE_RACE_CONDITION_MS: Long = 15
 
@@ -638,7 +588,6 @@ object Configs {
         var STORAGE_CALIBRATION_RACE_CONDITION_MS: Long = 10
 
 
-
         @JvmField
         var EVENT_AWAITING_MS: Long = 5
 
@@ -648,15 +597,18 @@ object Configs {
 
         @JvmField
         var FULL_BALL_PUSHING_MS: Long = 444
+
         @JvmField
         var PART_BALL_PUSHING_MS: Long = 333
 
         @JvmField
         var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 400        //  9.0V configuration
-//        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
+
+        //        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
         @JvmField
         var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 400
-//        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 444      //  8.5V configuration
+
+        //        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 444      //  8.5V configuration
         @JvmField
         var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 200
 //        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 222      //  8.5V configuration
@@ -664,14 +616,17 @@ object Configs {
 
         @JvmField
         var SHOOTING_REALIGNING_FORWARD_MS: Long = 222
+
         @JvmField
-        var SORTING_REALIGNING_FORWARD_MS:  Long = 444
+        var SORTING_REALIGNING_FORWARD_MS: Long = 444
+
         @JvmField
-        var SORTING_REALIGNING_REVERSE_MS:  Long = 75
+        var SORTING_REALIGNING_REVERSE_MS: Long = 75
 
 
         @JvmField
         var SMC_MAX_SHOT_AWAITING_MS: Long = 60
+
         @JvmField
 //        var SSL_MAX_SHOT_AWAITING_MS: Long = 205     //  9.0V configuration
         var SSL_MAX_SHOT_AWAITING_MS: Long = 245       //  8.5V configuration
@@ -680,17 +635,16 @@ object Configs {
         var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33333 / 3
 
 
-
         @JvmField
         var IGNORE_BELTS_CURRENT_AFTER_START_MS: Long = 200
 
 
         @JvmField
-        var BETWEEN_SHOTS_MS:   Long = 100
+        var BETWEEN_SHOTS_MS: Long = 100
+
         @JvmField
         var BETWEEN_INTAKES_MS: Long = 500
     }
-
 
 
     @Config
@@ -702,6 +656,7 @@ object Configs {
 
         @JvmField
         var ALWAYS_TRY_PREDICT_SORTING = true
+
         @JvmField
         var TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING = true
 
@@ -712,11 +667,10 @@ object Configs {
         var START_WEIGHT_FOR_PREDICT_SORT = 0.0
 
         @JvmField
-        var TRUE_MATCH_WEIGHT   = 1.0
+        var TRUE_MATCH_WEIGHT = 1.0
 
         @JvmField
         var PSEUDO_MATCH_WEIGHT = 0.75
-
 
 
         @JvmField
@@ -730,12 +684,12 @@ object Configs {
         var SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS = false
 
 
-
         @JvmField
         var USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS = false
 
         @JvmField
         var SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION = false
+
         @JvmField
         var TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS = false
 
@@ -750,9 +704,9 @@ object Configs {
         var TRY_RECALIBRATE_IF_SOMETHING_FAILS = true
 
 
-
         @JvmField
         var TELEOP_PATTERN_SHOOTING_MODE = Shooting.Mode.FIRE_PATTERN_CAN_SKIP
+
         @JvmField
         var AUTO_DEFAULT_SHOOTING_MODE = Shooting.Mode.FIRE_PATTERN_CAN_SKIP
 
@@ -766,7 +720,6 @@ object Configs {
         var AUTO_FAILSAFE_PATTERN = Shooting.StockPattern.Name.ANY
 
 
-
         @JvmField
         var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = false
 
@@ -774,16 +727,17 @@ object Configs {
         var PREFERRED_INTAKE_SLOT_SEARCHING_ORDER = arrayOf(
             StorageSlot.TURRET,
             StorageSlot.CENTER,
-            StorageSlot.BOTTOM)
+            StorageSlot.BOTTOM
+        )
 
         @JvmField
         var PREFERRED_REQUEST_SLOT_SEARCHING_ORDER = arrayOf(
             StorageSlot.TURRET,
             StorageSlot.CENTER,
             StorageSlot.BOTTOM,
-            StorageSlot.MOBILE)
+            StorageSlot.MOBILE
+        )
     }
-
 
 
     @Config
@@ -799,28 +753,32 @@ object Configs {
 
         @JvmField
         var GATE_SERVO_OPEN_VALUE = 0.78
+
         @JvmField
         var GATE_SERVO_CLOSE_VALUE = 0.355
 
         @JvmField
         var PUSH_SERVO_OPEN_VALUE = 0.31
+
         @JvmField
         var PUSH_SERVO_CLOSE_VALUE = 0.545
 
         @JvmField
         var LAUNCH_SERVO_OPEN_VALUE = 0.58
+
         @JvmField
         var LAUNCH_SERVO_CLOSE_VALUE = 0.96
 
 
-
         @JvmField
         var BELT_POWER_LAZY_MODE = 10.0
+
         @JvmField
         var BELT_POWER_FAST_MODE = 11.0
 
         @JvmField
         var BELT_POWER_SLOW_MODE = 10.0
+
         @JvmField
         var BELT_POWER_SHOOT_MODE = 11.0
 
@@ -832,18 +790,19 @@ object Configs {
     }
 
 
-
     @Config
     internal object HARDWARE_DEVICES_NAMES {
 
         @JvmField
-        var INTAKE_COLOR_SENSOR_L = "colorSensorLeft"
+        var INTAKE_COLOR_SENSOR_L = "leftColorSensor"
+
         @JvmField
         var INTAKE_COLOR_SENSOR_R = "rightColorSensor"
 
 
         @JvmField
         var TURRET_OPTIC_1 = "optic1"
+
         @JvmField
         var TURRET_OPTIC_2 = "optic2"
 
@@ -858,8 +817,10 @@ object Configs {
 
         @JvmField
         var GATE_SERVO = "gateServo"
+
         @JvmField
         var PUSH_SERVO = "pushServo"
+
         @JvmField
         var LAUNCH_SERVO = "launchServo"
     }
@@ -905,30 +866,38 @@ object Configs {
 
         @JvmField
         var BLUE_R_POWER = 0.0
+
         @JvmField
         var BLUE_G_POWER = 1.0
+
         @JvmField
         var BLUE_B_POWER = 1.0
 
         @JvmField
         var GREEN_R_POWER = 0.0
+
         @JvmField
         var GREEN_G_POWER = 1.0
+
         @JvmField
         var GREEN_B_POWER = 0.0
 
         @JvmField
         var ORANGE_R_POWER = 1.0
+
         @JvmField
         var ORANGE_G_POWER = 0.07
+
         @JvmField
         var ORANGE_B_POWER = 0.0
 
 
         @JvmField
         var RED_R_POWER = 1.0
+
         @JvmField
         var RED_G_POWER = 0.0
+
         @JvmField
         var RED_B_POWER = 0.0
 

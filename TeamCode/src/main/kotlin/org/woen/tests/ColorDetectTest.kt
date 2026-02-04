@@ -24,7 +24,7 @@ internal object COLOR_DETECT_TEST{
 @TeleOp(group = "tests")
 class ColorDetectTest : LinearOpMode() {
     override fun runOpMode() {
-        val leftSensor = hardwareMap.get("leftColorSesor") as RevColorSensorV3
+        val leftSensor = hardwareMap.get("leftColorSensor") as RevColorSensorV3
         val rightSensor = hardwareMap.get("rightColorSensor") as RevColorSensorV3
 
         leftSensor.gain = 4.0f
@@ -93,7 +93,7 @@ class ColorDetectTest : LinearOpMode() {
             telem.addLine("hueLeft ${String.format("%.1f", leftH)}")
 
             val leftPurple = leftH in (COLOR_DETECT_TEST.MIN_PURPLE_H..COLOR_DETECT_TEST.MAX_PURPLE_H)
-            val rightPurple = leftH in (COLOR_DETECT_TEST.MIN_PURPLE_H..COLOR_DETECT_TEST.MAX_PURPLE_H)
+            val rightPurple = rightH in (COLOR_DETECT_TEST.MIN_PURPLE_H..COLOR_DETECT_TEST.MAX_PURPLE_H)
 
             val combinedPurple = leftPurple || rightPurple
 
