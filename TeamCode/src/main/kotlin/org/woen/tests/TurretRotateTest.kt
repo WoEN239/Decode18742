@@ -12,7 +12,7 @@ internal object TURRET_ROTATE_TEST{
     var POSITION = 0.6
 }
 
-@TeleOp
+@TeleOp(group = "tests")
 class TurretRotateTest: LinearOpMode() {
     override fun runOpMode() {
         val serv = hardwareMap.get("turretRotateServo") as Servo

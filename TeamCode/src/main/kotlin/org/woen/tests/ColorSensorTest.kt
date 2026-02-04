@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.ColorSensor
 import com.qualcomm.robotcore.util.ElapsedTime
 import woen239.FixColorSensor.fixSensor
 
-@TeleOp
+@TeleOp(group = "tests")
 class ColorSensorTest : LinearOpMode() {
     override fun runOpMode() {
         val sensor = hardwareMap.get("rightColorSensor") as RevColorSensorV3//fixSensor(hardwareMap.get("color") as AdafruitI2cColorSensor)

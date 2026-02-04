@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import org.woen.telemetry.Configs
 import woen239.odometry.OdometryComputer
 
-@TeleOp
+@TeleOp(group = "tests")
 class PinpointTest : LinearOpMode() {
     override fun runOpMode() {
         val pinpoint = hardwareMap.get("odometry") as GoBildaPinpointDriver

@@ -9,7 +9,7 @@ import org.woen.telemetry.Configs
 
 
 
-@TeleOp
+@TeleOp(group = "tests")
 class OpticTest : LinearOpMode() {
     override fun runOpMode() {
         val optic1 =

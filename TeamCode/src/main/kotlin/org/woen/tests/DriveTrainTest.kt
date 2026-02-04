@@ -14,7 +14,7 @@ import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sign
 
-@TeleOp
+@TeleOp(group = "tests")
 class DriveTrainTest : LinearOpMode() {
     lateinit var leftForwardDrive: DcMotorEx
     lateinit var leftBackDrive: DcMotorEx

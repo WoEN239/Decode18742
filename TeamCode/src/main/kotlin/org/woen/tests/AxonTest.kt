@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.util.ElapsedTime
+import org.woen.telemetry.Configs
 import org.woen.utils.drivers.InfinityAxon
 import org.woen.utils.regulator.RegulatorParameters
 import kotlin.math.PI
@@ -15,10 +16,10 @@ internal object AXON_TEST {
     var TARGET_POSITION = 0.0
 }
 
-@TeleOp
+@TeleOp(group = "tests")
 class AxonTest : LinearOpMode() {
     override fun runOpMode() {
-        val servo = InfinityAxon("axon", "axonEncoder", hardwareMap)
+        val servo = InfinityAxon("turretRotateServo", "turretRotateEncoder", hardwareMap)
 
         var state = false
         val timer = ElapsedTime()
@@ -36,7 +37,7 @@ class AxonTest : LinearOpMode() {
 //                timer.reset()
 //            }
 
-            servo.targetPosition = AXON_TEST.TARGET_POSITION / 180.0 * PI
+            servo.targetPosition = (AXON_TEST.TARGET_POSITION / 180.0 * PI) / Configs.TURRET.ROTATE_SERVO_RATIO
 
             servo.update()
         }

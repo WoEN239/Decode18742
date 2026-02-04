@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotorEx
 
-@TeleOp
+@TeleOp(group = "tests")
 class EncoderTest: LinearOpMode() {
     override fun runOpMode() {
         val motor1 = hardwareMap.get("turretRotateEncoder") as DcMotorEx

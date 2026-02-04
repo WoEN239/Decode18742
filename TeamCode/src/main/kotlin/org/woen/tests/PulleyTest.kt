@@ -19,7 +19,7 @@ internal object PULLEY_TEST_CONFIG {
     var TARGET = 0.0
 }
 
-@TeleOp
+@TeleOp(group = "tests")
 class PulleyTest : LinearOpMode() {
     override fun runOpMode() {
         val battery = hardwareMap.get(VoltageSensor::class.java, "Control Hub")

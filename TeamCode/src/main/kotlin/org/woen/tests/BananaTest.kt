@@ -14,7 +14,7 @@ internal object BANAN_TEST_CONFIG{
     var POSITION = 45.0
 }
 
-@TeleOp
+@TeleOp(group = "tests")
 class BananaTest: LinearOpMode() {
     override fun runOpMode() {
         val banan = hardwareMap.get("turretAngleServo") as Servo
