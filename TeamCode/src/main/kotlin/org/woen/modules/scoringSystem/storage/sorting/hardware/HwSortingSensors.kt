@@ -2,6 +2,7 @@ package org.woen.modules.scoringSystem.storage.sorting.hardware
 
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.enumerators.Ball
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
@@ -29,6 +30,9 @@ class HwSortingSensors() : IHardwareDevice {
 
     private var _oldCombinedGreen = false
     private var _oldCombinedPurple = false
+
+    private val _greenTimer = ElapsedTime()
+    private val _purpleTimer = ElapsedTime()
 
     val opticDetectedShotFiringEvent = SimpleEmptyEvent()
     val colorSensorsDetectedIntakeEvent = SimpleEvent<ColorSensorsData>()
@@ -60,8 +64,14 @@ class HwSortingSensors() : IHardwareDevice {
 
         val combinedGreen = leftGreen || rightGreen
 
-        if(combinedGreen && !_oldCombinedGreen)
+        if(combinedGreen && !_oldCombinedGreen) {
             colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.GREEN))
+            _greenTimer.reset()
+        }
+        else if(combinedGreen && _greenTimer.seconds() > Configs.STORAGE_SENSORS.DOUBLE_DETECT_TIMER){
+            colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.GREEN))
+            _greenTimer.reset()
+        }
 
         _oldCombinedGreen = combinedGreen
 
@@ -94,8 +104,15 @@ class HwSortingSensors() : IHardwareDevice {
 
         val combinedPurple = leftPurple || rightPurple
 
-        if(combinedPurple && !_oldCombinedPurple)
+        if(combinedPurple && !_oldCombinedPurple) {
             colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.PURPLE))
+
+            _purpleTimer.reset()
+        }
+        else if(combinedPurple && _purpleTimer.seconds() > Configs.STORAGE_SENSORS.DOUBLE_DETECT_TIMER){
+            colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.PURPLE))
+            _purpleTimer.reset()
+        }
 
         _oldCombinedPurple = combinedPurple
     }

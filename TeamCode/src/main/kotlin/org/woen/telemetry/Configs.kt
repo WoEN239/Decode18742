@@ -372,6 +372,9 @@ object Configs {
 
         @JvmField
         var MAX_PURPLE_H = 4.0
+
+        @JvmField
+        var DOUBLE_DETECT_TIMER = 0.3
     }
 
 
