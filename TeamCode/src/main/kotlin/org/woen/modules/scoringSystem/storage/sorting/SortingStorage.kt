@@ -340,7 +340,6 @@ class SortingStorage
         logM.logMd("attempting intake termination", ATTEMPTING_LOGIC)
 
         val activeProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
-        _storageLogic.lazyIntakeIsActive.set(false)
 
         if (activeProcessId == LAZY_INTAKE ||
             activeProcessId == INTAKE)

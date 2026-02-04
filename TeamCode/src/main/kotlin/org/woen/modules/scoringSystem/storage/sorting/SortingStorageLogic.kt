@@ -61,9 +61,8 @@ class SortingStorageLogic
     val storageCells           = StorageCells()
     val dynamicMemoryPattern   = DynamicPattern()
 
-    val canShoot               = AtomicBoolean(false)
-    val shotWasFired           = AtomicBoolean(false)
-    val lazyIntakeIsActive     = AtomicBoolean(false)
+    val canShoot     = AtomicBoolean(false)
+    val shotWasFired = AtomicBoolean(false)
 
     val runStatus = RunStatus(PRIORITY_SETTING_FOR_SORTING_STORAGE)
     val logM = LogManager(SSL_DEBUG_SETTING,
@@ -277,8 +276,6 @@ class SortingStorageLogic
     {
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
-
-        lazyIntakeIsActive.set(false)
 
         while (requestRaceConditionIsPresent(processId))
             delay(DELAY.EVENT_AWAITING_MS)

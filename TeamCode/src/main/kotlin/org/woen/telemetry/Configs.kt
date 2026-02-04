@@ -681,7 +681,13 @@ object Configs {
 
 
         @JvmField
-        var SMART_AUTO_ADJUST_PATTERN_FOR_FAILED_SHOTS = false
+        var INCLUDE_PREVIOUS_UNFINISHED_TO_REQUEST_ORDER  = false
+        @JvmField
+        var INCLUDE_PREVIOUS_UNFINISHED_TO_FAILSAFE_ORDER = false
+        @JvmField
+        var AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN = false
+        @JvmField
+        var IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER = false
 
 
         @JvmField
