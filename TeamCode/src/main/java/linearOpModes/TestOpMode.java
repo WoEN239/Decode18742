@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import woen239.neural.NeuralNetwork;
 
 @Disabled
-@TeleOp
+@TeleOp(group = "tests")
 public class TestOpMode extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {

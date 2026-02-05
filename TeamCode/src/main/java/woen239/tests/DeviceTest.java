@@ -19,7 +19,7 @@ import java.util.Arrays;
 
 
 @Config(value = "DEVICE_TEST")
-@TeleOp
+@TeleOp(group = "tests")
 public class DeviceTest extends LinearOpMode {
 
     public static String deviceName = "";
