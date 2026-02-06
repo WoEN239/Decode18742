@@ -269,10 +269,10 @@ object Configs {
         var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, 3.66 / 2.0 - 0.2)
 
         @JvmField
-        var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.45
+        var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.62
 
         @JvmField
-        var MAX_TURRET_ANGLE_SERVO = 1.0 - 0.27
+        var MAX_TURRET_ANGLE_SERVO = 1.0 - 0.83
 
         @JvmField
         var MIN_TURRET_ANGLE = PI / 2.0 - toRadians(45.0)

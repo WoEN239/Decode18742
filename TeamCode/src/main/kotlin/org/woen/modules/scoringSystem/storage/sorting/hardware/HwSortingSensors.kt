@@ -46,8 +46,8 @@ class HwSortingSensors() : IHardwareDevice {
         _rightColor = hardwareMap.get(INTAKE_COLOR_SENSOR_L) as RevColorSensorV3
         _leftColor = hardwareMap.get(INTAKE_COLOR_SENSOR_R) as RevColorSensorV3
 
-        ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
-            while (Thread.currentThread().isInterrupted) {
+        ThreadManager.LAZY_INSTANCE.register(thread {
+            while (!Thread.currentThread().isInterrupted) {
                 if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN) {
                     Thread.sleep(5)
 
@@ -134,7 +134,7 @@ class HwSortingSensors() : IHardwareDevice {
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-            it.addData("color sensor updates", _updatesCounter.currentUPS)
+            it.addData("color sensor updates", String.format("%.1f", _updatesCounter.currentUPS))
         }
     }
 

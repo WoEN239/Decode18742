@@ -60,6 +60,8 @@ class InfinityAxon(
     fun start(){
         _regulator.start()
         _regulator.resetIntegral()
+
+        _oldPosition = _encoder.voltage / 3.3
     }
 
     fun update(){

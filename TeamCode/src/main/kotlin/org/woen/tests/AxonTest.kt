@@ -37,7 +37,13 @@ class AxonTest : LinearOpMode() {
 //                timer.reset()
 //            }
 
-            servo.targetPosition = (AXON_TEST.TARGET_POSITION / 180.0 * PI) / Configs.TURRET.ROTATE_SERVO_RATIO
+            servo.targetPosition = ((AXON_TEST.TARGET_POSITION + 172.54545454545456) / 180.0 * PI) / Configs.TURRET.ROTATE_SERVO_RATIO
+
+            val telem = FtcDashboard.getInstance().telemetry
+
+            telem.addData("position", servo.position / PI * 180.0 * Configs.TURRET.ROTATE_SERVO_RATIO)
+
+            telem.update()
 
             servo.update()
         }
