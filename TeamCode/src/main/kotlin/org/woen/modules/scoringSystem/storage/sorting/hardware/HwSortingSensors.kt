@@ -66,9 +66,9 @@ class HwSortingSensors() : IHardwareDevice {
                 val rightB = rightColor.blue * Configs.STORAGE_SENSORS.MAXIMUM_READING
 
                 val leftGreen =
-                    (leftG - max(leftR, leftB)) > Configs.STORAGE_SENSORS.GREEN_THRESHOLD
+                    (leftG - max(leftR, leftB)) > Configs.STORAGE_SENSORS.GREEN_THRESHOLD_LEFT
                 val rightGreen =
-                    (rightG - max(rightR, rightB)) > Configs.STORAGE_SENSORS.GREEN_THRESHOLD
+                    (rightG - max(rightR, rightB)) > Configs.STORAGE_SENSORS.GREEN_THRESHOLD_RIGHT
 
                 val combinedGreen = leftGreen || rightGreen
 
@@ -107,9 +107,9 @@ class HwSortingSensors() : IHardwareDevice {
                     }
 
                 val leftPurple =
-                    leftH in (Configs.STORAGE_SENSORS.MIN_PURPLE_H..Configs.STORAGE_SENSORS.MAX_PURPLE_H)
+                    leftH in (Configs.STORAGE_SENSORS.MIN_PURPLE_H_LEFT..Configs.STORAGE_SENSORS.MAX_PURPLE_H_LEFT)
                 val rightPurple =
-                    rightH in (Configs.STORAGE_SENSORS.MIN_PURPLE_H..Configs.STORAGE_SENSORS.MAX_PURPLE_H)
+                    rightH in (Configs.STORAGE_SENSORS.MIN_PURPLE_H_RIGHT..Configs.STORAGE_SENSORS.MAX_PURPLE_H_RIGHT)
 
                 val combinedPurple = leftPurple || rightPurple
 

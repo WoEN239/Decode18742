@@ -206,17 +206,17 @@ class ScoringModulesConnector
 //                        RACE_CONDITION)
 //        }   )   )
 
-        GamepadLI.addGamepad1Listener(createClickDownListener(
-            { it.square }, {
-
-                EventBusLI.invoke(StorageUpdateAfterLazyIntakeEvent(
-                        Shooting
-                            .StockPattern
-                            .Sequence
-                            .Storage
-                            .Name.GPP
-                    )   )
-        }   )   )
+//        GamepadLI.addGamepad1Listener(createClickDownListener(
+//            { it.square }, {
+//
+//                EventBusLI.invoke(StorageUpdateAfterLazyIntakeEvent(
+//                        Shooting
+//                            .StockPattern
+//                            .Sequence
+//                            .Storage
+//                            .Name.GPP
+//                    )   )
+//        }   )   )
 
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.left_trigger > 0.5 }, {

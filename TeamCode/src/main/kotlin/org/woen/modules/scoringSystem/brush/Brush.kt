@@ -111,7 +111,7 @@ class Brush : IModule {
         get() = _currentJob != null && !_currentJob!!.isCompleted
 
     override fun opModeStart() {
-        turnOn.set(BrushState.STOP)
+        turnOn.set(BrushState.FORWARD)
     }
 
     override fun opModeStop() {

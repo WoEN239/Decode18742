@@ -365,7 +365,7 @@ class SortingStorage
 //    fun unsafeTestSorting()
 //    {
 //        val fill = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
-//        _storageLogic.storageCells.safeUpdateAfterLazyIntake(fill)
+//        _storageLogic.storageCells.updateAfterLazyIntake(fill)
 //
 //        SmartCoroutineLI.launch {
 //            var iteration = 0

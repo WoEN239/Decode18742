@@ -12,13 +12,22 @@ import kotlin.math.min
 @Config
 internal object COLOR_DETECT_TEST{
     @JvmField
-    var GREEN_THRESHOLD = 30.0
+    var GREEN_THRESHOLD_LEFT = 30.0
 
     @JvmField
-    var MIN_PURPLE_H = 3.1
+    var GREEN_THRESHOLD_RIGHT = 30.0
 
     @JvmField
-    var MAX_PURPLE_H = 4.0
+    var MIN_PURPLE_H_LEFT = 3.1
+
+    @JvmField
+    var MAX_PURPLE_H_LEFT = 4.0
+
+    @JvmField
+    var MIN_PURPLE_H_RIGHT = 3.1
+
+    @JvmField
+    var MAX_PURPLE_H_RIGHT = 4.0
 }
 
 @TeleOp(group = "tests")
@@ -54,10 +63,10 @@ class ColorDetectTest : LinearOpMode() {
             val rightB = rightColor.blue * convert
 
             telem.addLine("left = ${String.format("%.1f", leftR)} ${String.format("%.1f", leftG)} ${String.format("%.1f", leftB)}")
-            telem.addLine("left = ${String.format("%.1f", rightR)} ${String.format("%.1f", rightG)} ${String.format("%.1f", rightB)}")
+            telem.addLine("right = ${String.format("%.1f", rightR)} ${String.format("%.1f", rightG)} ${String.format("%.1f", rightB)}")
 
-            val leftGreen = (leftG - max(leftR, leftB)) > COLOR_DETECT_TEST.GREEN_THRESHOLD
-            val rightGreen = (rightG - max(rightR, rightB)) > COLOR_DETECT_TEST.GREEN_THRESHOLD
+            val leftGreen = (leftG - max(leftR, leftB)) > COLOR_DETECT_TEST.GREEN_THRESHOLD_LEFT
+            val rightGreen = (rightG - max(rightR, rightB)) > COLOR_DETECT_TEST.GREEN_THRESHOLD_RIGHT
 
             val combinedGreen = leftGreen || rightGreen
 
@@ -92,8 +101,8 @@ class ColorDetectTest : LinearOpMode() {
 
             telem.addLine("hueLeft ${String.format("%.1f", leftH)}")
 
-            val leftPurple = leftH in (COLOR_DETECT_TEST.MIN_PURPLE_H..COLOR_DETECT_TEST.MAX_PURPLE_H)
-            val rightPurple = rightH in (COLOR_DETECT_TEST.MIN_PURPLE_H..COLOR_DETECT_TEST.MAX_PURPLE_H)
+            val leftPurple = leftH in (COLOR_DETECT_TEST.MIN_PURPLE_H_LEFT..COLOR_DETECT_TEST.MAX_PURPLE_H_LEFT)
+            val rightPurple = rightH in (COLOR_DETECT_TEST.MIN_PURPLE_H_RIGHT..COLOR_DETECT_TEST.MAX_PURPLE_H_RIGHT)
 
             val combinedPurple = leftPurple || rightPurple
 

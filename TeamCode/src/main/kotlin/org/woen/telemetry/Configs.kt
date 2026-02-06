@@ -365,13 +365,22 @@ object Configs {
         )).toDouble()
 
         @JvmField
-        var GREEN_THRESHOLD = 30.0
+        var GREEN_THRESHOLD_RIGHT = 50.0
 
         @JvmField
-        var MIN_PURPLE_H = 3.1
+        var GREEN_THRESHOLD_LEFT = 50.0
 
         @JvmField
-        var MAX_PURPLE_H = 4.0
+        var MIN_PURPLE_H_RIGHT = 3.4
+
+        @JvmField
+        var MAX_PURPLE_H_RIGHT = 4.0
+
+        @JvmField
+        var MIN_PURPLE_H_LEFT = 3.4
+
+        @JvmField
+        var MAX_PURPLE_H_LEFT = 4.0
 
         @JvmField
         var DOUBLE_DETECT_TIMER = 0.3
