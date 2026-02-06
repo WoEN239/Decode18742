@@ -55,13 +55,13 @@ class HardwareTurretServos : IHardwareDevice {
             "turretRotateServo",
             "turretRotateEncoder",
             hardwareMap,
-            regulator = Configs.TURRET.ROTATE_SERVO_REGULATOR
+            regulator = Configs.TURRET.ROTATE_SERVO_REGULATOR,
+            startPosition = Configs.TURRET.ZERO_ROTATE_POS / Configs.TURRET.ROTATE_SERVO_RATIO
         )
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _angleSevo.direction = Servo.Direction.REVERSE
             _rotateServo.init()
-            (_angleSevo as PwmControl).pwmRange = PwmControl.PwmRange(500.0, 2500.0)
         }
     }
 

@@ -65,19 +65,19 @@ class Turret : IModule {
                     odometry.odometryOrientation.angle
                 ))
 
-            _hardwareTurretServos.targetRotatePosition = Angle(
-                when (_currentRotateState) {
-                    RotateState.TO_BASKET ->
-                        ((basketErr).rot() - odometry.odometryOrientation.angle)
-
-                    RotateState.CONSTANT -> 0.0
-
-                    RotateState.TO_OBELISK -> ((Configs.TURRET.OBELISK_POSITION - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
-                        odometry.odometryOrientation.angle
-                    ))).rot()
-                            - odometry.odometryOrientation.angle)
-                }
-            ).angle
+//            _hardwareTurretServos.targetRotatePosition = Angle(
+//                when (_currentRotateState) {
+//                    RotateState.TO_BASKET ->
+//                        ((basketErr).rot() - odometry.odometryOrientation.angle)
+//
+//                    RotateState.CONSTANT -> 0.0
+//
+//                    RotateState.TO_OBELISK -> ((Configs.TURRET.OBELISK_POSITION - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
+//                        odometry.odometryOrientation.angle
+//                    ))).rot()
+//                            - odometry.odometryOrientation.angle)
+//                }
+//            ).angle
 
 //            val sl = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.SHORT_POINT).length()
 //            val ll = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.LONG_POINT).length()

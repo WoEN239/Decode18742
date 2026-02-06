@@ -251,7 +251,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kF = 0.0045, kP = 0.011 /*, limitU = 12.0*/)
+        var PULLEY_REGULATOR = RegulatorParameters(kF = 0.0035, kP = 0.0065, kI = 0.005 /*, limitU = 12.0*/)
 
         @JvmField
         var REGULATOR_SENS = 0.5
@@ -260,7 +260,7 @@ object Configs {
         var TARGET_TIMER = 0.1
 
         @EventConfig
-        var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.5)
+        var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.7)
 
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, -3.66 / 2.0 + 0.2)
@@ -284,7 +284,7 @@ object Configs {
         var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.145)
 
         @JvmField
-        var ZERO_ROTATE_POS = PI / 2.0
+        var ZERO_ROTATE_POS = toRadians(172.54545454545456)
 
         @JvmField
         var ROTATE_SERVO_RATIO = (30.0 / 18.0) * (60.0 / 120.0)
@@ -617,7 +617,7 @@ object Configs {
         var PART_BALL_PUSHING_MS: Long = 333
 
         @JvmField
-        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 400        //  9.0V configuration
+        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500        //  9.0V configuration
 
         //        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
         @JvmField
