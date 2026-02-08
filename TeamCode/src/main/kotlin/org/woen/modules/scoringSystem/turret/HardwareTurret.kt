@@ -51,12 +51,14 @@ class HardwareTurret :
     override fun update() {
         val currentMotorPosition = _motor.currentPosition.toDouble()
 
-        val rawVelocity = (currentMotorPosition - _oldMotorPosition) / _deltaTime.seconds()
+//        val rawVelocity = (currentMotorPosition - _oldMotorPosition) / _deltaTime.seconds()
 
-        _motorVelocity =
-            _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
+//        _motorVelocity =
+//            _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
+//
+//        _oldMotorPosition = currentMotorPosition
 
-        _oldMotorPosition = currentMotorPosition
+        _motorVelocity = _motor.velocity
 
         val err = _targetTicksVelocity - _motorVelocity
 

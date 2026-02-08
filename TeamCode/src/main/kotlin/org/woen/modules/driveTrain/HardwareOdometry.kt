@@ -46,6 +46,9 @@ class HardwareOdometry : IHardwareDevice {
 
         currentOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
 
+        _computer.recalibrateIMU()
+        _computer.resetPosAndIMU()
+
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _computer.setOffsets(
                 Configs.ODOMETRY.X_ODOMETER_POSITION, Configs.ODOMETRY.Y_ODOMETER_POSITION,

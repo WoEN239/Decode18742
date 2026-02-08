@@ -110,16 +110,16 @@ object Configs {
     @Config
     internal object DRIVE_TRAIN {
         @JvmField
-        var DRIVE_TO_SHOOTING_ZONE = false
+        var DRIVE_TO_SHOOTING_ZONE = true
 
         @JvmField
-        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 0.0, kP = 12.0)
+        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 0.0, kP = 9.0)
 
         @JvmField
-        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kI = 0.0, kP = 8.0)
+        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kI = 0.0, kP = 5.0)
 
         @JvmField
-        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 1.9, kI = 0.0)
+        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 1.3, kI = 0.0)
 
         @JvmField
         var MAX_DRIVE_VELOCITY = 2.0
@@ -161,7 +161,7 @@ object Configs {
         var POS_SENS = 0.1
 
         @JvmField
-        var TARGET_TIMER = 0.6
+        var TARGET_TIMER = 0.1
 
         @JvmField
         var RED_PARKING_ORIENTATION = Orientation(Vec2(0.948, -0.803), Angle.ofDeg(-180.0))
@@ -251,7 +251,7 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kF = 0.0035, kP = 0.0065, kI = 0.005 /*, limitU = 12.0*/)
+        var PULLEY_REGULATOR = RegulatorParameters(kF = 0.0055, kP = 0.08, kI = 0.01 /*, limitU = 12.0*/)
 
         @JvmField
         var REGULATOR_SENS = 0.5
@@ -300,10 +300,10 @@ object Configs {
         var MIN_ROTATE = -PI / 2.0
 
         @JvmField
-        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.738, 0.576), Angle.ofDeg(135.0))
+        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.630, 0.387), Angle.ofDeg(129.0))
 
         @JvmField
-        var SHOOTING_BLUE_ORIENTATION = Orientation(Vec2(-0.738, -0.576), Angle.ofDeg(-135.0))
+        var SHOOTING_BLUE_ORIENTATION = Orientation(Vec2(-0.630, -0.387), Angle.ofDeg(-129.0))
 
         @JvmField
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
@@ -327,7 +327,7 @@ object Configs {
         var PULLEY_U = 0.275
 
         @JvmField
-        var SHORT_PULLEY_VELOCITY = 17.2  //(-0.927, -0.842)
+        var SHORT_PULLEY_VELOCITY = 11.8 //(-0.927, -0.842)
 
         @JvmField
         var VELOCITY_THRESHOLD = 0.45
@@ -365,25 +365,28 @@ object Configs {
         )).toDouble()
 
         @JvmField
-        var GREEN_THRESHOLD_RIGHT = 50.0
+        var GREEN_THRESHOLD_RIGHT = 30.0
 
         @JvmField
         var GREEN_THRESHOLD_LEFT = 50.0
 
         @JvmField
-        var MIN_PURPLE_H_RIGHT = 3.4
+        var MIN_PURPLE_H_RIGHT = 2.9
 
         @JvmField
         var MAX_PURPLE_H_RIGHT = 4.0
 
         @JvmField
-        var MIN_PURPLE_H_LEFT = 3.4
+        var MIN_PURPLE_H_LEFT = 2.9
 
         @JvmField
         var MAX_PURPLE_H_LEFT = 4.0
 
         @JvmField
         var DOUBLE_DETECT_TIMER = 0.3
+
+        @JvmField
+        var DOUBLE_DETECT_COUNT_MAX = 2
     }
 
 
@@ -617,7 +620,7 @@ object Configs {
         var PART_BALL_PUSHING_MS: Long = 333
 
         @JvmField
-        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500        //  9.0V configuration
+        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 370        //  9.0V configuration
 
         //        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
         @JvmField

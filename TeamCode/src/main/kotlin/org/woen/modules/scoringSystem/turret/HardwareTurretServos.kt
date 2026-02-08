@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.PwmControl
 import com.qualcomm.robotcore.hardware.Servo
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.Configs
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.drivers.InfinityAxon
 
@@ -62,6 +63,10 @@ class HardwareTurretServos : IHardwareDevice {
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _angleSevo.direction = Servo.Direction.REVERSE
             _rotateServo.init()
+        }
+
+        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            it.addData("turret rotation", currentRotatePosition)
         }
     }
 
