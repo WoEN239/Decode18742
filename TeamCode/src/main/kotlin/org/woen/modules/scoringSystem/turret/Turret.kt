@@ -1,7 +1,6 @@
 package org.woen.modules.scoringSystem.turret
 
 
-import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -10,19 +9,12 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.RequireOdometryEvent
 import org.woen.telemetry.Configs
-import org.woen.tests.PULLEY_TEST_CONFIG
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
 import org.woen.utils.units.Angle
-import kotlin.math.atan
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
-import kotlin.math.sqrt
-import kotlin.math.tan
 
 
 class RequestTurretCurrentRotation(var rotation: Angle = Angle.ZERO) : StoppingEvent
@@ -79,15 +71,8 @@ class Turret : IModule {
 //                }
 //            ).angle
 
-//            val sl = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.SHORT_POINT).length()
-//            val ll = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - Configs.TURRET.LONG_POINT).length()
-//
-//            val l = (HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - odometry.odometryOrientation.pos).length()
-//
-//            _hardwareTurret.targetVelocity = (clamp(l, sl, ll) - sl)
-
-            _hardwareTurret.targetVelocity = Configs.TURRET.SHORT_PULLEY_VELOCITY
-            _hardwareTurretServos.anglePosition = Configs.TURRET.SHORT_ANGLE_POSITION
+            _hardwareTurret.targetVelocity = Configs.TURRET.PULLEY_VELOCITY
+            _hardwareTurretServos.anglePosition = Configs.TURRET.ANGLE_POSITION
 //
 //            val y = Configs.TURRET.SCORE_HEIGHT - Configs.TURRET.TURRET_HEIGHT
 //            val x = basketErr.length()

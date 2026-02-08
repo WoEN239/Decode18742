@@ -72,21 +72,8 @@ class DriveTrain : IModule {
                         Vec2(
                             _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.pos.x),
                             _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.pos.y)
-                        ).turn(-odometry.odometryOrientation.angle)
-                        /*_targetTranslateVelocity*/,
-                        /*if ((hErr > Configs.TURRET.MIN_ROTATE && hErr < Configs.TURRET.MAX_ROTATE) || (hErr < Configs.TURRET.MIN_ROTATE && _targetRotateVelocity < 0.0) ||
-                            (hErr > Configs.TURRET.MAX_ROTATE && _targetRotateVelocity > 0.0)
-                        )
-                            _targetRotateVelocity else {
-                            val err1 = (Configs.TURRET.MIN_ROTATE + Configs.TURRET.DRIVE_ROTATE_WINDOW) - hErr
-                            val err2 = (Configs.TURRET.MAX_ROTATE - Configs.TURRET.DRIVE_ROTATE_WINDOW) - hErr
-
-                            if (abs(err1) > abs(err2))
-                                -err2 * Configs.DRIVE_TRAIN.SHOOTING_P
-                            else
-                                -err1 * Configs.DRIVE_TRAIN.SHOOTING_P
-                        }*/ _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
-                        //_targetRotateVelocity
+                        ).turn(-odometry.odometryOrientation.angle),
+                        _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
                     )
                 }
 
@@ -116,7 +103,7 @@ class DriveTrain : IModule {
         get() = _driveJob != null && !_driveJob!!.isCompleted
 
     override fun opModeStart() {
-//        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.SHOOTING))
+
     }
 
     override fun opModeStop() {
@@ -198,15 +185,6 @@ class DriveTrain : IModule {
                 }
             }
         })
-
-//        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
-//            ThreadedGamepad.createClickDownListener(
-//                { it.circle },
-//                {
-//                    if (_currentMode == DriveMode.SHOOTING)
-//                        ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveMode.DRIVE))
-//                })
-//        )
 
         ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
             ThreadedGamepad.createClickDownListener(

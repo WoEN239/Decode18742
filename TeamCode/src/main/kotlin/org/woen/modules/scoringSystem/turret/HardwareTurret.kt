@@ -19,7 +19,6 @@ import kotlin.math.abs
 class HardwareTurret :
     IHardwareDevice {
     private lateinit var _motor: DcMotorEx
-    private var _oldMotorPosition = 0.0
     private var _motorVelocity = 0.0
 
     var targetVelocity: Double
@@ -36,8 +35,6 @@ class HardwareTurret :
 
 
     private val _regulator = Regulator(Configs.TURRET.PULLEY_REGULATOR)
-    private val _velocityFilter =
-        ExponentialFilter(Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.get())
 
     private val _deltaTime = ElapsedTime()
 
@@ -49,15 +46,6 @@ class HardwareTurret :
         private set
 
     override fun update() {
-        val currentMotorPosition = _motor.currentPosition.toDouble()
-
-//        val rawVelocity = (currentMotorPosition - _oldMotorPosition) / _deltaTime.seconds()
-
-//        _motorVelocity =
-//            _velocityFilter.updateRaw(_motorVelocity, rawVelocity - _motorVelocity)
-//
-//        _oldMotorPosition = currentMotorPosition
-
         _motorVelocity = _motor.velocity
 
         val err = _targetTicksVelocity - _motorVelocity
@@ -69,17 +57,7 @@ class HardwareTurret :
             pulleyAtTarget = false
         }
 
-        _pulleyU =
-//            if (err > Configs.TURRET.VELOCITY_THRESHOLD) {
-//            _regulator.resetIntegral()
-//            _regulator.start()
-//
-//            Configs.TURRET.VELOCITY_K
-//        } else
-            _regulator.update(
-            err,
-            _targetTicksVelocity
-        )
+        _pulleyU = _regulator.update(err, _targetTicksVelocity)
 
         _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_pulleyU)
 
@@ -89,15 +67,9 @@ class HardwareTurret :
     override fun init(hardwareMap: HardwareMap) {
         _motor = hardwareMap.get("pulleyMotor") as DcMotorEx
 
-        Configs.TURRET.PULLEY_VELOCITY_FILTER_COEF.onSet += {
-            _velocityFilter.coef = it
-        }
-
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData("current pulley velocity", currentVelocity)
             it.addData("target pulley velocity", targetVelocity)
-            it.addData("current ticks pulley velocity", _motorVelocity)
-            it.addData("target ticks pulley velocity", _targetTicksVelocity)
             it.addData("pulleyU", _pulleyU)
         }
 
@@ -109,12 +81,9 @@ class HardwareTurret :
     override fun opModeStart() {
         _deltaTime.reset()
 
-        _velocityFilter.start()
         _regulator.start()
         _regulator.resetIntegral()
         _targetTimer.reset()
-
-        _oldMotorPosition = 0.0
 
         _motor.mode = DcMotor.RunMode.RESET_ENCODERS
         _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER

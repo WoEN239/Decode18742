@@ -259,9 +259,6 @@ object Configs {
         @JvmField
         var TARGET_TIMER = 0.1
 
-        @EventConfig
-        var PULLEY_VELOCITY_FILTER_COEF = ThreadedTelemetry.EventValueProvider(0.7)
-
         @JvmField
         var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, -3.66 / 2.0 + 0.2)
 
@@ -327,31 +324,10 @@ object Configs {
         var PULLEY_U = 0.275
 
         @JvmField
-        var SHORT_PULLEY_VELOCITY = 11.8 //(-0.927, -0.842)
+        var PULLEY_VELOCITY = 11.8 //(-0.927, -0.842)
 
         @JvmField
-        var VELOCITY_THRESHOLD = 0.45
-
-        @JvmField
-        var VELOCITY_K = 12.0
-
-        @JvmField
-        var VELOCITY_K_SHORT = 6.0
-
-        @JvmField
-        var SHORT_POINT = Vec2(-0.927, -0.842)
-
-        @JvmField
-        var SHORT_ANGLE_POSITION = MAX_TURRET_ANGLE
-
-        @JvmField
-        var LONG_PULLEY_VELOCITY = 20.5 // (0.048, 0.097)
-
-        @JvmField
-        var LONG_POINT = Vec2(0.048, 0.097)
-
-        @JvmField
-        var LONG_ANGLE_POSITION = 0.9353981633974483
+        var ANGLE_POSITION = MAX_TURRET_ANGLE
     }
 
     @Config
