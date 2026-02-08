@@ -36,8 +36,6 @@ class HardwareTurret :
 
     private val _regulator = Regulator(Configs.TURRET.PULLEY_REGULATOR)
 
-    private val _deltaTime = ElapsedTime()
-
     private var _pulleyU = 0.0
 
     private val _targetTimer = ElapsedTime()
@@ -60,8 +58,6 @@ class HardwareTurret :
         _pulleyU = _regulator.update(err, _targetTicksVelocity)
 
         _motor.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_pulleyU)
-
-        _deltaTime.reset()
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -79,8 +75,6 @@ class HardwareTurret :
     }
 
     override fun opModeStart() {
-        _deltaTime.reset()
-
         _regulator.start()
         _regulator.resetIntegral()
         _targetTimer.reset()
