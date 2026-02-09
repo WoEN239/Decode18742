@@ -11,6 +11,9 @@ import org.woen.enumerators.StorageSlot
 
 import org.woen.telemetry.LogManager
 
+import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
+import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
+
 import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
@@ -25,16 +28,10 @@ import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_STARTING
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.CELLS_DEBUG_LEVELS
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.CELLS_DEBUG_SETTING
 
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.TRUE_MATCH_WEIGHT
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.PSEUDO_MATCH_WEIGHT
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.START_WEIGHT_FOR_PREDICT_SORT
-
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING
-
-import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
-import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
+import org.woen.telemetry.configs.RobotSettings.ROBOT
+import org.woen.telemetry.configs.RobotSettings.SORTING
+import org.woen.telemetry.configs.RobotSettings.SORTING.PREDICT.TRUE_MATCH_WEIGHT
+import org.woen.telemetry.configs.RobotSettings.SORTING.PREDICT.PSEUDO_MATCH_WEIGHT
 
 
 
@@ -68,7 +65,7 @@ class PredictSortResult(var totalRotations: Int, var maxSequenceScore: Double)
 
 class StorageCells
 {
-    private val _storageCells = INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
+    private val _storageCells = ROBOT.INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
     val hwSortingM = HwSortingManager()
     val logM = LogManager(CELLS_DEBUG_SETTING, CELLS_DEBUG_LEVELS, "CELLS")
 
@@ -128,13 +125,13 @@ class StorageCells
         requested: Array<BallRequest>,
         trimmedRequestSize: Int): PredictSortResult
     {
-        var globalMaximum  = START_WEIGHT_FOR_PREDICT_SORT
+        var globalMaximum  = SORTING.PREDICT.START_WEIGHT
         var doRotations    = NOTHING
         var startRequestId = NOTHING
 
         while (startRequestId < trimmedRequestSize)
         {
-            var localMaximum  = START_WEIGHT_FOR_PREDICT_SORT
+            var localMaximum  = SORTING.PREDICT.START_WEIGHT
             var requestId     = startRequestId
 
             logM.logMd("search round: $startRequestId", GENERIC_INFO)
@@ -152,7 +149,7 @@ class StorageCells
                     if (canMatchRequest) localMaximum += TRUE_MATCH_WEIGHT
                     else if (storageBall.isFilled())
                         localMaximum += if (curRequest.isAny()) TRUE_MATCH_WEIGHT
-                                                         else PSEUDO_MATCH_WEIGHT
+                                        else                  PSEUDO_MATCH_WEIGHT
                     else requestId += trimmedRequestSize
                 }
                 else if (canMatchRequest) localMaximum += TRUE_MATCH_WEIGHT
@@ -209,9 +206,9 @@ class StorageCells
     }
     suspend fun tryInitiatePredictSort(requested: Array<BallRequest.Name>): Boolean
     {
-        return if (ALWAYS_TRY_PREDICT_SORTING)
+        return if (SORTING.PREDICT.ALWAYS_TRY_IN_ADVANCE)
             initiatePredictSort(requested,
-                MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING)
+                SORTING.PREDICT.MIN_SEQUENCE_SCORE)
         else false
     }
 

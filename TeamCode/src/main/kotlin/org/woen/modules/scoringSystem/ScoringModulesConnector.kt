@@ -70,11 +70,11 @@ import org.woen.telemetry.configs.Configs.PROCESS_ID.LAZY_INTAKE
 import org.woen.telemetry.configs.Configs.PROCESS_ID.SINGLE_REQUEST
 import org.woen.telemetry.configs.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SCORING_CONNECTOR
 
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.TELEOP_PATTERN_SHOOTING_MODE
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.INCLUDE_PREVIOUS_UNFINISHED_TO_REQUEST_ORDER
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.INCLUDE_PREVIOUS_UNFINISHED_TO_FAILSAFE_ORDER
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER
+import org.woen.telemetry.configs.RobotSettings.TELEOP
+//import org.woen.telemetry.configs.RobotSettings.TELEOP.INCLUDE_PREVIOUS_UNFINISHED_TO_REQUEST_ORDER
+//import org.woen.telemetry.configs.RobotSettings.TELEOP.INCLUDE_PREVIOUS_UNFINISHED_TO_FAILSAFE_ORDER
+//import org.woen.telemetry.configs.RobotSettings.TELEOP.AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN
+//import org.woen.telemetry.configs.RobotSettings.TELEOP.IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER
 
 import org.woen.telemetry.configs.RobotSettings.CONTROLS.DRIVE_TO_SHOOTING_ZONE
 import org.woen.telemetry.configs.RobotSettings.CONTROLS.IGNORE_DUPLICATE_SHOOTING_COMMAND
@@ -276,7 +276,7 @@ class ScoringModulesConnector
 
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
                     EventBusLI.invoke(StorageGiveDrumRequest(
-                        TELEOP_PATTERN_SHOOTING_MODE,
+                        TELEOP.PATTERN_SHOOTING_MODE,
                             Shooting.StockPattern.Sequence.Request.GPP))
 
                     logM.logMd("\nSTART - GPP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
@@ -287,7 +287,7 @@ class ScoringModulesConnector
 
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
                     EventBusLI.invoke(StorageGiveDrumRequest(
-                        TELEOP_PATTERN_SHOOTING_MODE,
+                        TELEOP.PATTERN_SHOOTING_MODE,
                         Shooting.StockPattern.Sequence.Request.PGP))
 
                     logM.logMd("\nSTART - PGP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
@@ -299,7 +299,7 @@ class ScoringModulesConnector
 
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
                     EventBusLI.invoke(StorageGiveDrumRequest(
-                            TELEOP_PATTERN_SHOOTING_MODE,
+                            TELEOP.PATTERN_SHOOTING_MODE,
                         Shooting.StockPattern.Sequence.Request.PPG))
 
                     logM.logMd("\nSTART - PPG Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
@@ -409,10 +409,10 @@ class ScoringModulesConnector
                 shootingMode,
                 requestPattern,
                 failsafePattern,
-            INCLUDE_PREVIOUS_UNFINISHED_TO_REQUEST_ORDER,
-            INCLUDE_PREVIOUS_UNFINISHED_TO_FAILSAFE_ORDER,
-            AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN,
-            IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER)
+            TELEOP.INCLUDE_PREVIOUS_UNFINISHED_TO_REQUEST_ORDER,
+            TELEOP.INCLUDE_PREVIOUS_UNFINISHED_TO_FAILSAFE_ORDER,
+            TELEOP.AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN,
+            TELEOP.IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER)
 
 
         logM.logMd("FINISHED - SMART drum request", PROCESS_ENDING)
@@ -433,7 +433,8 @@ class ScoringModulesConnector
 
         return resumeLogicAfterShooting(requestResult, DRUM_REQUEST)
     }
-    private suspend fun startSingleRequest(ballRequest: BallRequest.Name): RequestResult.Name
+    private suspend fun startSingleRequest(
+        ballRequest: BallRequest.Name): RequestResult.Name
     {
         val startingResult = handleRequestRaceCondition(SINGLE_REQUEST)
         if (RequestResult.didFail(startingResult)) return startingResult
@@ -507,7 +508,7 @@ class ScoringModulesConnector
 //        _shotWasFired.set(false)
 //    }
 
-    private fun sendFinishedFiringEvent (requestResult: RequestResult.Name)
+    private fun sendFinishedFiringEvent(requestResult: RequestResult.Name)
     {
         logM.logMd("FINISHED all firing", PROCESS_ENDING)
         logM.logMd("Send finished firing EVENT", PROCESS_ENDING)
@@ -523,12 +524,12 @@ class ScoringModulesConnector
             RUNNING_INTAKE_INSTANCE)
     }
     private fun resumeLogicAfterShooting(
-        requestResult: RequestResult.Name,
+        requestResult:   RequestResult.Name,
         processId: Int): RequestResult.Name
     {
         tryRestartBrushes()
 
-        _runStatus.safeRemoveOnlyOneInstanceOfThisProcessFromQueue(processId)
+        _runStatus.safeRemoveThisProcessIdFromQueue(processId)
         _runStatus.safeRemoveThisProcessFromTerminationList(processId)
 
         _runStatus.clearCurrentActiveProcess()
@@ -546,16 +547,13 @@ class ScoringModulesConnector
         {
             delay(DELAY.EVENT_AWAITING_MS)
 
-
-            if (IGNORE_DUPLICATE_SHOOTING_COMMAND &&
-                _runStatus.isUsedByThisProcess(processId))
+            if (isDuplicateProcess(processId))
             {
                 logM.logMd("Ignored duplicate shooting command", LOGIC_STEPS)
                 return Request.FAIL_IS_BUSY
             }
 
-
-            if (TRY_TERMINATE_INTAKE_WHEN_SHOOTING && isIntakeActive())
+            if (tryTerminateIntake())
             {
                 logM.logMd("Attempting intake termination for shooting",
                     LOGIC_STEPS)
@@ -588,7 +586,11 @@ class ScoringModulesConnector
         _runStatus.setCurrentActiveProcess(processId)
     }
     private fun isDuplicateProcess(processId: Int)
-        = _runStatus.isUsedByThisProcess(DRUM_REQUEST)
+        = IGNORE_DUPLICATE_SHOOTING_COMMAND &&
+            _runStatus.isUsedByThisProcess(processId)
+    private fun tryTerminateIntake()
+        = TRY_TERMINATE_INTAKE_WHEN_SHOOTING &&
+            isIntakeActive()
     private fun isIntakeActive(): Boolean
     {
         val    activeProcess = _runStatus.getCurrentActiveProcess()

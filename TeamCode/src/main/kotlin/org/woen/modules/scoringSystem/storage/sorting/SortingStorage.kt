@@ -23,7 +23,7 @@ import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
+//import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 
@@ -47,11 +47,11 @@ import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
 
 import org.woen.telemetry.LogManager
 import org.woen.telemetry.configs.Configs.DELAY
-import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
+//import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GENERIC_INFO
+//import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GENERIC_INFO
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.RACE_CONDITION
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_ENDING
@@ -67,11 +67,11 @@ import org.woen.telemetry.configs.Configs.PROCESS_ID.DRUM_REQUEST
 import org.woen.telemetry.configs.Configs.PROCESS_ID.SINGLE_REQUEST
 import org.woen.telemetry.configs.Configs.PROCESS_ID.PREDICT_SORT
 import org.woen.telemetry.configs.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
-import org.woen.telemetry.configs.Configs.PROCESS_ID.SORTING_TESTING
+//import org.woen.telemetry.configs.Configs.PROCESS_ID.SORTING_TESTING
 import org.woen.telemetry.configs.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.USE_LAZY_VERSION_OF_STREAM_REQUEST
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION
+import org.woen.telemetry.configs.RobotSettings.CONTROLS
+import org.woen.telemetry.configs.RobotSettings.SHOOTING
 
 
 
@@ -270,7 +270,7 @@ class SortingStorage
     }
     private fun subscribeToSecondDriverPatternRecalibration()
     {
-        if (USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION)
+        if (CONTROLS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION)
         {
 //            GamepadLI.addGamepad2Listener(
 //                createClickDownListener({ it.triangle }, {
@@ -362,21 +362,21 @@ class SortingStorage
         else return true
     }
 
-    fun unsafeTestSorting()
-    {
-        val fill = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
-        _storageLogic.storageCells.updateAfterLazyIntake(fill)
-
-        SmartCoroutineLI.launch {
-            var iteration = 0
-            while (iteration < 100)
-            {
-                logM.logMd("\nIteration: $iteration", GENERIC_INFO)
-
-                _storageLogic.storageCells.fullRotate()
-                iteration++
-        }   }
-    }
+//    fun unsafeTestSorting()
+//    {
+//        val fill = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
+//        _storageLogic.storageCells.updateAfterLazyIntake(fill)
+//
+//        SmartCoroutineLI.launch {
+//            var iteration = 0
+//            while (iteration < 100)
+//            {
+//                logM.logMd("\nIteration: $iteration", GENERIC_INFO)
+//
+//                _storageLogic.storageCells.fullRotate()
+//                iteration++
+//        }   }
+//    }
 //    suspend fun hwSmartPushNextBall()
 //        = _storageLogic.storageCells.hwSortingM.smartPushNextBall()
     fun alreadyFull() = _storageLogic.storageCells.alreadyFull()
@@ -451,7 +451,7 @@ class SortingStorage
 
     suspend fun streamDrumRequest():             RequestResult.Name
     {
-        return if (USE_LAZY_VERSION_OF_STREAM_REQUEST)
+        return if (SHOOTING.USE_LAZY_VERSION_OF_STREAM_REQUEST)
              lazyStreamDrumRequest()
         else fastStreamDrumRequest()
     }

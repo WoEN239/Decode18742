@@ -5,22 +5,24 @@ import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 
 import org.woen.telemetry.configs.Configs
+import org.woen.telemetry.configs.RobotSettings.ROBOT
+
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
+
 
 
 object Alias
 {
     object Intake
     {
-        val TERMINATED   = IntakeResult.Name.FAIL_PROCESS_WAS_TERMINATED
         val FAIL_IS_BUSY = IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
         val FAIL_IS_FULL = IntakeResult.Name.FAIL_STORAGE_IS_FULL
         val SUCCESS = IntakeResult.Name.SUCCESS
 
 
-        val INPUT_ORDER = Configs.SORTING_SETTINGS.PREFERRED_INTAKE_SLOT_SEARCHING_ORDER
+        val INPUT_ORDER = ROBOT.PREFERRED_INTAKE_SLOT_SEARCHING_ORDER
     }
     object Request
     {
@@ -38,7 +40,7 @@ object Alias
         val COULD_NOT_DETECT_PATTERN = RequestResult.Name.FAIL_COULD_NOT_DETECT_PATTERN
 
 
-        val SEARCH_ORDER = Configs.SORTING_SETTINGS.PREFERRED_REQUEST_SLOT_SEARCHING_ORDER
+        val SEARCH_ORDER = ROBOT.PREFERRED_REQUEST_SLOT_SEARCHING_ORDER
 
 
 

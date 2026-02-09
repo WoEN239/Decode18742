@@ -28,8 +28,6 @@ import org.woen.telemetry.LogManager
 import org.woen.telemetry.configs.Configs.DELAY
 import org.woen.telemetry.configs.Configs.DELAY.BETWEEN_SHOTS_MS
 
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.DO_WAIT_BEFORE_NEXT_SHOT
-
 import org.woen.telemetry.configs.Configs.PROCESS_ID.INTAKE
 import org.woen.telemetry.configs.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
 import org.woen.telemetry.configs.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
@@ -51,8 +49,8 @@ import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.LOGIC_STEPS
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_NAME
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.TERMINATION
 
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
-import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING
+import org.woen.telemetry.configs.RobotSettings.SORTING
+import org.woen.telemetry.configs.RobotSettings.SHOOTING
 
 
 
@@ -248,7 +246,8 @@ class SortingStorageLogic
             val isLastBall = storageCells.onlyOneBallLeft()
             storageCells.hwSortingM.helpPushLastBall.set(isLastBall)
 
-            val doWaitBeforeNextShot = DO_WAIT_BEFORE_NEXT_SHOT && !isLastBall
+            val doWaitBeforeNextShot = !isLastBall &&
+                    SHOOTING.DO_WAIT_BEFORE_NEXT_SHOT
 
             if (!fullWaitForShotFired(processId, doWaitBeforeNextShot, autoUpdatePatternWhenSucceed))
                  Request.TERMINATED
@@ -387,8 +386,7 @@ class SortingStorageLogic
             if (isForcedToTerminate(DRUM_REQUEST))
                 return Request.TERMINATED
 
-            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
-                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
+            if (furtherDoPredictSort(curRequestId, isNowPerfectlySorted))
                 isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
 
             if (isNowPerfectlySorted)
@@ -470,8 +468,7 @@ class SortingStorageLogic
             if (isForcedToTerminate(DRUM_REQUEST))
                 return Request.TERMINATED
 
-            if (!(ALWAYS_TRY_PREDICT_SORTING && curRequestId == NOTHING)
-                && !isNowPerfectlySorted && TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING)
+            if (furtherDoPredictSort(curRequestId, isNowPerfectlySorted))
                 isNowPerfectlySorted = storageCells.tryInitiatePredictSort(requested)
 
             if (isNowPerfectlySorted)
@@ -554,6 +551,13 @@ class SortingStorageLogic
         return Request.NOT_ENOUGH_COLORS
     }
 
+
+
+    private fun furtherDoPredictSort(
+        curRequestId: Int,
+        isNowPerfectlySorted: Boolean)
+        = !(SORTING.PREDICT.ALWAYS_TRY_IN_ADVANCE && curRequestId == NOTHING)
+            && !isNowPerfectlySorted && SORTING.PREDICT.FURTHER_TRY_IN_ACTION
     private fun countPGA(order: Array<BallRequest.Name>): CountPGA
     {
         val intPGAN = intArrayOf(NOTHING, NOTHING, NOTHING, NOTHING)

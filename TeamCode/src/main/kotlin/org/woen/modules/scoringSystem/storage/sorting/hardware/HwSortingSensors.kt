@@ -1,5 +1,6 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
+import android.annotation.SuppressLint
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
@@ -27,8 +28,7 @@ class HwSortingSensors() : IHardwareDevice {
 
     val logM = LogManager(
         SENSORS_DEBUG_SETTING,
-        SENSORS_DEBUG_LEVELS, "SENSORS"
-    )
+        SENSORS_DEBUG_LEVELS, "SENSORS")
 
     private var _oldCombinedGreen = false
     private var _oldCombinedPurple = false
@@ -51,6 +51,8 @@ class HwSortingSensors() : IHardwareDevice {
 
     private var _doubleCounter = 0
 
+
+    @SuppressLint("DefaultLocale")
     override fun init(hardwareMap: HardwareMap) {
         _rightColor = hardwareMap.get(INTAKE_COLOR_SENSOR_R) as RevColorSensorV3
         _leftColor = hardwareMap.get(INTAKE_COLOR_SENSOR_L) as RevColorSensorV3

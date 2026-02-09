@@ -1,5 +1,6 @@
 package org.woen.tests
 
+import android.annotation.SuppressLint
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.hardware.rev.RevColorSensorV3
@@ -32,6 +33,7 @@ internal object COLOR_DETECT_TEST{
 
 @TeleOp(group = "tests")
 class ColorDetectTest : LinearOpMode() {
+    @SuppressLint("DefaultLocale")
     override fun runOpMode() {
         val leftSensor = hardwareMap.get("leftColorSensor") as RevColorSensorV3
         val rightSensor = hardwareMap.get("rightColorSensor") as RevColorSensorV3

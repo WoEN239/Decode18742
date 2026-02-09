@@ -1,9 +1,13 @@
 package org.woen.telemetry.configs
 
-import com.acmerobotics.dashboard.config.Config
+
+import kotlin.math.PI
+import kotlin.math.ceil
+import kotlin.math.max
+
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-import org.woen.enumerators.Shooting
-import org.woen.enumerators.StorageSlot
+
+import com.acmerobotics.dashboard.config.Config
 import org.woen.telemetry.EventConfig
 import org.woen.telemetry.LogManager
 import org.woen.telemetry.ThreadedTelemetry
@@ -13,19 +17,21 @@ import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
-import kotlin.math.PI
-import kotlin.math.ceil
-import kotlin.math.max
+
+
+
+/*
+ *    Это один из файлов с конфигами робота.
+ *    В этих файлах и только в них разрешаются ЭДЖОВСКИЕ технологии ._.
+ *
+ *    Конкретный тип разрешённых эджовских технологий:
+ *      > Подстановка ПРЕКРАСНЕЙШИХ значений как например 33333 <
+ *         (на значениях которые не требуют больших точностей)
+ */
+
+
 
 object Configs {
-
-    /*
-     *    Это файл со всеми конфигами робота
-     *    В нём, и только в нём РАЗРЕШАЕТСЯ использовать ЭДЖОВСКИЕ D: технологии
-     *    (на значениях которые не требуют больших точностей)
-     *    > подставление красивых значений вроде 33333
-     */
-
     @Config
     internal object BRUSH {
         @JvmField
@@ -644,99 +650,7 @@ object Configs {
     @Config
     internal object SORTING_SETTINGS {
 
-        @JvmField
-        var INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = Shooting.StockPattern.Sequence.Storage.EMPTY
 
-
-        @JvmField
-        var ALWAYS_TRY_PREDICT_SORTING = true
-
-        @JvmField
-        var TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING = true
-
-        @JvmField
-        var MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING = 0.75
-
-        @JvmField
-        var START_WEIGHT_FOR_PREDICT_SORT = 0.0
-
-        @JvmField
-        var TRUE_MATCH_WEIGHT = 1.0
-
-        @JvmField
-        var PSEUDO_MATCH_WEIGHT = 0.75
-
-
-        @JvmField
-        var USE_LAZY_VERSION_OF_STREAM_REQUEST = true
-
-        @JvmField
-        var DO_WAIT_BEFORE_NEXT_SHOT = false
-
-
-        @JvmField
-        var INCLUDE_PREVIOUS_UNFINISHED_TO_REQUEST_ORDER  = false
-        @JvmField
-        var INCLUDE_PREVIOUS_UNFINISHED_TO_FAILSAFE_ORDER = false
-        @JvmField
-        var AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN = false
-        @JvmField
-        var IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER = false
-
-
-        @JvmField
-        var USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS = false
-
-        @JvmField
-        var SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION = false
-
-        @JvmField
-        var TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS = false
-
-
-        @JvmField
-        var MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS: Long = 1000
-
-        @JvmField
-        var MAX_ATTEMPTS_FOR_PATTERN_DETECTION = 0
-
-        @JvmField
-        var TRY_RECALIBRATE_IF_SOMETHING_FAILS = true
-
-
-        @JvmField
-        var TELEOP_PATTERN_SHOOTING_MODE = Shooting.Mode.FIRE_PATTERN_CAN_SKIP
-
-        @JvmField
-        var AUTO_DEFAULT_SHOOTING_MODE = Shooting.Mode.FIRE_PATTERN_CAN_SKIP
-
-        @JvmField
-        var AUTO_DEFAULT_PATTERN = Shooting.StockPattern.Name.USE_DETECTED_PATTERN
-
-        @JvmField
-        var AUTO_FAILSAFE_SHOOTING_MODE = Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
-
-        @JvmField
-        var AUTO_FAILSAFE_PATTERN = Shooting.StockPattern.Name.ANY
-
-
-        @JvmField
-        var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = false
-
-        @JvmField
-        var PREFERRED_INTAKE_SLOT_SEARCHING_ORDER = arrayOf(
-            StorageSlot.Companion.TURRET,
-            StorageSlot.Companion.CENTER,
-            StorageSlot.Companion.BOTTOM
-        )
-
-        @JvmField
-        var PREFERRED_REQUEST_SLOT_SEARCHING_ORDER = arrayOf(
-            StorageSlot.Companion.TURRET,
-            StorageSlot.Companion.CENTER,
-            StorageSlot.Companion.BOTTOM,
-            StorageSlot.Companion.MOBILE
-        )
     }
 
 
