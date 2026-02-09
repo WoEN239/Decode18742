@@ -5,7 +5,9 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.hotRun.HotRun
+import org.woen.telemetry.configs.Configs
 import org.woen.threading.hardware.IHardwareDevice
+import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.motor.MotorOnly
 
 
@@ -42,7 +44,7 @@ class HardwareBrush : IHardwareDevice {
             BrushDirection.STOP -> 0.0
 
             BrushDirection.REVERSE ->
-                -1.0 //-ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER)
+                -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.BRUSH.BRUSH_POWER)
         }
     }
 

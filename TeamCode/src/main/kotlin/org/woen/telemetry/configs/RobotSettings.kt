@@ -10,6 +10,9 @@ object RobotSettings
     internal object CONTROLS
     {
         @JvmField
+        var DRIVE_TO_SHOOTING_ZONE = false
+
+        @JvmField
         var TRY_TERMINATE_INTAKE_WHEN_SHOOTING = true
 
         @JvmField

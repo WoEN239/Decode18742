@@ -25,7 +25,7 @@ object Configs {
      *    (на значениях которые не требуют больших точностей)
      *    > подставление красивых значений вроде 33333
      */
-    
+
     @Config
     internal object BRUSH {
         @JvmField
@@ -50,7 +50,7 @@ object Configs {
         var TIME_FOR_BRUSH_REVERSING: Long = 999
 
         @JvmField
-        var BRUSH_POWER = 11.5
+        var BRUSH_POWER = 7.0
     }
 
     @Config
@@ -108,9 +108,6 @@ object Configs {
 
     @Config
     internal object DRIVE_TRAIN {
-        @JvmField
-        var DRIVE_TO_SHOOTING_ZONE = true
-
         @JvmField
         var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 0.0, kP = 9.0)
 

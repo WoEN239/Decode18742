@@ -21,6 +21,7 @@ class Brush : IModule {
         FORWARD,
         STOP,
         REVERSE,
+        INFINITE_REVERSE,
         SAFE,
         STOP_ON_TIME
     }
@@ -32,7 +33,6 @@ class Brush : IModule {
     private var tmr = ElapsedTime()
     private var tmr1 = ElapsedTime()
     private var tmr2 = ElapsedTime()
-    private var tmr3 = ElapsedTime()
     private var f12 = false
     private var f11 = false
     suspend fun autoUse()
@@ -49,12 +49,17 @@ class Brush : IModule {
         when (turnOn.get()) {
             BrushState.FORWARD -> {
                 hwBrush.setDir(HardwareBrush.BrushDirection.FORWARD)
-                if (!hwBrush.isSafe && !f11) {
-                    f11 = true; tmr2.reset()
+
+                if (!hwBrush.isSafe && !f11)
+                {
+                    f11 = true
+                    tmr2.reset()
                 }
 
-                if (!hwBrush.isSafe && startTmr && errTime) {
-                    turnOn.set(BrushState.SAFE); tmr.reset()
+                if (!hwBrush.isSafe && startTmr && errTime)
+                {
+                    turnOn.set(BrushState.SAFE)
+                    tmr.reset()
                 }
             }
 
@@ -81,6 +86,9 @@ class Brush : IModule {
                 tmr2.reset()
                 tmr1.reset()
                 f11 = false
+            }
+            BrushState.INFINITE_REVERSE -> {
+                hwBrush.setDir(HardwareBrush.BrushDirection.REVERSE)
             }
 
             BrushState.STOP_ON_TIME->{

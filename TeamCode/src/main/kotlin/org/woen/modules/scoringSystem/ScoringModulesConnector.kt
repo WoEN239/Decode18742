@@ -55,7 +55,6 @@ import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SMC_DEBUG_LEVELS
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SMC_DEBUG_SETTING
 
 import org.woen.telemetry.configs.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-import org.woen.telemetry.configs.Configs.DRIVE_TRAIN.DRIVE_TO_SHOOTING_ZONE
 
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
 import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
@@ -77,6 +76,7 @@ import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.INCLUDE_PREVIOUS_UNFI
 import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN
 import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER
 
+import org.woen.telemetry.configs.RobotSettings.CONTROLS.DRIVE_TO_SHOOTING_ZONE
 import org.woen.telemetry.configs.RobotSettings.CONTROLS.IGNORE_DUPLICATE_SHOOTING_COMMAND
 import org.woen.telemetry.configs.RobotSettings.CONTROLS.TRY_TERMINATE_INTAKE_WHEN_SHOOTING
 
@@ -170,7 +170,11 @@ class ScoringModulesConnector
                     logM.logMd("Gamepad: try start lazy intake", GAMEPAD_FEEDBACK)
                     val startingResult = EventBusLI.invoke(StartLazyIntakeEvent())
 
-                    if (startingResult.startingResult) startBrushes()
+                    if (startingResult.startingResult)
+                    {
+                        startBrushes()
+                        setActiveProcess(LAZY_INTAKE)
+                    }
                     else
                     {
                         EventBusLI.invoke(SetLightColorEvent(
@@ -223,7 +227,12 @@ class ScoringModulesConnector
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.left_trigger > 0.5 }, {
 
-                    EventBusLI.invoke(TerminateIntakeEvent())
+                    if (EventBusLI.invoke(TerminateIntakeEvent()).stoppingResult)
+                    {
+                        _runStatus.safeRemoveThisProcessIdFromQueue(
+                            _runStatus.getCurrentActiveProcess())
+                        _runStatus.clearCurrentActiveProcess()
+                    }
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
 
                     reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
@@ -344,6 +353,7 @@ class ScoringModulesConnector
             logM.logMd("Intake race condition: IS_BUSY", RACE_CONDITION)
             return Intake.FAIL_IS_BUSY
         }
+        setActiveProcess(INTAKE)
         _runStatus.addProcessToQueue(RUNNING_INTAKE_INSTANCE)
 
         logM.logMd("Started - Intake, INPUT BALL: $inputToBottomSlot", PROCESS_STARTING)
@@ -366,7 +376,7 @@ class ScoringModulesConnector
                 Brush.BrushState.FORWARD))
     private fun reverseBrushes(reverseTime: Long)
         = EventBusLI.invoke(SwitchBrushStateEvent(
-                Brush.BrushState.REVERSE, reverseTime))
+                Brush.BrushState.INFINITE_REVERSE, reverseTime))
 
     private fun reverseAndThenStartBrushesAfterTimePeriod(reverseTime: Long)
     {
@@ -518,12 +528,16 @@ class ScoringModulesConnector
     {
         tryRestartBrushes()
 
-        _runStatus.safeRemoveThisProcessIdFromQueue(processId)
+        _runStatus.safeRemoveOnlyOneInstanceOfThisProcessFromQueue(processId)
         _runStatus.safeRemoveThisProcessFromTerminationList(processId)
 
+        _runStatus.clearCurrentActiveProcess()
         sendFinishedFiringEvent(requestResult)
+
         return requestResult
     }
+
+
 
     private suspend fun handleRequestRaceCondition(processId: Int): RequestResult.Name
     {
@@ -535,22 +549,36 @@ class ScoringModulesConnector
 
             if (IGNORE_DUPLICATE_SHOOTING_COMMAND &&
                 _runStatus.isUsedByThisProcess(processId))
-                return resumeLogicAfterShooting(
-                    Request.FAIL_IS_BUSY, processId)
+            {
+                logM.logMd("Ignored duplicate shooting command", LOGIC_STEPS)
+                return Request.FAIL_IS_BUSY
+            }
 
 
             if (TRY_TERMINATE_INTAKE_WHEN_SHOOTING && isIntakeActive())
+            {
+                logM.logMd("Attempting intake termination for shooting",
+                    LOGIC_STEPS)
+
                 if (!EventBusLI.invoke(TerminateIntakeEvent()).stoppingResult)
-                    return resumeLogicAfterShooting(
-                        Request.FAIL_IS_BUSY, processId)
+                    return Request.FAIL_IS_BUSY
+
+                logM.logMd("Successful intake termination",
+                    LOGIC_STEPS)
+
+                _runStatus.safeRemoveThisProcessIdFromQueue(
+                    _runStatus.getCurrentActiveProcess())
+                _runStatus.clearCurrentActiveProcess()
+
+                return Request.SUCCESS
+            }
 
 
             if (_runStatus.isForcedToTerminateThisProcess(processId))
-                return resumeLogicAfterShooting(
-                    Request.TERMINATED, processId)
+                return Request.TERMINATED
         }
 
-        logM.logMd("Initial  race condition check passed", RACE_CONDITION)
+        logM.logMd("Initial race condition check passed", RACE_CONDITION)
         setActiveProcess(processId)
         return Request.SUCCESS
     }

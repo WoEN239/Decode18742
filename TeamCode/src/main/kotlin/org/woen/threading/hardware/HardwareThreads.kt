@@ -65,8 +65,8 @@ class HardwareThreads private constructor() : DisposableHandle {
 
     private fun initModules()
     {
-        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner()/*, Light()*/)
-        ActionRunner.LAZY_INSTANCE
+//        CONTROL.link.addModules(Odometry(), DriveTrain(), SegmentsRunner()/*, Light()*/)
+//        ActionRunner.LAZY_INSTANCE
 //        Camera.LAZY_INSTANCE
 
 //        EXPANSION.link.addModules(Turret(), SimpleStorage(), Brush())
