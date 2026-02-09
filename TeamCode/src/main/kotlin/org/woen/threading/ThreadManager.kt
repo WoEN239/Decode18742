@@ -8,7 +8,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.CopyOnWriteArrayList
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.utils.smartMutex.SmartMutex
 

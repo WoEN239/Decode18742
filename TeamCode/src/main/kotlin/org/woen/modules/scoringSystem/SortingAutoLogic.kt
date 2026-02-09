@@ -26,26 +26,26 @@ import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
-import org.woen.telemetry.Configs.DELAY
+import org.woen.telemetry.configs.Configs.DELAY
 
-import org.woen.telemetry.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
-import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
-import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
-import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
-import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
-import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_ENDING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GENERIC_INFO
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.LOGIC_STEPS
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_NAME
 
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SAL_DEBUG_LEVELS
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SAL_DEBUG_SETTING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SAL_DEBUG_LEVELS
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SAL_DEBUG_SETTING
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.AUTO_DEFAULT_PATTERN
-import org.woen.telemetry.Configs.SORTING_SETTINGS.AUTO_DEFAULT_SHOOTING_MODE
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.AUTO_DEFAULT_PATTERN
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.AUTO_DEFAULT_SHOOTING_MODE
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.AUTO_FAILSAFE_PATTERN
-import org.woen.telemetry.Configs.SORTING_SETTINGS.AUTO_FAILSAFE_SHOOTING_MODE
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.AUTO_FAILSAFE_PATTERN
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.AUTO_FAILSAFE_SHOOTING_MODE
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.MAX_ATTEMPTS_FOR_PATTERN_DETECTION
-import org.woen.telemetry.Configs.SORTING_SETTINGS.MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.MAX_ATTEMPTS_FOR_PATTERN_DETECTION
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.MAX_WAIT_DURATION_FOR_PATTERN_DETECTION_MS
 
 
 

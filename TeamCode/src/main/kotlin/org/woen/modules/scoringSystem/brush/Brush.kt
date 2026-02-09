@@ -5,9 +5,8 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus

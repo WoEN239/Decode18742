@@ -7,14 +7,13 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 import org.woen.hotRun.HotRun
 import org.woen.utils.motor.MotorOnly
 import org.woen.utils.events.SimpleEvent
 
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.hardware.IHardwareDevice

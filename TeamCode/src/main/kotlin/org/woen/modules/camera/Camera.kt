@@ -2,7 +2,6 @@ package org.woen.modules.camera
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
-import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.DisposableHandle
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
@@ -12,7 +11,7 @@ import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 import org.woen.hotRun.HotRun
 import org.woen.modules.scoringSystem.turret.Pattern
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus

@@ -25,34 +25,34 @@ import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.utils.process.RunStatus
 import org.woen.telemetry.LogManager
 
-import org.woen.telemetry.Configs.DELAY
-import org.woen.telemetry.Configs.DELAY.BETWEEN_SHOTS_MS
+import org.woen.telemetry.configs.Configs.DELAY
+import org.woen.telemetry.configs.Configs.DELAY.BETWEEN_SHOTS_MS
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.DO_WAIT_BEFORE_NEXT_SHOT
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.DO_WAIT_BEFORE_NEXT_SHOT
 
-import org.woen.telemetry.Configs.PROCESS_ID.INTAKE
-import org.woen.telemetry.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
-import org.woen.telemetry.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
-import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
-import org.woen.telemetry.Configs.PROCESS_ID.PREDICT_SORT
-import org.woen.telemetry.Configs.PROCESS_ID.STORAGE_CALIBRATION
+import org.woen.telemetry.configs.Configs.PROCESS_ID.INTAKE
+import org.woen.telemetry.configs.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
+import org.woen.telemetry.configs.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
+import org.woen.telemetry.configs.Configs.PROCESS_ID.DRUM_REQUEST
+import org.woen.telemetry.configs.Configs.PROCESS_ID.PREDICT_SORT
+import org.woen.telemetry.configs.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
-import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAGE
+import org.woen.telemetry.configs.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAGE
 
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SSL_DEBUG_LEVELS
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SSL_DEBUG_SETTING
-import org.woen.telemetry.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
-import org.woen.telemetry.Configs.DEBUG_LEVELS.RACE_CONDITION
-import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
-import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
-import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
-import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
-import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
-import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_NAME
-import org.woen.telemetry.Configs.DEBUG_LEVELS.TERMINATION
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SSL_DEBUG_LEVELS
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SSL_DEBUG_SETTING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.RACE_CONDITION
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_STARTING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_ENDING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GENERIC_INFO
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.LOGIC_STEPS
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_NAME
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.TERMINATION
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
-import org.woen.telemetry.Configs.SORTING_SETTINGS.TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.TRY_ADDITIONAl_PREDICT_SORTING_WHILE_SHOOTING
 
 
 

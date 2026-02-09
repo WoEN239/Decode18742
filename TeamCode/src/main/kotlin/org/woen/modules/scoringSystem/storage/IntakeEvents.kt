@@ -8,7 +8,7 @@ import org.woen.threading.StoppingEvent
 
 
 class TerminateIntakeEvent(
-    var stoppingResult: Boolean = false)
+    var stoppingResult: Boolean = false) : StoppingEvent
 class WaitForTerminateIntakeEvent(
     var stoppingResult: Boolean = false) : StoppingEvent
 

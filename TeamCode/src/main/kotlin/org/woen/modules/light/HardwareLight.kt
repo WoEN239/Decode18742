@@ -14,19 +14,19 @@ import org.woen.modules.light.Light.LightColor.BLUE
 import org.woen.modules.light.Light.LightColor.GREEN
 import org.woen.modules.light.Light.LightColor.ORANGE
 
-import org.woen.telemetry.Configs.LIGHT.BLUE_B_POWER
-import org.woen.telemetry.Configs.LIGHT.BLUE_G_POWER
-import org.woen.telemetry.Configs.LIGHT.BLUE_R_POWER
-import org.woen.telemetry.Configs.LIGHT.GREEN_B_POWER
-import org.woen.telemetry.Configs.LIGHT.GREEN_G_POWER
-import org.woen.telemetry.Configs.LIGHT.GREEN_R_POWER
-import org.woen.telemetry.Configs.LIGHT.ORANGE_B_POWER
-import org.woen.telemetry.Configs.LIGHT.ORANGE_G_POWER
-import org.woen.telemetry.Configs.LIGHT.ORANGE_R_POWER
-import org.woen.telemetry.Configs.LIGHT.RED_B_POWER
-import org.woen.telemetry.Configs.LIGHT.RED_G_POWER
-import org.woen.telemetry.Configs.LIGHT.RED_R_POWER
-import org.woen.telemetry.Configs.LIGHT.RED_FLASHING_SPEED
+import org.woen.telemetry.configs.Configs.LIGHT.BLUE_B_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.BLUE_G_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.BLUE_R_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.GREEN_B_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.GREEN_G_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.GREEN_R_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.ORANGE_B_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.ORANGE_G_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.ORANGE_R_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.RED_B_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.RED_G_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.RED_R_POWER
+import org.woen.telemetry.configs.Configs.LIGHT.RED_FLASHING_SPEED
 
 
 

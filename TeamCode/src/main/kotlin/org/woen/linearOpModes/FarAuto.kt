@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Servo
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.utils.motor.MotorOnly
 
 @Autonomous

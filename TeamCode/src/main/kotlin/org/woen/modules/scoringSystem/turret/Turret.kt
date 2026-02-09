@@ -8,7 +8,7 @@ import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.driveTrain.RequireOdometryEvent
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus

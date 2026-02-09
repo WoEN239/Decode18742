@@ -5,9 +5,8 @@ import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.util.ElapsedTime
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.utils.drivers.InfinityAxon
-import org.woen.utils.regulator.RegulatorParameters
 import kotlin.math.PI
 
 @Config

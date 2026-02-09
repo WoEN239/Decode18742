@@ -12,8 +12,8 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedBattery
 
-import org.woen.telemetry.Configs.BATTERY.LOW_VOLTAGE
-import org.woen.telemetry.Configs.BATTERY.LOW_VOLTAGE_TRIGGER_TIME
+import org.woen.telemetry.configs.Configs.BATTERY.LOW_VOLTAGE
+import org.woen.telemetry.configs.Configs.BATTERY.LOW_VOLTAGE_TRIGGER_TIME
 
 
 

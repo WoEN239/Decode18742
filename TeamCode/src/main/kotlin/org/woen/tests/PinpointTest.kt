@@ -7,8 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
-import org.woen.telemetry.Configs
-import woen239.odometry.OdometryComputer
+import org.woen.telemetry.configs.Configs
 
 @TeleOp(group = "tests")
 class PinpointTest : LinearOpMode() {

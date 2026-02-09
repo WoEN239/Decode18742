@@ -4,11 +4,8 @@ package org.woen.modules.scoringSystem.brush
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.Configs
 import org.woen.threading.hardware.IHardwareDevice
-import org.woen.threading.hardware.ThreadedBattery
 import org.woen.utils.motor.MotorOnly
 
 

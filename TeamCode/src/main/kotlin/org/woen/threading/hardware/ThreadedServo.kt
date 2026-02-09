@@ -3,8 +3,7 @@ package org.woen.threading.hardware
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
-import org.woen.hotRun.HotRun
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.utils.servoAngle.ServoAngle
 import org.woen.utils.smartMutex.SmartMutex
 import kotlin.math.abs

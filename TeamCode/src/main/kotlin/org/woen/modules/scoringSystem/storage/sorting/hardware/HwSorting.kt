@@ -18,32 +18,32 @@ import org.woen.threading.hardware.ThreadedBattery
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.IHardwareDevice
 
-//import org.woen.telemetry.Configs.DELAY
-//import org.woen.telemetry.Configs.STORAGE.STORAGE_IS_FULL_BELTS_CURRENT
+//import org.woen.telemetry.configs.Configs.DELAY
+//import org.woen.telemetry.configs.Configs.STORAGE.STORAGE_IS_FULL_BELTS_CURRENT
 
-import org.woen.telemetry.Configs.STORAGE.GATE_SERVO_OPEN_VALUE
-import org.woen.telemetry.Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
+import org.woen.telemetry.configs.Configs.STORAGE.GATE_SERVO_OPEN_VALUE
+import org.woen.telemetry.configs.Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.STORAGE.PUSH_SERVO_OPEN_VALUE
-import org.woen.telemetry.Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
+import org.woen.telemetry.configs.Configs.STORAGE.PUSH_SERVO_OPEN_VALUE
+import org.woen.telemetry.configs.Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
-import org.woen.telemetry.Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
+import org.woen.telemetry.configs.Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
+import org.woen.telemetry.configs.Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
-import org.woen.telemetry.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
+import org.woen.telemetry.configs.Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
+import org.woen.telemetry.configs.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
 
-import org.woen.telemetry.Configs.STORAGE.BELT_MOTORS_DIRECTION
+import org.woen.telemetry.configs.Configs.STORAGE.BELT_MOTORS_DIRECTION
 
-import org.woen.telemetry.Configs.STORAGE.BELT_POWER_SLOW_MODE
-import org.woen.telemetry.Configs.STORAGE.BELT_POWER_FAST_MODE
-import org.woen.telemetry.Configs.STORAGE.BELT_POWER_SHOOT_MODE
+import org.woen.telemetry.configs.Configs.STORAGE.BELT_POWER_SLOW_MODE
+import org.woen.telemetry.configs.Configs.STORAGE.BELT_POWER_FAST_MODE
+import org.woen.telemetry.configs.Configs.STORAGE.BELT_POWER_SHOOT_MODE
 
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.STORAGE_BELT_MOTOR
+import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO
+import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO
+import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO
+import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
+import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.STORAGE_BELT_MOTOR
 
 
 

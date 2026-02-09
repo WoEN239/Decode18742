@@ -5,7 +5,7 @@ import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Servo
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import java.lang.Math.toRadians
 
 @Config

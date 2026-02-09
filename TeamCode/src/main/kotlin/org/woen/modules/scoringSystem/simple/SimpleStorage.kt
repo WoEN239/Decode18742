@@ -11,7 +11,7 @@ import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
 import org.woen.modules.scoringSystem.turret.WaitRotateAtTarget
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.IHardwareDevice

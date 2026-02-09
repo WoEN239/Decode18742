@@ -4,9 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import kotlinx.coroutines.launch
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
-import org.woen.modules.camera.Camera
 import org.woen.modules.runner.actions.ActionRunner
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus

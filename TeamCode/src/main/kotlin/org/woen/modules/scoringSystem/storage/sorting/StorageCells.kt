@@ -18,23 +18,23 @@ import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.Alias.STORAGE_SLOT_COUNT
 
-import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
-import org.woen.telemetry.Configs.DEBUG_LEVELS.GENERIC_INFO
-import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
-import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
-import org.woen.telemetry.Configs.DEBUG_LEVELS.CELLS_DEBUG_LEVELS
-import org.woen.telemetry.Configs.DEBUG_LEVELS.CELLS_DEBUG_SETTING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.LOGIC_STEPS
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GENERIC_INFO
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_ENDING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_STARTING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.CELLS_DEBUG_LEVELS
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.CELLS_DEBUG_SETTING
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.TRUE_MATCH_WEIGHT
-import org.woen.telemetry.Configs.SORTING_SETTINGS.PSEUDO_MATCH_WEIGHT
-import org.woen.telemetry.Configs.SORTING_SETTINGS.START_WEIGHT_FOR_PREDICT_SORT
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.TRUE_MATCH_WEIGHT
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.PSEUDO_MATCH_WEIGHT
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.START_WEIGHT_FOR_PREDICT_SORT
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
-import org.woen.telemetry.Configs.SORTING_SETTINGS.MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.ALWAYS_TRY_PREDICT_SORTING
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.MIN_SEQUENCE_SCORE_FOR_PREDICT_SORTING
 
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
-import org.woen.telemetry.Configs.SORTING_SETTINGS.INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
 
 
 

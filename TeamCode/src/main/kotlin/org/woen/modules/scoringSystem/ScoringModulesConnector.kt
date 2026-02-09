@@ -4,7 +4,6 @@ package org.woen.modules.scoringSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
-import java.util.concurrent.atomic.AtomicBoolean
 
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
@@ -24,7 +23,7 @@ import org.woen.modules.scoringSystem.storage.sorting.SortingStorage
 
 import org.woen.utils.process.RunStatus
 import org.woen.telemetry.LogManager
-import org.woen.telemetry.Configs.DELAY
+import org.woen.telemetry.configs.Configs.DELAY
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
@@ -39,7 +38,6 @@ import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
-import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
@@ -53,30 +51,34 @@ import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SMC_DEBUG_LEVELS
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SMC_DEBUG_SETTING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SMC_DEBUG_LEVELS
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SMC_DEBUG_SETTING
 
-import org.woen.telemetry.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-import org.woen.telemetry.Configs.DRIVE_TRAIN.DRIVE_TO_SHOOTING_ZONE
+import org.woen.telemetry.configs.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
+import org.woen.telemetry.configs.Configs.DRIVE_TRAIN.DRIVE_TO_SHOOTING_ZONE
 
-import org.woen.telemetry.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
-import org.woen.telemetry.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
-import org.woen.telemetry.Configs.DEBUG_LEVELS.LOGIC_STEPS
-import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_ENDING
-import org.woen.telemetry.Configs.DEBUG_LEVELS.PROCESS_STARTING
-import org.woen.telemetry.Configs.DEBUG_LEVELS.RACE_CONDITION
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.LOGIC_STEPS
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_ENDING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_STARTING
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.RACE_CONDITION
 
-import org.woen.telemetry.Configs.PROCESS_ID.INTAKE
-import org.woen.telemetry.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
-import org.woen.telemetry.Configs.PROCESS_ID.DRUM_REQUEST
-import org.woen.telemetry.Configs.PROCESS_ID.SINGLE_REQUEST
-import org.woen.telemetry.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SCORING_CONNECTOR
+import org.woen.telemetry.configs.Configs.PROCESS_ID.INTAKE
+import org.woen.telemetry.configs.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
+import org.woen.telemetry.configs.Configs.PROCESS_ID.DRUM_REQUEST
+import org.woen.telemetry.configs.Configs.PROCESS_ID.LAZY_INTAKE
+import org.woen.telemetry.configs.Configs.PROCESS_ID.SINGLE_REQUEST
+import org.woen.telemetry.configs.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SCORING_CONNECTOR
 
-import org.woen.telemetry.Configs.SORTING_SETTINGS.TELEOP_PATTERN_SHOOTING_MODE
-import org.woen.telemetry.Configs.SORTING_SETTINGS.INCLUDE_PREVIOUS_UNFINISHED_TO_REQUEST_ORDER
-import org.woen.telemetry.Configs.SORTING_SETTINGS.INCLUDE_PREVIOUS_UNFINISHED_TO_FAILSAFE_ORDER
-import org.woen.telemetry.Configs.SORTING_SETTINGS.AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN
-import org.woen.telemetry.Configs.SORTING_SETTINGS.IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.TELEOP_PATTERN_SHOOTING_MODE
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.INCLUDE_PREVIOUS_UNFINISHED_TO_REQUEST_ORDER
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.INCLUDE_PREVIOUS_UNFINISHED_TO_FAILSAFE_ORDER
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN
+import org.woen.telemetry.configs.Configs.SORTING_SETTINGS.IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER
+
+import org.woen.telemetry.configs.RobotSettings.CONTROLS.IGNORE_DUPLICATE_SHOOTING_COMMAND
+import org.woen.telemetry.configs.RobotSettings.CONTROLS.TRY_TERMINATE_INTAKE_WHEN_SHOOTING
 
 
 
@@ -388,17 +390,9 @@ class ScoringModulesConnector
         failsafePattern: Array<BallRequest.Name>
     ): RequestResult.Name
     {
-        logM.logMd("Checking race condition before shooting", RACE_CONDITION)
-        while (isUsedByAnyProcess)
-        {
-            delay(DELAY.EVENT_AWAITING_MS)
+        val startingResult = handleRequestRaceCondition(DRUM_REQUEST)
+        if (RequestResult.didFail(startingResult)) return startingResult
 
-            if (_runStatus.isForcedToTerminateThisProcess(DRUM_REQUEST))
-                return resumeLogicAfterShooting(
-                    Request.TERMINATED, DRUM_REQUEST)
-        }
-
-        _runStatus.addProcessToQueue(DRUM_REQUEST)
 
         logM.logMd("Started - SMART drum request", PROCESS_STARTING)
         val requestResult = _storage.shootEntireDrumRequest(
@@ -416,18 +410,8 @@ class ScoringModulesConnector
     }
     private suspend fun startStreamDrumRequest(): RequestResult.Name
     {
-        logM.logMd("Checking race condition before shooting", RACE_CONDITION)
-        while (isUsedByAnyProcess)
-        {
-            delay(DELAY.EVENT_AWAITING_MS)
-
-            if (_runStatus.isForcedToTerminateThisProcess(DRUM_REQUEST))
-                return resumeLogicAfterShooting(
-                    Request.TERMINATED, DRUM_REQUEST)
-        }
-
-        logM.logMd("Initial  race condition check passed", RACE_CONDITION)
-        _runStatus.addProcessToQueue(DRUM_REQUEST)
+        val startingResult = handleRequestRaceCondition(DRUM_REQUEST)
+        if (RequestResult.didFail(startingResult)) return startingResult
 
         if (!tryDrivingToShootingZone(DRUM_REQUEST))
             return resumeLogicAfterShooting(
@@ -437,22 +421,12 @@ class ScoringModulesConnector
         val requestResult = _storage.streamDrumRequest()
         logM.logMd("FINISHED - StreamDrum request", PROCESS_ENDING)
 
-
         return resumeLogicAfterShooting(requestResult, DRUM_REQUEST)
     }
     private suspend fun startSingleRequest(ballRequest: BallRequest.Name): RequestResult.Name
     {
-        logM.logMd("Checking race condition before shooting", RACE_CONDITION)
-        while (isUsedByAnyProcess)
-        {
-            delay(DELAY.EVENT_AWAITING_MS)
-
-            if (_runStatus.isForcedToTerminateThisProcess(SINGLE_REQUEST))
-                return resumeLogicAfterShooting(
-                    Request.TERMINATED, SINGLE_REQUEST)
-        }
-
-        _runStatus.addProcessToQueue(SINGLE_REQUEST)
+        val startingResult = handleRequestRaceCondition(SINGLE_REQUEST)
+        if (RequestResult.didFail(startingResult)) return startingResult
 
         logM.logMd("Started - Single request", PROCESS_STARTING)
         val requestResult = _storage.handleRequest(ballRequest)
@@ -549,6 +523,48 @@ class ScoringModulesConnector
 
         sendFinishedFiringEvent(requestResult)
         return requestResult
+    }
+
+    private suspend fun handleRequestRaceCondition(processId: Int): RequestResult.Name
+    {
+        logM.logMd("Checking race condition before shooting", RACE_CONDITION)
+        while (isUsedByAnyProcess)
+        {
+            delay(DELAY.EVENT_AWAITING_MS)
+
+
+            if (IGNORE_DUPLICATE_SHOOTING_COMMAND &&
+                _runStatus.isUsedByThisProcess(processId))
+                return resumeLogicAfterShooting(
+                    Request.FAIL_IS_BUSY, processId)
+
+
+            if (TRY_TERMINATE_INTAKE_WHEN_SHOOTING && isIntakeActive())
+                if (!EventBusLI.invoke(TerminateIntakeEvent()).stoppingResult)
+                    return resumeLogicAfterShooting(
+                        Request.FAIL_IS_BUSY, processId)
+
+
+            if (_runStatus.isForcedToTerminateThisProcess(processId))
+                return resumeLogicAfterShooting(
+                    Request.TERMINATED, processId)
+        }
+
+        logM.logMd("Initial  race condition check passed", RACE_CONDITION)
+        setActiveProcess(processId)
+        return Request.SUCCESS
+    }
+    private fun setActiveProcess(processId: Int)
+    {
+        _runStatus.addProcessToQueue(processId)
+        _runStatus.setCurrentActiveProcess(processId)
+    }
+    private fun isDuplicateProcess(processId: Int)
+        = _runStatus.isUsedByThisProcess(DRUM_REQUEST)
+    private fun isIntakeActive(): Boolean
+    {
+        val    activeProcess = _runStatus.getCurrentActiveProcess()
+        return activeProcess == INTAKE || activeProcess == LAZY_INTAKE
     }
 
 

@@ -5,11 +5,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.enumerators.Ball
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.Configs
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SENSORS_DEBUG_LEVELS
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SENSORS_DEBUG_SETTING
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_L
-import org.woen.telemetry.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_R
+import org.woen.telemetry.configs.Configs
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SENSORS_DEBUG_LEVELS
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SENSORS_DEBUG_SETTING
+import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_L
+import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_R
 import org.woen.telemetry.LogManager
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice

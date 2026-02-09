@@ -1,7 +1,7 @@
 package org.woen.telemetry
 
 
-import org.woen.telemetry.Configs.DEBUG_LEVELS.SHOW_DEBUG_SUPPRESS_WARNINGS
+import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SHOW_DEBUG_SUPPRESS_WARNINGS
 
 
 

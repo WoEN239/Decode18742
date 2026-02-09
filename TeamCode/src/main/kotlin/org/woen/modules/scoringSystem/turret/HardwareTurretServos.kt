@@ -2,10 +2,9 @@ package org.woen.modules.scoringSystem.turret
 
 import androidx.core.math.MathUtils.clamp
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.hardware.PwmControl
 import com.qualcomm.robotcore.hardware.Servo
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.drivers.InfinityAxon

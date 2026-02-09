@@ -2,7 +2,7 @@ package org.woen.utils.process
 
 
 import kotlin.math.abs
-import org.woen.telemetry.Configs.PROCESS_ID.UNDEFINED_PROCESS_ID
+import org.woen.telemetry.configs.Configs.PROCESS_ID.UNDEFINED_PROCESS_ID
 
 
 

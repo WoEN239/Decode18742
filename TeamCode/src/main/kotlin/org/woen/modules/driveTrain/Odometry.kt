@@ -3,8 +3,7 @@ package org.woen.modules.driveTrain
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.modules.IModule
-import org.woen.modules.scoringSystem.turret.Turret
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager

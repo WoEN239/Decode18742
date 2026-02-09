@@ -15,7 +15,7 @@ import org.opencv.core.Mat
 import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import java.util.concurrent.atomic.AtomicReference
 
 class Patternproccesor : VisionProcessor, CameraStreamSource {

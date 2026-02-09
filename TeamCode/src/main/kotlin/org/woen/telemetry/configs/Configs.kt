@@ -1,32 +1,31 @@
-package org.woen.telemetry
-
+package org.woen.telemetry.configs
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.woen.enumerators.Shooting
 import org.woen.enumerators.StorageSlot
+import org.woen.telemetry.EventConfig
+import org.woen.telemetry.LogManager
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.utils.process.RunStatus
 import org.woen.utils.regulator.RegulatorParameters
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
-import java.lang.Math.toRadians
 import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.max
 
-
-/*
- *    Это файл со всеми конфигами робота
- *    В нём, и только в нём РАЗРЕШАЕТСЯ использовать ЭДЖОВСКИЕ D: технологии
- *    (на значениях которые не требуют больших точностей)
- *    > подставление красивых значений вроде 33333
- */
-
-
 object Configs {
 
+    /*
+     *    Это файл со всеми конфигами робота
+     *    В нём, и только в нём РАЗРЕШАЕТСЯ использовать ЭДЖОВСКИЕ D: технологии
+     *    (на значениях которые не требуют больших точностей)
+     *    > подставление красивых значений вроде 33333
+     */
+    
     @Config
     internal object BRUSH {
         @JvmField
@@ -164,10 +163,11 @@ object Configs {
         var TARGET_TIMER = 0.1
 
         @JvmField
-        var RED_PARKING_ORIENTATION = Orientation(Vec2(0.948, -0.803), Angle.ofDeg(-180.0))
+        var RED_PARKING_ORIENTATION =
+            Orientation(Vec2(0.948, -0.803), Angle.Companion.ofDeg(-180.0))
 
         @JvmField
-        var BLUE_PARKING_ORIENTATION = Orientation(Vec2(0.948, 0.803), Angle.ofDeg(180.0))
+        var BLUE_PARKING_ORIENTATION = Orientation(Vec2(0.948, 0.803), Angle.Companion.ofDeg(180.0))
 
         @JvmField
         var X_DEATH_ZONE = 0.05
@@ -251,7 +251,8 @@ object Configs {
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
-        var PULLEY_REGULATOR = RegulatorParameters(kF = 0.0055, kP = 0.08, kI = 0.01 /*, limitU = 12.0*/)
+        var PULLEY_REGULATOR =
+            RegulatorParameters(kF = 0.0055, kP = 0.08, kI = 0.01 /*, limitU = 12.0*/)
 
         @JvmField
         var REGULATOR_SENS = 0.5
@@ -272,16 +273,16 @@ object Configs {
         var MAX_TURRET_ANGLE_SERVO = 1.0 - 0.83
 
         @JvmField
-        var MIN_TURRET_ANGLE = PI / 2.0 - toRadians(45.0)
+        var MIN_TURRET_ANGLE = PI / 2.0 - Math.toRadians(45.0)
 
         @JvmField
-        var MAX_TURRET_ANGLE = PI / 2.0 - toRadians(25.0)
+        var MAX_TURRET_ANGLE = PI / 2.0 - Math.toRadians(25.0)
 
         @JvmField
         var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.145)
 
         @JvmField
-        var ZERO_ROTATE_POS = toRadians(172.54545454545456)
+        var ZERO_ROTATE_POS = Math.toRadians(172.54545454545456)
 
         @JvmField
         var ROTATE_SERVO_RATIO = (30.0 / 18.0) * (60.0 / 120.0)
@@ -297,10 +298,12 @@ object Configs {
         var MIN_ROTATE = -PI / 2.0
 
         @JvmField
-        var SHOOTING_RED_ORIENTATION = Orientation(Vec2(-0.630, 0.387), Angle.ofDeg(129.0))
+        var SHOOTING_RED_ORIENTATION =
+            Orientation(Vec2(-0.630, 0.387), Angle.Companion.ofDeg(129.0))
 
         @JvmField
-        var SHOOTING_BLUE_ORIENTATION = Orientation(Vec2(-0.630, -0.387), Angle.ofDeg(-129.0))
+        var SHOOTING_BLUE_ORIENTATION =
+            Orientation(Vec2(-0.630, -0.387), Angle.Companion.ofDeg(-129.0))
 
         @JvmField
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
@@ -315,7 +318,7 @@ object Configs {
         var TURRET_HEIGHT = 0.2
 
         @JvmField
-        var SCORE_ANGLE = toRadians(-30.0)
+        var SCORE_ANGLE = Math.toRadians(-30.0)
 
         @JvmField
         var PULLEY_RATION = 30.0 / 40.0
@@ -725,17 +728,17 @@ object Configs {
 
         @JvmField
         var PREFERRED_INTAKE_SLOT_SEARCHING_ORDER = arrayOf(
-            StorageSlot.TURRET,
-            StorageSlot.CENTER,
-            StorageSlot.BOTTOM
+            StorageSlot.Companion.TURRET,
+            StorageSlot.Companion.CENTER,
+            StorageSlot.Companion.BOTTOM
         )
 
         @JvmField
         var PREFERRED_REQUEST_SLOT_SEARCHING_ORDER = arrayOf(
-            StorageSlot.TURRET,
-            StorageSlot.CENTER,
-            StorageSlot.BOTTOM,
-            StorageSlot.MOBILE
+            StorageSlot.Companion.TURRET,
+            StorageSlot.Companion.CENTER,
+            StorageSlot.Companion.BOTTOM,
+            StorageSlot.Companion.MOBILE
         )
     }
 

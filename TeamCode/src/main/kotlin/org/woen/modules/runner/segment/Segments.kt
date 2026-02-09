@@ -7,7 +7,7 @@ import com.acmerobotics.roadrunner.TimeTrajectory
 import com.acmerobotics.roadrunner.TimeTurn
 import com.acmerobotics.roadrunner.Trajectory
 import com.acmerobotics.roadrunner.TurnConstraints
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2

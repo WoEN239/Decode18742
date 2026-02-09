@@ -2,18 +2,15 @@ package org.woen.modules.driveTrain
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.util.RobotLog
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
-import woen239.odometry.OdometryComputer
-import kotlin.math.PI
 
 class HardwareOdometry : IHardwareDevice {
     private lateinit var _computer: GoBildaPinpointDriver
