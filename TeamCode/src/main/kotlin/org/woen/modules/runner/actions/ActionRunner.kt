@@ -17,7 +17,7 @@ import com.acmerobotics.roadrunner.Vector2d
 import org.woen.enumerators.Ball
 
 import org.woen.hotRun.HotRun
-import org.woen.modules.camera.CloseCameraEvent
+
 import org.woen.modules.camera.OnPatternDetectedEvent
 import org.woen.utils.smartMutex.SmartMutex
 
@@ -244,8 +244,6 @@ class ActionRunner private constructor() : DisposableHandle {
         EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
 
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(CloseCameraEvent())
-
 
         EventBusLI.invoke(
             RunSegmentEvent(
@@ -432,8 +430,6 @@ class ActionRunner private constructor() : DisposableHandle {
 
         EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
 
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(CloseCameraEvent())
 
         EventBusLI.invoke(
             RunSegmentEvent(
@@ -676,7 +672,6 @@ class ActionRunner private constructor() : DisposableHandle {
         EventBusLI.invoke(SetRotateStateEvent(Turret.RotateState.CONSTANT))
 
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(CloseCameraEvent())
 
         EventBusLI.invoke(
             RunSegmentEvent(

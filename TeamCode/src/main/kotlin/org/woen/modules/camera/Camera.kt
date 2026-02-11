@@ -8,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
 import org.woen.modules.scoringSystem.turret.Pattern
-import org.woen.telemetry.Configs
+import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -19,16 +19,16 @@ import kotlin.concurrent.thread
 data class OnPatternDetectedEvent(val pattern: Pattern)
 data class GetRobotCoords(val x: Double, val z: Double)
 
-class CameraLL : DisposableHandle {
+class Camera : DisposableHandle {
     companion object {
-        private var _nullableInstance: CameraLL? = null
+        private var _nullableInstance: Camera? = null
         private val _instanceMutex = SmartMutex()
 
         @JvmStatic
-        val LAZY_INSTANCE: CameraLL
+        val LAZY_INSTANCE: Camera
             get() = _instanceMutex.smartLock {
                 if (_nullableInstance == null)
-                    _nullableInstance = CameraLL()
+                    _nullableInstance = Camera()
                 return@smartLock _nullableInstance!!
             }
     }
