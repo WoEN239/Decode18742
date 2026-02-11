@@ -1,6 +1,7 @@
-package org.woen.modules.camera
+/*package org.woen.modules.camera
 
 import com.acmerobotics.dashboard.FtcDashboard
+import com.qualcomm.hardware.limelightvision.Limelight3A
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import kotlinx.coroutines.DisposableHandle
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
@@ -18,9 +19,13 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.utils.smartMutex.SmartMutex
 import kotlin.concurrent.thread
 
+
 data class OnPatternDetectedEvent(val pattern: Pattern)
+data class GetRobotCoords(val x: Double, val z: Double)
 class CloseCameraEvent()
 
+private var limelight: Limelight3A? = null
+private val localizer = TurretLocalizer()
 class Camera : DisposableHandle {
     companion object {
         private var _nullableInstance: Camera? = null
@@ -155,4 +160,4 @@ class Camera : DisposableHandle {
             })
         }
     }
-}
+}*/

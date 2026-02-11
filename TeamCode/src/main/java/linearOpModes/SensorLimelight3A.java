@@ -15,12 +15,11 @@ import java.util.List;
 @TeleOp(name = "LimeLightTest", group = "tests")
 public class SensorLimelight3A extends LinearOpMode {
 
-    private Limelight3A limelight;
+    private Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
     @Override
     public void runOpMode() throws InterruptedException
     {
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         telemetry.setMsTransmissionInterval(11);
 
