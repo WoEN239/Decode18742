@@ -21,13 +21,7 @@ import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.Alias.STORAGE_SLOT_COUNT
 
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.LOGIC_STEPS
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GENERIC_INFO
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_ENDING
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_STARTING
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.CELLS_DEBUG_LEVELS
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.CELLS_DEBUG_SETTING
-
+import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.RobotSettings.ROBOT
 import org.woen.telemetry.configs.RobotSettings.SORTING
 import org.woen.telemetry.configs.RobotSettings.SORTING.PREDICT.TRUE_MATCH_WEIGHT
@@ -67,7 +61,8 @@ class StorageCells
 {
     private val _storageCells = ROBOT.INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
     val hwSortingM = HwSortingManager()
-    val logM = LogManager(CELLS_DEBUG_SETTING, CELLS_DEBUG_LEVELS, "CELLS")
+    val logM = LogManager(Debug.CELLS_DEBUG_SETTING,
+        Debug.CELLS_DEBUG_LEVELS, "CELLS")
 
 
 
@@ -100,7 +95,7 @@ class StorageCells
     }
     private fun requestSearch(requested: BallRequest.Name): RequestResult
     {
-        logM.logMd("starting request search: ${requested}, storage:", PROCESS_STARTING)
+        logM.logMd("starting request search: ${requested}, storage:", Debug.START)
         logAllStorageData()
 
         val result = Request.F_COLOR_NOT_PRESENT
@@ -134,7 +129,7 @@ class StorageCells
             var localMaximum  = SORTING.PREDICT.START_WEIGHT
             var requestId     = startRequestId
 
-            logM.logMd("search round: $startRequestId", GENERIC_INFO)
+            logM.logMd("search round: $startRequestId", Debug.GENERIC)
 
             while  (requestId   <  trimmedRequestSize + startRequestId)
             {
@@ -157,7 +152,7 @@ class StorageCells
 
                 logM.logMd("requestId: ${requestId % MAX_BALL_COUNT}, direct match: $canMatchRequest"
                       + "\n\t\t> request ball: ${curRequest.name()}, storage ball: ${storageBall.name()}",
-                    GENERIC_INFO)
+                        Debug.GENERIC)
 
                 requestId++
             }
@@ -167,19 +162,21 @@ class StorageCells
                 doRotations = startRequestId
                 globalMaximum = localMaximum
 
-                logM.logMd("Found new global maximum: $globalMaximum", GENERIC_INFO)
+                logM.logMd("Found new global maximum: $globalMaximum", Debug.GENERIC)
 
                 if (globalMaximum == requested.size * TRUE_MATCH_WEIGHT)
                 {
-                    logM.logMd("Found optimal state, ending search in advance", LOGIC_STEPS)
-                    return PredictSortResult(doRotations, globalMaximum)
+                    logM.logMd("Found optimal state, ending search in advance", Debug.LOGIC)
+                    return PredictSortResult(
+                        doRotations,
+                        globalMaximum)
                 }
             }
 
             startRequestId++
         }
 
-        logM.logMd("Done searching, max: $globalMaximum, rotations: $doRotations", PROCESS_ENDING)
+        logM.logMd("Done searching, max: $globalMaximum, rotations: $doRotations", Debug.END)
         return PredictSortResult(doRotations, globalMaximum)
     }
     suspend fun initiatePredictSort(requested: Array<BallRequest.Name>,
@@ -190,12 +187,12 @@ class StorageCells
 
         hwReAdjustStorage()
 
-        logM.logMd("Start predict sort search", PROCESS_STARTING)
+        logM.logMd("Start predict sort search", Debug.START)
         val requestedFullData  = Array(requested.size) { BallRequest(requested[it]) }
         val searchResult = predictSortSearch(requestedFullData, trimmedRequestSize)
 
         logM.logMd("Best score: ${searchResult.maxSequenceScore}" +
-                       ", required >= $minValidInSequence", GENERIC_INFO)
+                       ", required >= $minValidInSequence", Debug.GENERIC)
 
         if (searchResult.maxSequenceScore >= minValidInSequence)
             repeat (searchResult.totalRotations)
@@ -242,7 +239,7 @@ class StorageCells
     }
     suspend fun updateAfterIntake(inputBall: Ball.Name)
     {
-        logM.logMd("before intake:", GENERIC_INFO)
+        logM.logMd("before intake:", Debug.GENERIC)
         logAllStorageData()
 
         var curSlot = StorageSlot.BOTTOM
@@ -256,8 +253,8 @@ class StorageCells
 
         if (curSlot >= StorageSlot.BOTTOM) _storageCells[curSlot].set(inputBall)
 
-        logM.logMd("software storage processing finished", PROCESS_ENDING)
-        logM.logMd("new storage: ", GENERIC_INFO)
+        logM.logMd("software storage processing finished", Debug.END)
+        logM.logMd("new storage: ", Debug.GENERIC)
         logAllStorageData()
 
         hwSortingM.reinstantiableForwardBeltsTime(
@@ -287,7 +284,7 @@ class StorageCells
 
     suspend fun fullRotate()
     {
-        logM.logMd("storage before full rotation:", GENERIC_INFO)
+        logM.logMd("storage before full rotation:", Debug.GENERIC)
         logAllStorageData()
 
         hwReAdjustStorage()
@@ -299,7 +296,7 @@ class StorageCells
 
         hwReAdjustStorage()
 
-        logM.logMd("finished full rotation, new storage:", PROCESS_ENDING)
+        logM.logMd("finished full rotation, new storage:", Debug.END)
         logAllStorageData()
     }
 
@@ -307,7 +304,7 @@ class StorageCells
     @Synchronized
     private fun swReAdjustStorage(): Boolean
     {
-        logM.logMd("SwReadjust start", PROCESS_STARTING)
+        logM.logMd("SwReadjust start", Debug.START)
         if (_storageCells[StorageSlot.TURRET].isEmpty()
             && isNotEmpty())
         {
@@ -337,7 +334,7 @@ class StorageCells
         }
         else
         {
-            logM.logMd("finished readjusting", PROCESS_ENDING)
+            logM.logMd("finished readjusting", Debug.END)
             return false
         }
     }
@@ -358,7 +355,7 @@ class StorageCells
               + "C:  ${_storageCells[StorageSlot.CENTER].name()}; "
               + "MO: ${_storageCells[StorageSlot.TURRET].name()}; "
               + "MI: ${_storageCells[StorageSlot.MOBILE].name()}\n",
-            GENERIC_INFO)
+                Debug.GENERIC)
     }
     fun storageData() = _storageCells
 

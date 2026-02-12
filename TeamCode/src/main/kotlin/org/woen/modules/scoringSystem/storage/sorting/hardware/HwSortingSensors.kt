@@ -1,34 +1,36 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
+import kotlin.math.max
+import kotlin.math.min
 import android.annotation.SuppressLint
+
+import org.woen.hotRun.HotRun
+import org.woen.enumerators.Ball
+
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
-import org.woen.enumerators.Ball
-import org.woen.hotRun.HotRun
-import org.woen.telemetry.configs.Configs
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SENSORS_DEBUG_LEVELS
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SENSORS_DEBUG_SETTING
-import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_L
-import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_R
-import org.woen.telemetry.LogManager
+
+import org.woen.utils.events.SimpleEvent
+import org.woen.utils.events.SimpleEmptyEvent
+import org.woen.utils.updateCounter.UpdateCounter
+
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
-import org.woen.utils.events.SimpleEmptyEvent
-import org.woen.utils.events.SimpleEvent
-import org.woen.utils.updateCounter.UpdateCounter
-import kotlin.math.max
-import kotlin.math.min
+
+import org.woen.telemetry.configs.Configs
+import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_L
+import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_R
+
+
 
 class ColorSensorsData(var color: Ball.Name)
+
+
 
 class HwSortingSensors() : IHardwareDevice {
     private lateinit var _rightColor: RevColorSensorV3
     private lateinit var _leftColor: RevColorSensorV3
-
-    val logM = LogManager(
-        SENSORS_DEBUG_SETTING,
-        SENSORS_DEBUG_LEVELS, "SENSORS")
 
     private var _oldCombinedGreen = false
     private var _oldCombinedPurple = false

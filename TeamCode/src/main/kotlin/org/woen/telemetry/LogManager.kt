@@ -1,19 +1,20 @@
 package org.woen.telemetry
 
 
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SHOW_DEBUG_SUPPRESS_WARNINGS
+import org.woen.telemetry.configs.Debug.DISABLE_ALL_LOGS
+import org.woen.telemetry.configs.Debug.SHOW_DEBUG_SUPPRESS_WARNINGS
 
 
 
 class LogManager
 {
-    private var _showLevels = arrayListOf(0u)
+    private var _showLevels = arrayListOf(0)
     private var _debugShowSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE
     private var _moduleName = ""
 
 
     constructor(showSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
-        showLevels: ArrayList<UInt> = arrayListOf(0u),
+        showLevels: ArrayList<Int> = arrayListOf(0),
         moduleName: String = "")
     {
         updateDebugSetting(showSetting)
@@ -42,7 +43,7 @@ class LogManager
     {
         _debugShowSetting = showSetting
     }
-    fun setShowedDebugLevels(showLevels: ArrayList<UInt>)
+    fun setShowedDebugLevels(showLevels: ArrayList<Int>)
     {
         _showLevels = ArrayList(showLevels)
     }
@@ -53,29 +54,29 @@ class LogManager
 
 
 
-    fun log   (s: String, debugLevel: UInt)
+    fun log   (s: String, vararg debug: Int)
     {
-        if (allowedToShow(debugLevel))
+        if (debug.any { allowedToShow(it) })
             ThreadedTelemetry.LAZY_INSTANCE.log(s)
         else if (SHOW_DEBUG_SUPPRESS_WARNINGS)
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
-                "Debug level $debugLevel is turned off", "Warning")
+                "Debug level $debug is turned off", "Warning")
     }
-    fun logMd (s: String, debugLevel: UInt)
+    fun logMd (s: String, vararg debug: Int)
     {
-        if (allowedToShow(debugLevel))
+        if (debug.any { allowedToShow(it) })
             ThreadedTelemetry.LAZY_INSTANCE.log(toMdString(s))
         else if (SHOW_DEBUG_SUPPRESS_WARNINGS)
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
-                toMdString("Debug level $debugLevel is turned off"), "Warning")
+                toMdString("Debug level $debug is turned off"), "Warning")
     }
-    fun logTag(s: String, tag: String, debugLevel: UInt)
+    fun logTag(s: String, tag: String, vararg debug: Int)
     {
-        if (allowedToShow(debugLevel))
+        if (debug.any { allowedToShow(it) })
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(s, tag)
         else if (SHOW_DEBUG_SUPPRESS_WARNINGS)
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
-                "Debug level $debugLevel is turned off", "Warning")
+                "Debug level $debug is turned off", "Warning")
     }
 
 
@@ -83,9 +84,9 @@ class LogManager
     private fun toMdString(s: String)
         = if (_moduleName.isEmpty()) s
           else "$_moduleName: $s"
-    private fun allowedToShow(debugLevel: UInt): Boolean
+    private fun allowedToShow(debugLevel: Int): Boolean
     {
-        return when (_debugShowSetting)
+        return !DISABLE_ALL_LOGS && when (_debugShowSetting)
         {
             DebugSetting.HIDE                 -> false
             DebugSetting.SHOW_EVERYTHING      -> true
@@ -101,22 +102,22 @@ class LogManager
 
 
 
-    private fun customSelected(debugLevel: UInt): Boolean
+    private fun customSelected(debugLevel: Int): Boolean
             = _showLevels.contains(debugLevel)
 
 
-    private fun aboveInclusive(debugLevel: UInt): Boolean
+    private fun aboveInclusive(debugLevel: Int): Boolean
         = if (_showLevels.isEmpty()) false
           else debugLevel >= _showLevels[0]
-    private fun aboveExclusive(debugLevel: UInt): Boolean
+    private fun aboveExclusive(debugLevel: Int): Boolean
         = if (_showLevels.isEmpty()) false
           else debugLevel >  _showLevels[0]
 
 
-    private fun belowInclusive(debugLevel: UInt): Boolean
+    private fun belowInclusive(debugLevel: Int): Boolean
         = if (_showLevels.isEmpty()) false
           else debugLevel <= _showLevels[0]
-    private fun belowExclusive(debugLevel: UInt): Boolean
+    private fun belowExclusive(debugLevel: Int): Boolean
         = if (_showLevels.isEmpty()) false
           else debugLevel <  _showLevels[0]
 }

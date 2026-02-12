@@ -51,17 +51,9 @@ import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SMC_DEBUG_LEVELS
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SMC_DEBUG_SETTING
-
+import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
 
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.LOGIC_STEPS
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_ENDING
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_STARTING
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.RACE_CONDITION
 
 import org.woen.telemetry.configs.Configs.PROCESS_ID.INTAKE
 import org.woen.telemetry.configs.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
@@ -71,10 +63,6 @@ import org.woen.telemetry.configs.Configs.PROCESS_ID.SINGLE_REQUEST
 import org.woen.telemetry.configs.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SCORING_CONNECTOR
 
 import org.woen.telemetry.configs.RobotSettings.TELEOP
-//import org.woen.telemetry.configs.RobotSettings.TELEOP.INCLUDE_PREVIOUS_UNFINISHED_TO_REQUEST_ORDER
-//import org.woen.telemetry.configs.RobotSettings.TELEOP.INCLUDE_PREVIOUS_UNFINISHED_TO_FAILSAFE_ORDER
-//import org.woen.telemetry.configs.RobotSettings.TELEOP.AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN
-//import org.woen.telemetry.configs.RobotSettings.TELEOP.IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER
 
 import org.woen.telemetry.configs.RobotSettings.CONTROLS.DRIVE_TO_SHOOTING_ZONE
 import org.woen.telemetry.configs.RobotSettings.CONTROLS.IGNORE_DUPLICATE_SHOOTING_COMMAND
@@ -90,7 +78,10 @@ class ScoringModulesConnector
 {
     private val _storage   = SortingStorage()
     private val _runStatus = RunStatus(PRIORITY_SETTING_FOR_SCORING_CONNECTOR)
-    val logM = LogManager(SMC_DEBUG_SETTING, SMC_DEBUG_LEVELS, "SMC")
+    val logM = LogManager(
+        Debug.SMC_DEBUG_SETTING,
+        Debug.SMC_DEBUG_LEVELS,
+        "SMC")
 
 //    private val _shotWasFired      = AtomicBoolean(false)
 
@@ -267,8 +258,8 @@ class ScoringModulesConnector
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
                     EventBusLI.invoke(StorageGiveStreamDrumRequest())
 
-                    logM.logMd("\nSTART - STREAM Drum request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
+                    logM.logMd("\nSTART - STREAM Drum request - GAMEPAD", Debug.GAMEPAD)
+                    logM.logMd("isBusy: $isUsedByAnyProcess", Debug.RACE_CONDITION)
         }   )   )
 //
 //        GamepadLI.addGamepad1Listener(createClickDownListener(
@@ -343,27 +334,27 @@ class ScoringModulesConnector
 
     private suspend fun startIntakeProcess(inputToBottomSlot: Ball.Name): IntakeResult.Name
     {
-        logM.logMd("Checking race condition before intake", RACE_CONDITION)
+        logM.logMd("Checking race condition before intake", Debug.RACE_CONDITION)
         if (_runStatus.isUsedByAnotherProcess(
                 INTAKE, RUNNING_INTAKE_INSTANCE))
         {
             reverseAndThenStartBrushesAfterTimePeriod(
                 TIME_FOR_BRUSH_REVERSING)
 
-            logM.logMd("Intake race condition: IS_BUSY", RACE_CONDITION)
+            logM.logMd("Intake race condition: IS_BUSY", Debug.RACE_CONDITION)
             return Intake.FAIL_IS_BUSY
         }
         setActiveProcess(INTAKE)
         _runStatus.addProcessToQueue(RUNNING_INTAKE_INSTANCE)
 
-        logM.logMd("Started - Intake, INPUT BALL: $inputToBottomSlot", PROCESS_STARTING)
+        logM.logMd("Started - Intake, INPUT BALL: $inputToBottomSlot", Debug.START)
         val intakeResult = _storage.handleIntake(inputToBottomSlot)
 
 
         if (_storage.alreadyFull()) reverseBrushes(TIME_FOR_BRUSH_REVERSING)
 
 
-        logM.logMd("FINISHED - INTAKE, result: $intakeResult", PROCESS_ENDING)
+        logM.logMd("FINISHED - INTAKE, result: $intakeResult", Debug.END)
 
         resumeLogicAfterIntake()
         return intakeResult
@@ -386,8 +377,7 @@ class ScoringModulesConnector
     private suspend fun startBrushesAfterDelay(delay: Long)
     {
         delay(delay)
-        logM.logMd("Going to restart brushes: ${!_storage.alreadyFull()}",
-            LOGIC_STEPS)
+        logM.logMd("Going to restart brushes: ${!_storage.alreadyFull()}", Debug.LOGIC)
 
         if (!_storage.alreadyFull()) startBrushes()
     }
@@ -404,7 +394,7 @@ class ScoringModulesConnector
         if (RequestResult.didFail(startingResult)) return startingResult
 
 
-        logM.logMd("Started - SMART drum request", PROCESS_STARTING)
+        logM.logMd("Started - SMART drum request", Debug.START)
         val requestResult = _storage.shootEntireDrumRequest(
                 shootingMode,
                 requestPattern,
@@ -415,7 +405,7 @@ class ScoringModulesConnector
             TELEOP.IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER)
 
 
-        logM.logMd("FINISHED - SMART drum request", PROCESS_ENDING)
+        logM.logMd("FINISHED - SMART drum request", Debug.END)
         return resumeLogicAfterShooting(requestResult, DRUM_REQUEST)
     }
     private suspend fun startStreamDrumRequest(): RequestResult.Name
@@ -427,9 +417,9 @@ class ScoringModulesConnector
             return resumeLogicAfterShooting(
                 Request.TERMINATED, DRUM_REQUEST)
 
-        logM.logMd("Started  - StreamDrum request", PROCESS_STARTING)
+        logM.logMd("Started  - StreamDrum request", Debug.START)
         val requestResult = _storage.streamDrumRequest()
-        logM.logMd("FINISHED - StreamDrum request", PROCESS_ENDING)
+        logM.logMd("FINISHED - StreamDrum request", Debug.END)
 
         return resumeLogicAfterShooting(requestResult, DRUM_REQUEST)
     }
@@ -439,9 +429,9 @@ class ScoringModulesConnector
         val startingResult = handleRequestRaceCondition(SINGLE_REQUEST)
         if (RequestResult.didFail(startingResult)) return startingResult
 
-        logM.logMd("Started - Single request", PROCESS_STARTING)
+        logM.logMd("Started - Single request", Debug.START)
         val requestResult = _storage.handleRequest(ballRequest)
-        logM.logMd("FINISHED - Single request", PROCESS_ENDING)
+        logM.logMd("FINISHED - Single request", Debug.END)
 
         return resumeLogicAfterShooting(requestResult, SINGLE_REQUEST)
     }
@@ -451,7 +441,7 @@ class ScoringModulesConnector
     private suspend fun tryDrivingToShootingZone(processId: Int): Boolean
     {
         logM.logMd("Attempting to drive to shooting zone: $DRIVE_TO_SHOOTING_ZONE",
-            ATTEMPTING_LOGIC)
+            Debug.TRYING)
 
         if (DRIVE_TO_SHOOTING_ZONE)
         {
@@ -464,21 +454,20 @@ class ScoringModulesConnector
         }
 
         logM.logMd("Finished driving, terminated: " +
-                "${_runStatus.isForcedToTerminateThisProcess(processId)}",
-            PROCESS_ENDING)
+                "${_runStatus.isForcedToTerminateThisProcess(processId)}", Debug.END)
 
         return !_runStatus.isForcedToTerminateThisProcess(processId)
     }
     private suspend fun readyUpForShooting()
     {
-        logM.logMd("Starting Drivetrain rotation", PROCESS_STARTING)
+        logM.logMd("Starting Drivetrain rotation", Debug.START)
 
         var activeProcessId = _runStatus.getCurrentActiveProcess()
         if (activeProcessId != DRUM_REQUEST &&
             activeProcessId != SINGLE_REQUEST) activeProcessId = DRUM_REQUEST
 
         if (!tryDrivingToShootingZone(activeProcessId)) return
-        logM.logMd("Drivetrain rotated successfully", LOGIC_STEPS)
+        logM.logMd("Drivetrain rotated successfully", Debug.LOGIC)
 
         EventBusLI.invoke(OdometryIsAlignedForShootingEvent())
 
@@ -510,8 +499,8 @@ class ScoringModulesConnector
 
     private fun sendFinishedFiringEvent(requestResult: RequestResult.Name)
     {
-        logM.logMd("FINISHED all firing", PROCESS_ENDING)
-        logM.logMd("Send finished firing EVENT", PROCESS_ENDING)
+        logM.logMd("FINISHED all firing", Debug.END)
+        logM.logMd("Send finished firing EVENT", Debug.END)
 
         EventBusLI.invoke(FullFinishedFiringEvent(requestResult))
 
@@ -542,27 +531,25 @@ class ScoringModulesConnector
 
     private suspend fun handleRequestRaceCondition(processId: Int): RequestResult.Name
     {
-        logM.logMd("Checking race condition before shooting", RACE_CONDITION)
+        logM.logMd("Checking race condition before shooting", Debug.RACE_CONDITION)
         while (isUsedByAnyProcess)
         {
             delay(DELAY.EVENT_AWAITING_MS)
 
             if (isDuplicateProcess(processId))
             {
-                logM.logMd("Ignored duplicate shooting command", LOGIC_STEPS)
+                logM.logMd("Ignored duplicate shooting command", Debug.LOGIC)
                 return Request.FAIL_IS_BUSY
             }
 
             if (tryTerminateIntake())
             {
-                logM.logMd("Attempting intake termination for shooting",
-                    LOGIC_STEPS)
+                logM.logMd("Attempting intake termination for shooting", Debug.LOGIC)
 
                 if (!EventBusLI.invoke(TerminateIntakeEvent()).stoppingResult)
                     return Request.FAIL_IS_BUSY
 
-                logM.logMd("Successful intake termination",
-                    LOGIC_STEPS)
+                logM.logMd("Successful intake termination", Debug.LOGIC)
 
                 _runStatus.safeRemoveThisProcessIdFromQueue(
                     _runStatus.getCurrentActiveProcess())
@@ -576,7 +563,8 @@ class ScoringModulesConnector
                 return Request.TERMINATED
         }
 
-        logM.logMd("Initial race condition check passed", RACE_CONDITION)
+        logM.logMd("Initial race condition check passed",
+            Debug.RACE_CONDITION)
         setActiveProcess(processId)
         return Request.SUCCESS
     }

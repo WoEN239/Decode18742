@@ -37,18 +37,7 @@ import org.woen.telemetry.configs.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
 import org.woen.telemetry.configs.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAGE
 
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SSL_DEBUG_LEVELS
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SSL_DEBUG_SETTING
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.EVENTS_FEEDBACK
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.RACE_CONDITION
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_STARTING
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_ENDING
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GENERIC_INFO
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.LOGIC_STEPS
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_NAME
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.TERMINATION
-
+import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.RobotSettings.SORTING
 import org.woen.telemetry.configs.RobotSettings.SHOOTING
 
@@ -63,8 +52,8 @@ class SortingStorageLogic
     val shotWasFired = AtomicBoolean(false)
 
     val runStatus = RunStatus(PRIORITY_SETTING_FOR_SORTING_STORAGE)
-    val logM = LogManager(SSL_DEBUG_SETTING,
-        SSL_DEBUG_LEVELS, "SSL")
+    val logM = LogManager(Debug.SSL_DEBUG_SETTING,
+        Debug.SSL_DEBUG_LEVELS, "SSL")
 
 
 
@@ -74,15 +63,15 @@ class SortingStorageLogic
         shotWasFired.set(false)
 
         runStatus.fullResetToActiveState()
-        logM.updateDebugSetting(SSL_DEBUG_SETTING)
-        logM.setShowedDebugLevels(SSL_DEBUG_LEVELS)
+        logM.updateDebugSetting(Debug.SSL_DEBUG_SETTING)
+        logM.setShowedDebugLevels(Debug.SSL_DEBUG_LEVELS)
     }
 
 
 
     suspend fun canInitiatePredictSort(): Boolean
     {
-        logM.logMd("Try initiating predict sort", ATTEMPTING_LOGIC)
+        logM.logMd("Try initiating predict sort", Debug.TRYING)
 
         if (runStatus.isUsedByAnyProcess()) return false
 
@@ -104,7 +93,7 @@ class SortingStorageLogic
 
     suspend fun canStartStorageCalibrationWithCurrent(): Boolean
     {
-        logM.logMd("Try starting storage calibration with current", ATTEMPTING_LOGIC)
+        logM.logMd("Try starting storage calibration with current", Debug.TRYING)
 
         if (runStatus.isUsedByAnyProcess()) return false
 
@@ -126,7 +115,7 @@ class SortingStorageLogic
 
     suspend fun canStartUpdateAfterLazyIntake(): Boolean
     {
-        logM.logMd("Try starting updating after lazy intake", ATTEMPTING_LOGIC)
+        logM.logMd("Try starting updating after lazy intake", Debug.TRYING)
 
         if (runStatus.isUsedByAnyProcess()) return false
 
@@ -153,7 +142,7 @@ class SortingStorageLogic
 
         runStatus.addProcessToQueue(RUNNING_INTAKE_INSTANCE)
 
-        logM.logMd("Sorting intake", LOGIC_STEPS)
+        logM.logMd("Sorting intake", Debug.LOGIC)
         storageCells.updateAfterIntake(inputBall)
 
         runStatus.safeRemoveOnlyOneInstanceOfThisProcessFromQueue(
@@ -166,17 +155,18 @@ class SortingStorageLogic
         processId: Int,
         vararg exceptionProcessesId: Int):  Boolean
     {
-        logM.logMd("CHECKING RACE CONDITION", RACE_CONDITION)
+        logM.logMd("CHECKING RACE CONDITION", Debug.RACE_CONDITION)
         if (runStatus.isUsedByAnotherProcess(
             processId, *exceptionProcessesId)) return true
 
-        logM.logMd("Currently not busy", RACE_CONDITION)
+        logM.logMd("Currently not busy", Debug.RACE_CONDITION)
         runStatus.addProcessToQueue(processId)
         delay(DELAY.INTAKE_RACE_CONDITION_MS)
 
         logM.logMd("Highest processId: " +
-                "${runStatus.getHighestPriorityProcessId(*exceptionProcessesId)}",
-            RACE_CONDITION)
+                "${runStatus.getHighestPriorityProcessId(
+                *exceptionProcessesId)}",
+                Debug.RACE_CONDITION)
 
         return !runStatus.isThisProcessHighestPriority(
             processId, *exceptionProcessesId)
@@ -219,12 +209,12 @@ class SortingStorageLogic
             else -> -1
         }
 
-        logM.logMd("rotating cur slot times: $fullRotations", LOGIC_STEPS)
+        logM.logMd("rotating cur slot times: $fullRotations", Debug.LOGIC)
         repeat(fullRotations)
             { storageCells.fullRotate() }
 
-        logM.logMd("sorting finished - success", PROCESS_ENDING)
-        logM.logMd("Getting ready to shoot",     PROCESS_STARTING)
+        logM.logMd("sorting finished - success", Debug.END)
+        logM.logMd("Getting ready to shoot", Debug.START)
         return Request.F_SUCCESS
     }
     suspend fun shootRequestFinalPhase(
@@ -239,7 +229,7 @@ class SortingStorageLogic
         val updateResult = if (requestResult == Request.TURRET_SLOT) Request.TURRET_SLOT
             else rotateToFoundBall(requestResult, processId, true)
 
-        logM.logMd("Finished updating", PROCESS_ENDING)
+        logM.logMd("Finished updating", Debug.END)
 
         return if (updateResult.didSucceed())
         {
@@ -283,7 +273,7 @@ class SortingStorageLogic
 
     suspend fun terminateRequest(processId: Int): RequestResult.Name
     {
-        logM.logMd("Request is being terminated", TERMINATION)
+        logM.logMd("Request is being terminated", Debug.TERMINATION)
 
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
@@ -302,7 +292,7 @@ class SortingStorageLogic
 
     suspend fun lazyStreamDrumRequest(ballCount: Int)
     {
-        logM.logMd("Starting Lazy stream shooting", PROCESS_STARTING)
+        logM.logMd("Starting Lazy stream shooting", Debug.START)
 
         val beltPushTime = when (ballCount)
         {
@@ -311,7 +301,7 @@ class SortingStorageLogic
             else -> DELAY.FIRE_1_BALLS_FOR_SHOOTING_MS
         }
 
-        logM.logMd("Firing time: $beltPushTime", GENERIC_INFO)
+        logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
 
         storageCells.hwSortingM.stopBelts()
         storageCells.hwSortingM.openTurretGate()
@@ -325,7 +315,7 @@ class SortingStorageLogic
     suspend fun fastStreamDrumRequest(): RequestResult.Name
     {
         val ballCount = storageCells.anyBallCount()
-        logM.logMd("Expected shot count: $ballCount", GENERIC_INFO)
+        logM.logMd("Expected shot count: $ballCount", Debug.GENERIC)
 
         lazyStreamDrumRequest(ballCount)
         return Request.SUCCESS_NOW_EMPTY
@@ -602,29 +592,29 @@ class SortingStorageLogic
         processId: Int,
         doAutoCalibration: Boolean = true)
     {
-        logM.logMd("RESUME AFTER REQUEST, process: $processId", PROCESS_NAME)
+        logM.logMd("RESUME AFTER REQUEST, process: $processId", Debug.PROCESS_NAME)
 
         if (doAutoCalibration)
         {
-            logM.logMd("Reversing belts for calibration", PROCESS_STARTING)
+            logM.logMd("Reversing belts for calibration", Debug.START)
             storageCells.hwSortingM.reverseBeltsTime(Delay.PART_PUSH)
-            logM.logMd("Finished reversing", PROCESS_ENDING)
+            logM.logMd("Finished reversing", Debug.END)
 
-            logM.logMd("Starting calibration", PROCESS_STARTING)
+            logM.logMd("Starting calibration", Debug.START)
             storageCells.hwSortingM.forwardBeltsTime(Delay.HALF_PUSH)
             storageCells.hwSortingM.fullCalibrate()
         }
         else storageCells.hwSortingM.fullCalibrate()
 
 
-        logM.logMd("Phase 2 - RESUME AFTER REQUEST, process: $processId", LOGIC_STEPS)
+        logM.logMd("Phase 2 - RESUME AFTER REQUEST, process: $processId", Debug.LOGIC)
 
         runStatus.safeRemoveThisProcessIdFromQueue(processId)
         runStatus.safeRemoveThisProcessFromTerminationList(processId)
         runStatus.clearCurrentActiveProcess()
         storageCells.hwSortingM.resumeAwaitingEating()
 
-        logM.logMd("FINISHED resume logic", PROCESS_ENDING)
+        logM.logMd("FINISHED resume logic", Debug.END)
     }
     @Synchronized
     fun resumeLogicAfterIntake(processId: Int)
@@ -655,7 +645,7 @@ class SortingStorageLogic
     ): Boolean
     {
         storageCells.hwSortingM.openTurretGate()
-        logM.logMd("waiting for shot - event send", EVENTS_FEEDBACK)
+        logM.logMd("waiting for shot - event send", Debug.EVENTS)
         shotWasFired.set(false)
         canShoot.set(false)
         EventBusLI.invoke(Request.IsReadyEvent)
@@ -681,9 +671,9 @@ class SortingStorageLogic
             if (isForcedToTerminate(processId)) return false
         }
 
-        logM.logMd("DONE waiting for shot", PROCESS_ENDING)
+        logM.logMd("DONE waiting for shot", Debug.END)
         logM.logMd("fired? ${shotWasFired.get()}," +
-                " delta time: $timePassedWaiting", GENERIC_INFO)
+                " delta time: $timePassedWaiting", Debug.GENERIC)
 
         storageCells.updateAfterRequest()
 

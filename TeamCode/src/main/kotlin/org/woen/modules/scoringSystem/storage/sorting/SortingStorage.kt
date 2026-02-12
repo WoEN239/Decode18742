@@ -49,16 +49,6 @@ import org.woen.telemetry.LogManager
 import org.woen.telemetry.configs.Configs.DELAY
 //import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.ATTEMPTING_LOGIC
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GAMEPAD_FEEDBACK
-//import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.GENERIC_INFO
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.RACE_CONDITION
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.LOGIC_STEPS
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_ENDING
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_NAME
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.PROCESS_STARTING
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SSM_DEBUG_LEVELS
-import org.woen.telemetry.configs.Configs.DEBUG_LEVELS.SSM_DEBUG_SETTING
 
 import org.woen.telemetry.configs.Configs.PROCESS_ID.INTAKE
 import org.woen.telemetry.configs.Configs.PROCESS_ID.LAZY_INTAKE
@@ -70,6 +60,7 @@ import org.woen.telemetry.configs.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
 //import org.woen.telemetry.configs.Configs.PROCESS_ID.SORTING_TESTING
 import org.woen.telemetry.configs.Configs.PROCESS_ID.STORAGE_CALIBRATION
 
+import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.RobotSettings.CONTROLS
 import org.woen.telemetry.configs.RobotSettings.SHOOTING
 
@@ -78,7 +69,8 @@ import org.woen.telemetry.configs.RobotSettings.SHOOTING
 class SortingStorage
 {
     private val _storageLogic = SortingStorageLogic()
-    val logM = LogManager(SSM_DEBUG_SETTING, SSM_DEBUG_LEVELS, "SSM")
+    val logM = LogManager(Debug.SSM_DEBUG_SETTING,
+        Debug.SSM_DEBUG_LEVELS, "SSM")
 
 
 
@@ -134,7 +126,7 @@ class SortingStorage
     {
         EventBusLI.subscribe(StartLazyIntakeEvent::class, {
 
-                logM.logMd("Checking race condition", ATTEMPTING_LOGIC)
+                logM.logMd("Checking race condition", Debug.TRYING)
 
                 val canStartLazyIntake = _storageLogic
                     .noIntakeRaceConditionProblems(LAZY_INTAKE)
@@ -142,8 +134,7 @@ class SortingStorage
 
                 if (canStartLazyIntake)
                     SmartCoroutineLI.launch {
-                        logM.logMd("IS IDLE = starting lazy intake",
-                            PROCESS_STARTING)
+                        logM.logMd("IS IDLE = starting lazy intake", Debug.START)
 
                         EventBusLI.invoke(SwitchBrushStateEvent(
                             Brush.BrushState.FORWARD))
@@ -165,8 +156,7 @@ class SortingStorage
 
                 if (canStartUpdate)
                 {
-                    logM.logMd("IS IDLE = updating after lazy intake",
-                        PROCESS_STARTING)
+                    logM.logMd("IS IDLE = updating after lazy intake", Debug.START)
                     _storageLogic.safeUpdateAfterLazyIntake(
                         it.inputFromTurretSlotToBottom)
                 }
@@ -182,8 +172,7 @@ class SortingStorage
 
                 if (canInitiate)
                     SmartCoroutineLI.launch {
-                        logM.logMd("IS IDLE = starting predict sort",
-                            PROCESS_STARTING)
+                        logM.logMd("IS IDLE = starting predict sort", Debug.START)
                         _storageLogic.safeInitiatePredictSort(it.requestedPattern)
                     }
                 else _storageLogic.runStatus
@@ -314,9 +303,9 @@ class SortingStorage
 //            }   )   )
 
 
-            logM.logMd("Init settings: USE SECOND DRIVER", GAMEPAD_FEEDBACK)
+            logM.logMd("Init settings: USE SECOND DRIVER", Debug.GAMEPAD)
         }
-        else logM.logMd("Init settings: DON'T use second driver", GAMEPAD_FEEDBACK)
+        else logM.logMd("Init settings: DON'T use second driver", Debug.GAMEPAD)
     }
 
 
@@ -325,27 +314,27 @@ class SortingStorage
 
     private fun terminateRequest()
     {
-        logM.logMd("attempting request termination", ATTEMPTING_LOGIC)
+        logM.logMd("attempting request termination", Debug.TRYING)
         val activeRequestProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
 
         if (activeRequestProcessId == SINGLE_REQUEST ||
             activeRequestProcessId == DRUM_REQUEST)
         {
-            logM.logMd("\n\tTerminating all requests\n", LOGIC_STEPS)
+            logM.logMd("\n\tTerminating all requests\n", Debug.LOGIC)
 
             _storageLogic.runStatus.addProcessToTerminationList(activeRequestProcessId)
         }
     }
     private fun terminateIntake(): Boolean
     {
-        logM.logMd("attempting intake termination", ATTEMPTING_LOGIC)
+        logM.logMd("attempting intake termination", Debug.TRYING)
 
         val activeProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
 
         if (activeProcessId == LAZY_INTAKE ||
             activeProcessId == INTAKE)
         {
-            logM.logMd("\n\tTerminating all intakes", LOGIC_STEPS)
+            logM.logMd("\n\tTerminating all intakes", Debug.TERMINATION)
 
             if (!_storageLogic.runStatus.isUsedByThisProcess(
                     RUNNING_INTAKE_INSTANCE))
@@ -385,7 +374,7 @@ class SortingStorage
 
     private fun startLazyIntake()
     {
-        logM.logMd("Started LazyIntake", PROCESS_STARTING)
+        logM.logMd("Started LazyIntake", Debug.START)
 
         EventBusLI.invoke(SetLightColorEvent(LightColor.ORANGE))
 
@@ -397,7 +386,7 @@ class SortingStorage
     {
         if (_storageLogic.runStatus.isUsedByThisProcess(LAZY_INTAKE))
         {
-            logM.logMd("Stopping LazyIntake", PROCESS_STARTING)
+            logM.logMd("Stopping LazyIntake", Debug.START)
             _storageLogic.storageCells.hwSortingM.stopBelts()
             _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
             EventBusLI.invoke(SetLightColorEvent(LightColor.BLUE))
@@ -413,7 +402,7 @@ class SortingStorage
         if (_storageLogic.noIntakeRaceConditionProblems(INTAKE,
                 RUNNING_INTAKE_INSTANCE))
         {
-            logM.logMd("Race condition: intake is possible", RACE_CONDITION)
+            logM.logMd("Race condition: intake is possible", Debug.RACE_CONDITION)
             _storageLogic.runStatus.setCurrentActiveProcess(INTAKE)
             val intakeResult = _storageLogic.safeSortIntake(inputBall)
 
@@ -432,9 +421,9 @@ class SortingStorage
 
         _storageLogic.runStatus.setCurrentActiveProcess(SINGLE_REQUEST)
 
-        logM.logMd("searching for request slot", LOGIC_STEPS)
+        logM.logMd("searching for request slot", Debug.LOGIC)
         val requestResult = _storageLogic.storageCells.handleRequest(request)
-        logM.logMd("FINISHED searching, result: ${requestResult.name()}", PROCESS_ENDING)
+        logM.logMd("FINISHED searching, result: ${requestResult.name()}", Debug.END)
 
 
         val shootingResult = _storageLogic.shootRequestFinalPhase(
@@ -461,7 +450,7 @@ class SortingStorage
             return _storageLogic.terminateRequest(DRUM_REQUEST)
 
         _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
-        logM.logMd("MODE: LAZY StreamDrum request", PROCESS_NAME)
+        logM.logMd("MODE: LAZY StreamDrum request", Debug.PROCESS_NAME)
 
         _storageLogic.lazyStreamDrumRequest(MAX_BALL_COUNT)
 
@@ -475,7 +464,7 @@ class SortingStorage
             return _storageLogic.terminateRequest(DRUM_REQUEST)
 
         _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
-        logM.logMd("MODE: SMART StreamDrum request", PROCESS_NAME)
+        logM.logMd("MODE: SMART StreamDrum request", Debug.PROCESS_NAME)
 
         _storageLogic.fastStreamDrumRequest()
 
