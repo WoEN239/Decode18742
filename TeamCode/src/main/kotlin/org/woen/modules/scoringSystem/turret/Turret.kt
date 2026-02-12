@@ -1,6 +1,7 @@
 package org.woen.modules.scoringSystem.turret
 
 
+import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -15,6 +16,12 @@ import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.utils.process.Process
 import org.woen.utils.units.Angle
+import kotlin.math.atan
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.math.tan
 
 
 class RequestTurretCurrentRotation(var rotation: Angle = Angle.ZERO) : StoppingEvent
@@ -70,42 +77,39 @@ class Turret : IModule {
 //                            - odometry.odometryOrientation.angle)
 //                }
 //            ).angle
+//
+            val y = Configs.TURRET.SCORE_HEIGHT - Configs.TURRET.TURRET_HEIGHT
+            val x = basketErr.length()
 
-            _hardwareTurret.targetVelocity = Configs.TURRET.PULLEY_VELOCITY
-            _hardwareTurretServos.anglePosition = Configs.TURRET.ANGLE_POSITION
-//
-//            val y = Configs.TURRET.SCORE_HEIGHT - Configs.TURRET.TURRET_HEIGHT
-//            val x = basketErr.length()
-//
-//            val alpha = atan((2 * y / x) - tan(Configs.TURRET.SCORE_ANGLE))
-//
-//            val v0 =
-//                sqrt((Configs.TURRET.GRAVITY_G * x.pow(2)) / (2 * cos(alpha).pow(2) * (x * tan(alpha) - y)))
-//
-//            val t = x / (v0 * cos(alpha))
-//
-//            val robotGlobalVelocity =
-//                odometry.odometryVelocity.turn(odometry.odometryOrientation.angle)
-//
-//            val robotV = robotGlobalVelocity.length()
-//            val difH = robotGlobalVelocity.rot() - basketErr.rot()
-//
-//            val vR = -cos(difH) * robotV
-//            val vT = sin(difH) * robotV
-//
-//            val vxComp = x / t + vR
-//
-//            val vXNew = sqrt(vxComp.pow(2) + vT.pow(2))
-//            val vY = v0 * sin(alpha)
-//
-//            val newX = vXNew * t
-//
-//            _hardwareTurretServos.anglePosition = atan(vY / vXNew)
-//            _hardwareTurret.targetVelocity = sqrt(
-//                (Configs.TURRET.GRAVITY_G * newX.pow(2)) / (2.0 * cos(_hardwareTurretServos.anglePosition)
-//                    .pow(2)
-//                        * (newX * tan(_hardwareTurretServos.anglePosition) - y))
-//            ) / Configs.TURRET.PULLEY_U
+            val alpha = atan((2 * y / x) - tan(Configs.TURRET.SCORE_ANGLE))
+
+            val v0 =
+                sqrt((Configs.TURRET.GRAVITY_G * x.pow(2)) / (2 * cos(alpha).pow(2) * (x * tan(alpha) - y)))
+
+            val t = x / (v0 * cos(alpha))
+
+            val robotGlobalVelocity =
+                odometry.odometryVelocity.turn(odometry.odometryOrientation.angle)
+
+            val robotV = robotGlobalVelocity.length()
+            val difH = robotGlobalVelocity.rot() - basketErr.rot()
+
+            val vR = -cos(difH) * robotV
+            val vT = sin(difH) * robotV
+
+            val vxComp = x / t + vR
+
+            val vXNew = sqrt(vxComp.pow(2) + vT.pow(2))
+            val vY = v0 * sin(alpha)
+
+            val newX = vXNew * t
+
+            _hardwareTurretServos.anglePosition = atan(vY / vXNew)
+            _hardwareTurret.targetVelocity = clamp(sqrt(
+                (Configs.TURRET.GRAVITY_G * newX.pow(2)) / (2.0 * cos(_hardwareTurretServos.anglePosition)
+                    .pow(2)
+                        * (newX * tan(_hardwareTurretServos.anglePosition) - y))
+            ) / Configs.TURRET.PULLEY_U, 0.0, 14.0)
         }
     }
 

@@ -164,28 +164,28 @@ class ScoringModulesConnector
     }
     private fun subscribeToGamepad()
     {
-        GamepadLI.addGamepad1Listener(createClickDownListener(
-                { it.right_trigger > 0.5 }, {
-
-                    logM.logMd("Gamepad: try start lazy intake", GAMEPAD_FEEDBACK)
-                    val startingResult = EventBusLI.invoke(StartLazyIntakeEvent())
-
-                    if (startingResult.startingResult)
-                    {
-                        startBrushes()
-                        setActiveProcess(LAZY_INTAKE)
-                    }
-                    else
-                    {
-                        EventBusLI.invoke(SetLightColorEvent(
-                            Light.LightColor.BLUE))
-
-                        reverseBrushes(TIME_FOR_BRUSH_REVERSING)
-                    }
-
-                    logM.logMd("\ntry start LazyIntake: ${startingResult.startingResult}",
-                        ATTEMPTING_LOGIC)
-        }   )   )
+//        GamepadLI.addGamepad1Listener(createClickDownListener(
+//                { it.right_trigger > 0.5 }, {
+//
+//                    logM.logMd("Gamepad: try start lazy intake", GAMEPAD_FEEDBACK)
+//                    val startingResult = EventBusLI.invoke(StartLazyIntakeEvent())
+//
+//                    if (startingResult.startingResult)
+//                    {
+//                        startBrushes()
+//                        setActiveProcess(LAZY_INTAKE)
+//                    }
+//                    else
+//                    {
+//                        EventBusLI.invoke(SetLightColorEvent(
+//                            Light.LightColor.BLUE))
+//
+//                        reverseBrushes(TIME_FOR_BRUSH_REVERSING)
+//                    }
+//
+//                    logM.logMd("\ntry start LazyIntake: ${startingResult.startingResult}",
+//                        ATTEMPTING_LOGIC)
+//        }   )   )
 
 
 //        GamepadLI.addGamepad1Listener(createClickDownListener(
@@ -224,39 +224,39 @@ class ScoringModulesConnector
 //                    )   )
 //        }   )   )
 
-        GamepadLI.addGamepad1Listener(createClickDownListener(
-            { it.left_trigger > 0.5 }, {
-
-                    if (EventBusLI.invoke(TerminateIntakeEvent()).stoppingResult)
-                    {
-                        _runStatus.safeRemoveThisProcessIdFromQueue(
-                            _runStatus.getCurrentActiveProcess())
-                        _runStatus.clearCurrentActiveProcess()
-                    }
-                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
-
-                    reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
-
-                    logM.logMd("\nSTOP  - INTAKE - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
-        }   )   )
-
-
-
-        GamepadLI.addGamepad1Listener(createClickDownListener(
-                { it.left_bumper }, {
-
-                    val activeProcessId = _runStatus.getCurrentActiveProcess()
-                    if (activeProcessId == DRUM_REQUEST ||
-                        activeProcessId == SINGLE_REQUEST)
-                        _runStatus.addProcessToTerminationList(activeProcessId)
-
-                    EventBusLI.invoke(TerminateRequestEvent())
-                    EventBusLI.invoke(SetDriveModeEvent(DriveMode.DRIVE))
-
-                    logM.logMd("STOP  - ANY Request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
-        }   )   )
+//        GamepadLI.addGamepad1Listener(createClickDownListener(
+//            { it.left_trigger > 0.5 }, {
+//
+//                    if (EventBusLI.invoke(TerminateIntakeEvent()).stoppingResult)
+//                    {
+//                        _runStatus.safeRemoveThisProcessIdFromQueue(
+//                            _runStatus.getCurrentActiveProcess())
+//                        _runStatus.clearCurrentActiveProcess()
+//                    }
+//                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
+//
+//                    reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
+//
+//                    logM.logMd("\nSTOP  - INTAKE - GAMEPAD", GAMEPAD_FEEDBACK)
+//                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
+//        }   )   )
+//
+//
+//
+//        GamepadLI.addGamepad1Listener(createClickDownListener(
+//                { it.left_bumper }, {
+//
+//                    val activeProcessId = _runStatus.getCurrentActiveProcess()
+//                    if (activeProcessId == DRUM_REQUEST ||
+//                        activeProcessId == SINGLE_REQUEST)
+//                        _runStatus.addProcessToTerminationList(activeProcessId)
+//
+//                    EventBusLI.invoke(TerminateRequestEvent())
+//                    EventBusLI.invoke(SetDriveModeEvent(DriveMode.DRIVE))
+//
+//                    logM.logMd("STOP  - ANY Request - GAMEPAD", GAMEPAD_FEEDBACK)
+//                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
+//        }   )   )
 
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.right_bumper }, {
@@ -270,41 +270,41 @@ class ScoringModulesConnector
                     logM.logMd("\nSTART - STREAM Drum request - GAMEPAD", GAMEPAD_FEEDBACK)
                     logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
         }   )   )
-
-        GamepadLI.addGamepad1Listener(createClickDownListener(
-                { it.dpad_left }, {
-
-                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
-                    EventBusLI.invoke(StorageGiveDrumRequest(
-                        TELEOP.PATTERN_SHOOTING_MODE,
-                            Shooting.StockPattern.Sequence.Request.GPP))
-
-                    logM.logMd("\nSTART - GPP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
-        }   )   )
-        GamepadLI.addGamepad1Listener(createClickDownListener(
-                { it.dpad_up }, {
-
-                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
-                    EventBusLI.invoke(StorageGiveDrumRequest(
-                        TELEOP.PATTERN_SHOOTING_MODE,
-                        Shooting.StockPattern.Sequence.Request.PGP))
-
-                    logM.logMd("\nSTART - PGP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
-        }   )   )
-
-        GamepadLI.addGamepad1Listener(createClickDownListener(
-                { it.dpad_right }, {
-
-                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
-                    EventBusLI.invoke(StorageGiveDrumRequest(
-                            TELEOP.PATTERN_SHOOTING_MODE,
-                        Shooting.StockPattern.Sequence.Request.PPG))
-
-                    logM.logMd("\nSTART - PPG Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
-                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
-        }   )   )
+//
+//        GamepadLI.addGamepad1Listener(createClickDownListener(
+//                { it.dpad_left }, {
+//
+//                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
+//                    EventBusLI.invoke(StorageGiveDrumRequest(
+//                        TELEOP.PATTERN_SHOOTING_MODE,
+//                            Shooting.StockPattern.Sequence.Request.GPP))
+//
+//                    logM.logMd("\nSTART - GPP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
+//                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
+//        }   )   )
+//        GamepadLI.addGamepad1Listener(createClickDownListener(
+//                { it.dpad_up }, {
+//
+//                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
+//                    EventBusLI.invoke(StorageGiveDrumRequest(
+//                        TELEOP.PATTERN_SHOOTING_MODE,
+//                        Shooting.StockPattern.Sequence.Request.PGP))
+//
+//                    logM.logMd("\nSTART - PGP Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
+//                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
+//        }   )   )
+//
+//        GamepadLI.addGamepad1Listener(createClickDownListener(
+//                { it.dpad_right }, {
+//
+//                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
+//                    EventBusLI.invoke(StorageGiveDrumRequest(
+//                            TELEOP.PATTERN_SHOOTING_MODE,
+//                        Shooting.StockPattern.Sequence.Request.PPG))
+//
+//                    logM.logMd("\nSTART - PPG Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
+//                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
+//        }   )   )
 
 //        GamepadLI.addListener(
 //            createClickDownListener(

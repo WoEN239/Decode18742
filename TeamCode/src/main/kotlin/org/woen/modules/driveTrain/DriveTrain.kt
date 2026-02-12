@@ -6,8 +6,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
-import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.telemetry.configs.Configs
 import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
@@ -66,14 +66,17 @@ class DriveTrain : IModule {
                     _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
 
                 DriveMode.SHOOTING -> {
-                    _targetOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
+//                    _targetOrientation =
+//                        HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
+
+                    _targetOrientation = Orientation(Vec2.ZERO, Angle((HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - odometry.odometryOrientation.pos).rot()))
 
                     _hardwareDriveTrain.drive(
-                        Vec2(
+                        /*Vec2(
                             _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.pos.x),
                             _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.pos.y)
-                        ).turn(-odometry.odometryOrientation.angle),
-                        _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
+                        ).turn(-odometry.odometryOrientation.angle)*/ _targetTranslateVelocity,
+                        _targetRotateVelocity//_hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
                     )
                 }
 
@@ -88,10 +91,10 @@ class DriveTrain : IModule {
                 }
             }
 
-            if (abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS &&
-                        abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS &&
-                abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS)
-            {
+            if ((abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS || _currentMode == DriveMode.SHOOTING) &&
+                (abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS || _currentMode == DriveMode.SHOOTING) &&
+                ((abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS || _currentMode == DriveMode.SHOOTING))
+            ) {
                 if (_targetTimer.seconds() > Configs.DRIVE_TRAIN.TARGET_TIMER)
                     _currentProcess.close()
             } else
@@ -162,10 +165,9 @@ class DriveTrain : IModule {
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveModeEvent::class, {
-            if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO){
+            if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO) {
                 it.process.close()
-            }
-            else {
+            } else {
                 _currentMode = it.mode
                 _currentProcess = it.process
 
@@ -214,16 +216,20 @@ class DriveTrain : IModule {
             it.addData("currentOrientation", odometry.odometryOrientation)
         }
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(ThreadedGamepad.createClickDownListener({it.left_bumper}, {
-            ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                _currentProcess = Process()
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(
+            ThreadedGamepad.createClickDownListener(
+                { it.left_bumper },
+                {
+                    ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+                        _currentProcess = Process()
 
-                _currentMode = DriveMode.SHOOTING
+                        _currentMode = DriveMode.SHOOTING
 
-                _currentProcess.wait()
+                        _currentProcess.wait()
 
-                _currentMode = DriveMode.DRIVE
-            }
-        }))
+                        _currentMode = DriveMode.DRIVE
+                    }
+                })
+        )
     }
 }

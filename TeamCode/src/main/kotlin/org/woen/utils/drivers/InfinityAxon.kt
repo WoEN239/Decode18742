@@ -79,6 +79,7 @@ class InfinityAxon(
 
         if(deltasSum > _deltaBorder) {
             _turns++
+
             _deltas.clear()
         }
 
@@ -91,6 +92,6 @@ class InfinityAxon(
 
         _position = (_turns.toDouble() + rawPos) * PI * 2.0
 
-        _servo.position = (_regulator.update(_targetPosition - _position) + 1.0) / 2.0
+        _servo.position = 0.5// (_regulator.update(_targetPosition - _position) + 1.0) / 2.0
     }
 }

@@ -115,13 +115,13 @@ object Configs {
     @Config
     internal object DRIVE_TRAIN {
         @JvmField
-        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kI = 0.0, kP = 9.0)
+        var DRIVE_SIDE_REGULATOR_PARAMS = RegulatorParameters(kF = 11.0, kP = 8.0)
 
         @JvmField
-        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kI = 0.0, kP = 5.0)
+        var DRIVE_FORWARD_REGULATOR_PARAMS = RegulatorParameters(kF = 8.0, kP = 8.0)
 
         @JvmField
-        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 1.3, kI = 0.0)
+        var DRIVE_ROTATE_REGULATOR_PARAMS = RegulatorParameters(kF = 2.0, kP = 1.2)
 
         @JvmField
         var MAX_DRIVE_VELOCITY = 2.0
@@ -270,10 +270,10 @@ object Configs {
         var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, 3.66 / 2.0 - 0.2)
 
         @JvmField
-        var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.62
+        var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.94
 
         @JvmField
-        var MAX_TURRET_ANGLE_SERVO = 1.0 - 0.83
+        var MAX_TURRET_ANGLE_SERVO = 1.0 - 0.05
 
         @JvmField
         var MIN_TURRET_ANGLE = PI / 2.0 - Math.toRadians(45.0)
@@ -302,11 +302,11 @@ object Configs {
 
         @JvmField
         var SHOOTING_RED_ORIENTATION =
-            Orientation(Vec2(-0.630, 0.387), Angle.Companion.ofDeg(129.0))
+            Orientation(Vec2(-0.630, 0.387), Angle.ofDeg(129.0))
 
         @JvmField
         var SHOOTING_BLUE_ORIENTATION =
-            Orientation(Vec2(-0.630, -0.387), Angle.Companion.ofDeg(-129.0))
+            Orientation(Vec2(-0.630, -0.387), Angle.ofDeg(-129.0))
 
         @JvmField
         var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
@@ -318,7 +318,7 @@ object Configs {
         var SCORE_HEIGHT = 1.0
 
         @JvmField
-        var TURRET_HEIGHT = 0.2
+        var TURRET_HEIGHT = 0.33
 
         @JvmField
         var SCORE_ANGLE = Math.toRadians(-30.0)
@@ -327,7 +327,7 @@ object Configs {
         var PULLEY_RATION = 30.0 / 40.0
 
         @JvmField
-        var PULLEY_U = 0.275
+        var PULLEY_U = 0.44
 
         @JvmField
         var PULLEY_VELOCITY = 11.8 //(-0.927, -0.842)
