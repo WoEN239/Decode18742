@@ -51,7 +51,6 @@ object RobotSettings
     @Config
     internal object SORTING
     {
-        @Config
         internal object PREDICT
         {
             @JvmField

@@ -1,26 +1,36 @@
 package org.woen.telemetry
 
 import android.content.Context
+
+import kotlin.concurrent.thread
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.declaredMemberProperties
+import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.InternalCoroutinesApi
+
+import org.firstinspires.ftc.ftccommon.external.OnCreate
+import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+
+import com.qualcomm.robotcore.util.RobotLog
+
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.config.ValueProvider
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
-import com.qualcomm.robotcore.util.RobotLog
-import kotlinx.coroutines.DisposableHandle
-import kotlinx.coroutines.InternalCoroutinesApi
-import org.firstinspires.ftc.ftccommon.external.OnCreate
-import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import org.woen.telemetry.configs.Configs
+
 import org.woen.threading.ThreadManager
+
+import org.woen.telemetry.configs.Debug
+import org.woen.telemetry.configs.Configs
+
+import org.woen.utils.units.Vec2
+import org.woen.utils.units.Color
 import org.woen.utils.events.SimpleEvent
 import org.woen.utils.smartMutex.SmartMutex
 import org.woen.utils.timers.ReversedElapsedTime
-import org.woen.utils.units.Color
-import org.woen.utils.units.Vec2
-import kotlin.concurrent.thread
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.findAnnotation
+
+
 
 annotation class EventConfig()
 
@@ -80,7 +90,7 @@ class ThreadedTelemetry : DisposableHandle {
     }
 
     override fun dispose() {
-        Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.onSet -= ::onUpdateHZChanged
+        Debug.TELEMETRY_UPDATE_HZ.onSet -= ::onUpdateHZChanged
     }
 
     private var _temporarySenders =
@@ -115,7 +125,7 @@ class ThreadedTelemetry : DisposableHandle {
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted) {
-            if (telemetryEnabled && Configs.TELEMETRY.TELEMETRY_ENABLE) {
+            if (telemetryEnabled && Debug.TELEMETRY_ENABLE) {
                 onTelemetrySend.invoke(this)
 
                 val telemetry = this
@@ -143,7 +153,7 @@ class ThreadedTelemetry : DisposableHandle {
 
             _dashboardPacket = TelemetryPacket()
 
-            Thread.sleep((1000.0 / Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.get()).toLong())
+            Thread.sleep((1000.0 / Debug.TELEMETRY_UPDATE_HZ.get()).toLong())
         }
     })
 
@@ -236,8 +246,8 @@ class ThreadedTelemetry : DisposableHandle {
     }
 
     private constructor() {
-        Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.onSet += ::onUpdateHZChanged
+        Debug.TELEMETRY_UPDATE_HZ.onSet += ::onUpdateHZChanged
 
-        onUpdateHZChanged(Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.get())
+        onUpdateHZChanged(Debug.TELEMETRY_UPDATE_HZ.get())
     }
 }

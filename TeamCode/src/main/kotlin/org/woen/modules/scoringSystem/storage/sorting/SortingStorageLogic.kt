@@ -28,16 +28,8 @@ import org.woen.telemetry.LogManager
 import org.woen.telemetry.configs.Configs.DELAY
 import org.woen.telemetry.configs.Configs.DELAY.BETWEEN_SHOTS_MS
 
-import org.woen.telemetry.configs.Configs.PROCESS_ID.INTAKE
-import org.woen.telemetry.configs.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
-import org.woen.telemetry.configs.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
-import org.woen.telemetry.configs.Configs.PROCESS_ID.DRUM_REQUEST
-import org.woen.telemetry.configs.Configs.PROCESS_ID.PREDICT_SORT
-import org.woen.telemetry.configs.Configs.PROCESS_ID.STORAGE_CALIBRATION
-
-import org.woen.telemetry.configs.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SORTING_STORAGE
-
 import org.woen.telemetry.configs.Debug
+import org.woen.telemetry.configs.ProcessId
 import org.woen.telemetry.configs.RobotSettings.SORTING
 import org.woen.telemetry.configs.RobotSettings.SHOOTING
 
@@ -51,9 +43,13 @@ class SortingStorageLogic
     val canShoot     = AtomicBoolean(false)
     val shotWasFired = AtomicBoolean(false)
 
-    val runStatus = RunStatus(PRIORITY_SETTING_FOR_SORTING_STORAGE)
-    val logM = LogManager(Debug.SSL_DEBUG_SETTING,
-        Debug.SSL_DEBUG_LEVELS, "SSL")
+    val runStatus = RunStatus(ProcessId.PRIORITY_SETTING_FOR_SSM)
+    val logM = LogManager(
+         Debug.SSL_DEBUG_SETTING,
+        Debug.SSL_WARNING_SETTING,
+         Debug.SSL_DEBUG_LEVELS,
+        Debug.SSL_WARNING_LEVELS,
+        "SSL")
 
 
 
@@ -63,8 +59,13 @@ class SortingStorageLogic
         shotWasFired.set(false)
 
         runStatus.fullResetToActiveState()
-        logM.updateDebugSetting(Debug.SSL_DEBUG_SETTING)
-        logM.setShowedDebugLevels(Debug.SSL_DEBUG_LEVELS)
+
+        logM.reset(
+            Debug.SSL_DEBUG_SETTING,
+            Debug.SSL_WARNING_SETTING,
+            Debug.SSL_DEBUG_LEVELS,
+            Debug.SSL_WARNING_LEVELS,
+            "SSL")
     }
 
 
@@ -75,19 +76,19 @@ class SortingStorageLogic
 
         if (runStatus.isUsedByAnyProcess()) return false
 
-        runStatus.addProcessToQueue(PREDICT_SORT)
+        runStatus.addProcessToQueue(ProcessId.PREDICT_SORT)
         delay(DELAY.PREDICT_SORT_RACE_CONDITION_MS)
 
-        return runStatus.isThisProcessHighestPriority(PREDICT_SORT)
+        return runStatus.isThisProcessHighestPriority(ProcessId.PREDICT_SORT)
     }
     suspend fun safeInitiatePredictSort(requested: Array<BallRequest.Name>)
     {
-        runStatus.setCurrentActiveProcess(PREDICT_SORT)
+        runStatus.setActiveProcess(ProcessId.PREDICT_SORT)
 
         storageCells.initiatePredictSort(requested)
 
-        runStatus.clearCurrentActiveProcess()
-        runStatus.safeRemoveThisProcessIdFromQueue(PREDICT_SORT)
+        runStatus.clearActiveProcess()
+        runStatus.removeProcessFromQueue(ProcessId.PREDICT_SORT)
     }
 
 
@@ -97,19 +98,19 @@ class SortingStorageLogic
 
         if (runStatus.isUsedByAnyProcess()) return false
 
-        runStatus.addProcessToQueue(STORAGE_CALIBRATION)
+        runStatus.addProcessToQueue(ProcessId.STORAGE_CALIBRATION)
         delay(DELAY.STORAGE_CALIBRATION_RACE_CONDITION_MS)
 
-        return runStatus.isThisProcessHighestPriority(STORAGE_CALIBRATION)
+        return runStatus.isThisProcessHighestPriority(ProcessId.STORAGE_CALIBRATION)
     }
     suspend fun safeStartStorageCalibrationWithCurrent()
     {
-        runStatus.setCurrentActiveProcess(STORAGE_CALIBRATION)
+        runStatus.setActiveProcess(ProcessId.STORAGE_CALIBRATION)
 
         storageCells.safeFillWithUnknown()
 
-        runStatus.clearCurrentActiveProcess()
-        runStatus.safeRemoveThisProcessIdFromQueue(STORAGE_CALIBRATION)
+        runStatus.clearActiveProcess()
+        runStatus.removeProcessFromQueue(ProcessId.STORAGE_CALIBRATION)
     }
 
 
@@ -119,34 +120,34 @@ class SortingStorageLogic
 
         if (runStatus.isUsedByAnyProcess()) return false
 
-        runStatus.addProcessToQueue(UPDATE_AFTER_LAZY_INTAKE)
+        runStatus.addProcessToQueue(ProcessId.UPDATE_AFTER_LAZY_INTAKE)
         delay(DELAY.LAZY_INTAKE_RACE_CONDITION_MS)
 
-        return runStatus.isThisProcessHighestPriority(UPDATE_AFTER_LAZY_INTAKE)
+        return runStatus.isThisProcessHighestPriority(ProcessId.UPDATE_AFTER_LAZY_INTAKE)
     }
     fun safeUpdateAfterLazyIntake(inputFromTurretSlotToBottom: Array<Ball.Name>)
     {
-        runStatus.setCurrentActiveProcess(UPDATE_AFTER_LAZY_INTAKE)
+        runStatus.setActiveProcess(ProcessId.UPDATE_AFTER_LAZY_INTAKE)
 
         storageCells.updateAfterLazyIntake(inputFromTurretSlotToBottom)
 
-        runStatus.clearCurrentActiveProcess()
-        runStatus.safeRemoveThisProcessIdFromQueue(UPDATE_AFTER_LAZY_INTAKE)
+        runStatus.clearActiveProcess()
+        runStatus.removeProcessFromQueue(ProcessId.UPDATE_AFTER_LAZY_INTAKE)
     }
 
 
 
     suspend fun safeSortIntake(inputBall: Ball.Name): IntakeResult.Name
     {
-        if (storageCells.alreadyFull()) return Intake.FAIL_IS_FULL   //  Intake failed
+        if (storageCells.alreadyFull()) return Intake.FAIL_IS_FULL
 
-        runStatus.addProcessToQueue(RUNNING_INTAKE_INSTANCE)
+        runStatus.addProcessToQueue(ProcessId.RUNNING_INTAKE_INSTANCE)
 
         logM.logMd("Sorting intake", Debug.LOGIC)
         storageCells.updateAfterIntake(inputBall)
 
-        runStatus.safeRemoveOnlyOneInstanceOfThisProcessFromQueue(
-            RUNNING_INTAKE_INSTANCE)
+        runStatus.removeOneInstanceOfProcessFromQueue(
+            ProcessId.RUNNING_INTAKE_INSTANCE)
 
         return Intake.SUCCESS
     }
@@ -164,7 +165,7 @@ class SortingStorageLogic
         delay(DELAY.INTAKE_RACE_CONDITION_MS)
 
         logM.logMd("Highest processId: " +
-                "${runStatus.getHighestPriorityProcessId(
+                "${runStatus.getHighestPriorityProcess(
                 *exceptionProcessesId)}",
                 Debug.RACE_CONDITION)
 
@@ -175,7 +176,7 @@ class SortingStorageLogic
         processId: Int,
         vararg exceptionProcessesId: Int): Boolean
     {
-        runStatus.safeRemoveThisProcessFromTerminationList(processId)
+        runStatus.removeProcessFromTermination(processId)
 
         return !intakeRaceConditionIsPresent(processId,
                 *exceptionProcessesId)
@@ -262,8 +263,8 @@ class SortingStorageLogic
     }
     suspend fun cantHandleRequestRaceCondition(processId: Int): Boolean
     {
-        runStatus.safeRemoveThisProcessIdFromQueue(processId)
-        runStatus.safeRemoveThisProcessFromTerminationList(processId)
+        runStatus.removeProcessFromQueue(processId)
+        runStatus.removeProcessFromTermination(processId)
 
         while (requestRaceConditionIsPresent(processId))
             delay(DELAY.EVENT_AWAITING_MS)
@@ -275,8 +276,8 @@ class SortingStorageLogic
     {
         logM.logMd("Request is being terminated", Debug.TERMINATION)
 
-        runStatus.safeRemoveThisProcessIdFromQueue(processId)
-        runStatus.safeRemoveThisProcessFromTerminationList(processId)
+        runStatus.removeProcessFromQueue(processId)
+        runStatus.removeProcessFromTermination(processId)
 
         resumeLogicAfterRequest(processId)
         return Request.TERMINATED
@@ -373,7 +374,7 @@ class SortingStorageLogic
 
         while (curRequestId < trimmedRequestSize)
         {
-            if (isForcedToTerminate(DRUM_REQUEST))
+            if (isForcedToTerminate(ProcessId.DRUM_REQUEST))
                 return Request.TERMINATED
 
             if (furtherDoPredictSort(curRequestId, isNowPerfectlySorted))
@@ -390,7 +391,7 @@ class SortingStorageLogic
             val requestResult = storageCells.handleRequest(requested[curRequestId])
 
             shootingResult = shootRequestFinalPhase(
-                requestResult, DRUM_REQUEST,
+                requestResult, ProcessId.DRUM_REQUEST,
                 autoUpdatePatternWhenSucceed)
 
             curRequestId++
@@ -455,7 +456,7 @@ class SortingStorageLogic
 
         while (curRequestId < trimmedRequestSize)
         {
-            if (isForcedToTerminate(DRUM_REQUEST))
+            if (isForcedToTerminate(ProcessId.DRUM_REQUEST))
                 return Request.TERMINATED
 
             if (furtherDoPredictSort(curRequestId, isNowPerfectlySorted))
@@ -472,7 +473,7 @@ class SortingStorageLogic
             val requestResult = storageCells.handleRequest(requested[curRequestId])
 
             shootingResult = shootRequestFinalPhase(
-                requestResult, DRUM_REQUEST,
+                requestResult, ProcessId.DRUM_REQUEST,
                 autoUpdatePatternWhenSucceed)
 
 
@@ -609,9 +610,9 @@ class SortingStorageLogic
 
         logM.logMd("Phase 2 - RESUME AFTER REQUEST, process: $processId", Debug.LOGIC)
 
-        runStatus.safeRemoveThisProcessIdFromQueue(processId)
-        runStatus.safeRemoveThisProcessFromTerminationList(processId)
-        runStatus.clearCurrentActiveProcess()
+        runStatus.removeProcessFromQueue(processId)
+        runStatus.removeProcessFromTermination(processId)
+        runStatus.clearActiveProcess()
         storageCells.hwSortingM.resumeAwaitingEating()
 
         logM.logMd("FINISHED resume logic", Debug.END)
@@ -619,16 +620,16 @@ class SortingStorageLogic
     @Synchronized
     fun resumeLogicAfterIntake(processId: Int)
     {
-        runStatus.safeRemoveThisProcessFromTerminationList(processId)
+        runStatus.removeProcessFromTermination(processId)
 
-        if (processId != INTAKE)
-             runStatus.safeRemoveThisProcessIdFromQueue(processId)
-        else runStatus.safeRemoveOnlyOneInstanceOfThisProcessFromQueue(processId)
+        if (processId != ProcessId.INTAKE)
+             runStatus.removeProcessFromQueue(processId)
+        else runStatus.removeOneInstanceOfProcessFromQueue(processId)
 
-        runStatus.clearCurrentActiveProcess()
+        runStatus.clearActiveProcess()
 
         if (runStatus.countOfThisProcess(
-                RUNNING_INTAKE_INSTANCE) == 0)
+                ProcessId.RUNNING_INTAKE_INSTANCE) == 0)
         {
             EventBusLI.invoke(FullFinishedIntakeEvent(
                 storageCells.anyBallCount()))

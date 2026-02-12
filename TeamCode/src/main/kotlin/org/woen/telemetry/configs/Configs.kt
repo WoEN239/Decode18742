@@ -9,9 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 
 import com.acmerobotics.dashboard.config.Config
 import org.woen.telemetry.EventConfig
-import org.woen.telemetry.LogManager
 import org.woen.telemetry.ThreadedTelemetry
-import org.woen.utils.process.RunStatus
 import org.woen.utils.regulator.RegulatorParameters
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
@@ -53,20 +51,12 @@ object Configs {
         var BRUSH_STOP_TIME = 0.5
 
         @JvmField
-        var TIME_FOR_BRUSH_REVERSING: Long = 999
+        var REVERSE_TIME: Long = 999
 
         @JvmField
         var BRUSH_POWER = 7.0
     }
 
-    @Config
-    internal object TELEMETRY {
-        @EventConfig
-        var TELEMETRY_UPDATE_HZ = ThreadedTelemetry.EventValueProvider(5)
-
-        @JvmField
-        var TELEMETRY_ENABLE = true
-    }
 
     @Config
     internal object SERVO_ANGLE {
@@ -369,54 +359,6 @@ object Configs {
 
         @JvmField
         var DOUBLE_DETECT_COUNT_MAX = 2
-    }
-
-
-    @Config
-    internal object PROCESS_ID {
-
-        @JvmField
-        var PRIORITY_SETTING_FOR_SORTING_STORAGE = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
-
-        @JvmField
-        var PRIORITY_SETTING_FOR_SCORING_CONNECTOR = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
-
-
-        @JvmField
-        var UNDEFINED_PROCESS_ID = 0
-
-        @JvmField
-        var IDLE = 0
-
-
-        @JvmField
-        var INTAKE = 1
-
-        @JvmField
-        var LAZY_INTAKE = 2
-
-        @JvmField
-        var RUNNING_INTAKE_INSTANCE = 3
-
-
-        @JvmField
-        var DRUM_REQUEST = 4
-
-        @JvmField
-        var SINGLE_REQUEST = 5
-
-
-        @JvmField
-        var PREDICT_SORT = 6
-
-        @JvmField
-        var STORAGE_CALIBRATION = 7
-
-        @JvmField
-        var UPDATE_AFTER_LAZY_INTAKE = 8
-
-        @JvmField
-        var SORTING_TESTING = 9
     }
 
 

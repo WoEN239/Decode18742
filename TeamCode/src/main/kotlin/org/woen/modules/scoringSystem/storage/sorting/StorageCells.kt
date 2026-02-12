@@ -20,6 +20,7 @@ import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.Alias.STORAGE_SLOT_COUNT
+import org.woen.telemetry.LogManager.DebugSetting
 
 import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.RobotSettings.ROBOT
@@ -61,14 +62,25 @@ class StorageCells
 {
     private val _storageCells = ROBOT.INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
     val hwSortingM = HwSortingManager()
-    val logM = LogManager(Debug.CELLS_DEBUG_SETTING,
-        Debug.CELLS_DEBUG_LEVELS, "CELLS")
+    val logM = LogManager(
+         Debug.CELLS_DEBUG_SETTING,
+        Debug.CELLS_WARNING_SETTING,
+         Debug.CELLS_DEBUG_LEVELS,
+        Debug.CELLS_WARNING_LEVELS,
+        "CELLS")
 
 
 
     fun resetParametersToDefault()
     {
         if (notFullYet()) hwSortingM.resumeAwaitingEating()
+
+        logM.reset(
+             Debug.CELLS_DEBUG_SETTING,
+            Debug.CELLS_WARNING_SETTING,
+             Debug.CELLS_DEBUG_LEVELS,
+            Debug.CELLS_DEBUG_LEVELS,
+            "CELLS")
     }
 
     @Synchronized
@@ -79,6 +91,7 @@ class StorageCells
         _storageCells[StorageSlot.TURRET].empty()
         _storageCells[StorageSlot.MOBILE].empty()
     }
+
 
 
 

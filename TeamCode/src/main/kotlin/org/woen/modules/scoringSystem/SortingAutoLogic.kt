@@ -41,8 +41,12 @@ class SortingAutoLogic
     private val _patternWasDetected = AtomicBoolean(false)
     private val _patternDetectionAttempts = AtomicInteger(0)
     private val _pattern = DynamicPattern()
-    val logM = LogManager(Debug.SAL_DEBUG_SETTING,
-        Debug.SAL_DEBUG_LEVELS, "SAL")
+    val logM = LogManager(
+         Debug.SAL_DEBUG_SETTING,
+        Debug.SAL_WARNING_SETTING,
+         Debug.SAL_DEBUG_LEVELS,
+        Debug.SAL_WARNING_LEVELS,
+        "SAL")
 
 
 
@@ -82,6 +86,13 @@ class SortingAutoLogic
         _patternDetectionAttempts.set(0)
 
         _pattern.fullReset()
+
+        logM.reset(
+             Debug.SAL_DEBUG_SETTING,
+            Debug.SAL_WARNING_SETTING,
+             Debug.SAL_DEBUG_LEVELS,
+            Debug.SAL_WARNING_LEVELS,
+            "SAL")
     }
 
 

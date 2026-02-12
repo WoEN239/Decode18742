@@ -29,8 +29,12 @@ class HwSortingManager
     private val _hwSorting = HwSorting()
     private val _hwSensors = HwSortingSensors()
 
-    val logM = LogManager(Debug.HSM_DEBUG_SETTING,
-        Debug.HSM_DEBUG_LEVELS, "HSM")
+    val logM = LogManager(
+         Debug.HSM_DEBUG_SETTING,
+        Debug.HSM_WARNING_SETTING,
+         Debug.HSM_DEBUG_LEVELS,
+        Debug.HSM_WARNING_LEVELS,
+        "HSM")
 
     val isStoppingBelts  = AtomicBoolean(false)
     val helpPushLastBall = AtomicBoolean(false)
@@ -55,7 +59,7 @@ class HwSortingManager
         {
             if (canHandleIntake.get())
             {
-                logM.logTag(
+                logM.logMdTag(
                     "Color sensors detected: ${it.color}",
                     "StorageSensors", Debug.HW_LOW)
 
@@ -67,7 +71,7 @@ class HwSortingManager
 
         _hwSorting.beltsCurrentPeakedEvent +=
         {
-            logM.logTag("BELTS - Current peaked", "StorageSensors", Debug.HW_LOW)
+            logM.logMdTag("BELTS - Current peaked", "StorageSensors", Debug.HW_LOW)
 
             if (!isStoppingBelts.get())
             {
@@ -106,6 +110,13 @@ class HwSortingManager
     {
         stopAwaitingEating(false)
         fullCalibrate()
+
+        logM.reset(
+            Debug.HSM_DEBUG_SETTING,
+            Debug.HSM_WARNING_SETTING,
+            Debug.HSM_DEBUG_LEVELS,
+            Debug.HSM_WARNING_LEVELS,
+            "HSM")
     }
 
 

@@ -49,18 +49,8 @@ import org.woen.telemetry.LogManager
 import org.woen.telemetry.configs.Configs.DELAY
 //import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
-
-import org.woen.telemetry.configs.Configs.PROCESS_ID.INTAKE
-import org.woen.telemetry.configs.Configs.PROCESS_ID.LAZY_INTAKE
-import org.woen.telemetry.configs.Configs.PROCESS_ID.UPDATE_AFTER_LAZY_INTAKE
-import org.woen.telemetry.configs.Configs.PROCESS_ID.DRUM_REQUEST
-import org.woen.telemetry.configs.Configs.PROCESS_ID.SINGLE_REQUEST
-import org.woen.telemetry.configs.Configs.PROCESS_ID.PREDICT_SORT
-import org.woen.telemetry.configs.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
-//import org.woen.telemetry.configs.Configs.PROCESS_ID.SORTING_TESTING
-import org.woen.telemetry.configs.Configs.PROCESS_ID.STORAGE_CALIBRATION
-
 import org.woen.telemetry.configs.Debug
+import org.woen.telemetry.configs.ProcessId
 import org.woen.telemetry.configs.RobotSettings.CONTROLS
 import org.woen.telemetry.configs.RobotSettings.SHOOTING
 
@@ -69,8 +59,12 @@ import org.woen.telemetry.configs.RobotSettings.SHOOTING
 class SortingStorage
 {
     private val _storageLogic = SortingStorageLogic()
-    val logM = LogManager(Debug.SSM_DEBUG_SETTING,
-        Debug.SSM_DEBUG_LEVELS, "SSM")
+    val logM = LogManager(
+         Debug.SSM_DEBUG_SETTING,
+        Debug.SSM_WARNING_SETTING,
+         Debug.SSM_DEBUG_LEVELS,
+        Debug.SSM_WARNING_LEVELS,
+        "SSM")
 
 
 
@@ -90,9 +84,18 @@ class SortingStorage
                 _storageLogic.storageCells.hwSortingM.resetParametersAndLogicToDefault()
                 _storageLogic.storageCells.resetParametersToDefault()
                 _storageLogic.resetParametersToDefault()
+
+                logM.reset(
+                     Debug.SSM_DEBUG_SETTING,
+                    Debug.SSM_WARNING_SETTING,
+                     Debug.SSM_DEBUG_LEVELS,
+                    Debug.SSM_WARNING_LEVELS,
+                    "SSM")
             }
         }
     }
+
+
 
     private fun subscribeToInfoEvents()
     {
@@ -129,7 +132,7 @@ class SortingStorage
                 logM.logMd("Checking race condition", Debug.TRYING)
 
                 val canStartLazyIntake = _storageLogic
-                    .noIntakeRaceConditionProblems(LAZY_INTAKE)
+                    .noIntakeRaceConditionProblems(ProcessId.LAZY_INTAKE)
                 it.startingResult = canStartLazyIntake
 
                 if (canStartLazyIntake)
@@ -142,7 +145,7 @@ class SortingStorage
                         startLazyIntake()
                     }
 
-                else _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
+                else _storageLogic.resumeLogicAfterIntake(ProcessId.LAZY_INTAKE)
         }   )
         EventBusLI.subscribe(StopLazyIntakeEvent::class, {
 
@@ -160,7 +163,7 @@ class SortingStorage
                     _storageLogic.safeUpdateAfterLazyIntake(
                         it.inputFromTurretSlotToBottom)
                 }
-                else _storageLogic.resumeLogicAfterIntake(UPDATE_AFTER_LAZY_INTAKE)
+                else _storageLogic.resumeLogicAfterIntake(ProcessId.UPDATE_AFTER_LAZY_INTAKE)
         }   )
 
 
@@ -176,7 +179,7 @@ class SortingStorage
                         _storageLogic.safeInitiatePredictSort(it.requestedPattern)
                     }
                 else _storageLogic.runStatus
-                    .safeRemoveThisProcessIdFromQueue(PREDICT_SORT)
+                    .removeProcessFromQueue(ProcessId.PREDICT_SORT)
 
             EventBusLI.invoke(StorageFinishedPredictSortEvent())
         }   )
@@ -192,7 +195,7 @@ class SortingStorage
                     }.join()
 
                 else _storageLogic.runStatus
-                    .safeRemoveThisProcessIdFromQueue(STORAGE_CALIBRATION)
+                    .removeProcessFromQueue(ProcessId.STORAGE_CALIBRATION)
         }   )
     }
     private fun subscribeToGamepadEvents()
@@ -315,32 +318,32 @@ class SortingStorage
     private fun terminateRequest()
     {
         logM.logMd("attempting request termination", Debug.TRYING)
-        val activeRequestProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
+        val activeRequestProcessId = _storageLogic.runStatus.getActiveProcess()
 
-        if (activeRequestProcessId == SINGLE_REQUEST ||
-            activeRequestProcessId == DRUM_REQUEST)
+        if (activeRequestProcessId == ProcessId.SINGLE_REQUEST ||
+            activeRequestProcessId == ProcessId.DRUM_REQUEST)
         {
             logM.logMd("\n\tTerminating all requests\n", Debug.LOGIC)
 
-            _storageLogic.runStatus.addProcessToTerminationList(activeRequestProcessId)
+            _storageLogic.runStatus.addProcessToTermination(activeRequestProcessId)
         }
     }
     private fun terminateIntake(): Boolean
     {
         logM.logMd("attempting intake termination", Debug.TRYING)
 
-        val activeProcessId = _storageLogic.runStatus.getCurrentActiveProcess()
+        val activeProcessId = _storageLogic.runStatus.getActiveProcess()
 
-        if (activeProcessId == LAZY_INTAKE ||
-            activeProcessId == INTAKE)
+        if (activeProcessId == ProcessId.LAZY_INTAKE ||
+            activeProcessId == ProcessId.INTAKE)
         {
             logM.logMd("\n\tTerminating all intakes", Debug.TERMINATION)
 
             if (!_storageLogic.runStatus.isUsedByThisProcess(
-                    RUNNING_INTAKE_INSTANCE))
+                    ProcessId.RUNNING_INTAKE_INSTANCE))
             {
                 _storageLogic.runStatus
-                    .addProcessToTerminationList(activeProcessId)
+                    .addProcessToTermination(activeProcessId)
 
                 stopLazyIntake()
 
@@ -378,17 +381,17 @@ class SortingStorage
 
         EventBusLI.invoke(SetLightColorEvent(LightColor.ORANGE))
 
-        _storageLogic.runStatus.setCurrentActiveProcess(LAZY_INTAKE)
+        _storageLogic.runStatus.setActiveProcess(ProcessId.LAZY_INTAKE)
 
         _storageLogic.storageCells.hwSortingM.slowStartBelts()
     }
     private fun stopLazyIntake()
     {
-        if (_storageLogic.runStatus.isUsedByThisProcess(LAZY_INTAKE))
+        if (_storageLogic.runStatus.isUsedByThisProcess(ProcessId.LAZY_INTAKE))
         {
             logM.logMd("Stopping LazyIntake", Debug.START)
             _storageLogic.storageCells.hwSortingM.stopBelts()
-            _storageLogic.resumeLogicAfterIntake(LAZY_INTAKE)
+            _storageLogic.resumeLogicAfterIntake(ProcessId.LAZY_INTAKE)
             EventBusLI.invoke(SetLightColorEvent(LightColor.BLUE))
         }
     }
@@ -399,27 +402,27 @@ class SortingStorage
     {
         if (_storageLogic.storageCells.alreadyFull()) return Intake.FAIL_IS_FULL
 
-        if (_storageLogic.noIntakeRaceConditionProblems(INTAKE,
-                RUNNING_INTAKE_INSTANCE))
+        if (_storageLogic.noIntakeRaceConditionProblems(ProcessId.INTAKE,
+                ProcessId.RUNNING_INTAKE_INSTANCE))
         {
             logM.logMd("Race condition: intake is possible", Debug.RACE_CONDITION)
-            _storageLogic.runStatus.setCurrentActiveProcess(INTAKE)
+            _storageLogic.runStatus.setActiveProcess(ProcessId.INTAKE)
             val intakeResult = _storageLogic.safeSortIntake(inputBall)
 
-            _storageLogic.resumeLogicAfterIntake(INTAKE)
+            _storageLogic.resumeLogicAfterIntake(ProcessId.INTAKE)
             return intakeResult
         }
 
-        _storageLogic.resumeLogicAfterIntake(INTAKE)
+        _storageLogic.resumeLogicAfterIntake(ProcessId.INTAKE)
         return IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
     }
     suspend fun handleRequest(request: BallRequest.Name):  RequestResult.Name
     {
         if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
-        if (_storageLogic.cantHandleRequestRaceCondition(SINGLE_REQUEST))
-            return _storageLogic.terminateRequest(SINGLE_REQUEST)
+        if (_storageLogic.cantHandleRequestRaceCondition(ProcessId.SINGLE_REQUEST))
+            return _storageLogic.terminateRequest(ProcessId.SINGLE_REQUEST)
 
-        _storageLogic.runStatus.setCurrentActiveProcess(SINGLE_REQUEST)
+        _storageLogic.runStatus.setActiveProcess(ProcessId.SINGLE_REQUEST)
 
         logM.logMd("searching for request slot", Debug.LOGIC)
         val requestResult = _storageLogic.storageCells.handleRequest(request)
@@ -427,12 +430,12 @@ class SortingStorage
 
 
         val shootingResult = _storageLogic.shootRequestFinalPhase(
-            requestResult, SINGLE_REQUEST)
+            requestResult, ProcessId.SINGLE_REQUEST)
 
         if (shootingResult == Request.TERMINATED)
-            return _storageLogic.terminateRequest(SINGLE_REQUEST)
+            return _storageLogic.terminateRequest(ProcessId.SINGLE_REQUEST)
 
-        _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST)
+        _storageLogic.resumeLogicAfterRequest(ProcessId.DRUM_REQUEST)
         return shootingResult
     }
 
@@ -446,29 +449,30 @@ class SortingStorage
     }
     private suspend fun lazyStreamDrumRequest(): RequestResult.Name
     {
-        if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
-            return _storageLogic.terminateRequest(DRUM_REQUEST)
+        if (_storageLogic.cantHandleRequestRaceCondition(ProcessId.DRUM_REQUEST))
+            return _storageLogic.terminateRequest(ProcessId.DRUM_REQUEST)
 
-        _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
+        _storageLogic.runStatus.setActiveProcess(ProcessId.DRUM_REQUEST)
         logM.logMd("MODE: LAZY StreamDrum request", Debug.PROCESS_NAME)
 
         _storageLogic.lazyStreamDrumRequest(MAX_BALL_COUNT)
 
-        _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
+        _storageLogic.resumeLogicAfterRequest(
+            ProcessId.DRUM_REQUEST, false)
         return Request.SUCCESS_NOW_EMPTY
     }
     private suspend fun fastStreamDrumRequest(): RequestResult.Name
     {
         if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
-        if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
-            return _storageLogic.terminateRequest(DRUM_REQUEST)
+        if (_storageLogic.cantHandleRequestRaceCondition(ProcessId.DRUM_REQUEST))
+            return _storageLogic.terminateRequest(ProcessId.DRUM_REQUEST)
 
-        _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
+        _storageLogic.runStatus.setActiveProcess(ProcessId.DRUM_REQUEST)
         logM.logMd("MODE: SMART StreamDrum request", Debug.PROCESS_NAME)
 
         _storageLogic.fastStreamDrumRequest()
 
-        _storageLogic.resumeLogicAfterRequest(DRUM_REQUEST, false)
+        _storageLogic.resumeLogicAfterRequest(ProcessId.DRUM_REQUEST, false)
         return Request.SUCCESS_NOW_EMPTY
     }
 
@@ -482,10 +486,10 @@ class SortingStorage
     {
         if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
         if (requestOrder.isEmpty())  return Request.ILLEGAL_ARGUMENT
-        if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
-            return _storageLogic.terminateRequest(DRUM_REQUEST)
+        if (_storageLogic.cantHandleRequestRaceCondition(ProcessId.DRUM_REQUEST))
+            return _storageLogic.terminateRequest(ProcessId.DRUM_REQUEST)
 
-        _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
+        _storageLogic.runStatus.setActiveProcess(ProcessId.DRUM_REQUEST)
 
 
         val  standardPatternOrder = if (!includePreviousUnfinishedToRequest) requestOrder
@@ -517,12 +521,12 @@ class SortingStorage
             }
 
         if  (Request.wasTerminated(requestResult))
-             _storageLogic.terminateRequest(DRUM_REQUEST)
+             _storageLogic.terminateRequest(ProcessId.DRUM_REQUEST)
         else
         {
             delay(Delay.HALF_PUSH)
             _storageLogic.resumeLogicAfterRequest(
-                DRUM_REQUEST,
+                ProcessId.DRUM_REQUEST,
                 _storageLogic.storageCells.isNotEmpty())
         }
         return requestResult
@@ -541,10 +545,10 @@ class SortingStorage
             return shootEntireDrumRequest(shootingMode, requestOrder, includePreviousUnfinishedToRequest)
 
         if (_storageLogic.storageCells.isEmpty()) return Request.FAIL_IS_EMPTY
-        if (_storageLogic.cantHandleRequestRaceCondition(DRUM_REQUEST))
-            return _storageLogic.terminateRequest(DRUM_REQUEST)
+        if (_storageLogic.cantHandleRequestRaceCondition(ProcessId.DRUM_REQUEST))
+            return _storageLogic.terminateRequest(ProcessId.DRUM_REQUEST)
 
-        _storageLogic.runStatus.setCurrentActiveProcess(DRUM_REQUEST)
+        _storageLogic.runStatus.setActiveProcess(ProcessId.DRUM_REQUEST)
 
 
         val  standardPatternOrder = if (!includePreviousUnfinishedToRequest) requestOrder
@@ -592,12 +596,12 @@ class SortingStorage
             }
 
         if  (Request.wasTerminated(requestResult))
-             _storageLogic.terminateRequest(DRUM_REQUEST)
+             _storageLogic.terminateRequest(ProcessId.DRUM_REQUEST)
         else
         {
             delay(Delay.HALF_PUSH)
             _storageLogic.resumeLogicAfterRequest(
-                DRUM_REQUEST,
+                ProcessId.DRUM_REQUEST,
                 _storageLogic.storageCells.isNotEmpty())
         }
         return requestResult

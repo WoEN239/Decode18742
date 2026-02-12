@@ -1,26 +1,43 @@
 package org.woen.telemetry
 
 
-import org.woen.telemetry.configs.Debug.DISABLE_ALL_LOGS
-import org.woen.telemetry.configs.Debug.SHOW_DEBUG_SUPPRESS_WARNINGS
+import org.woen.telemetry.configs.Debug
 
 
 
 class LogManager
 {
-    private var _showLevels = arrayListOf(0)
-    private var _debugShowSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE
+    private var _debugLevels   = arrayListOf(0)
+    private var _warningLevels = arrayListOf(0)
+
+    private var _debugShowSetting   = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE
+    private var _warningShowSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE
+
     private var _moduleName = ""
 
 
-    constructor(showSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
-        showLevels: ArrayList<Int> = arrayListOf(0),
-        moduleName: String = "")
+
+    constructor(debugSetting:   DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
+                warningSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
+                debugLevels:   ArrayList<Int> = arrayListOf(0),
+                warningLevels: ArrayList<Int> = arrayListOf(0),
+                moduleName: String = "")
+    { reset(debugSetting, warningSetting, debugLevels, warningLevels, moduleName) }
+    fun reset(debugSetting:   DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
+              warningSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
+              debugLevels:   ArrayList<Int> = arrayListOf(0),
+              warningLevels: ArrayList<Int> = arrayListOf(0),
+              moduleName: String = "")
     {
-        updateDebugSetting(showSetting)
-        setShowedDebugLevels(showLevels)
+        updateDebugSetting  (debugSetting)
+        updateWarningSetting(warningSetting)
+
+        setShowedDebugLevels  (debugLevels)
+        setShowedWarningLevels(warningLevels)
+
         setModuleName(moduleName)
     }
+
 
 
     enum class DebugSetting
@@ -29,6 +46,7 @@ class LogManager
         SHOW_EVERYTHING,
 
         SHOW_SELECTED_LEVELS,
+        SHOW_EXCEPT_SELECTED_LEVELS,
 
         SHOW_ABOVE_SELECTED_INCLUSIVE,
         SHOW_ABOVE_SELECTED_EXCLUSIVE,
@@ -39,14 +57,24 @@ class LogManager
 
 
 
-    fun updateDebugSetting(showSetting: DebugSetting)
+    fun updateDebugSetting  (debugSetting:   DebugSetting)
     {
-        _debugShowSetting = showSetting
+        _debugShowSetting   = debugSetting
     }
-    fun setShowedDebugLevels(showLevels: ArrayList<Int>)
+    fun updateWarningSetting(warningSetting: DebugSetting)
     {
-        _showLevels = ArrayList(showLevels)
+        _warningShowSetting = warningSetting
     }
+
+    fun setShowedDebugLevels  (showLevels: ArrayList<Int>)
+    {
+        _debugLevels   = ArrayList(showLevels)
+    }
+    fun setShowedWarningLevels(showLevels: ArrayList<Int>)
+    {
+        _warningLevels = ArrayList(showLevels)
+    }
+
     fun setModuleName(moduleName: String)
     {
         _moduleName = moduleName
@@ -56,68 +84,88 @@ class LogManager
 
     fun log   (s: String, vararg debug: Int)
     {
-        if (debug.any { allowedToShow(it) })
-            ThreadedTelemetry.LAZY_INSTANCE.log(s)
-        else if (SHOW_DEBUG_SUPPRESS_WARNINGS)
+        val firstMatch = debug.firstOrNull { allowedToShow(it, _debugLevels) }
+
+        if (firstMatch != null)
+        {
+            ThreadedTelemetry.LAZY_INSTANCE.log(
+                if (Debug.SHOW_DEBUG_LEVEL)
+                    withDebugLevel(firstMatch) + s else s)
+        }
+        else if (Debug.SHOW_DEBUG_SUPPRESS_WARNINGS)
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
-                "Debug level $debug is turned off", "Warning")
+                "Debug levels [${debug.filter {
+                    allowedToShow(it, _warningLevels)
+                }.joinToString(", ")}]" +
+                    " are turned off", "Warning")
     }
     fun logMd (s: String, vararg debug: Int)
-    {
-        if (debug.any { allowedToShow(it) })
-            ThreadedTelemetry.LAZY_INSTANCE.log(toMdString(s))
-        else if (SHOW_DEBUG_SUPPRESS_WARNINGS)
-            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
-                toMdString("Debug level $debug is turned off"), "Warning")
-    }
+        = log(toMdString(s), *debug)
     fun logTag(s: String, tag: String, vararg debug: Int)
     {
-        if (debug.any { allowedToShow(it) })
-            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(s, tag)
-        else if (SHOW_DEBUG_SUPPRESS_WARNINGS)
+        val firstMatch = debug.firstOrNull { allowedToShow(it, _debugLevels) }
+
+        if (firstMatch != null)
+        {
             ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
-                "Debug level $debug is turned off", "Warning")
+                if (Debug.SHOW_DEBUG_LEVEL)
+                    withDebugLevel(firstMatch) + s else s, tag)
+        }
+        else if (Debug.SHOW_DEBUG_SUPPRESS_WARNINGS)
+            ThreadedTelemetry.LAZY_INSTANCE.logWithTag(
+                "Debug levels [${debug.filter {
+                    allowedToShow(it, _warningLevels)
+                }.joinToString(", ")}]" +
+                        " are turned off", "Warning")
     }
+    fun logMdTag(s: String, tag: String, vararg debug: Int)
+        = logTag(toMdString(s), tag, *debug)
 
 
 
+    private fun withDebugLevel(debug: Int)
+        = '[' + debug.toString().padStart(
+        Debug.FILL_DEBUG_LEVEL_TO_DIGIT_COUNT,
+        '0') + "]"
     private fun toMdString(s: String)
         = if (_moduleName.isEmpty()) s
           else "$_moduleName: $s"
-    private fun allowedToShow(debugLevel: Int): Boolean
+    private fun allowedToShow(debugLevel: Int, show: ArrayList<Int>): Boolean
     {
-        return !DISABLE_ALL_LOGS && when (_debugShowSetting)
+        return !Debug.DISABLE_ALL_LOGS && when (_debugShowSetting)
         {
-            DebugSetting.HIDE                 -> false
-            DebugSetting.SHOW_EVERYTHING      -> true
-            DebugSetting.SHOW_SELECTED_LEVELS -> customSelected(debugLevel)
+            DebugSetting.HIDE            -> false
+            DebugSetting.SHOW_EVERYTHING -> true
 
-            DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE -> aboveInclusive(debugLevel)
-            DebugSetting.SHOW_ABOVE_SELECTED_EXCLUSIVE -> aboveExclusive(debugLevel)
+            DebugSetting.SHOW_SELECTED_LEVELS        ->   customSelected(debugLevel, show)
+            DebugSetting.SHOW_EXCEPT_SELECTED_LEVELS ->  !customSelected(debugLevel, show)
 
-            DebugSetting.SHOW_BELOW_SELECTED_INCLUSIVE -> belowInclusive(debugLevel)
-            DebugSetting.SHOW_BELOW_SELECTED_EXCLUSIVE -> belowExclusive(debugLevel)
+            DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE -> aboveInclusive(debugLevel, show)
+            DebugSetting.SHOW_ABOVE_SELECTED_EXCLUSIVE -> aboveExclusive(debugLevel, show)
+
+            DebugSetting.SHOW_BELOW_SELECTED_INCLUSIVE -> belowInclusive(debugLevel, show)
+            DebugSetting.SHOW_BELOW_SELECTED_EXCLUSIVE -> belowExclusive(debugLevel, show)
         }
     }
 
 
 
-    private fun customSelected(debugLevel: Int): Boolean
-            = _showLevels.contains(debugLevel)
+    private fun customSelected(debugLevel: Int, show: ArrayList<Int>): Boolean
+        = show.contains(debugLevel)
 
 
-    private fun aboveInclusive(debugLevel: Int): Boolean
-        = if (_showLevels.isEmpty()) false
-          else debugLevel >= _showLevels[0]
-    private fun aboveExclusive(debugLevel: Int): Boolean
-        = if (_showLevels.isEmpty()) false
-          else debugLevel >  _showLevels[0]
+    private fun aboveInclusive(debugLevel: Int, show: ArrayList<Int>): Boolean
+        = if (show.isEmpty()) false
+          else debugLevel >= show[0]
+    private fun aboveExclusive(debugLevel: Int, show: ArrayList<Int>): Boolean
+        = if (show.isEmpty()) false
+          else debugLevel >  show[0]
 
 
-    private fun belowInclusive(debugLevel: Int): Boolean
-        = if (_showLevels.isEmpty()) false
-          else debugLevel <= _showLevels[0]
-    private fun belowExclusive(debugLevel: Int): Boolean
-        = if (_showLevels.isEmpty()) false
-          else debugLevel <  _showLevels[0]
+    private fun belowInclusive(debugLevel: Int, show: ArrayList<Int>): Boolean
+        = if (show.isEmpty()) false
+          else debugLevel <= show[0]
+    private fun belowExclusive(debugLevel: Int, show: ArrayList<Int>): Boolean
+        = if (show.isEmpty()) false
+          else debugLevel <  show[0]
 }

@@ -29,7 +29,6 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
-import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 import org.woen.modules.scoringSystem.storage.OdometryIsAlignedForShootingEvent
 
@@ -37,7 +36,6 @@ import org.woen.modules.scoringSystem.storage.OdometryIsAlignedForShootingEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 
-import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
@@ -52,17 +50,10 @@ import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
 import org.woen.telemetry.configs.Debug
-import org.woen.telemetry.configs.Configs.BRUSH.TIME_FOR_BRUSH_REVERSING
-
-
-import org.woen.telemetry.configs.Configs.PROCESS_ID.INTAKE
-import org.woen.telemetry.configs.Configs.PROCESS_ID.RUNNING_INTAKE_INSTANCE
-import org.woen.telemetry.configs.Configs.PROCESS_ID.DRUM_REQUEST
-import org.woen.telemetry.configs.Configs.PROCESS_ID.LAZY_INTAKE
-import org.woen.telemetry.configs.Configs.PROCESS_ID.SINGLE_REQUEST
-import org.woen.telemetry.configs.Configs.PROCESS_ID.PRIORITY_SETTING_FOR_SCORING_CONNECTOR
-
+import org.woen.telemetry.configs.ProcessId
+import org.woen.telemetry.configs.Configs.BRUSH
 import org.woen.telemetry.configs.RobotSettings.TELEOP
+
 
 import org.woen.telemetry.configs.RobotSettings.CONTROLS.DRIVE_TO_SHOOTING_ZONE
 import org.woen.telemetry.configs.RobotSettings.CONTROLS.IGNORE_DUPLICATE_SHOOTING_COMMAND
@@ -77,10 +68,12 @@ class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
 class ScoringModulesConnector
 {
     private val _storage   = SortingStorage()
-    private val _runStatus = RunStatus(PRIORITY_SETTING_FOR_SCORING_CONNECTOR)
+    private val _runStatus = RunStatus(ProcessId.PRIORITY_SETTING_FOR_SMC)
     val logM = LogManager(
-        Debug.SMC_DEBUG_SETTING,
-        Debug.SMC_DEBUG_LEVELS,
+         Debug.SMC_DEBUG_SETTING,
+        Debug.SMC_WARNING_SETTING,
+         Debug.SMC_DEBUG_LEVELS,
+        Debug.SMC_WARNING_LEVELS,
         "SMC")
 
 //    private val _shotWasFired      = AtomicBoolean(false)
@@ -171,7 +164,7 @@ class ScoringModulesConnector
 //                        EventBusLI.invoke(SetLightColorEvent(
 //                            Light.LightColor.BLUE))
 //
-//                        reverseBrushes(TIME_FOR_BRUSH_REVERSING)
+//                        reverseBrushes(REVERSE_TIME)
 //                    }
 //
 //                    logM.logMd("\ntry start LazyIntake: ${startingResult.startingResult}",
@@ -226,7 +219,7 @@ class ScoringModulesConnector
 //                    }
 //                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
 //
-//                    reverseAndThenStartBrushesAfterTimePeriod(TIME_FOR_BRUSH_REVERSING)
+//                    reverseAndThenStartBrushesAfterTimePeriod(REVERSE_TIME)
 //
 //                    logM.logMd("\nSTOP  - INTAKE - GAMEPAD", GAMEPAD_FEEDBACK)
 //                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
@@ -252,8 +245,8 @@ class ScoringModulesConnector
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.right_bumper }, {
 
-                    _runStatus.safeRemoveThisProcessFromTerminationList(
-                        DRUM_REQUEST, SINGLE_REQUEST)
+                    _runStatus.removeProcessFromTermination(
+                        ProcessId.DRUM_REQUEST, ProcessId.SINGLE_REQUEST)
 
                     EventBusLI.invoke(SetLightColorEvent(Light.LightColor.GREEN))
                     EventBusLI.invoke(StorageGiveStreamDrumRequest())
@@ -328,6 +321,13 @@ class ScoringModulesConnector
         _runStatus.fullResetToActiveState()
 
 //        _shotWasFired.set(false)
+
+        logM.reset(
+             Debug.SMC_DEBUG_SETTING,
+            Debug.SMC_WARNING_SETTING,
+             Debug.SMC_DEBUG_LEVELS,
+            Debug.SMC_WARNING_LEVELS,
+            "SMC")
     }
 
 
@@ -336,22 +336,23 @@ class ScoringModulesConnector
     {
         logM.logMd("Checking race condition before intake", Debug.RACE_CONDITION)
         if (_runStatus.isUsedByAnotherProcess(
-                INTAKE, RUNNING_INTAKE_INSTANCE))
+                ProcessId.INTAKE,
+                ProcessId.RUNNING_INTAKE_INSTANCE))
         {
             reverseAndThenStartBrushesAfterTimePeriod(
-                TIME_FOR_BRUSH_REVERSING)
+                BRUSH.REVERSE_TIME)
 
             logM.logMd("Intake race condition: IS_BUSY", Debug.RACE_CONDITION)
             return Intake.FAIL_IS_BUSY
         }
-        setActiveProcess(INTAKE)
-        _runStatus.addProcessToQueue(RUNNING_INTAKE_INSTANCE)
+        setActiveProcess(ProcessId.INTAKE)
+        _runStatus.addProcessToQueue(ProcessId.RUNNING_INTAKE_INSTANCE)
 
         logM.logMd("Started - Intake, INPUT BALL: $inputToBottomSlot", Debug.START)
         val intakeResult = _storage.handleIntake(inputToBottomSlot)
 
 
-        if (_storage.alreadyFull()) reverseBrushes(TIME_FOR_BRUSH_REVERSING)
+        if (_storage.alreadyFull()) reverseBrushes(BRUSH.REVERSE_TIME)
 
 
         logM.logMd("FINISHED - INTAKE, result: $intakeResult", Debug.END)
@@ -390,7 +391,7 @@ class ScoringModulesConnector
         failsafePattern: Array<BallRequest.Name>
     ): RequestResult.Name
     {
-        val startingResult = handleRequestRaceCondition(DRUM_REQUEST)
+        val startingResult = handleRequestRaceCondition(ProcessId.DRUM_REQUEST)
         if (RequestResult.didFail(startingResult)) return startingResult
 
 
@@ -406,34 +407,34 @@ class ScoringModulesConnector
 
 
         logM.logMd("FINISHED - SMART drum request", Debug.END)
-        return resumeLogicAfterShooting(requestResult, DRUM_REQUEST)
+        return resumeLogicAfterShooting(requestResult, ProcessId.DRUM_REQUEST)
     }
     private suspend fun startStreamDrumRequest(): RequestResult.Name
     {
-        val startingResult = handleRequestRaceCondition(DRUM_REQUEST)
+        val startingResult = handleRequestRaceCondition(ProcessId.DRUM_REQUEST)
         if (RequestResult.didFail(startingResult)) return startingResult
 
-        if (!tryDrivingToShootingZone(DRUM_REQUEST))
+        if (!tryDrivingToShootingZone(ProcessId.DRUM_REQUEST))
             return resumeLogicAfterShooting(
-                Request.TERMINATED, DRUM_REQUEST)
+                Request.TERMINATED, ProcessId.DRUM_REQUEST)
 
         logM.logMd("Started  - StreamDrum request", Debug.START)
         val requestResult = _storage.streamDrumRequest()
         logM.logMd("FINISHED - StreamDrum request", Debug.END)
 
-        return resumeLogicAfterShooting(requestResult, DRUM_REQUEST)
+        return resumeLogicAfterShooting(requestResult, ProcessId.DRUM_REQUEST)
     }
     private suspend fun startSingleRequest(
         ballRequest: BallRequest.Name): RequestResult.Name
     {
-        val startingResult = handleRequestRaceCondition(SINGLE_REQUEST)
+        val startingResult = handleRequestRaceCondition(ProcessId.SINGLE_REQUEST)
         if (RequestResult.didFail(startingResult)) return startingResult
 
         logM.logMd("Started - Single request", Debug.START)
         val requestResult = _storage.handleRequest(ballRequest)
         logM.logMd("FINISHED - Single request", Debug.END)
 
-        return resumeLogicAfterShooting(requestResult, SINGLE_REQUEST)
+        return resumeLogicAfterShooting(requestResult, ProcessId.SINGLE_REQUEST)
     }
 
 
@@ -462,9 +463,10 @@ class ScoringModulesConnector
     {
         logM.logMd("Starting Drivetrain rotation", Debug.START)
 
-        var activeProcessId = _runStatus.getCurrentActiveProcess()
-        if (activeProcessId != DRUM_REQUEST &&
-            activeProcessId != SINGLE_REQUEST) activeProcessId = DRUM_REQUEST
+        var activeProcessId  = _runStatus.getActiveProcess()
+        if (activeProcessId != ProcessId.DRUM_REQUEST &&
+            activeProcessId != ProcessId.SINGLE_REQUEST)
+            activeProcessId  = ProcessId.DRUM_REQUEST
 
         if (!tryDrivingToShootingZone(activeProcessId)) return
         logM.logMd("Drivetrain rotated successfully", Debug.LOGIC)
@@ -508,9 +510,9 @@ class ScoringModulesConnector
     }
     private fun resumeLogicAfterIntake()
     {
-        _runStatus.safeRemoveThisProcessIdFromQueue(INTAKE)
-        _runStatus.safeRemoveOnlyOneInstanceOfThisProcessFromQueue(
-            RUNNING_INTAKE_INSTANCE)
+        _runStatus.removeProcessFromQueue(ProcessId.INTAKE)
+        _runStatus.removeOneInstanceOfProcessFromQueue(
+            ProcessId.RUNNING_INTAKE_INSTANCE)
     }
     private fun resumeLogicAfterShooting(
         requestResult:   RequestResult.Name,
@@ -518,10 +520,10 @@ class ScoringModulesConnector
     {
         tryRestartBrushes()
 
-        _runStatus.safeRemoveThisProcessIdFromQueue(processId)
-        _runStatus.safeRemoveThisProcessFromTerminationList(processId)
+        _runStatus.removeProcessFromQueue(processId)
+        _runStatus.removeProcessFromTermination(processId)
 
-        _runStatus.clearCurrentActiveProcess()
+        _runStatus.clearActiveProcess()
         sendFinishedFiringEvent(requestResult)
 
         return requestResult
@@ -551,9 +553,9 @@ class ScoringModulesConnector
 
                 logM.logMd("Successful intake termination", Debug.LOGIC)
 
-                _runStatus.safeRemoveThisProcessIdFromQueue(
-                    _runStatus.getCurrentActiveProcess())
-                _runStatus.clearCurrentActiveProcess()
+                _runStatus.removeProcessFromQueue(
+                    _runStatus.getActiveProcess())
+                _runStatus.clearActiveProcess()
 
                 return Request.SUCCESS
             }
@@ -571,7 +573,7 @@ class ScoringModulesConnector
     private fun setActiveProcess(processId: Int)
     {
         _runStatus.addProcessToQueue(processId)
-        _runStatus.setCurrentActiveProcess(processId)
+        _runStatus.setActiveProcess(processId)
     }
     private fun isDuplicateProcess(processId: Int)
         = IGNORE_DUPLICATE_SHOOTING_COMMAND &&
@@ -581,8 +583,9 @@ class ScoringModulesConnector
             isIntakeActive()
     private fun isIntakeActive(): Boolean
     {
-        val    activeProcess = _runStatus.getCurrentActiveProcess()
-        return activeProcess == INTAKE || activeProcess == LAZY_INTAKE
+        val    activeProcess = _runStatus.getActiveProcess()
+        return activeProcess == ProcessId.INTAKE ||
+               activeProcess == ProcessId.LAZY_INTAKE
     }
 
 
