@@ -51,7 +51,7 @@ class Turret : IModule {
 
     private var _turretJob: Job? = null
 
-    private var _currentRotateState = RotateState.CONSTANT
+    private var _currentRotateState = RotateState.TO_BASKET
 
     private val _timer = ElapsedTime()
 
@@ -64,20 +64,20 @@ class Turret : IModule {
                     odometry.odometryOrientation.angle
                 ))
 
-//            _hardwareTurretServos.targetRotatePosition = Angle(
-//                when (_currentRotateState) {
-//                    RotateState.TO_BASKET ->
-//                        ((basketErr).rot() - odometry.odometryOrientation.angle)
-//
-//                    RotateState.CONSTANT -> 0.0
-//
-//                    RotateState.TO_OBELISK -> ((Configs.TURRET.OBELISK_POSITION - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
-//                        odometry.odometryOrientation.angle
-//                    ))).rot()
-//                            - odometry.odometryOrientation.angle)
-//                }
-//            ).angle
-//
+            _hardwareTurretServos.targetRotatePosition = Angle(
+                when (_currentRotateState) {
+                    RotateState.TO_BASKET ->
+                        (basketErr.rot() - odometry.odometryOrientation.angle)
+
+                    RotateState.CONSTANT -> 0.0
+
+                    RotateState.TO_OBELISK -> ((Configs.TURRET.OBELISK_POSITION - (odometry.odometryOrientation.pos + Configs.TURRET.TURRET_CENTER_POS.turn(
+                        odometry.odometryOrientation.angle
+                    ))).rot()
+                            - odometry.odometryOrientation.angle)
+                }
+            ).angle
+
             val y = Configs.TURRET.SCORE_HEIGHT - Configs.TURRET.TURRET_HEIGHT
             val x = basketErr.length()
 
@@ -117,7 +117,7 @@ class Turret : IModule {
         get() = _turretJob != null && !_turretJob!!.isCompleted
 
     override fun opModeStart() {
-        _currentRotateState = RotateState.CONSTANT
+        _currentRotateState = RotateState.TO_BASKET
 
         _timer.reset()
     }

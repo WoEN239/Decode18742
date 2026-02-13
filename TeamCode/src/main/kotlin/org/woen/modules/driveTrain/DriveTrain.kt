@@ -76,7 +76,7 @@ class DriveTrain : IModule {
                             _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.pos.x),
                             _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.pos.y)
                         ).turn(-odometry.odometryOrientation.angle)*/ _targetTranslateVelocity,
-                        _targetRotateVelocity//_hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
+                        _targetRotateVelocity //_hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
                     )
                 }
 
@@ -93,7 +93,7 @@ class DriveTrain : IModule {
 
             if ((abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS || _currentMode == DriveMode.SHOOTING) &&
                 (abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS || _currentMode == DriveMode.SHOOTING) &&
-                ((abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS || _currentMode == DriveMode.SHOOTING))
+                (abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS)
             ) {
                 if (_targetTimer.seconds() > Configs.DRIVE_TRAIN.TARGET_TIMER)
                     _currentProcess.close()

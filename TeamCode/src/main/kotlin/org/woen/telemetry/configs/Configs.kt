@@ -83,14 +83,14 @@ object Configs {
     internal object ODOMETRY {
         @JvmField
         var START_RED_CLOSE_ORIENTATION =
-            Orientation(Vec2(-(1.205 + 0.38 / 2.0 + 0.01), 0.93 + 0.38 / 2.0 - 0.01), Angle(PI))
+            Orientation(Vec2(-1.208 - 0.01 - 0.38 / 2.0, 0.87 + 0.38 / 2.0 + 0.01), Angle(PI))
 
         @JvmField
         var START_RED_FAR_ORIENTATION = Orientation(Vec2(1.63, 0.39), Angle(PI))
 
         @JvmField
         var START_BLUE_CLOSE_ORIENTATION =
-            Orientation(Vec2(-(1.205 + 0.38 / 2.0 + 0.01), -0.93 - 0.38 / 2.0 + 0.01), Angle(PI))
+            Orientation(Vec2(-1.208 - 0.01 - 0.38 / 2.0, -0.87 - 0.38 / 2.0 - 0.01), Angle(PI))
 
         @JvmField
         var START_BLUE_FAR_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle(PI))
@@ -211,7 +211,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = false
+        var CAMERA_ENABLE = true
 
         @JvmField
         var CAMERA_H_RED_DOWN = 4.0
@@ -254,10 +254,10 @@ object Configs {
         var TARGET_TIMER = 0.1
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, -3.66 / 2.0 + 0.2)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.25, -3.66 / 2.0 + 0.25)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, 3.66 / 2.0 - 0.2)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.25, 3.66 / 2.0 - 0.25)
 
         @JvmField
         var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.94
@@ -275,20 +275,20 @@ object Configs {
         var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.145)
 
         @JvmField
-        var ZERO_ROTATE_POS = Math.toRadians(172.54545454545456)
+        var ZERO_ROTATE_POS = Math.toRadians(164.5454545454546)
 
         @JvmField
         var ROTATE_SERVO_RATIO = (30.0 / 18.0) * (60.0 / 120.0)
 
         @JvmField
         var ROTATE_SERVO_REGULATOR =
-            RegulatorParameters(kP = 0.2, kD = 0.00005, kPow = 0.0001, limitU = 1.0)
+            RegulatorParameters(kP = 0.9, kD = 0.015)
 
         @JvmField
-        var MAX_ROTATE = PI / 2.0
+        var MAX_ROTATE = Math.toRadians(343.0) - ZERO_ROTATE_POS
 
         @JvmField
-        var MIN_ROTATE = -PI / 2.0
+        var MIN_ROTATE = Math.toRadians(-12.0) - ZERO_ROTATE_POS
 
         @JvmField
         var SHOOTING_RED_ORIENTATION =
@@ -305,7 +305,7 @@ object Configs {
         var GRAVITY_G = 9.80665
 
         @JvmField
-        var SCORE_HEIGHT = 1.0
+        var SCORE_HEIGHT = 1.12
 
         @JvmField
         var TURRET_HEIGHT = 0.33
@@ -317,7 +317,7 @@ object Configs {
         var PULLEY_RATION = 30.0 / 40.0
 
         @JvmField
-        var PULLEY_U = 0.44
+        var PULLEY_U = 0.46
 
         @JvmField
         var PULLEY_VELOCITY = 11.8 //(-0.927, -0.842)
@@ -337,10 +337,10 @@ object Configs {
         )).toDouble()
 
         @JvmField
-        var GREEN_THRESHOLD_RIGHT = 30.0
+        var GREEN_THRESHOLD_RIGHT = 50.0
 
         @JvmField
-        var GREEN_THRESHOLD_LEFT = 50.0
+        var GREEN_THRESHOLD_LEFT = 70.0
 
         @JvmField
         var MIN_PURPLE_H_RIGHT = 2.9
@@ -355,7 +355,7 @@ object Configs {
         var MAX_PURPLE_H_LEFT = 4.0
 
         @JvmField
-        var DOUBLE_DETECT_TIMER = 0.3
+        var DOUBLE_DETECT_TIMER = 0.4
 
         @JvmField
         var DOUBLE_DETECT_COUNT_MAX = 2

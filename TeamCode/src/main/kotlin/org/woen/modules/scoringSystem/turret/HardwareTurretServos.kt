@@ -30,10 +30,10 @@ class HardwareTurretServos : IHardwareDevice {
         }
 
     var targetRotatePosition
-        get() = (_rotateServo.targetPosition - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_RATIO
+        get() = -(_rotateServo.targetPosition - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_RATIO
         set(value) {
             _rotateServo.targetPosition =
-                (clamp(value, Configs.TURRET.MIN_ROTATE, Configs.TURRET.MAX_ROTATE)
+                (clamp(-value, Configs.TURRET.MIN_ROTATE, Configs.TURRET.MAX_ROTATE)
                         + Configs.TURRET.ZERO_ROTATE_POS) / Configs.TURRET.ROTATE_SERVO_RATIO
         }
 
@@ -68,6 +68,8 @@ class HardwareTurretServos : IHardwareDevice {
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData("turret rotation", currentRotatePosition)
         }
+
+        targetRotatePosition = 0.0
     }
 
     override fun opModeStart() {

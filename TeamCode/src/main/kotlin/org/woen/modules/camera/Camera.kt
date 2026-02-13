@@ -4,6 +4,7 @@ import com.qualcomm.hardware.limelightvision.LLResult
 import com.qualcomm.hardware.limelightvision.Limelight3A
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import kotlinx.coroutines.DisposableHandle
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
@@ -13,11 +14,15 @@ import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.smartMutex.SmartMutex
+import org.woen.utils.units.Angle
+import org.woen.utils.units.Color
+import org.woen.utils.units.Orientation
+import org.woen.utils.units.Vec2
 import kotlin.concurrent.thread
 
 // Твои события
 data class OnPatternDetectedEvent(val pattern: Pattern)
-data class GetRobotCoords(val x: Double, val z: Double)
+data class CameraUpdateEvent(val position: Orientation)
 
 class Camera : DisposableHandle {
     companion object {
@@ -40,23 +45,21 @@ class Camera : DisposableHandle {
     @Volatile
     var turretAngle: Double = 0.0
 
-    @Volatile
-    var robotPose: Pose3D? = null
-
-    // Геттеры для удобного доступа
-    val robotX: Double get() = robotPose?.position?.x ?: 0.0
-    val robotZ: Double get() = robotPose?.position?.y ?: 0.0 // Используем y из Pose3D как вторую координату поля
+    private var _currentOrientation = Orientation()
 
     var currentPattern: Pattern? = null
 
     private val _thread =
         ThreadManager.LAZY_INSTANCE.register(thread(start = true, name = "Limelight thread") {
+            if(!Configs.CAMERA.CAMERA_ENABLE)
+                return@thread
+
             limelight.pipelineSwitch(0)
             limelight.start()
 
             while (!Thread.currentThread().isInterrupted && Configs.CAMERA.CAMERA_ENABLE) {
                 if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN) {
-                    Thread.sleep(20)
+                    Thread.sleep(5)
                     continue
                 }
 
@@ -64,22 +67,23 @@ class Camera : DisposableHandle {
 
                 if (result != null && result.isValid) {
                     // 1. Расчет локализации
-                    val newPose = localizer.getGlobalRobotPose(limelight, turretAngle)
 
-                    if (newPose != null) {
-                        robotPose = newPose
-                        // Генерируем событие с координатами
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(
-                            GetRobotCoords(robotX, robotZ)
-                        )
-                    }
+//                    val newPose = localizer.getGlobalRobotPose(limelight, turretAngle)
+
+                    val orientation = result.botpose
+
+                    _currentOrientation = Orientation(Vec2(orientation.position.x, orientation.position.y),
+                    Angle(orientation.orientation.getYaw(AngleUnit.RADIANS)))
+
+                    // Генерируем событие с координатами
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(CameraUpdateEvent(_currentOrientation))
 
                     // 2. Логика паттернов
                     val fiducialResults = result.fiducialResults
                     if (currentPattern == null && fiducialResults.isNotEmpty()) {
                         for (fr in fiducialResults) {
                             val tagId = fr.fiducialId
-                            val foundPattern = Pattern.patterns.find { it.cameraTagId == tagId.toInt() }
+                            val foundPattern = Pattern.patterns.find { it.cameraTagId == tagId }
 
                             if (foundPattern != null) {
                                 currentPattern = foundPattern
@@ -89,7 +93,8 @@ class Camera : DisposableHandle {
                         }
                     }
                 }
-                Thread.sleep(10)
+                else
+                    Thread.sleep(5)
             }
         })
 
@@ -100,8 +105,7 @@ class Camera : DisposableHandle {
     private constructor() {
         if (Configs.CAMERA.CAMERA_ENABLE) {
             ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-                it.addData("Robot X", "%.3f".format(robotX))
-                it.addData("Robot Z", "%.3f".format(robotZ))
+                it.drawRect(_currentOrientation.pos, Configs.DRIVE_TRAIN.ROBOT_SIZE, _currentOrientation.angle, Color.BLACK)
             }
         }
     }

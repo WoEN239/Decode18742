@@ -28,7 +28,7 @@ class Brush : IModule {
 
     private var _currentJob: Job? = null
     private var hwBrush = HardwareBrush()
-    private var turnOn = AtomicReference(BrushState.STOP)
+    private var turnOn = AtomicReference(BrushState.FORWARD)
     private var timerRevers = AtomicReference<Long>(0)
     private var tmr = ElapsedTime()
     private var tmr1 = ElapsedTime()
