@@ -88,82 +88,87 @@ class HwSortingSensors() : IHardwareDevice {
     }
 
     override fun update() {
-        val leftColor = _leftColor.normalizedColors
-        val rightColor = _rightColor.normalizedColors
+        try {
+            val leftColor = _leftColor.normalizedColors
+            val rightColor = _rightColor.normalizedColors
 
-        _leftR = leftColor.red * Configs.STORAGE_SENSORS.MAXIMUM_READING
-        _leftG = leftColor.green * Configs.STORAGE_SENSORS.MAXIMUM_READING
-        _leftB = leftColor.blue * Configs.STORAGE_SENSORS.MAXIMUM_READING
+            _leftR = leftColor.red * Configs.STORAGE_SENSORS.MAXIMUM_READING
+            _leftG = leftColor.green * Configs.STORAGE_SENSORS.MAXIMUM_READING
+            _leftB = leftColor.blue * Configs.STORAGE_SENSORS.MAXIMUM_READING
 
-        _rightR = rightColor.red * Configs.STORAGE_SENSORS.MAXIMUM_READING
-        _rightG = rightColor.green * Configs.STORAGE_SENSORS.MAXIMUM_READING
-        _rightB = rightColor.blue * Configs.STORAGE_SENSORS.MAXIMUM_READING
+            _rightR = rightColor.red * Configs.STORAGE_SENSORS.MAXIMUM_READING
+            _rightG = rightColor.green * Configs.STORAGE_SENSORS.MAXIMUM_READING
+            _rightB = rightColor.blue * Configs.STORAGE_SENSORS.MAXIMUM_READING
 
-        val leftGreen =
-            (_leftG - max(_leftR, _leftB)) > Configs.STORAGE_SENSORS.GREEN_THRESHOLD_LEFT
-        val rightGreen =
-            (_rightG - max(_rightR, _rightB)) > Configs.STORAGE_SENSORS.GREEN_THRESHOLD_RIGHT
+            val leftGreen =
+                (_leftG - max(_leftR, _leftB)) > Configs.STORAGE_SENSORS.GREEN_THRESHOLD_LEFT
+            val rightGreen =
+                (_rightG - max(_rightR, _rightB)) > Configs.STORAGE_SENSORS.GREEN_THRESHOLD_RIGHT
 
-        val combinedGreen = leftGreen || rightGreen
+            val combinedGreen = leftGreen || rightGreen
 
-        if (combinedGreen && !_oldCombinedGreen) {
-            colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.GREEN))
-            _greenTimer.reset()
-            _doubleCounter = 0
-        } else if (combinedGreen && _greenTimer.seconds() > Configs.STORAGE_SENSORS.DOUBLE_DETECT_TIMER &&
-            _doubleCounter < Configs.STORAGE_SENSORS.DOUBLE_DETECT_COUNT_MAX
-        ) {
-            colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.GREEN))
-            _greenTimer.reset()
-            _doubleCounter++
-        }
-
-        _oldCombinedGreen = combinedGreen
-
-        val maxRightC = max(max(_rightR, _rightG), _rightB)
-        val minRightC = min(min(_rightR, _rightG), _rightB)
-
-        val difRight = maxRightC - minRightC
-
-        _rightH =
-            when (maxRightC) {
-                _rightR -> ((_rightG - _rightB) / difRight)
-                _rightG -> (2.0 + (_rightB - _rightR) / difRight)
-                else -> (4.0 + (_rightR - _rightG) / difRight)
+            if (combinedGreen && !_oldCombinedGreen) {
+                colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.GREEN))
+                _greenTimer.reset()
+                _doubleCounter = 0
+            } else if (combinedGreen && _greenTimer.seconds() > Configs.STORAGE_SENSORS.DOUBLE_DETECT_TIMER &&
+                _doubleCounter < Configs.STORAGE_SENSORS.DOUBLE_DETECT_COUNT_MAX
+            ) {
+                colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.GREEN))
+                _greenTimer.reset()
+                _doubleCounter++
             }
 
-        val maxLeftC = max(max(_leftR, _leftG), _leftB)
-        val minLeftC = min(min(_leftR, _leftG), _leftB)
+            _oldCombinedGreen = combinedGreen
 
-        val difLeft = maxLeftC - minLeftC
+            val maxRightC = max(max(_rightR, _rightG), _rightB)
+            val minRightC = min(min(_rightR, _rightG), _rightB)
 
-        _leftH =
-            when (maxLeftC) {
-                _leftR -> ((_leftG - _leftB) / difLeft)
-                _leftG -> (2.0 + (_leftB - _leftR) / difLeft)
-                else -> (4.0 + (_leftR - _leftG) / difLeft)
+            val difRight = maxRightC - minRightC
+
+            _rightH =
+                when (maxRightC) {
+                    _rightR -> ((_rightG - _rightB) / difRight)
+                    _rightG -> (2.0 + (_rightB - _rightR) / difRight)
+                    else -> (4.0 + (_rightR - _rightG) / difRight)
+                }
+
+            val maxLeftC = max(max(_leftR, _leftG), _leftB)
+            val minLeftC = min(min(_leftR, _leftG), _leftB)
+
+            val difLeft = maxLeftC - minLeftC
+
+            _leftH =
+                when (maxLeftC) {
+                    _leftR -> ((_leftG - _leftB) / difLeft)
+                    _leftG -> (2.0 + (_leftB - _leftR) / difLeft)
+                    else -> (4.0 + (_leftR - _leftG) / difLeft)
+                }
+
+            val leftPurple =
+                _leftH in (Configs.STORAGE_SENSORS.MIN_PURPLE_H_LEFT..Configs.STORAGE_SENSORS.MAX_PURPLE_H_LEFT)
+            val rightPurple =
+                _rightH in (Configs.STORAGE_SENSORS.MIN_PURPLE_H_RIGHT..Configs.STORAGE_SENSORS.MAX_PURPLE_H_RIGHT)
+
+            val combinedPurple = leftPurple || rightPurple
+
+            if (combinedPurple && !_oldCombinedPurple) {
+                colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.PURPLE))
+                _purpleTimer.reset()
+                _doubleCounter = 0
+            } else if (combinedPurple && _purpleTimer.seconds() > Configs.STORAGE_SENSORS.DOUBLE_DETECT_TIMER &&
+                _doubleCounter < Configs.STORAGE_SENSORS.DOUBLE_DETECT_COUNT_MAX
+            ) {
+                colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.PURPLE))
+                _purpleTimer.reset()
+                _doubleCounter++
             }
 
-        val leftPurple =
-            _leftH in (Configs.STORAGE_SENSORS.MIN_PURPLE_H_LEFT..Configs.STORAGE_SENSORS.MAX_PURPLE_H_LEFT)
-        val rightPurple =
-            _rightH in (Configs.STORAGE_SENSORS.MIN_PURPLE_H_RIGHT..Configs.STORAGE_SENSORS.MAX_PURPLE_H_RIGHT)
-
-        val combinedPurple = leftPurple || rightPurple
-
-        if (combinedPurple && !_oldCombinedPurple) {
-            colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.PURPLE))
-            _purpleTimer.reset()
-            _doubleCounter = 0
-        } else if (combinedPurple && _purpleTimer.seconds() > Configs.STORAGE_SENSORS.DOUBLE_DETECT_TIMER &&
-            _doubleCounter < Configs.STORAGE_SENSORS.DOUBLE_DETECT_COUNT_MAX
-        ) {
-            colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.PURPLE))
-            _purpleTimer.reset()
-            _doubleCounter++
+            _oldCombinedPurple = combinedPurple
         }
+        catch (_: Exception){
 
-        _oldCombinedPurple = combinedPurple
+        }
     }
 
     override fun opModeStart() {}

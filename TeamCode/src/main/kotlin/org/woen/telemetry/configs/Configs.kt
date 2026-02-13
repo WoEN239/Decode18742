@@ -254,7 +254,7 @@ object Configs {
         var TARGET_TIMER = 0.1
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.25, -3.66 / 2.0 + 0.25)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, -3.66 / 2.0 + 0.1)
 
         @JvmField
         var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.25, 3.66 / 2.0 - 0.25)
@@ -272,17 +272,17 @@ object Configs {
         var MAX_TURRET_ANGLE = PI / 2.0 - Math.toRadians(25.0)
 
         @JvmField
-        var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.145)
+        var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.16)
 
         @JvmField
-        var ZERO_ROTATE_POS = Math.toRadians(164.5454545454546)
+        var ZERO_ROTATE_POS = Math.toRadians(167.81818181818184)
 
         @JvmField
         var ROTATE_SERVO_RATIO = (30.0 / 18.0) * (60.0 / 120.0)
 
         @JvmField
         var ROTATE_SERVO_REGULATOR =
-            RegulatorParameters(kP = 0.9, kD = 0.015)
+            RegulatorParameters(kP = 0.8, kD = 0.015, limitU = 1.0)
 
         @JvmField
         var MAX_ROTATE = Math.toRadians(343.0) - ZERO_ROTATE_POS
@@ -311,19 +311,13 @@ object Configs {
         var TURRET_HEIGHT = 0.33
 
         @JvmField
-        var SCORE_ANGLE = Math.toRadians(-30.0)
+        var SCORE_ANGLE = Math.toRadians(-20.0)
 
         @JvmField
         var PULLEY_RATION = 30.0 / 40.0
 
         @JvmField
-        var PULLEY_U = 0.46
-
-        @JvmField
-        var PULLEY_VELOCITY = 11.8 //(-0.927, -0.842)
-
-        @JvmField
-        var ANGLE_POSITION = MAX_TURRET_ANGLE
+        var PULLEY_U = 0.48
     }
 
     @Config

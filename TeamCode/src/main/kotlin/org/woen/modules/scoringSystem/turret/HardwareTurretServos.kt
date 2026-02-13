@@ -4,8 +4,8 @@ import androidx.core.math.MathUtils.clamp
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.telemetry.configs.Configs
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.drivers.InfinityAxon
 
@@ -30,11 +30,14 @@ class HardwareTurretServos : IHardwareDevice {
         }
 
     var targetRotatePosition
-        get() = -(_rotateServo.targetPosition - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_RATIO
+        get() = -(_rotateServo.targetPosition * Configs.TURRET.ROTATE_SERVO_RATIO - Configs.TURRET.ZERO_ROTATE_POS)
         set(value) {
             _rotateServo.targetPosition =
-                (clamp(-value, Configs.TURRET.MIN_ROTATE, Configs.TURRET.MAX_ROTATE)
-                        + Configs.TURRET.ZERO_ROTATE_POS) / Configs.TURRET.ROTATE_SERVO_RATIO
+                (clamp(
+                    -value,
+                    Configs.TURRET.MIN_ROTATE,
+                    Configs.TURRET.MAX_ROTATE
+                ) + Configs.TURRET.ZERO_ROTATE_POS) / Configs.TURRET.ROTATE_SERVO_RATIO
         }
 
     val rotateAtTarget
@@ -44,8 +47,10 @@ class HardwareTurretServos : IHardwareDevice {
         get() = (_rotateServo.position - Configs.TURRET.ZERO_ROTATE_POS) * Configs.TURRET.ROTATE_SERVO_RATIO
 
     override fun update() {
-        _angleSevo.position = clamp(_rawAnglePosition, Configs.TURRET.MIN_TURRET_ANGLE_SERVO,
-            Configs.TURRET.MAX_TURRET_ANGLE_SERVO)
+        _angleSevo.position = clamp(
+            _rawAnglePosition, Configs.TURRET.MIN_TURRET_ANGLE_SERVO,
+            Configs.TURRET.MAX_TURRET_ANGLE_SERVO
+        )
 
         _rotateServo.update()
     }
