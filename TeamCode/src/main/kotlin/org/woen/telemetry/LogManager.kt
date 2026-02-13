@@ -131,9 +131,9 @@ class LogManager
     private fun withDebugLevel(debug: Int)
         = '[' + debug.toString().padStart(
         Debug.FILL_DEBUG_LEVEL_TO_DIGIT_COUNT,
-        '0') + "]"
+        '0') + "] "
     private fun toMdString(s: String)
-        = if (_moduleName.isEmpty()) s
+        = if    (_moduleName.isEmpty()) s
           else "$_moduleName: $s"
     private fun allowedToShow(debugLevel: Int, show: AtomicIntegerArray): Boolean
     {

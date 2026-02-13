@@ -45,6 +45,17 @@ class Ball
 
     fun id()   = _id
     fun name() = _name
+    fun formattedName(): String
+    {
+        return when (_name)
+        {
+            Name.PURPLE        -> "PURPLE "
+            Name.GREEN         -> "GREEN  "
+
+            Name.UNKNOWN_COLOR -> "UNKNOWN"
+            Name.NONE          -> "NONE   "
+        }
+    }
 
 
     fun isFilled() = _id != NONE

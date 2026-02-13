@@ -60,11 +60,14 @@ object Debug
     const val GENERIC = 10
     const val GENERIC_INFO = 10
 
-    const val LOGIC = 11
-    const val LOGIC_STEPS = 11
+    const val STATUS = 11
 
-    const val PROCESS_NAME = 12
-    const val TERMINATION  = 13
+    const val LOGIC = 12
+    const val LOGIC_STEPS = 12
+
+
+    const val PROCESS_NAME = 13
+    const val TERMINATION  = 14
 
 
 
@@ -86,6 +89,7 @@ object Debug
         PROCESS_ENDING,
 
         GENERIC_INFO,
+        STATUS,
         LOGIC_STEPS,
 
         PROCESS_NAME,

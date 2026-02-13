@@ -67,7 +67,7 @@ class StorageCells
         Debug.CELLS_WARNING_SETTING,
          Debug.CELLS_DEBUG_LEVELS,
         Debug.CELLS_WARNING_LEVELS,
-        "CELLS")
+        "CEL")
 
 
 
@@ -80,7 +80,7 @@ class StorageCells
             Debug.CELLS_WARNING_SETTING,
              Debug.CELLS_DEBUG_LEVELS,
             Debug.CELLS_WARNING_LEVELS,
-            "CELLS")
+            "CEL")
     }
 
     @Synchronized
@@ -363,11 +363,13 @@ class StorageCells
 
     private fun logAllStorageData()
     {
-        logM.logMd(""
-              + "B:  ${_storageCells[StorageSlot.BOTTOM].name()}; "
-              + "C:  ${_storageCells[StorageSlot.CENTER].name()}; "
-              + "MO: ${_storageCells[StorageSlot.TURRET].name()}; "
-              + "MI: ${_storageCells[StorageSlot.MOBILE].name()}\n",
+        logM.logMd("[: Bottom  -  center  -  turret  -  mobile  :]" +
+              "\n|  ${_storageCells[StorageSlot.BOTTOM].formattedName()} "
+              + "|  ${_storageCells[StorageSlot.CENTER].name()} "
+              + "|  ${_storageCells[StorageSlot.TURRET].name()} "
+              + "|  ${_storageCells[StorageSlot.MOBILE].name()}  |" +
+              "\n[: BALL COUNT: ${anyBallCount()}" +
+                "                                   :]",
                 Debug.GENERIC)
     }
     fun storageData() = _storageCells
