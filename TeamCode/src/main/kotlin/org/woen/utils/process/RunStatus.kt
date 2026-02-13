@@ -2,6 +2,8 @@ package org.woen.utils.process
 
 
 import kotlin.math.abs
+import java.util.concurrent.CopyOnWriteArrayList
+
 import org.woen.telemetry.configs.ProcessId
 
 
@@ -10,8 +12,8 @@ class RunStatus
 {
     private var _prioritySetting = Priority.PRIORITIZE_HIGH_PROCESS_ID
 
-    private val _processQueue    = ArrayList<Int>()
-    private val _terminations    = ArrayList<Int>()
+    private val _processQueue    = CopyOnWriteArrayList<Int>()
+    private val _terminations    = CopyOnWriteArrayList<Int>()
     private var _activeProcessId = ProcessId.UNDEFINED_PROCESS_ID
 
 
@@ -39,7 +41,6 @@ class RunStatus
 
 
 
-    @Synchronized
     fun fullResetToActiveState()
     {
         clearProcessQueue()
@@ -49,14 +50,11 @@ class RunStatus
 
 
 
-    @Synchronized
     fun getActiveProcess() = _activeProcessId
-    @Synchronized
     fun clearActiveProcess()
     {
         _activeProcessId = ProcessId.UNDEFINED_PROCESS_ID
     }
-    @Synchronized
     fun setActiveProcess(processId: Int)
     {
         _activeProcessId = processId
@@ -64,36 +62,26 @@ class RunStatus
 
 
 
-    @Synchronized
     fun isNotBusy()          =  _processQueue.isEmpty()
-    @Synchronized
     fun isUsedByAnyProcess() = !_processQueue.isEmpty()
-    @Synchronized
     fun isUsedByThisProcess(processId: Int)
         = _processQueue.contains(processId)
-    @Synchronized
     fun isUsedByAnotherProcess(vararg exceptionProcessesId: Int): Boolean
         = _processQueue.any { it !in exceptionProcessesId }
-    @Synchronized
     fun countOfThisProcess(processId: Int)
         = _processQueue.count { it == processId }
 
 
 
-    @Synchronized
     fun addProcessToQueue(processId: Int) = _processQueue.add(processId)
-    @Synchronized
     fun clearProcessQueue() = _processQueue.clear()
-    @Synchronized
     fun removeProcessFromQueue(processId: Int)
         = _processQueue.removeAll { it == processId }
-    @Synchronized
     fun removeOneInstanceOfProcessFromQueue(processId: Int)
         = _processQueue.remove(processId)
 
 
 
-    @Synchronized
     fun isThisProcessHighestPriority(processId: Int,
         vararg exceptionProcessesId: Int): Boolean
     {
@@ -124,7 +112,6 @@ class RunStatus
         return containsRequestedId &&
                 processId == returnPrioritized(maxId, minId, zeroPositive, zeroNegative)
     }
-    @Synchronized
     fun getHighestPriorityProcess(vararg exceptionProcessesId: Int): Int
     {
         if (_processQueue.isEmpty()) return ProcessId.UNDEFINED_PROCESS_ID
@@ -149,7 +136,6 @@ class RunStatus
         }
         return returnPrioritized(maxId, minId, zeroPositive, zeroNegative)
     }
-    @Synchronized
     private fun returnPrioritized(
         maxId: Int, minId: Int,
         zeroPositive: Int, zeroNegative: Int): Int
@@ -179,22 +165,17 @@ class RunStatus
 
 
 
-    @Synchronized
     fun isForcedToTerminateThisProcess(processId: Int)
         = _terminations.contains(processId)
-    @Synchronized
     fun addProcessToTermination(processId: Int)
         = _terminations.add(processId)
 
-    @Synchronized
     fun removeProcessFromTermination(vararg processId: Int)
         = _terminations.removeAll { it in processId }
 
-    @Synchronized
     fun clearTerminations() = _terminations.clear()
 
 
-    @Synchronized
     fun changePrioritySetting(newPrioritySetting: Priority)
     {
         _prioritySetting = newPrioritySetting

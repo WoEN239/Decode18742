@@ -79,7 +79,7 @@ class StorageCells
              Debug.CELLS_DEBUG_SETTING,
             Debug.CELLS_WARNING_SETTING,
              Debug.CELLS_DEBUG_LEVELS,
-            Debug.CELLS_DEBUG_LEVELS,
+            Debug.CELLS_WARNING_LEVELS,
             "CELLS")
     }
 

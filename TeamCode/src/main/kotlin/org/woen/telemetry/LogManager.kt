@@ -1,14 +1,19 @@
 package org.woen.telemetry
 
 
+import java.util.concurrent.atomic.AtomicIntegerArray
+
+import org.woen.utils.atomic.isEmpty
+import org.woen.utils.atomic.contains
+
 import org.woen.telemetry.configs.Debug
 
 
 
 class LogManager
 {
-    private var _debugLevels   = arrayListOf(0)
-    private var _warningLevels = arrayListOf(0)
+    private var _debugLevels   = AtomicIntegerArray(0)
+    private var _warningLevels = AtomicIntegerArray(0)
 
     private var _debugShowSetting   = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE
     private var _warningShowSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE
@@ -32,8 +37,8 @@ class LogManager
         updateDebugSetting  (debugSetting)
         updateWarningSetting(warningSetting)
 
-        setShowedDebugLevels  (debugLevels)
-        setShowedWarningLevels(warningLevels)
+        setShowedDebugLevels  (debugLevels  .toIntArray())
+        setShowedWarningLevels(warningLevels.toIntArray())
 
         setModuleName(moduleName)
     }
@@ -66,13 +71,13 @@ class LogManager
         _warningShowSetting = warningSetting
     }
 
-    fun setShowedDebugLevels  (showLevels: ArrayList<Int>)
+    fun setShowedDebugLevels  (levels: IntArray)
     {
-        _debugLevels   = ArrayList(showLevels)
+        _debugLevels   = AtomicIntegerArray(levels)
     }
-    fun setShowedWarningLevels(showLevels: ArrayList<Int>)
+    fun setShowedWarningLevels(levels: IntArray)
     {
-        _warningLevels = ArrayList(showLevels)
+        _warningLevels = AtomicIntegerArray(levels)
     }
 
     fun setModuleName(moduleName: String)
@@ -130,7 +135,7 @@ class LogManager
     private fun toMdString(s: String)
         = if (_moduleName.isEmpty()) s
           else "$_moduleName: $s"
-    private fun allowedToShow(debugLevel: Int, show: ArrayList<Int>): Boolean
+    private fun allowedToShow(debugLevel: Int, show: AtomicIntegerArray): Boolean
     {
         return !Debug.DISABLE_ALL_LOGS && when (_debugShowSetting)
         {
@@ -150,22 +155,22 @@ class LogManager
 
 
 
-    private fun customSelected(debugLevel: Int, show: ArrayList<Int>): Boolean
+    private fun customSelected(debugLevel: Int, show: AtomicIntegerArray): Boolean
         = show.contains(debugLevel)
 
 
-    private fun aboveInclusive(debugLevel: Int, show: ArrayList<Int>): Boolean
+    private fun aboveInclusive(debugLevel: Int, show: AtomicIntegerArray): Boolean
         = if (show.isEmpty()) false
           else debugLevel >= show[0]
-    private fun aboveExclusive(debugLevel: Int, show: ArrayList<Int>): Boolean
+    private fun aboveExclusive(debugLevel: Int, show: AtomicIntegerArray): Boolean
         = if (show.isEmpty()) false
           else debugLevel >  show[0]
 
 
-    private fun belowInclusive(debugLevel: Int, show: ArrayList<Int>): Boolean
+    private fun belowInclusive(debugLevel: Int, show: AtomicIntegerArray): Boolean
         = if (show.isEmpty()) false
           else debugLevel <= show[0]
-    private fun belowExclusive(debugLevel: Int, show: ArrayList<Int>): Boolean
+    private fun belowExclusive(debugLevel: Int, show: AtomicIntegerArray): Boolean
         = if (show.isEmpty()) false
           else debugLevel <  show[0]
 }

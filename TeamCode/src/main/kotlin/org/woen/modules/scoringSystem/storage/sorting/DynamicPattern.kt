@@ -2,6 +2,7 @@ package org.woen.modules.scoringSystem.storage.sorting
 
 
 import kotlin.math.min
+import java.util.concurrent.CopyOnWriteArrayList
 
 import org.woen.enumerators.BallRequest
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
@@ -10,42 +11,35 @@ import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
 class DynamicPattern
 {
-    private var _permanentPattern = arrayOf    <BallRequest.Name>()
-    private var _temporaryPattern = arrayListOf<BallRequest.Name>()
+    private var _permanentPattern = CopyOnWriteArrayList<BallRequest.Name>()
+    private var _temporaryPattern = CopyOnWriteArrayList<BallRequest.Name>()
 
 
 
-    @Synchronized
     fun fullReset()
     {
-        _permanentPattern = arrayOf()
-        _temporaryPattern = arrayListOf()
-    }
-    @Synchronized
-    fun setPermanent(permanent: Array<BallRequest.Name>)
-    {
-        _permanentPattern = permanent.copyOf()
+        resetPermanent()
+        resetTemporary()
     }
 
-    @Synchronized
+    fun resetPermanent() = _permanentPattern.clear()
     fun resetTemporary() = _temporaryPattern.clear()
-    @Synchronized
-    fun setTemporary(temporary: ArrayList<BallRequest.Name>)
+
+    fun setPermanent(permanent: Array<BallRequest.Name>)
     {
-        _temporaryPattern = ArrayList(temporary)
+        _permanentPattern = CopyOnWriteArrayList(permanent.copyOf())
     }
-    @Synchronized
     fun setTemporary(temporary: Array<BallRequest.Name>)
     {
-        _temporaryPattern = ArrayList(temporary.toList())
+        _temporaryPattern = CopyOnWriteArrayList(temporary.copyOf())
     }
-    @Synchronized
+
+
     fun removeFromTemporary()
     {
         if (_temporaryPattern.isNotEmpty())
             _temporaryPattern.removeAt(0)
     }
-    @Synchronized
     fun addToTemporary()
     {
         val tempCount = _temporaryPattern.size
@@ -57,8 +51,8 @@ class DynamicPattern
 
 
 
-    fun lastUnfinished() = _temporaryPattern
-    fun permanent() = _permanentPattern
+    fun lastUnfinished() = ArrayList(_temporaryPattern)
+    fun permanent()      = ArrayList(_permanentPattern).toTypedArray()
 
 
 
