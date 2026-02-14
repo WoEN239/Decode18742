@@ -42,7 +42,7 @@ object Configs {
         var BRUSH_DEF_TIME = 1.5
 
         @JvmField
-        var BRUSH_TARGET_CURRENT = 67                                              .0
+        var BRUSH_TARGET_CURRENT = 67.0
 
         @JvmField
         var BRUSH_BIG_TARGET_CURRENT = 1000.0
