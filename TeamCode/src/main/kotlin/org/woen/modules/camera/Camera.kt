@@ -57,7 +57,7 @@ class Camera : DisposableHandle {
                     val botPos = result.botpose
 
                     val turretAngle =
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(RequestTurretCurrentRotation()).rotation
+                        Angle(0.0)// ThreadedEventBus.LAZY_INSTANCE.invoke(RequestTurretCurrentRotation()).rotation
 
                     val cameraRotation = botPos.orientation.getYaw(AngleUnit.RADIANS)
 
@@ -65,7 +65,7 @@ class Camera : DisposableHandle {
 
                     _currentOrientation = Orientation(
                         Vec2(botPos.position.x, botPos.position.y) -
-                                Configs.CAMERA.CAMERA_TURRET_POS.turn(turretAngle.angle) -
+                                Configs.CAMERA.CAMERA_TURRET_POS.turn(cameraRotation) -
                                 Configs.TURRET.TURRET_CENTER_POS.turn(robotRotation.angle),
                         robotRotation
                     )
@@ -92,6 +92,8 @@ class Camera : DisposableHandle {
                 } else
                     Thread.sleep(5)
             }
+
+            limelight.stop()
         })
 
     override fun dispose() {
@@ -109,7 +111,7 @@ class Camera : DisposableHandle {
                 )
             }
 
-            HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            HotRun.LAZY_INSTANCE.opModeStartEvent += {
                 if (Configs.CAMERA.CAMERA_ENABLE)
                     _thread.start()
             }

@@ -42,7 +42,7 @@ object Configs {
         var BRUSH_DEF_TIME = 1.5
 
         @JvmField
-        var BRUSH_TARGET_CURRENT = 3.0
+        var BRUSH_TARGET_CURRENT = 67                                              .0
 
         @JvmField
         var BRUSH_BIG_TARGET_CURRENT = 1000.0
@@ -223,7 +223,7 @@ object Configs {
         var CAMERA_ENABLE = true
 
         @JvmField
-        var CAMERA_TURRET_POS = Vec2(0.0, 0.0)
+        var CAMERA_TURRET_POS = Vec2(0.0, 0.164)
     }
 
     @Config
@@ -251,10 +251,10 @@ object Configs {
         var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.25, 3.66 / 2.0 - 0.25)
 
         @JvmField
-        var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.94
+        var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.93
 
         @JvmField
-        var MAX_TURRET_ANGLE_SERVO = 1.0 - 0.05
+        var MAX_TURRET_ANGLE_SERVO = 1.0 - 0.15
 
         @JvmField
         var MIN_TURRET_ANGLE = PI / 2.0 - Math.toRadians(45.0)
@@ -263,7 +263,7 @@ object Configs {
         var MAX_TURRET_ANGLE = PI / 2.0 - Math.toRadians(25.0)
 
         @JvmField
-        var TURRET_CENTER_POS = Vec2(0.0, -0.38 / 2.0 + 0.16)
+        var TURRET_CENTER_POS = Vec2(0.0, -0.035)
 
         @JvmField
         var ZERO_ROTATE_POS = Math.toRadians(167.81818181818184)
@@ -334,7 +334,7 @@ object Configs {
         var MAX_PURPLE_H_RIGHT = 4.0
 
         @JvmField
-        var MIN_PURPLE_H_LEFT = 2.9
+        var MIN_PURPLE_H_LEFT = 2.8
 
         @JvmField
         var MAX_PURPLE_H_LEFT = 4.0

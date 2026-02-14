@@ -88,7 +88,7 @@ class Brush : IModule {
                 f11 = false
             }
             BrushState.INFINITE_REVERSE -> {
-                hwBrush.setDir(HardwareBrush.BrushDirection.REVERSE)
+                turnOn.set(BrushState.FORWARD)
             }
 
             BrushState.STOP_ON_TIME->{

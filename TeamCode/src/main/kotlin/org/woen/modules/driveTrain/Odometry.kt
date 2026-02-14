@@ -2,6 +2,7 @@ package org.woen.modules.driveTrain
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
 import org.woen.modules.camera.CameraUpdateEvent
 import org.woen.telemetry.ThreadedTelemetry
@@ -18,6 +19,7 @@ import org.woen.utils.units.Line
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
+import java.util.concurrent.atomic.AtomicReference
 
 data class RequireOdometryEvent(
     var odometryOrientation: Orientation = Orientation.ZERO,
@@ -38,8 +40,8 @@ class Odometry : IModule {
 
     private val _hardwareOdometry = HardwareOdometry()
 
-    private var _currentOrientation = Orientation()
-    private var _oldOrientation = Orientation()
+    private var _currentOrientation = AtomicReference(HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation)
+    private var _oldOrientation = HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
 
     private val _xFilter = ExponentialFilter(Configs.ODOMETRY.MERGE_X_K.get())
     private val _yFilter = ExponentialFilter(Configs.ODOMETRY.MERGE_Y_K.get())
@@ -49,21 +51,25 @@ class Odometry : IModule {
         _odometryJob = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
             val odometryOrientation = _hardwareOdometry.currentOrientation
 
-            _currentOrientation += (odometryOrientation - _oldOrientation)
+            val orientation = _currentOrientation.get().clone()
+
+            _currentOrientation.set(orientation + (odometryOrientation - _oldOrientation))
 
             _oldOrientation = odometryOrientation
 
             fun checkToLocate(triangle: Triangle): Boolean {
                 val halfSize = Configs.DRIVE_TRAIN.ROBOT_SIZE / 2.0
 
-                val cornerLeftForward = _currentOrientation.pos + Vec2(-halfSize.x, halfSize.y)
-                    .turn(_currentOrientation.angle)
-                val cornerRightForward = _currentOrientation.pos + Vec2(halfSize.x, halfSize.y)
-                    .turn(_currentOrientation.angle)
-                val cornerRightBack = _currentOrientation.pos + Vec2(halfSize.x, -halfSize.y)
-                    .turn(_currentOrientation.angle)
-                val cornerLeftBack = _currentOrientation.pos + Vec2(-halfSize.x, -halfSize.y)
-                    .turn(_currentOrientation.angle)
+                val cornerLeftForward =
+                    _currentOrientation.get().pos + Vec2(-halfSize.x, halfSize.y)
+                        .turn(_currentOrientation.get().angle)
+                val cornerRightForward =
+                    _currentOrientation.get().pos + Vec2(halfSize.x, halfSize.y)
+                        .turn(_currentOrientation.get().angle)
+                val cornerRightBack = _currentOrientation.get().pos + Vec2(halfSize.x, -halfSize.y)
+                    .turn(_currentOrientation.get().angle)
+                val cornerLeftBack = _currentOrientation.get().pos + Vec2(-halfSize.x, -halfSize.y)
+                    .turn(_currentOrientation.get().angle)
 
                 val robotPoints = arrayOf(
                     cornerLeftBack, cornerRightBack,
@@ -135,20 +141,22 @@ class Odometry : IModule {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareOdometry)
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            val orientation = _currentOrientation.get().clone()
+
             it.drawRect(
-                _currentOrientation.pos,
+                orientation.pos,
                 Configs.DRIVE_TRAIN.ROBOT_SIZE,
-                _currentOrientation.angle,
+                orientation.angle,
                 if (_robotLocatedInShootingArea) Color.GREEN else Color.RED
             )
 
-            it.addLine("robot position: $_currentOrientation")
+            it.addLine("robot position: $orientation")
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(
             RequireOdometryEvent::class,
             {
-                it.odometryOrientation = _currentOrientation
+                it.odometryOrientation = _currentOrientation.get()
                 it.odometryVelocity = _hardwareOdometry.velocity
                 it.odometryRotateVelocity = _hardwareOdometry.headingVelocity
             })
@@ -178,11 +186,23 @@ class Odometry : IModule {
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(CameraUpdateEvent::class, {
-            _currentOrientation = Orientation(
-                Vec2(
-                    _xFilter.updateRaw(_currentOrientation.x, it.orientation.x - _currentOrientation.x),
-                    _yFilter.updateRaw(_currentOrientation.y, it.orientation.y - _currentOrientation.y)),
-                Angle(_hFilter.updateRaw(_currentOrientation.angle, (it.orientation.angl - _currentOrientation.angl).angle))
+            val orientation = _currentOrientation.get().clone()
+
+            _currentOrientation.set(
+                Orientation(
+                    Vec2(
+                        _xFilter.updateRaw(
+                            orientation.x,
+                            it.orientation.x - orientation.x
+                        ), _yFilter.updateRaw(orientation.y, it.orientation.y - orientation.y)
+                    ),
+                    Angle(
+                        _hFilter.updateRaw(
+                            orientation.angle,
+                            (it.orientation.angl - orientation.angl).angle
+                        )
+                    )
+                )
             )
         })
     }

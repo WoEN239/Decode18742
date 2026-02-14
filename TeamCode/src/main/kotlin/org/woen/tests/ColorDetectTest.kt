@@ -12,7 +12,6 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Config
-@Disabled
 internal object COLOR_DETECT_TEST{
     @JvmField
     var GREEN_THRESHOLD_LEFT = 30.0
@@ -34,7 +33,6 @@ internal object COLOR_DETECT_TEST{
 }
 
 @TeleOp(group = "tests")
-@Disabled
 class ColorDetectTest : LinearOpMode() {
     @SuppressLint("DefaultLocale")
     override fun runOpMode() {
