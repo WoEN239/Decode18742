@@ -100,6 +100,15 @@ object Configs {
 
         @JvmField
         var Y_ODOMETER_POSITION = -0.0895
+
+        @EventConfig
+        var MERGE_X_K = ThreadedTelemetry.EventValueProvider(0.9)
+
+        @EventConfig
+        var MERGE_Y_K = ThreadedTelemetry.EventValueProvider(0.9)
+
+        @EventConfig
+        var MERGE_H_K = ThreadedTelemetry.EventValueProvider(0.9)
     }
 
     @Config
@@ -157,10 +166,10 @@ object Configs {
 
         @JvmField
         var RED_PARKING_ORIENTATION =
-            Orientation(Vec2(0.948, -0.803), Angle.Companion.ofDeg(-180.0))
+            Orientation(Vec2(0.948, -0.803), Angle.ofDeg(-180.0))
 
         @JvmField
-        var BLUE_PARKING_ORIENTATION = Orientation(Vec2(0.948, 0.803), Angle.Companion.ofDeg(180.0))
+        var BLUE_PARKING_ORIENTATION = Orientation(Vec2(0.948, 0.803), Angle.ofDeg(180.0))
 
         @JvmField
         var X_DEATH_ZONE = 0.05
@@ -214,25 +223,7 @@ object Configs {
         var CAMERA_ENABLE = true
 
         @JvmField
-        var CAMERA_H_RED_DOWN = 4.0
-
-        @JvmField
-        var CAMERA_H_RED_UP = 30.0
-
-        @JvmField
-        var CAMERA_C_RED_DOWN = 127.7
-
-        @JvmField
-        var CAMERA_C_RED_UP = 255.0
-
-        @JvmField
-        var CAMERA_V_RED_DOWN = 154.5
-
-        @JvmField
-        var CAMERA_V_RED_UP = 255.0
-
-        @JvmField
-        var CAMERA_KSIZE = 22.0
+        var CAMERA_TURRET_POS = Vec2(0.0, 0.0)
     }
 
     @Config

@@ -21,21 +21,31 @@ class HardwareOdometry : IHardwareDevice {
     override fun update() {
         _computer.update()
 
-        val pos = _computer.position
+        val odometryStatus = _computer.deviceStatus
 
-        currentOrientation = Orientation(
-            Vec2(
-                pos.getX(DistanceUnit.METER),
-                pos.getY(DistanceUnit.METER)
-            ).turn(HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.angle),
-            Angle(pos.getHeading(AngleUnit.RADIANS))
-        ) + HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
+        if (odometryStatus == GoBildaPinpointDriver.DeviceStatus.READY) {
+            val pos = _computer.position
 
-        velocity =
-            Vec2(_computer.getVelX(DistanceUnit.METER), _computer.getVelY(DistanceUnit.METER)).turn(
-                HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.angle
-            ).turn(-currentOrientation.angle)
-        headingVelocity = _computer.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS)
+            currentOrientation = Orientation(
+                Vec2(
+                    pos.getX(DistanceUnit.METER),
+                    pos.getY(DistanceUnit.METER)
+                ).turn(HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.angle),
+                Angle(pos.getHeading(AngleUnit.RADIANS))
+            ) + HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
+
+            velocity =
+                Vec2(
+                    _computer.getVelX(DistanceUnit.METER),
+                    _computer.getVelY(DistanceUnit.METER)
+                ).turn(
+                    HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.angle
+                ).turn(-currentOrientation.angle)
+            headingVelocity = _computer.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS)
+        } else {
+            velocity = Vec2.ZERO
+            headingVelocity = 0.0
+        }
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -73,7 +83,7 @@ class HardwareOdometry : IHardwareDevice {
 
     }
 
-    fun reset(){
+    fun reset() {
         _computer.resetPosAndIMU()
     }
 }

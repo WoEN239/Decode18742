@@ -8,8 +8,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
 import org.woen.modules.scoringSystem.turret.Pattern
-import org.woen.telemetry.configs.Configs
+import org.woen.modules.scoringSystem.turret.RequestTurretCurrentRotation
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.telemetry.configs.Configs
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.smartMutex.SmartMutex
@@ -20,7 +21,7 @@ import org.woen.utils.units.Vec2
 import kotlin.concurrent.thread
 
 data class OnPatternDetectedEvent(val pattern: Pattern)
-data class CameraUpdateEvent(val position: Orientation)
+data class CameraUpdateEvent(val orientation: Orientation)
 
 class Camera : DisposableHandle {
     companion object {
@@ -36,16 +37,14 @@ class Camera : DisposableHandle {
             }
     }
 
-    @Volatile
-    var turretAngle: Double = 0.0
-
     private var _currentOrientation = Orientation()
 
     var currentPattern: Pattern? = null
 
     private val _thread =
         ThreadManager.LAZY_INSTANCE.register(thread(start = false, name = "Limelight thread") {
-            val hardwareMap = OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
+            val hardwareMap =
+                OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity).hardwareMap
             val limelight = hardwareMap.get(Limelight3A::class.java, "limelight")
 
             limelight.pipelineSwitch(0)
@@ -55,10 +54,21 @@ class Camera : DisposableHandle {
                 val result: LLResult? = limelight.latestResult
 
                 if (result != null && result.isValid) {
-                    val orientation = result.botpose
+                    val botPos = result.botpose
 
-                    _currentOrientation = Orientation(Vec2(orientation.position.x, orientation.position.y),
-                    Angle(orientation.orientation.getYaw(AngleUnit.RADIANS)))
+                    val turretAngle =
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(RequestTurretCurrentRotation()).rotation
+
+                    val cameraRotation = botPos.orientation.getYaw(AngleUnit.RADIANS)
+
+                    val robotRotation = Angle(cameraRotation) - turretAngle
+
+                    _currentOrientation = Orientation(
+                        Vec2(botPos.position.x, botPos.position.y) -
+                                Configs.CAMERA.CAMERA_TURRET_POS.turn(turretAngle.angle) -
+                                Configs.TURRET.TURRET_CENTER_POS.turn(robotRotation.angle),
+                        robotRotation
+                    )
 
                     ThreadedEventBus.LAZY_INSTANCE.invoke(CameraUpdateEvent(_currentOrientation))
 
@@ -70,13 +80,16 @@ class Camera : DisposableHandle {
 
                             if (foundPattern != null) {
                                 currentPattern = foundPattern
-                                ThreadedEventBus.LAZY_INSTANCE.invoke(OnPatternDetectedEvent(currentPattern!!))
+                                ThreadedEventBus.LAZY_INSTANCE.invoke(
+                                    OnPatternDetectedEvent(
+                                        currentPattern!!
+                                    )
+                                )
                                 ThreadedTelemetry.LAZY_INSTANCE.log("LL Pattern: ${foundPattern.cameraTagId}")
                             }
                         }
                     }
-                }
-                else
+                } else
                     Thread.sleep(5)
             }
         })
@@ -88,11 +101,17 @@ class Camera : DisposableHandle {
     private constructor() {
         if (Configs.CAMERA.CAMERA_ENABLE) {
             ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-                it.drawRect(_currentOrientation.pos, Configs.DRIVE_TRAIN.ROBOT_SIZE, _currentOrientation.angle, Color.BLACK)
+                it.drawRect(
+                    _currentOrientation.pos,
+                    Configs.DRIVE_TRAIN.ROBOT_SIZE,
+                    _currentOrientation.angle,
+                    Color.BLACK
+                )
             }
 
             HotRun.LAZY_INSTANCE.opModeInitEvent += {
-                _thread.start()
+                if (Configs.CAMERA.CAMERA_ENABLE)
+                    _thread.start()
             }
 
             HotRun.LAZY_INSTANCE.opModeStopEvent += {
