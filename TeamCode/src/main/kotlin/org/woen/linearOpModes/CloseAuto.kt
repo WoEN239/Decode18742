@@ -2,6 +2,7 @@ package org.woen.linearOpModes
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import com.qualcomm.robotcore.hardware.DcMotor
@@ -10,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 
 @Autonomous
+@Disabled
 class CloseAuto: LinearOpMode() {
     override fun runOpMode() {
         val _computer = hardwareMap.get("odometry") as GoBildaPinpointDriver

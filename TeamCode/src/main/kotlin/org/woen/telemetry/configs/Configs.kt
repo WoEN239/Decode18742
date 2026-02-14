@@ -193,7 +193,7 @@ object Configs {
         var ROAD_RUNNER_VEL_H_P = 0.0
 
         @JvmField
-        var ROAD_RUNNER_TRANSLATE_VELOCITY = 1.8
+        var ROAD_RUNNER_TRANSLATE_VELOCITY = 1.9
 
         @JvmField
         var ROAD_RUNNER_ROTATE_VELOCITY = 7.0
@@ -202,10 +202,10 @@ object Configs {
         var ROAD_RUNNER_ROTATE_ACCEL = 14.0
 
         @JvmField
-        var ROAD_RUNNER_MIN_TRANSLATION_ACCEL = -2.0
+        var ROAD_RUNNER_MIN_TRANSLATION_ACCEL = -10.0
 
         @JvmField
-        var ROAD_RUNNER_MAX_TRANSLATION_ACCEL = 2.0
+        var ROAD_RUNNER_MAX_TRANSLATION_ACCEL = 10.0
     }
 
     @Config
@@ -282,7 +282,7 @@ object Configs {
 
         @JvmField
         var ROTATE_SERVO_REGULATOR =
-            RegulatorParameters(kP = 0.8, kD = 0.015, limitU = 1.0)
+            RegulatorParameters(kP = 0.85, kD = 0.015, limitU = 1.0)
 
         @JvmField
         var MAX_ROTATE = Math.toRadians(343.0) - ZERO_ROTATE_POS
@@ -391,7 +391,7 @@ object Configs {
         var PART_BALL_PUSHING_MS: Long = 333
 
         @JvmField
-        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 370        //  9.0V configuration
+        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500        //  9.0V configuration
 
         //        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
         @JvmField

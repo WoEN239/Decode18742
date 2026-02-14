@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.hardware.adafruit.AdafruitI2cColorSensor
 import com.qualcomm.hardware.ams.AMSColorSensor
 import com.qualcomm.hardware.rev.RevColorSensorV3
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.ColorSensor
@@ -11,6 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import woen239.FixColorSensor.fixSensor
 
 @TeleOp(group = "tests")
+@Disabled
 class ColorSensorTest : LinearOpMode() {
     override fun runOpMode() {
         val sensor = hardwareMap.get("rightColorSensor") as RevColorSensorV3//fixSensor(hardwareMap.get("color") as AdafruitI2cColorSensor)

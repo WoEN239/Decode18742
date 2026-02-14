@@ -1,6 +1,7 @@
 package org.woen.tests
 
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -15,6 +16,7 @@ import kotlin.math.pow
 import kotlin.math.sign
 
 @TeleOp(group = "tests")
+@Disabled
 class DriveTrainTest : LinearOpMode() {
     lateinit var leftForwardDrive: DcMotorEx
     lateinit var leftBackDrive: DcMotorEx

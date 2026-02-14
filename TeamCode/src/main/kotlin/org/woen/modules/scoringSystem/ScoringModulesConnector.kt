@@ -29,6 +29,7 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
+import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 import org.woen.modules.scoringSystem.storage.OdometryIsAlignedForShootingEvent
 
@@ -208,39 +209,39 @@ class ScoringModulesConnector
 //                    )   )
 //        }   )   )
 
-//        GamepadLI.addGamepad1Listener(createClickDownListener(
-//            { it.left_trigger > 0.5 }, {
-//
-//                    if (EventBusLI.invoke(TerminateIntakeEvent()).stoppingResult)
-//                    {
-//                        _runStatus.safeRemoveThisProcessIdFromQueue(
-//                            _runStatus.getCurrentActiveProcess())
-//                        _runStatus.clearCurrentActiveProcess()
-//                    }
-//                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
-//
-//                    reverseAndThenStartBrushesAfterTimePeriod(REVERSE_TIME)
-//
-//                    logM.logMd("\nSTOP  - INTAKE - GAMEPAD", GAMEPAD_FEEDBACK)
-//                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
-//        }   )   )
-//
-//
-//
-//        GamepadLI.addGamepad1Listener(createClickDownListener(
-//                { it.left_bumper }, {
-//
-//                    val activeProcessId = _runStatus.getCurrentActiveProcess()
-//                    if (activeProcessId == DRUM_REQUEST ||
-//                        activeProcessId == SINGLE_REQUEST)
-//                        _runStatus.addProcessToTerminationList(activeProcessId)
-//
-//                    EventBusLI.invoke(TerminateRequestEvent())
-//                    EventBusLI.invoke(SetDriveModeEvent(DriveMode.DRIVE))
-//
-//                    logM.logMd("STOP  - ANY Request - GAMEPAD", GAMEPAD_FEEDBACK)
-//                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
-//        }   )   )
+        GamepadLI.addGamepad1Listener(createClickDownListener(
+            { it.left_trigger > 0.5 }, {
+
+                    if (EventBusLI.invoke(TerminateIntakeEvent()).stoppingResult)
+                    {
+                        _runStatus.removeProcessFromQueue(
+                            _runStatus.getActiveProcess())
+                        _runStatus.clearActiveProcess()
+                    }
+                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
+
+                    reverseAndThenStartBrushesAfterTimePeriod(BRUSH.REVERSE_TIME)
+
+                    logM.logMd("\nSTOP  - INTAKE - GAMEPAD", Debug.GAMEPAD)
+                    logM.logMd("isBusy: $isUsedByAnyProcess", Debug.RACE_CONDITION)
+        }   )   )
+
+
+
+        GamepadLI.addGamepad1Listener(createClickDownListener(
+                { it.left_bumper }, {
+
+                    val activeProcessId = _runStatus.getActiveProcess()
+                    if (activeProcessId == ProcessId.DRUM_REQUEST ||
+                        activeProcessId == ProcessId.SINGLE_REQUEST)
+                        _runStatus.addProcessToTermination(activeProcessId)
+
+                    EventBusLI.invoke(TerminateRequestEvent())
+                    EventBusLI.invoke(SetDriveModeEvent(DriveMode.DRIVE))
+
+                    logM.logMd("STOP  - ANY Request - GAMEPAD", Debug.GAMEPAD)
+                    logM.logMd("isBusy: $isUsedByAnyProcess", Debug.RACE_CONDITION)
+        }   )   )
 
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.right_bumper }, {

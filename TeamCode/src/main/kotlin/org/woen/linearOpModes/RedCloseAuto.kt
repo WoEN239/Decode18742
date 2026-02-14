@@ -8,7 +8,6 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.hotRun.HotRun
 
 @Autonomous(name = "ТУТ КРАСНЫЙ, НЕ ПЕРЕПУТАТЬ!!!!!")
-@Disabled
 class RedCloseAuto : LinearOpMode() {
     override fun runOpMode() {
         HotRun.LAZY_INSTANCE.currentStartPosition = HotRun.StartPosition.RED_CLOSE

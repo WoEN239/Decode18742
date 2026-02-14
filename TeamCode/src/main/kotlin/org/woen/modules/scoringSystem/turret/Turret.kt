@@ -89,7 +89,7 @@ class Turret : IModule {
             val t = x / (v0 * cos(alpha))
 
             val robotGlobalVelocity =
-                odometry.odometryVelocity.turn(odometry.odometryOrientation.angle) * Configs.TURRET.PULLEY_U
+                odometry.odometryVelocity.turn(odometry.odometryOrientation.angle)
 
             val robotV = robotGlobalVelocity.length()
             val difH = robotGlobalVelocity.rot() - basketErr.rot()

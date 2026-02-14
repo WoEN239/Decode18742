@@ -2,6 +2,7 @@ package org.woen.tests
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import org.woen.telemetry.configs.Configs
 
 @TeleOp(group = "tests")
+@Disabled
 class PinpointTest : LinearOpMode() {
     override fun runOpMode() {
         val pinpoint = hardwareMap.get("odometry") as GoBildaPinpointDriver

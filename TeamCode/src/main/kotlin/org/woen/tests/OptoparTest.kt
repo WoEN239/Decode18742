@@ -2,6 +2,7 @@ package org.woen.tests
 
 
 import com.acmerobotics.dashboard.FtcDashboard
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.AnalogInput
@@ -10,6 +11,7 @@ import org.woen.telemetry.configs.Configs
 
 
 @TeleOp(group = "tests")
+@Disabled
 class OpticTest : LinearOpMode() {
     override fun runOpMode() {
         val optic1 =

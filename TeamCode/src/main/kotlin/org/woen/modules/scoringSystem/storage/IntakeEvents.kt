@@ -19,7 +19,7 @@ class StorageGetReadyForIntakeEvent(
 
 data class StartLazyIntakeEvent(
     var startingResult: Boolean = false) : StoppingEvent
-class StopLazyIntakeEvent()
+class StopLazyIntakeEvent() : StoppingEvent
 
 
 

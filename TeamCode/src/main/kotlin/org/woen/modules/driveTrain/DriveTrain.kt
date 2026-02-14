@@ -76,7 +76,7 @@ class DriveTrain : IModule {
                             _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.pos.x),
                             _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.pos.y)
                         ).turn(-odometry.odometryOrientation.angle)*/ _targetTranslateVelocity,
-                        _targetRotateVelocity //_hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
+                        _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
                     )
                 }
 

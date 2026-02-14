@@ -2,6 +2,7 @@ package org.woen.tests
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.config.Config
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotorEx
@@ -12,6 +13,7 @@ import org.woen.utils.regulator.RegulatorParameters
 import kotlin.math.PI
 
 @Config
+@Disabled
 internal object AXON_TEST {
     @JvmField
     var TARGET_POSITION = 0.0
@@ -21,6 +23,7 @@ internal object AXON_TEST {
 }
 
 @TeleOp(group = "tests")
+@Disabled
 class AxonTest : LinearOpMode() {
     override fun runOpMode() {
         val servo = InfinityAxon("turretRotateServo", "turretRotateEncoder", hardwareMap, regulator = AXON_TEST.REGULATOR)
