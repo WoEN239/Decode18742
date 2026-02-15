@@ -37,6 +37,7 @@ import org.woen.modules.scoringSystem.storage.OdometryIsAlignedForShootingEvent
 import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 
+import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
@@ -53,12 +54,9 @@ import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.ProcessId
 import org.woen.telemetry.configs.Configs.BRUSH
+import org.woen.telemetry.configs.RobotSettings
 import org.woen.telemetry.configs.RobotSettings.TELEOP
-
-
-import org.woen.telemetry.configs.RobotSettings.CONTROLS.DRIVE_TO_SHOOTING_ZONE
-import org.woen.telemetry.configs.RobotSettings.CONTROLS.IGNORE_DUPLICATE_SHOOTING_COMMAND
-import org.woen.telemetry.configs.RobotSettings.CONTROLS.TRY_TERMINATE_INTAKE_WHEN_SHOOTING
+import org.woen.telemetry.configs.RobotSettings.CONTROLS
 
 
 
@@ -70,12 +68,8 @@ class ScoringModulesConnector
 {
     private val _storage   = SortingStorage()
     private val _runStatus = RunStatus(ProcessId.PRIORITY_SETTING_FOR_SMC)
-    val logM = LogManager(
-         Debug.SMC_DEBUG_SETTING,
-        Debug.SMC_WARNING_SETTING,
-         Debug.SMC_DEBUG_LEVELS,
-        Debug.SMC_WARNING_LEVELS,
-        "SMC")
+    private val logM = LogManager(Debug.SMC)
+    //  don't use _naming for shortening reasons
 
 //    private val _shotWasFired      = AtomicBoolean(false)
 
@@ -97,8 +91,10 @@ class ScoringModulesConnector
         EventBusLI.subscribe(StorageGetReadyForIntakeEvent::class, {
                 SmartCoroutineLI.launch {
 
-                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.ORANGE))
+                    if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO
+                        && RobotSettings.AUTONOMOUS.IGNORE_COLOR_SENSORS) return@launch
 
+                    EventBusLI.invoke(SetLightColorEvent(Light.LightColor.ORANGE))
                     startIntakeProcess(it.inputToBottomSlot)
                 }
         }   )
@@ -149,28 +145,28 @@ class ScoringModulesConnector
     }
     private fun subscribeToGamepad()
     {
-//        GamepadLI.addGamepad1Listener(createClickDownListener(
-//                { it.right_trigger > 0.5 }, {
-//
-//                    logM.logMd("Gamepad: try start lazy intake", GAMEPAD_FEEDBACK)
-//                    val startingResult = EventBusLI.invoke(StartLazyIntakeEvent())
-//
-//                    if (startingResult.startingResult)
-//                    {
-//                        startBrushes()
-//                        setActiveProcess(LAZY_INTAKE)
-//                    }
-//                    else
-//                    {
-//                        EventBusLI.invoke(SetLightColorEvent(
-//                            Light.LightColor.BLUE))
-//
-//                        reverseBrushes(REVERSE_TIME)
-//                    }
-//
-//                    logM.logMd("\ntry start LazyIntake: ${startingResult.startingResult}",
-//                        ATTEMPTING_LOGIC)
-//        }   )   )
+        GamepadLI.addGamepad1Listener(createClickDownListener(
+                { it.right_trigger > 0.5 }, {
+
+                    logM.logMd("Gamepad: try start lazy intake", Debug.GAMEPAD)
+                    val startingResult = EventBusLI.invoke(StartLazyIntakeEvent())
+
+                    if (startingResult.startingResult)
+                    {
+                        startBrushes()
+                        setActiveProcess(ProcessId.LAZY_INTAKE)
+                    }
+                    else
+                    {
+                        EventBusLI.invoke(SetLightColorEvent(
+                            Light.LightColor.BLUE))
+
+                        reverseBrushes(BRUSH.REVERSE_TIME)
+                    }
+
+                    logM.logMd("\ntry start LazyIntake: " +
+                            "${startingResult.startingResult}", Debug.TRYING)
+        }   )   )
 
 
 //        GamepadLI.addGamepad1Listener(createClickDownListener(
@@ -197,18 +193,6 @@ class ScoringModulesConnector
 //                        RACE_CONDITION)
 //        }   )   )
 
-//        GamepadLI.addGamepad1Listener(createClickDownListener(
-//            { it.square }, {
-//
-//                EventBusLI.invoke(StorageUpdateAfterLazyIntakeEvent(
-//                        Shooting
-//                            .StockPattern
-//                            .Sequence
-//                            .Storage
-//                            .Name.GPP
-//                    )   )
-//        }   )   )
-
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.left_trigger > 0.5 }, {
 
@@ -229,7 +213,7 @@ class ScoringModulesConnector
 
 
         GamepadLI.addGamepad1Listener(createClickDownListener(
-                { it.left_bumper }, {
+            { it.left_bumper }, {
 
                     val activeProcessId = _runStatus.getActiveProcess()
                     if (activeProcessId == ProcessId.DRUM_REQUEST ||
@@ -290,45 +274,13 @@ class ScoringModulesConnector
 //                    logM.logMd("\nSTART - PPG Drum Request - GAMEPAD", GAMEPAD_FEEDBACK)
 //                    logM.logMd("isBusy: $isUsedByAnyProcess", RACE_CONDITION)
 //        }   )   )
-
-//        GamepadLI.addListener(
-//            createClickDownListener(
-//            { it.left_trigger > 0.75 }, {
-//
-//                    EventBusLI.invoke(
-//                        SetLightColorEvent(Light.LightColor.GREEN))
-//
-//                    EventBusLI.invoke(StorageGiveSingleRequest(BallRequest.Name.PURPLE))
-//
-//                    logM.logMd("\nSTART - PURPLE Request - GAMEPAD")
-//                    logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}", RACE_CONDITION)
-//        }   )   )
-//
-//        GamepadLI.addListener(
-//            createClickDownListener(
-//            { it.right_trigger > 0.75 }, {
-//
-//                    EventBusLI.invoke(
-//                        SetLightColorEvent(Light.LightColor.GREEN))
-//
-//                    EventBusLI.invoke(StorageGiveSingleRequest(BallRequest.Name.GREEN))
-//
-//                    logM.logMd("\nSTART - GREEN Request - GAMEPAD")
-//                    logM.logMd("isBusy: ${isBusy || _runningIntakeInstances.get() > 0}", RACE_CONDITION)
-//        }   )   )
     }
     private fun resetParametersToDefault()
     {
         _runStatus.fullResetToActiveState()
+        logM.reset(Debug.SMC)
 
 //        _shotWasFired.set(false)
-
-        logM.reset(
-             Debug.SMC_DEBUG_SETTING,
-            Debug.SMC_WARNING_SETTING,
-             Debug.SMC_DEBUG_LEVELS,
-            Debug.SMC_WARNING_LEVELS,
-            "SMC")
     }
 
 
@@ -442,10 +394,10 @@ class ScoringModulesConnector
 
     private suspend fun tryDrivingToShootingZone(processId: Int): Boolean
     {
-        logM.logMd("Attempting to drive to shooting zone: $DRIVE_TO_SHOOTING_ZONE",
-            Debug.TRYING)
+        logM.logMd("Attempting to drive to shooting zone: " +
+                "${CONTROLS.DRIVE_TO_SHOOTING_ZONE}", Debug.TRYING)
 
-        if (DRIVE_TO_SHOOTING_ZONE)
+        if (CONTROLS.DRIVE_TO_SHOOTING_ZONE)
         {
             val imDriving = EventBusLI.invoke(SetDriveModeEvent(
                 DriveMode.SHOOTING)).process
@@ -577,10 +529,10 @@ class ScoringModulesConnector
         _runStatus.setActiveProcess(processId)
     }
     private fun isDuplicateProcess(processId: Int)
-        = IGNORE_DUPLICATE_SHOOTING_COMMAND &&
+        = CONTROLS.IGNORE_DUPLICATE_SHOOTING_COMMAND &&
             _runStatus.isUsedByThisProcess(processId)
     private fun tryTerminateIntake()
-        = TRY_TERMINATE_INTAKE_WHEN_SHOOTING &&
+        = CONTROLS.TRY_TERMINATE_INTAKE_WHEN_SHOOTING &&
             isIntakeActive()
     private fun isIntakeActive(): Boolean
     {

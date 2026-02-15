@@ -71,143 +71,121 @@ object Debug
 
 
 
-
-
-    //  Sorting cells
     @JvmField
-    var CELLS_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+    var SAL = LogManager.Config(  //  Sorting Auto Logic
+        moduleName = "SAL",
+        warningLevels = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH),
+          debugLevels = arrayListOf(
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
+
+            GENERIC_INFO,
+            STATUS,
+            LOGIC_STEPS,
+
+            PROCESS_NAME,
+            TERMINATION)
+    )
+
     @JvmField
-    var CELLS_DEBUG_LEVELS  = arrayListOf(
-        HARDWARE,
-        HARDWARE_HIGH,
+    var SMC = LogManager.Config(  //  Scoring modules connector
+        moduleName = "SMC",
+        warningLevels = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH),
+          debugLevels = arrayListOf(
+            GAMEPAD_FEEDBACK,
+            EVENTS_FEEDBACK,
+            RACE_CONDITION,
 
-        GAMEPAD_FEEDBACK,
-        EVENTS_FEEDBACK,
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
 
-        ATTEMPTING_LOGIC,
-        PROCESS_STARTING,
-        PROCESS_ENDING,
+            GENERIC_INFO,
+            LOGIC_STEPS,
 
-        GENERIC_INFO,
-        STATUS,
-        LOGIC_STEPS,
+            PROCESS_NAME,
+            TERMINATION)
+    )
 
-        PROCESS_NAME,
-        TERMINATION)
+
+
     @JvmField
-    var CELLS_WARNING_SETTING = LogManager.DebugSetting.SHOW_EXCEPT_SELECTED_LEVELS
+    var SSL = LogManager.Config(  //  Sorting Storage Logic
+        moduleName = "SSL",
+        warningLevels = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH),
+          debugLevels = arrayListOf(
+            HARDWARE,
+            HARDWARE_HIGH,
+
+            GAMEPAD_FEEDBACK,
+            EVENTS_FEEDBACK,
+            RACE_CONDITION,
+
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
+
+            GENERIC_INFO,
+            LOGIC_STEPS,
+
+            PROCESS_NAME,
+            TERMINATION)
+    )
+
     @JvmField
-    var CELLS_WARNING_LEVELS  = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH)
+    var SSM = LogManager.Config(  //  Sorting storage module
+        moduleName = "SSM",
+        warningLevels = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH),
+          debugLevels = arrayListOf(
+            HARDWARE,
+            HARDWARE_HIGH,
+
+            GAMEPAD_FEEDBACK,
+            EVENTS_FEEDBACK,
+            RACE_CONDITION,
+
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
+
+            GENERIC_INFO,
+            LOGIC_STEPS,
+
+            PROCESS_NAME,
+            TERMINATION)
+    )
 
 
 
-    //  Sorting Storage Logic
     @JvmField
-    var SSL_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
+    var CELLS = LogManager.Config(  //  Storage cells
+        moduleName = "CELLS",
+        warningLevels = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH),
+          debugLevels = arrayListOf(
+            HARDWARE,
+            HARDWARE_HIGH,
+
+            GAMEPAD_FEEDBACK,
+            EVENTS_FEEDBACK,
+
+            ATTEMPTING_LOGIC,
+            PROCESS_STARTING,
+            PROCESS_ENDING,
+
+            GENERIC_INFO,
+            STATUS,
+            LOGIC_STEPS,
+
+            PROCESS_NAME,
+            TERMINATION)
+    )
+
     @JvmField
-    var SSL_DEBUG_LEVELS  = arrayListOf(
-        HARDWARE,
-        HARDWARE_HIGH,
-
-        GAMEPAD_FEEDBACK,
-        EVENTS_FEEDBACK,
-        RACE_CONDITION,
-
-        ATTEMPTING_LOGIC,
-        PROCESS_STARTING,
-        PROCESS_ENDING,
-
-        GENERIC_INFO,
-        LOGIC_STEPS,
-
-        PROCESS_NAME,
-        TERMINATION)
-    @JvmField
-    var SSL_WARNING_SETTING = LogManager.DebugSetting.SHOW_EXCEPT_SELECTED_LEVELS
-    @JvmField
-    var SSL_WARNING_LEVELS  = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH)
-
-
-
-    //  Sorting storage module
-    @JvmField
-    var SSM_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-    @JvmField
-    var SSM_DEBUG_LEVELS  = arrayListOf(
-        HARDWARE,
-        HARDWARE_HIGH,
-
-        GAMEPAD_FEEDBACK,
-        EVENTS_FEEDBACK,
-        RACE_CONDITION,
-
-        ATTEMPTING_LOGIC,
-        PROCESS_STARTING,
-        PROCESS_ENDING,
-
-        GENERIC_INFO,
-        LOGIC_STEPS,
-
-        PROCESS_NAME,
-        TERMINATION)
-    @JvmField
-    var SSM_WARNING_SETTING = LogManager.DebugSetting.SHOW_EXCEPT_SELECTED_LEVELS
-    @JvmField
-    var SSM_WARNING_LEVELS  = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH)
-
-
-
-    //  Sorting Auto Logic
-    @JvmField
-    var SAL_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-    @JvmField
-    var SAL_DEBUG_LEVELS  = arrayListOf(
-        ATTEMPTING_LOGIC,
-        PROCESS_STARTING,
-        PROCESS_ENDING,
-
-        GENERIC_INFO,
-        LOGIC_STEPS,
-
-        PROCESS_NAME,
-        TERMINATION)
-    @JvmField
-    var SAL_WARNING_SETTING = LogManager.DebugSetting.SHOW_EXCEPT_SELECTED_LEVELS
-    @JvmField
-    var SAL_WARNING_LEVELS  = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH)
-
-
-
-    //  Scoring modules connector
-    @JvmField
-    var SMC_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-    @JvmField
-    var SMC_DEBUG_LEVELS  = arrayListOf(
-        GAMEPAD_FEEDBACK,
-        EVENTS_FEEDBACK,
-        RACE_CONDITION,
-
-        ATTEMPTING_LOGIC,
-        PROCESS_STARTING,
-        PROCESS_ENDING,
-
-        GENERIC_INFO,
-        LOGIC_STEPS,
-
-        PROCESS_NAME,
-        TERMINATION)
-    @JvmField
-    var SMC_WARNING_SETTING = LogManager.DebugSetting.SHOW_EXCEPT_SELECTED_LEVELS
-    @JvmField
-    var SMC_WARNING_LEVELS  = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH)
-
-
-
-    //  Hardware sorting manager
-    @JvmField
-    var HSM_DEBUG_SETTING = LogManager.DebugSetting.SHOW_SELECTED_LEVELS
-    @JvmField
-    var HSM_DEBUG_LEVELS = arrayListOf(
+    var HSM = LogManager.Config(  //  Hardware sorting manager
+        moduleName = "HSM",
+        warningLevels = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH),
+          debugLevels = arrayListOf(
         HARDWARE,
         HARDWARE_HIGH,
 
@@ -223,8 +201,5 @@ object Debug
 
         PROCESS_NAME,
         TERMINATION)
-    @JvmField
-    var HSM_WARNING_SETTING = LogManager.DebugSetting.SHOW_EXCEPT_SELECTED_LEVELS
-    @JvmField
-    var HSM_WARNING_LEVELS  = arrayListOf(HARDWARE, HARDWARE_LOW, HARDWARE_HIGH)
+    )
 }

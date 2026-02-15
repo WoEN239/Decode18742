@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.AnalogInput
-import org.woen.telemetry.configs.Configs
+import org.woen.telemetry.configs.Hardware
 
 
 
@@ -15,9 +15,9 @@ import org.woen.telemetry.configs.Configs
 class OpticTest : LinearOpMode() {
     override fun runOpMode() {
         val optic1 =
-            hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.TURRET_OPTIC_1) as AnalogInput
+            hardwareMap.get(Hardware.DEVICE_NAMES.TURRET_OPTIC_1) as AnalogInput
         val optic2 =
-            hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.TURRET_OPTIC_2) as AnalogInput
+            hardwareMap.get(Hardware.DEVICE_NAMES.TURRET_OPTIC_2) as AnalogInput
 
         waitForStart()
         resetRuntime()

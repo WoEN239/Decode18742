@@ -15,12 +15,12 @@ import org.woen.threading.hardware.HardwareThreads
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 
-import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
+//import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 
 import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.Configs.DELAY
-import org.woen.telemetry.configs.RobotSettings.SORTING
+//import org.woen.telemetry.configs.RobotSettings.SORTING
 
 
 
@@ -29,14 +29,9 @@ class HwSortingManager
     private val _hwSorting = HwSorting()
     private val _hwSensors = HwSortingSensors()
 
-    val logM = LogManager(
-         Debug.HSM_DEBUG_SETTING,
-        Debug.HSM_WARNING_SETTING,
-         Debug.HSM_DEBUG_LEVELS,
-        Debug.HSM_WARNING_LEVELS,
-        "HSM")
+    val logM = LogManager(Debug.HSM)
 
-    val isStoppingBelts  = AtomicBoolean(false)
+//    val isStoppingBelts  = AtomicBoolean(false)
     val helpPushLastBall = AtomicBoolean(false)
 
     val canHandleIntake = AtomicBoolean(false)
@@ -69,36 +64,36 @@ class HwSortingManager
             }
         }
 
-        _hwSorting.beltsCurrentPeakedEvent +=
-        {
-            logM.logMdTag("BELTS - Current peaked", "StorageSensors", Debug.HW_LOW)
-
-            if (!isStoppingBelts.get())
-            {
-                isStoppingBelts.set(true)
-                logM.logMd("BELTS - Initiating current protection", Debug.HW_HIGH)
-
-                if (SORTING.USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS)
-//                    EventBusLI.invoke(WaitForTerminateIntakeEvent())
-
-                    if (SORTING.SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION)
-                    {
-                        do
-                        {
-                            logM.logMd("Belt current protection - " +
-                                    "attempting storage recalibration", Debug.HW_LOW)
-
-                            val recalibrateResult = EventBusLI.invoke(
-                                FillStorageWithUnknownColorsEvent()
-                            ).startingResult
-                        }
-                        while (SORTING.TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS
-                            && !recalibrateResult)
-                    }
-
-                isStoppingBelts.set(false)
-            }
-        }
+//        _hwSorting.beltsCurrentPeakedEvent +=
+//        {
+//            logM.logMdTag("BELTS - Current peaked", "StorageSensors", Debug.HW_LOW)
+//
+//            if (!isStoppingBelts.get())
+//            {
+//                isStoppingBelts.set(true)
+//                logM.logMd("BELTS - Initiating current protection", Debug.HW_HIGH)
+//
+//                if (SORTING.USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS)
+////                    EventBusLI.invoke(WaitForTerminateIntakeEvent())
+//
+//                    if (SORTING.SMART_RECALIBRATE_STORAGE_WITH_CURRENT_PROTECTION)
+//                    {
+//                        do
+//                        {
+//                            logM.logMd("Belt current protection - " +
+//                                    "attempting storage recalibration", Debug.HW_LOW)
+//
+//                            val recalibrateResult = EventBusLI.invoke(
+//                                FillStorageWithUnknownColorsEvent()
+//                            ).startingResult
+//                        }
+//                        while (SORTING.TRY_RECALIBRATE_WITH_CURRENT_UNTIL_SUCCESS
+//                            && !recalibrateResult)
+//                    }
+//
+//                isStoppingBelts.set(false)
+//            }
+//        }
     }
     private fun addDevices()
     {
@@ -111,12 +106,7 @@ class HwSortingManager
         stopAwaitingEating(false)
         fullCalibrate()
 
-        logM.reset(
-            Debug.HSM_DEBUG_SETTING,
-            Debug.HSM_WARNING_SETTING,
-            Debug.HSM_DEBUG_LEVELS,
-            Debug.HSM_WARNING_LEVELS,
-            "HSM")
+        logM.reset(Debug.HSM)
     }
 
 

@@ -14,10 +14,13 @@ import org.woen.utils.motor.MotorOnly
 import org.woen.utils.events.SimpleEvent
 
 import org.woen.telemetry.configs.Configs
-import org.woen.telemetry.ThreadedTelemetry
+import org.woen.telemetry.configs.Hardware
+
 import org.woen.threading.ThreadManager
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
+
 
 
 class ExpansionHardwareSimpleStorage : IHardwareDevice {
@@ -88,7 +91,7 @@ class ExpansionHardwareSimpleStorage : IHardwareDevice {
 
     override fun init(hardwareMap: HardwareMap) {
         _beltMotor =
-            MotorOnly(hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.STORAGE_BELT_MOTOR) as DcMotorEx)
+            MotorOnly(hardwareMap.get(Hardware.DEVICE_NAMES.STORAGE_BELT_MOTOR) as DcMotorEx)
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE

@@ -12,6 +12,34 @@ import org.woen.telemetry.configs.Debug
 
 class LogManager
 {
+    class Config(
+        var debugSetting:    DebugSetting = DebugSetting.SHOW_SELECTED_LEVELS,
+        var warningSetting:  DebugSetting = DebugSetting.SHOW_EXCEPT_SELECTED_LEVELS,
+        var debugLevels:   ArrayList<Int> = arrayListOf(
+            2, 3, 4, 5, 5, 7, 8, 9, 11, 12, 13, 14),
+        var warningLevels: ArrayList<Int> = arrayListOf(0),
+        var moduleName: String = "")
+
+
+    enum class DebugSetting
+    {
+        HIDE,
+        SHOW_EVERYTHING,
+
+        SHOW_SELECTED_LEVELS,
+        SHOW_EXCEPT_SELECTED_LEVELS,
+
+        SHOW_ABOVE_SELECTED_INCLUSIVE,
+        SHOW_ABOVE_SELECTED_EXCLUSIVE,
+
+        SHOW_BELOW_SELECTED_INCLUSIVE,
+        SHOW_BELOW_SELECTED_EXCLUSIVE
+    }
+
+
+
+
+
     private var _debugLevels   = AtomicIntegerArray(0)
     private var _warningLevels = AtomicIntegerArray(0)
 
@@ -22,12 +50,22 @@ class LogManager
 
 
 
+    constructor(config: Config)
+    { reset(config) }
     constructor(debugSetting:   DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
                 warningSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
                 debugLevels:   ArrayList<Int> = arrayListOf(0),
                 warningLevels: ArrayList<Int> = arrayListOf(0),
                 moduleName: String = "")
     { reset(debugSetting, warningSetting, debugLevels, warningLevels, moduleName) }
+    fun reset(config: Config)
+    {
+        reset(config.debugSetting,
+              config.warningSetting,
+              config.debugLevels,
+              config.warningLevels,
+              config.moduleName)
+    }
     fun reset(debugSetting:   DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
               warningSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
               debugLevels:   ArrayList<Int> = arrayListOf(0),
@@ -45,20 +83,18 @@ class LogManager
 
 
 
-    enum class DebugSetting
+    companion object
     {
-        HIDE,
-        SHOW_EVERYTHING,
+        fun log(s: String)
+            = ThreadedTelemetry.LAZY_INSTANCE.log(s)
+        fun log(vararg s: String)
+                = ThreadedTelemetry.LAZY_INSTANCE.log(*s)
 
-        SHOW_SELECTED_LEVELS,
-        SHOW_EXCEPT_SELECTED_LEVELS,
-
-        SHOW_ABOVE_SELECTED_INCLUSIVE,
-        SHOW_ABOVE_SELECTED_EXCLUSIVE,
-
-        SHOW_BELOW_SELECTED_INCLUSIVE,
-        SHOW_BELOW_SELECTED_EXCLUSIVE
+        fun logTag(s: String, tag: String)
+            = ThreadedTelemetry.LAZY_INSTANCE.logWithTag(s, tag)
     }
+
+
 
 
 

@@ -18,9 +18,7 @@ import org.woen.utils.updateCounter.UpdateCounter
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.hardware.IHardwareDevice
 
-import org.woen.telemetry.configs.Configs
-import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_L
-import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.INTAKE_COLOR_SENSOR_R
+import org.woen.telemetry.configs.Hardware
 
 
 
@@ -56,8 +54,12 @@ class HwSortingSensors() : IHardwareDevice {
 
     @SuppressLint("DefaultLocale")
     override fun init(hardwareMap: HardwareMap) {
-        _rightColor = hardwareMap.get(INTAKE_COLOR_SENSOR_R) as RevColorSensorV3
-        _leftColor = hardwareMap.get(INTAKE_COLOR_SENSOR_L) as RevColorSensorV3
+        _rightColor = hardwareMap.get(
+            Hardware.DEVICE_NAMES.INTAKE_COLOR_SENSOR_R)
+                as RevColorSensorV3
+        _leftColor  = hardwareMap.get(
+            Hardware.DEVICE_NAMES.INTAKE_COLOR_SENSOR_L)
+                as RevColorSensorV3
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _rightColor.gain = 4.0f
@@ -92,18 +94,18 @@ class HwSortingSensors() : IHardwareDevice {
             val leftColor = _leftColor.normalizedColors
             val rightColor = _rightColor.normalizedColors
 
-            _leftR = leftColor.red * Configs.STORAGE_SENSORS.MAXIMUM_READING
-            _leftG = leftColor.green * Configs.STORAGE_SENSORS.MAXIMUM_READING
-            _leftB = leftColor.blue * Configs.STORAGE_SENSORS.MAXIMUM_READING
+            _leftR = leftColor.red   * Hardware.SENSORS.MAXIMUM_READING
+            _leftG = leftColor.green * Hardware.SENSORS.MAXIMUM_READING
+            _leftB = leftColor.blue  * Hardware.SENSORS.MAXIMUM_READING
 
-            _rightR = rightColor.red * Configs.STORAGE_SENSORS.MAXIMUM_READING
-            _rightG = rightColor.green * Configs.STORAGE_SENSORS.MAXIMUM_READING
-            _rightB = rightColor.blue * Configs.STORAGE_SENSORS.MAXIMUM_READING
+            _rightR = rightColor.red   * Hardware.SENSORS.MAXIMUM_READING
+            _rightG = rightColor.green * Hardware.SENSORS.MAXIMUM_READING
+            _rightB = rightColor.blue  * Hardware.SENSORS.MAXIMUM_READING
 
             val leftGreen =
-                (_leftG - max(_leftR, _leftB)) > Configs.STORAGE_SENSORS.GREEN_THRESHOLD_LEFT
+                (_leftG - max(_leftR, _leftB)) > Hardware.SENSORS.GREEN_THRESHOLD_LEFT
             val rightGreen =
-                (_rightG - max(_rightR, _rightB)) > Configs.STORAGE_SENSORS.GREEN_THRESHOLD_RIGHT
+                (_rightG - max(_rightR, _rightB)) > Hardware.SENSORS.GREEN_THRESHOLD_RIGHT
 
             val combinedGreen = leftGreen || rightGreen
 
@@ -111,8 +113,8 @@ class HwSortingSensors() : IHardwareDevice {
                 colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.GREEN))
                 _greenTimer.reset()
                 _doubleCounter = 0
-            } else if (combinedGreen && _greenTimer.seconds() > Configs.STORAGE_SENSORS.DOUBLE_DETECT_TIMER &&
-                _doubleCounter < Configs.STORAGE_SENSORS.DOUBLE_DETECT_COUNT_MAX
+            } else if (combinedGreen && _greenTimer.seconds() > Hardware.SENSORS.DOUBLE_DETECT_TIMER &&
+                _doubleCounter < Hardware.SENSORS.DOUBLE_DETECT_COUNT_MAX
             ) {
                 colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.GREEN))
                 _greenTimer.reset()
@@ -146,9 +148,9 @@ class HwSortingSensors() : IHardwareDevice {
                 }
 
             val leftPurple =
-                _leftH in (Configs.STORAGE_SENSORS.MIN_PURPLE_H_LEFT..Configs.STORAGE_SENSORS.MAX_PURPLE_H_LEFT)
+                _leftH in (Hardware.SENSORS.MIN_PURPLE_H_LEFT..Hardware.SENSORS.MAX_PURPLE_H_LEFT)
             val rightPurple =
-                _rightH in (Configs.STORAGE_SENSORS.MIN_PURPLE_H_RIGHT..Configs.STORAGE_SENSORS.MAX_PURPLE_H_RIGHT)
+                _rightH in (Hardware.SENSORS.MIN_PURPLE_H_RIGHT..Hardware.SENSORS.MAX_PURPLE_H_RIGHT)
 
             val combinedPurple = leftPurple || rightPurple
 
@@ -156,8 +158,8 @@ class HwSortingSensors() : IHardwareDevice {
                 colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.PURPLE))
                 _purpleTimer.reset()
                 _doubleCounter = 0
-            } else if (combinedPurple && _purpleTimer.seconds() > Configs.STORAGE_SENSORS.DOUBLE_DETECT_TIMER &&
-                _doubleCounter < Configs.STORAGE_SENSORS.DOUBLE_DETECT_COUNT_MAX
+            } else if (combinedPurple && _purpleTimer.seconds() > Hardware.SENSORS.DOUBLE_DETECT_TIMER &&
+                _doubleCounter < Hardware.SENSORS.DOUBLE_DETECT_COUNT_MAX
             ) {
                 colorSensorsDetectedIntakeEvent.invoke(ColorSensorsData(Ball.Name.PURPLE))
                 _purpleTimer.reset()

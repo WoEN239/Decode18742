@@ -39,11 +39,7 @@ import org.woen.telemetry.configs.Configs.STORAGE.BELT_POWER_SLOW_MODE
 import org.woen.telemetry.configs.Configs.STORAGE.BELT_POWER_FAST_MODE
 import org.woen.telemetry.configs.Configs.STORAGE.BELT_POWER_SHOOT_MODE
 
-import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO
-import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO
-import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO
-import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO
-import org.woen.telemetry.configs.Configs.HARDWARE_DEVICES_NAMES.STORAGE_BELT_MOTOR
+import org.woen.telemetry.configs.Hardware
 
 
 
@@ -58,19 +54,19 @@ class HwSorting : IHardwareDevice
 
 
     val gateServo = ThreadedServo(
-        GATE_SERVO,
+        Hardware.DEVICE_NAMES.GATE_SERVO,
         startAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE)
 
     val pushServo = ThreadedServo(
-        PUSH_SERVO,
+        Hardware.DEVICE_NAMES.PUSH_SERVO,
         startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE)
 
     val launchServo = ThreadedServo(
-        LAUNCH_SERVO,
+        Hardware.DEVICE_NAMES.LAUNCH_SERVO,
         startAngle = 1.5 * PI * LAUNCH_SERVO_CLOSE_VALUE)
 
     val turretGateServo = ThreadedServo(
-        TURRET_GATE_SERVO,
+        Hardware.DEVICE_NAMES.TURRET_GATE_SERVO,
         startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE)
 
 
@@ -83,7 +79,10 @@ class HwSorting : IHardwareDevice
 
     override fun init(hardwareMap : HardwareMap)
     {
-        _beltMotors = MotorOnly(hardwareMap.get(STORAGE_BELT_MOTOR) as DcMotorEx)
+        _beltMotors = MotorOnly(
+            hardwareMap.get(
+                Hardware.DEVICE_NAMES.STORAGE_BELT_MOTOR)
+                    as DcMotorEx)
     }
 
 

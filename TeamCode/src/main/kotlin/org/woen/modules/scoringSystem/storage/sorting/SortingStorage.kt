@@ -59,12 +59,7 @@ import org.woen.telemetry.configs.RobotSettings.SHOOTING
 class SortingStorage
 {
     private val _storageLogic = SortingStorageLogic()
-    val logM = LogManager(
-         Debug.SSM_DEBUG_SETTING,
-        Debug.SSM_WARNING_SETTING,
-         Debug.SSM_DEBUG_LEVELS,
-        Debug.SSM_WARNING_LEVELS,
-        "SSM")
+    val logM = LogManager(Debug.SSM)
 
 
 
@@ -85,12 +80,7 @@ class SortingStorage
                 _storageLogic.storageCells.resetParametersToDefault()
                 _storageLogic.resetParametersToDefault()
 
-                logM.reset(
-                     Debug.SSM_DEBUG_SETTING,
-                    Debug.SSM_WARNING_SETTING,
-                     Debug.SSM_DEBUG_LEVELS,
-                    Debug.SSM_WARNING_LEVELS,
-                    "SSM")
+                logM.reset(Debug.SSM)
             }
         }
     }
@@ -443,7 +433,7 @@ class SortingStorage
 
     suspend fun streamDrumRequest():             RequestResult.Name
     {
-        return if (SHOOTING.USE_LAZY_VERSION_OF_STREAM_REQUEST)
+        return if (SHOOTING.USE_LAZY_VERSION_OF_STREAM_DRUM)
              lazyStreamDrumRequest()
         else fastStreamDrumRequest()
     }
@@ -455,7 +445,7 @@ class SortingStorage
         _storageLogic.runStatus.setActiveProcess(ProcessId.DRUM_REQUEST)
         logM.logMd("MODE: LAZY StreamDrum request", Debug.PROCESS_NAME)
 
-        _storageLogic.lazyStreamDrumRequest(MAX_BALL_COUNT)
+        _storageLogic.streamDrumRequest(MAX_BALL_COUNT)
 
         _storageLogic.resumeLogicAfterRequest(
             ProcessId.DRUM_REQUEST, false)

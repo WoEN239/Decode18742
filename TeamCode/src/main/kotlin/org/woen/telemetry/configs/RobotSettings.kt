@@ -96,7 +96,7 @@ object RobotSettings
     internal object SHOOTING
     {
         @JvmField
-        var USE_LAZY_VERSION_OF_STREAM_REQUEST = true
+        var USE_LAZY_VERSION_OF_STREAM_DRUM = true
 
         @JvmField
         var DO_WAIT_BEFORE_NEXT_SHOT = false
@@ -122,6 +122,10 @@ object RobotSettings
 
         @JvmField
         var MAX_ATTEMPTS_FOR_PATTERN_DETECTION = 0
+
+
+        @JvmField
+        var IGNORE_COLOR_SENSORS = true
     }
 
 

@@ -1,11 +1,16 @@
 package org.woen.modules.scoringSystem.simple
 
+import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.hardware.Servo
-import org.woen.telemetry.configs.Configs
-import org.woen.telemetry.ThreadedTelemetry
+
 import org.woen.threading.hardware.IHardwareDevice
+
+import org.woen.telemetry.configs.Configs
+import org.woen.telemetry.configs.Hardware
+import org.woen.telemetry.ThreadedTelemetry
+
+
 
 class ControlHardwareSimpleStorage : IHardwareDevice {
     private lateinit var _leftColorSensor: RevColorSensorV3
@@ -41,8 +46,8 @@ class ControlHardwareSimpleStorage : IHardwareDevice {
 //        _leftColorSensor = hardwareMap.get("leftColorSensor") as RevColorSensorV3
 //        _rightColorSensor = hardwareMap.get("rightColorSensor") as RevColorSensorV3
 
-        _gateServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.GATE_SERVO) as Servo
-        _pushServo = hardwareMap.get(Configs.HARDWARE_DEVICES_NAMES.PUSH_SERVO) as Servo
+        _gateServo = hardwareMap.get(Hardware.DEVICE_NAMES.GATE_SERVO) as Servo
+        _pushServo = hardwareMap.get(Hardware.DEVICE_NAMES.PUSH_SERVO) as Servo
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
             it.addData("isBall", isBall)

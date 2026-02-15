@@ -25,11 +25,9 @@ import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.utils.process.RunStatus
 import org.woen.telemetry.LogManager
 
-import org.woen.telemetry.configs.Configs.DELAY
-import org.woen.telemetry.configs.Configs.DELAY.BETWEEN_SHOTS_MS
-
 import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.ProcessId
+import org.woen.telemetry.configs.Configs.DELAY
 import org.woen.telemetry.configs.RobotSettings.SORTING
 import org.woen.telemetry.configs.RobotSettings.SHOOTING
 
@@ -44,28 +42,17 @@ class SortingStorageLogic
     val shotWasFired = AtomicBoolean(false)
 
     val runStatus = RunStatus(ProcessId.PRIORITY_SETTING_FOR_SSM)
-    val logM = LogManager(
-         Debug.SSL_DEBUG_SETTING,
-        Debug.SSL_WARNING_SETTING,
-         Debug.SSL_DEBUG_LEVELS,
-        Debug.SSL_WARNING_LEVELS,
-        "SSL")
+    val logM = LogManager(Debug.SSL)
 
 
 
     fun resetParametersToDefault()
     {
         dynamicMemoryPattern.fullReset()
-        shotWasFired.set(false)
-
         runStatus.fullResetToActiveState()
+        logM.reset(Debug.SSL)
 
-        logM.reset(
-            Debug.SSL_DEBUG_SETTING,
-            Debug.SSL_WARNING_SETTING,
-            Debug.SSL_DEBUG_LEVELS,
-            Debug.SSL_WARNING_LEVELS,
-            "SSL")
+        shotWasFired.set(false)
     }
 
 
@@ -291,9 +278,9 @@ class SortingStorageLogic
 
 
 
-    suspend fun lazyStreamDrumRequest(ballCount: Int)
+    suspend fun streamDrumRequest(ballCount: Int)
     {
-        logM.logMd("Starting Lazy stream shooting", Debug.START)
+        logM.logMd("Starting stream shooting, count: $ballCount", Debug.START)
 
         val beltPushTime = when (ballCount)
         {
@@ -318,7 +305,7 @@ class SortingStorageLogic
         val ballCount = storageCells.anyBallCount()
         logM.logMd("Expected shot count: $ballCount", Debug.GENERIC)
 
-        lazyStreamDrumRequest(ballCount)
+        streamDrumRequest(ballCount)
         return Request.SUCCESS_NOW_EMPTY
     }
 
@@ -382,8 +369,8 @@ class SortingStorageLogic
 
             if (isNowPerfectlySorted)
             {
-                lazyStreamDrumRequest(storageCells.anyBallCount())
-//                lazyStreamDrumRequest(2)
+                streamDrumRequest(storageCells.anyBallCount())
+//                streamDrumRequest(3)
                 return Request.SUCCESS_NOW_EMPTY
             }
 
@@ -464,8 +451,8 @@ class SortingStorageLogic
 
             if (isNowPerfectlySorted)
             {
-                lazyStreamDrumRequest(storageCells.anyBallCount())
-//                lazyStreamDrumRequest(2)
+                streamDrumRequest(storageCells.anyBallCount())
+//                streamDrumRequest(3)
                 return Request.SUCCESS_NOW_EMPTY
             }
 
@@ -678,7 +665,7 @@ class SortingStorageLogic
 
         storageCells.updateAfterRequest()
 
-        if (doWaitBeforeNextShot) delay(BETWEEN_SHOTS_MS)
+        if (doWaitBeforeNextShot) delay(DELAY.BETWEEN_SHOTS_MS)
 
         if (autoUpdatePatternWhenSucceed)
             dynamicMemoryPattern.removeFromTemporary()

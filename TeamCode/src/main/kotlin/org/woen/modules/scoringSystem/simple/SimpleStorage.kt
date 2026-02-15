@@ -12,6 +12,7 @@ import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
 import org.woen.modules.scoringSystem.turret.WaitRotateAtTarget
 import org.woen.telemetry.configs.Configs
+import org.woen.telemetry.configs.Hardware
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
@@ -33,12 +34,12 @@ class SimpleStorage : IModule {
     private var _storageJob: Job? = null
 
     private val _gateServo = ThreadedServo(
-        Configs.HARDWARE_DEVICES_NAMES.TURRET_GATE_SERVO,
+        Hardware.DEVICE_NAMES.TURRET_GATE_SERVO,
         startPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
     )
 
     private val _launchServo = ThreadedServo(
-        Configs.HARDWARE_DEVICES_NAMES.LAUNCH_SERVO,
+        Hardware.DEVICE_NAMES.LAUNCH_SERVO,
         startPosition = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
     )
 
