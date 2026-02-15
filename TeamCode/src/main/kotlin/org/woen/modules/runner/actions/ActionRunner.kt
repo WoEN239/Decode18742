@@ -21,7 +21,7 @@ import org.woen.hotRun.HotRun
 import org.woen.modules.camera.OnPatternDetectedEvent
 import org.woen.utils.smartMutex.SmartMutex
 
-import org.woen.telemetry.configs.Configs.DELAY
+import org.woen.telemetry.configs.Delay
 
 import org.woen.threading.ThreadManager
 import org.woen.modules.scoringSystem.storage.Alias.LogM
@@ -369,8 +369,8 @@ class ActionRunner private constructor() : DisposableHandle {
         while (_ballsInStorage.get() < _activeBallsInCycle.get()
             && waitingForIntakeFinishing < 5000)
         {
-            delay(DELAY.EVENT_AWAITING_MS)
-            waitingForIntakeFinishing += DELAY.EVENT_AWAITING_MS
+            delay(Delay.MS.AWAIT.EVENTS)
+            waitingForIntakeFinishing += Delay.MS.AWAIT.EVENTS
         }
 
         val eatenBallCount = _ballsInStorage.get()
@@ -422,8 +422,8 @@ class ActionRunner private constructor() : DisposableHandle {
         var waitingForPredictSortFinishing: Long = 0
         while (!_sortingIsFinished.get() && waitingForPredictSortFinishing < 4444)
         {
-            delay(DELAY.EVENT_AWAITING_MS)
-            waitingForPredictSortFinishing += DELAY.EVENT_AWAITING_MS
+            delay(Delay.MS.AWAIT.EVENTS)
+            waitingForPredictSortFinishing += Delay.MS.AWAIT.EVENTS
         }
     }
 
@@ -437,14 +437,14 @@ class ActionRunner private constructor() : DisposableHandle {
         _doneShooting.set(false)
         EventBusLI.invoke(StorageGiveStreamDrumRequest())
 
-        var waitingForSecondStreamMS: Long = 0
-        while (!_doneShooting.get() && waitingForSecondStreamMS < 1000)
+        var waitingForStreamMS: Long = 0
+        while (!_doneShooting.get() && waitingForStreamMS < 1000)
         {
-            delay(DELAY.EVENT_AWAITING_MS)
-            waitingForSecondStreamMS += DELAY.EVENT_AWAITING_MS
+            delay(Delay.MS.AWAIT.EVENTS)
+            waitingForStreamMS += Delay.MS.AWAIT.EVENTS
         }
 
-        if (waitingForSecondStreamMS > 1000)
+        if (waitingForStreamMS > 1000)
             EventBusLI.invoke(TerminateRequestEvent())
         else _ballsInStorage.set(0)
         //------------------------------------------------------------------------------------
@@ -457,8 +457,8 @@ class ActionRunner private constructor() : DisposableHandle {
         var waitingForCustomisableDrumMS: Long = 0
         while (!_doneShooting.get() && waitingForCustomisableDrumMS < 4444)
         {
-            delay(DELAY.EVENT_AWAITING_MS)
-            waitingForCustomisableDrumMS += DELAY.EVENT_AWAITING_MS
+            delay(Delay.MS.AWAIT.EVENTS)
+            waitingForCustomisableDrumMS += Delay.MS.AWAIT.EVENTS
         }
 
         if (waitingForCustomisableDrumMS > 4444)

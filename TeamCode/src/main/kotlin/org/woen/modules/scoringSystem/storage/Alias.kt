@@ -82,12 +82,6 @@ object Alias
         fun wasTerminated(name: RequestResult.Name) = RequestResult.wasTerminated(name)
     }
 
-    object Delay
-    {
-        val PART_PUSH = Configs.DELAY.PART_BALL_PUSHING_MS
-        val FULL_PUSH = Configs.DELAY.FULL_BALL_PUSHING_MS
-        val HALF_PUSH = Configs.DELAY.FULL_BALL_PUSHING_MS / 2
-    }
 
 
     val LogM get() = LogManager

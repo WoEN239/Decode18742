@@ -44,9 +44,6 @@ object Configs {
         var BRUSH_BIG_TARGET_CURRENT = 1000.0
 
         @JvmField
-        var BRUSH_STOP_TIME = 0.5
-
-        @JvmField
         var REVERSE_TIME: Long = 999
 
         @JvmField
@@ -305,86 +302,6 @@ object Configs {
 
         @JvmField
         var PULLEY_U = 0.48
-    }
-
-
-
-    @Config
-    internal object DELAY {
-
-        @JvmField
-        var INTAKE_RACE_CONDITION_MS: Long = 15
-
-        @JvmField
-        var LAZY_INTAKE_RACE_CONDITION_MS: Long = 15
-
-        @JvmField
-        var REQUEST_RACE_CONDITION_MS: Long = 10
-
-
-        @JvmField
-        var PREDICT_SORT_RACE_CONDITION_MS: Long = 10
-
-        @JvmField
-        var STORAGE_CALIBRATION_RACE_CONDITION_MS: Long = 10
-
-
-        @JvmField
-        var EVENT_AWAITING_MS: Long = 5
-
-        @JvmField
-        var HARDWARE_REQUEST_FREQUENCY_MS: Long = 5
-
-
-        @JvmField
-        var FULL_BALL_PUSHING_MS: Long = 444
-
-        @JvmField
-        var PART_BALL_PUSHING_MS: Long = 333
-
-        @JvmField
-        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500        //  9.0V configuration
-
-        //        var FIRE_3_BALLS_FOR_SHOOTING_MS: Long = 500      //  8.5V configuration
-        @JvmField
-        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 400
-
-        //        var FIRE_2_BALLS_FOR_SHOOTING_MS: Long = 444      //  8.5V configuration
-        @JvmField
-        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 200
-//        var FIRE_1_BALLS_FOR_SHOOTING_MS: Long = 222      //  8.5V configuration
-
-
-        @JvmField
-        var SHOOTING_REALIGNING_FORWARD_MS: Long = 222
-
-        @JvmField
-        var SORTING_REALIGNING_FORWARD_MS: Long = 444
-
-        @JvmField
-        var SORTING_REALIGNING_REVERSE_MS: Long = 75
-
-
-        @JvmField
-        var SMC_MAX_SHOT_AWAITING_MS: Long = 60
-
-        @JvmField
-//        var SSL_MAX_SHOT_AWAITING_MS: Long = 205     //  9.0V configuration
-        var SSL_MAX_SHOT_AWAITING_MS: Long = 245       //  8.5V configuration
-
-        @JvmField
-        var SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS: Long = 33333 / 3
-
-
-        @JvmField
-        var IGNORE_BELTS_CURRENT_AFTER_START_MS: Long = 200
-
-
-        @JvmField
-        var BETWEEN_SHOTS_MS: Long = 100
-
-        @JvmField
-        var BETWEEN_INTAKES_MS: Long = 500
     }
 
 

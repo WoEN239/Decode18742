@@ -21,7 +21,6 @@ import org.woen.hotRun.HotRun
 import org.woen.utils.process.RunStatus
 
 import org.woen.telemetry.LogManager
-import org.woen.telemetry.configs.Configs.DELAY
 import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.modules.driveTrain.SetDriveModeEvent
@@ -54,6 +53,7 @@ import org.woen.modules.scoringSystem.storage.Alias.NOTHING
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
 import org.woen.telemetry.configs.Debug
+import org.woen.telemetry.configs.Delay
 import org.woen.telemetry.configs.ProcessId
 import org.woen.telemetry.configs.Configs.BRUSH
 import org.woen.telemetry.configs.RobotSettings.CONTROLS
@@ -432,7 +432,7 @@ class ScoringModulesConnector
 
             while (!imDriving.closed.get() &&
                 !_runStatus.isForcedToTerminateThisProcess(processId))
-                delay(DELAY.EVENT_AWAITING_MS)
+                delay(Delay.MS.AWAIT.EVENTS)
         }
 
         logM.logMd("Finished driving, terminated: " +
@@ -517,7 +517,7 @@ class ScoringModulesConnector
         logM.logMd("Checking race condition before shooting", Debug.RACE_CONDITION)
         while (isUsedByAnyProcess)
         {
-            delay(DELAY.EVENT_AWAITING_MS)
+            delay(Delay.MS.AWAIT.EVENTS)
 
             if (isDuplicateProcess(processId))
             {

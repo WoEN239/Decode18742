@@ -26,7 +26,7 @@ import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
 import org.woen.telemetry.configs.Debug
-import org.woen.telemetry.configs.Configs.DELAY
+import org.woen.telemetry.configs.Delay
 import org.woen.telemetry.configs.RobotSettings.AUTONOMOUS
 
 
@@ -106,7 +106,7 @@ class SortingAutoLogic
 
                 return true
             }
-            delay(DELAY.EVENT_AWAITING_MS)
+            delay(Delay.MS.AWAIT.EVENTS)
         }
 
         logM.logMd("Failed to get pattern", Debug.TRYING)

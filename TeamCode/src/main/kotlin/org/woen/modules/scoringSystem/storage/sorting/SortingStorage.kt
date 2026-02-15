@@ -16,7 +16,6 @@ import org.woen.modules.camera.OnPatternDetectedEvent
 import org.woen.modules.light.Light.LightColor
 import org.woen.modules.light.SetLightColorEvent
 
-import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
@@ -45,8 +44,8 @@ import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
 import org.woen.telemetry.LogManager
 
 import org.woen.telemetry.configs.Debug
+import org.woen.telemetry.configs.Delay
 import org.woen.telemetry.configs.ProcessId
-import org.woen.telemetry.configs.Configs.DELAY
 import org.woen.telemetry.configs.RobotSettings.CONTROLS
 import org.woen.telemetry.configs.RobotSettings.SHOOTING
 
@@ -194,8 +193,8 @@ class SortingStorage
                 do
                 {
                     successfullyTerminated = terminateIntake()
-                    delay(DELAY.EVENT_AWAITING_MS)
-                    timeout += DELAY.EVENT_AWAITING_MS
+                    delay(Delay.MS.AWAIT.EVENTS)
+                    timeout       += Delay.MS.AWAIT.EVENTS
                 }
                 while (!successfullyTerminated && timeout < 1500)
 
@@ -475,7 +474,7 @@ class SortingStorage
              _storageLogic.terminateRequest(ProcessId.DRUM_REQUEST)
         else
         {
-            delay(Delay.HALF_PUSH)
+            delay(Delay.MS.PUSH.HALF)
             _storageLogic.resumeLogicAfterRequest(
                 ProcessId.DRUM_REQUEST,
                 _storageLogic.storageCells.isNotEmpty())
@@ -550,7 +549,7 @@ class SortingStorage
              _storageLogic.terminateRequest(ProcessId.DRUM_REQUEST)
         else
         {
-            delay(Delay.HALF_PUSH)
+            delay(Delay.MS.PUSH.HALF)
             _storageLogic.resumeLogicAfterRequest(
                 ProcessId.DRUM_REQUEST,
                 _storageLogic.storageCells.isNotEmpty())

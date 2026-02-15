@@ -15,7 +15,6 @@ import org.woen.modules.light.SetLightColorEvent
 
 import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
 
-import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
@@ -26,8 +25,8 @@ import org.woen.utils.process.RunStatus
 import org.woen.telemetry.LogManager
 
 import org.woen.telemetry.configs.Debug
+import org.woen.telemetry.configs.Delay
 import org.woen.telemetry.configs.ProcessId
-import org.woen.telemetry.configs.Configs.DELAY
 import org.woen.telemetry.configs.RobotSettings.SORTING
 import org.woen.telemetry.configs.RobotSettings.SHOOTING
 
@@ -63,8 +62,8 @@ class SortingStorageLogic
 
         if (runStatus.isUsedByAnyProcess()) return false
 
-        runStatus.addProcessToQueue(ProcessId.PREDICT_SORT)
-        delay(DELAY.PREDICT_SORT_RACE_CONDITION_MS)
+        runStatus.addProcessToQueue(   ProcessId.PREDICT_SORT)
+        delay(Delay.MS.RACE_CONDITION.PREDICT_SORT)
 
         return runStatus.isThisProcessHighestPriority(ProcessId.PREDICT_SORT)
     }
@@ -85,8 +84,8 @@ class SortingStorageLogic
 
         if (runStatus.isUsedByAnyProcess()) return false
 
-        runStatus.addProcessToQueue(ProcessId.STORAGE_CALIBRATION)
-        delay(DELAY.STORAGE_CALIBRATION_RACE_CONDITION_MS)
+        runStatus.addProcessToQueue(   ProcessId.STORAGE_CALIBRATION)
+        delay(Delay.MS.RACE_CONDITION.STORAGE_CALIBRATION)
 
         return runStatus.isThisProcessHighestPriority(ProcessId.STORAGE_CALIBRATION)
     }
@@ -107,8 +106,8 @@ class SortingStorageLogic
 
         if (runStatus.isUsedByAnyProcess()) return false
 
-        runStatus.addProcessToQueue(ProcessId.UPDATE_AFTER_LAZY_INTAKE)
-        delay(DELAY.LAZY_INTAKE_RACE_CONDITION_MS)
+        runStatus.addProcessToQueue(  ProcessId.UPDATE_AFTER_LAZY_INTAKE)
+        delay(Delay.MS.RACE_CONDITION.UPDATE_AFTER_LAZY_INTAKE)
 
         return runStatus.isThisProcessHighestPriority(ProcessId.UPDATE_AFTER_LAZY_INTAKE)
     }
@@ -149,7 +148,12 @@ class SortingStorageLogic
 
         logM.logMd("Currently not busy", Debug.RACE_CONDITION)
         runStatus.addProcessToQueue(processId)
-        delay(DELAY.INTAKE_RACE_CONDITION_MS)
+
+        delay(when (processId)
+        {
+                ProcessId.INTAKE -> Delay.MS.RACE_CONDITION.INTAKE
+                else        -> Delay.MS.RACE_CONDITION.LAZY_INTAKE
+        }   )
 
         logM.logMd("Highest processId: " +
                 "${runStatus.getHighestPriorityProcess(
@@ -182,10 +186,11 @@ class SortingStorageLogic
 
         if (doExtraRecalibration)
         {
-            storageCells.hwSortingM.reverseBeltsTime(Delay.PART_PUSH)
+            storageCells.hwSortingM.reverseBeltsTime(Delay.MS.PUSH.PART)
             storageCells.hwSortingM.closeTurretGate()
             storageCells.hwSortingM.slowStartBelts()
-            delay(Delay.HALF_PUSH)
+
+            delay(Delay.MS.PUSH.HALF)
             storageCells.hwSortingM.stopBelts()
         }
 
@@ -239,13 +244,20 @@ class SortingStorageLogic
     private suspend fun requestRaceConditionIsPresent(processId: Int):  Boolean
     {
         if (isForcedToTerminate(processId)) return false
-        else if (runStatus.isUsedByAnotherProcess(processId)) return true
+        else if (runStatus.isUsedByAnotherProcess(
+                processId)) return true
 
 
         runStatus.addProcessToQueue(processId)
         storageCells.hwSortingM.stopAwaitingEating(true)
 
-        delay(DELAY.REQUEST_RACE_CONDITION_MS)
+        delay(when (processId)
+        {
+                ProcessId.SINGLE_REQUEST
+                     -> Delay.MS.RACE_CONDITION.SINGLE_REQUEST
+                else -> Delay.MS.RACE_CONDITION.DRUM_REQUEST
+        }   )
+
         return !runStatus.isThisProcessHighestPriority(processId)
     }
     suspend fun cantHandleRequestRaceCondition(processId: Int): Boolean
@@ -254,7 +266,7 @@ class SortingStorageLogic
         runStatus.removeProcessFromTermination(processId)
 
         while (requestRaceConditionIsPresent(processId))
-            delay(DELAY.EVENT_AWAITING_MS)
+            delay(Delay.MS.AWAIT.EVENTS)
 
         return isForcedToTerminate(processId)
     }
@@ -284,9 +296,9 @@ class SortingStorageLogic
 
         val beltPushTime = when (ballCount)
         {
-            3    -> DELAY.FIRE_3_BALLS_FOR_SHOOTING_MS
-            2    -> DELAY.FIRE_2_BALLS_FOR_SHOOTING_MS
-            else -> DELAY.FIRE_1_BALLS_FOR_SHOOTING_MS
+            3    -> Delay.MS.SHOOTING.FIRE_3
+            2    -> Delay.MS.SHOOTING.FIRE_2
+            else -> Delay.MS.SHOOTING.FIRE_1
         }
 
         logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
@@ -585,11 +597,11 @@ class SortingStorageLogic
         if (doAutoCalibration)
         {
             logM.logMd("Reversing belts for calibration", Debug.START)
-            storageCells.hwSortingM.reverseBeltsTime(Delay.PART_PUSH)
+            storageCells.hwSortingM.reverseBeltsTime(Delay.MS.PUSH.HALF)
             logM.logMd("Finished reversing", Debug.END)
 
             logM.logMd("Starting calibration", Debug.START)
-            storageCells.hwSortingM.forwardBeltsTime(Delay.HALF_PUSH)
+            storageCells.hwSortingM.forwardBeltsTime(Delay.MS.PUSH.HALF)
             storageCells.hwSortingM.fullCalibrate()
         }
         else storageCells.hwSortingM.fullCalibrate()
@@ -639,10 +651,11 @@ class SortingStorageLogic
         EventBusLI.invoke(Request.IsReadyEvent)
 
         var timePassedWaiting: Long = NOTHING.toLong()
-        while (!canShoot.get() && timePassedWaiting < DELAY.SSL_MAX_ODOMETRY_REALIGNMENT_AWAITING_MS)
+        while (!canShoot.get() && timePassedWaiting <
+            Delay.MS.AWAIT.ODOMETRY_TURNING)
         {
-            delay(DELAY.EVENT_AWAITING_MS)
-            timePassedWaiting += DELAY.EVENT_AWAITING_MS
+            delay(Delay.MS.AWAIT.EVENTS)
+            timePassedWaiting += Delay.MS.AWAIT.EVENTS
             if (isForcedToTerminate(processId)) return false
         }
 
@@ -652,10 +665,10 @@ class SortingStorageLogic
         storageCells.hwSortingM.smartPushNextBall()
 
         while (!shotWasFired.get() &&
-            timePassedWaiting < DELAY.SSL_MAX_SHOT_AWAITING_MS)
+            timePassedWaiting < Delay.MS.AWAIT.SSL_SHOT)
         {
-            delay(DELAY.EVENT_AWAITING_MS)
-            timePassedWaiting += DELAY.EVENT_AWAITING_MS
+            delay(Delay.MS.AWAIT.EVENTS)
+            timePassedWaiting += Delay.MS.AWAIT.EVENTS
             if (isForcedToTerminate(processId)) return false
         }
 
@@ -665,7 +678,7 @@ class SortingStorageLogic
 
         storageCells.updateAfterRequest()
 
-        if (doWaitBeforeNextShot) delay(DELAY.BETWEEN_SHOTS_MS)
+        if (doWaitBeforeNextShot) delay(Delay.MS.AWAIT.EVENTS)
 
         if (autoUpdatePatternWhenSucceed)
             dynamicMemoryPattern.removeFromTemporary()

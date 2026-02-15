@@ -14,7 +14,6 @@ import org.woen.telemetry.LogManager
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
-import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.NOTHING
@@ -22,6 +21,7 @@ import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 import org.woen.modules.scoringSystem.storage.Alias.STORAGE_SLOT_COUNT
 
 import org.woen.telemetry.configs.Debug
+import org.woen.telemetry.configs.Delay
 import org.woen.telemetry.configs.RobotSettings.ROBOT
 import org.woen.telemetry.configs.RobotSettings.SORTING
 import org.woen.telemetry.configs.RobotSettings.SORTING.PREDICT.TRUE_MATCH_WEIGHT
@@ -245,11 +245,11 @@ class StorageCells
         logAllStorageData()
 
         var curSlot = StorageSlot.BOTTOM
-        var rotationTime = Delay.PART_PUSH
+        var rotationTime = Delay.MS.PUSH.PART
         while (curSlot < StorageSlot.MOBILE && _storageCells[curSlot].isEmpty())
         {
             curSlot++
-            rotationTime += Delay.PART_PUSH
+            rotationTime += Delay.MS.PUSH.PART
         }
         curSlot--
 
@@ -345,7 +345,7 @@ class StorageCells
         hwSortingM.stopAwaitingEating(true)
 
         while (swReAdjustStorage())
-            hwSortingM.forwardBeltsTime(Delay.FULL_PUSH)
+            hwSortingM.forwardBeltsTime(Delay.MS.PUSH.FULL)
     }
 
 

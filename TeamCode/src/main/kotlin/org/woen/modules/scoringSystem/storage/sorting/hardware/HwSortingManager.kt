@@ -19,7 +19,7 @@ import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 
 import org.woen.telemetry.configs.Debug
-import org.woen.telemetry.configs.Configs.DELAY
+import org.woen.telemetry.configs.Delay
 //import org.woen.telemetry.configs.RobotSettings.SORTING
 
 
@@ -129,7 +129,7 @@ class HwSortingManager
             || !_hwSorting.pushServo.atTargetAngle
             || !_hwSorting.launchServo.atTargetAngle
             || !_hwSorting.turretGateServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+            delay(Delay.MS.HW_REQUEST_FREQUENCY)
 
         logM.logMd("Full calibration completed", Debug.HW_HIGH)
     }
@@ -141,7 +141,7 @@ class HwSortingManager
         _hwSorting.openGate()
 
         while (!_hwSorting.gateServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+            delay(Delay.MS.HW_REQUEST_FREQUENCY)
 
         logM.logMd("OPENED sorting gate", Debug.HW)
     }
@@ -151,7 +151,7 @@ class HwSortingManager
         _hwSorting.openPush()
 
         while (!_hwSorting.pushServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+            delay(Delay.MS.HW_REQUEST_FREQUENCY)
 
         logM.logMd("OPENED push", Debug.HW)
     }
@@ -173,7 +173,7 @@ class HwSortingManager
 
         while (!_hwSorting.pushServo.atTargetAngle
             || !_hwSorting.gateServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+            delay(Delay.MS.HW_REQUEST_FREQUENCY)
 
         logM.logMd("CLOSED sorting gate & push", Debug.HW)
     }
@@ -185,7 +185,7 @@ class HwSortingManager
         _hwSorting.openLaunch()
 
         while (!_hwSorting.launchServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+            delay(Delay.MS.HW_REQUEST_FREQUENCY)
 
         logM.logMd("OPENED kick", Debug.HW)
     }
@@ -195,7 +195,7 @@ class HwSortingManager
         _hwSorting.closeLaunch()
 
         while (!_hwSorting.launchServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+            delay(Delay.MS.HW_REQUEST_FREQUENCY)
 
         logM.logMd("CLOSED kick", Debug.HW)
     }
@@ -207,7 +207,7 @@ class HwSortingManager
         _hwSorting.openTurretGate()
 
         while (!_hwSorting.turretGateServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+            delay(Delay.MS.HW_REQUEST_FREQUENCY)
 
         logM.logMd("OPENED turret gate successfully", Debug.HW)
     }
@@ -217,7 +217,7 @@ class HwSortingManager
         _hwSorting.closeTurretGate()
 
         while (!_hwSorting.turretGateServo.atTargetAngle)
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS)
+            delay(Delay.MS.HW_REQUEST_FREQUENCY)
 
         logM.logMd("CLOSED turret gate successfully", Debug.HW)
     }
@@ -282,7 +282,7 @@ class HwSortingManager
         }
 
         while (!pushing.isCompleted)
-            delay(DELAY.EVENT_AWAITING_MS)
+            delay(Delay.MS.AWAIT.EVENTS)
     }
 
 
@@ -313,17 +313,17 @@ class HwSortingManager
         closeTurretGate()
 
 //        slowStartBelts()
-//        delay(DELAY.SORTING_REALIGNING_FORWARD_MS)
-        reverseBeltsTime(DELAY.SORTING_REALIGNING_REVERSE_MS)
+//        delay(Delay.MS.REALIGNMENT.SORTING_FORWARD)
+        reverseBeltsTime(Delay.MS.REALIGNMENT.SORTING_REVERSE)
 
         openGate()
         openPush()
 
         reverseBelts()
-        delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 8)
+        delay(Delay.MS.HW_REQUEST_FREQUENCY * 8)
 
         closeGateWithPush()
-        forwardBeltsTime(DELAY.SORTING_REALIGNING_FORWARD_MS)
+        forwardBeltsTime(Delay.MS.REALIGNMENT.SORTING_FORWARD)
     }
 
 
@@ -334,7 +334,7 @@ class HwSortingManager
 
         if (helpPushLastBall.get())
         {
-            delay(DELAY.HARDWARE_REQUEST_FREQUENCY_MS * 4)
+            delay(Delay.MS.HW_REQUEST_FREQUENCY * 4)
             openLaunch()
             helpPushLastBall.set(false)
         }
