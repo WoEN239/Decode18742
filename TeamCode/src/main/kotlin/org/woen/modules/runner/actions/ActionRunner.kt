@@ -35,6 +35,8 @@ import org.woen.modules.scoringSystem.turret.SetRotateStateEvent
 
 import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
+import org.woen.modules.scoringSystem.storage.Alias.LogM
+import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
@@ -43,10 +45,12 @@ import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 import org.woen.modules.scoringSystem.storage.sorting.DynamicPattern
+import org.woen.telemetry.LogManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
+
 
 
 class ActionRunner private constructor() : DisposableHandle {
@@ -493,20 +497,21 @@ class ActionRunner private constructor() : DisposableHandle {
         }
 
 
-//        EventBusLI.subscribe(FullFinishedFiringEvent::class, {
-//            ThreadedTelemetry.LAZY_INSTANCE.log("I RECEIVED FIRING EVENT")
-//            _doneShooting.set(true)
-//        })
-//        EventBusLI.subscribe(FullFinishedIntakeEvent::class, {
-//            _ballsInStorage.set(it.ballCountInStorage)
-//        })
         EventBusLI.subscribe(OnPatternDetectedEvent::class, {
-            _pattern.setPermanent(it.pattern.subsequence)
-            _patternWasDetected.set(true)
-        })
+                _pattern.setPermanent(it.pattern.subsequence)
+                _patternWasDetected.set(true)
+        }   )
+
+        EventBusLI.subscribe(FullFinishedFiringEvent::class, {
+                LogM.log("I RECEIVED FIRING EVENT")
+                _doneShooting.set(true)
+        }   )
+//        EventBusLI.subscribe(FullFinishedIntakeEvent::class, {
+//              _ballsInStorage.set(it.ballCountInStorage)
+//        }   )
 //        EventBusLI.subscribe(StorageFinishedPredictSortEvent::class, {
-//            _sortingIsFinished.set(true)
-//        })
+//              _sortingIsFinished.set(true)
+//        }   )
 
         HotRun.LAZY_INSTANCE.opModeStopEvent += {
             if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)

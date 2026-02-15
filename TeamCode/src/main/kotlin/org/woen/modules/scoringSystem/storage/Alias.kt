@@ -4,6 +4,7 @@ package org.woen.modules.scoringSystem.storage
 import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 
+import org.woen.telemetry.LogManager
 import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.configs.RobotSettings.ROBOT
 
@@ -88,6 +89,7 @@ object Alias
     }
 
 
+    val LogM get() = LogManager
     val GamepadLI  get() = ThreadedGamepad.LAZY_INSTANCE
     val EventBusLI get() = ThreadedEventBus.LAZY_INSTANCE
     val SmartCoroutineLI get() = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
