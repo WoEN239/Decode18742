@@ -57,8 +57,8 @@ class ControlHardwareSimpleStorage : IHardwareDevice {
     override fun opModeStart() {
         isBall = false
 
-        _gateServo.position = Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
-        _pushServo.position = Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
+        _gateServo.position = Hardware.VALUES.SERVO.GATE_CLOSE
+        _pushServo.position = Hardware.VALUES.SERVO.PUSH_CLOSE
     }
 
     override fun opModeStop() {

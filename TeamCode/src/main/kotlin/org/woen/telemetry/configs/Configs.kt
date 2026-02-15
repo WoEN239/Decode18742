@@ -2,10 +2,6 @@ package org.woen.telemetry.configs
 
 
 import kotlin.math.PI
-import kotlin.math.ceil
-import kotlin.math.max
-
-import com.qualcomm.robotcore.hardware.DcMotorSimple
 
 import com.acmerobotics.dashboard.config.Config
 import org.woen.telemetry.EventConfig
@@ -389,57 +385,6 @@ object Configs {
 
         @JvmField
         var BETWEEN_INTAKES_MS: Long = 500
-    }
-
-
-
-    @Config
-    internal object STORAGE {
-
-        @JvmField
-        var STORAGE_IS_FULL_BELTS_CURRENT = 8.1
-
-
-        @JvmField
-        var BELT_MOTORS_DIRECTION = DcMotorSimple.Direction.REVERSE
-
-
-        @JvmField
-        var GATE_SERVO_OPEN_VALUE = 0.78
-
-        @JvmField
-        var GATE_SERVO_CLOSE_VALUE = 0.355
-
-        @JvmField
-        var PUSH_SERVO_OPEN_VALUE = 0.31
-
-        @JvmField
-        var PUSH_SERVO_CLOSE_VALUE = 0.545
-
-        @JvmField
-        var LAUNCH_SERVO_OPEN_VALUE = 0.58
-
-        @JvmField
-        var LAUNCH_SERVO_CLOSE_VALUE = 0.96
-
-
-        @JvmField
-        var BELT_POWER_LAZY_MODE = 10.0
-
-        @JvmField
-        var BELT_POWER_FAST_MODE = 11.0
-
-        @JvmField
-        var BELT_POWER_SLOW_MODE = 10.0
-
-        @JvmField
-        var BELT_POWER_SHOOT_MODE = 11.0
-
-        @JvmField
-        var TURRET_GATE_SERVO_OPEN_VALUE = 0.7
-
-        @JvmField
-        var TURRET_GATE_SERVO_CLOSE_VALUE = 0.36
     }
 
 

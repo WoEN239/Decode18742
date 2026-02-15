@@ -58,8 +58,8 @@ class FarAuto: LinearOpMode() {
 
         pulleyMotor.power = 1.0
 
-        gateServo.position = Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
-        launchServo.position = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
+        gateServo.position   = Hardware.VALUES.SERVO.GATE_CLOSE
+        launchServo.position = Hardware.VALUES.SERVO.LAUNCH_CLOSE
 
         sleep(1500)
 
@@ -86,7 +86,7 @@ class FarAuto: LinearOpMode() {
 
         sleep(950)
 
-        launchServo.position = Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
+        launchServo.position = Hardware.VALUES.SERVO.LAUNCH_OPEN
 
         sleep(800)
 

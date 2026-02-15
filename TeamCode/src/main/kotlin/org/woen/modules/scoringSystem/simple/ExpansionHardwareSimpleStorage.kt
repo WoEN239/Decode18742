@@ -96,7 +96,7 @@ class ExpansionHardwareSimpleStorage : IHardwareDevice {
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
-            _beltMotor.direction = Configs.STORAGE.BELT_MOTORS_DIRECTION
+            _beltMotor.direction = Hardware.VALUES.BELTS.MOTORS_DIRECTION
         }
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {

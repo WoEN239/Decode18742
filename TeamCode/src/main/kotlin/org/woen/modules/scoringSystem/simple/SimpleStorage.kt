@@ -35,12 +35,12 @@ class SimpleStorage : IModule {
 
     private val _gateServo = ThreadedServo(
         Hardware.DEVICE_NAMES.TURRET_GATE_SERVO,
-        startPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
+        startPosition = Hardware.VALUES.SERVO.TURRET_GATE_CLOSE
     )
 
     private val _launchServo = ThreadedServo(
         Hardware.DEVICE_NAMES.LAUNCH_SERVO,
-        startPosition = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
+        startPosition = Hardware.VALUES.SERVO.LAUNCH_CLOSE
     )
 
     private var _currentShootCoroutine: Job? = null
@@ -52,7 +52,7 @@ class SimpleStorage : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.STOP))
 
-        _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
+        _gateServo.targetPosition = Hardware.VALUES.SERVO.TURRET_GATE_CLOSE
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetDriveModeEvent(DriveTrain.DriveMode.DRIVE))
 
         _isShooting = false
@@ -85,7 +85,7 @@ class SimpleStorage : IModule {
                     _hardwareExpansionStorage.beltState =
                         ExpansionHardwareSimpleStorage.BeltState.STOP
 
-                    _gateServo.targetPosition = Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
+                    _gateServo.targetPosition = Hardware.VALUES.SERVO.TURRET_GATE_OPEN
 
                     while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                         delay(5)
@@ -98,7 +98,7 @@ class SimpleStorage : IModule {
 
                     delay((Configs.SIMPLE_STORAGE.SHOOTING_TIME * 1000.0).toLong())
 
-                    _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
+                    _launchServo.targetPosition = Hardware.VALUES.SERVO.LAUNCH_OPEN
 
                     while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                         delay(5)
@@ -108,7 +108,7 @@ class SimpleStorage : IModule {
 
                     ThreadedGamepad.LAZY_INSTANCE.rumble1(0.5)
 
-                    _launchServo.targetPosition = Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
+                    _launchServo.targetPosition = Hardware.VALUES.SERVO.LAUNCH_CLOSE
 
                     while (!_launchServo.atTargetAngle && !Thread.currentThread().isInterrupted)
                         delay(5)

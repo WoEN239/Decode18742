@@ -373,7 +373,7 @@ class SortingStorage
 
         _storageLogic.runStatus.setActiveProcess(ProcessId.LAZY_INTAKE)
 
-        _storageLogic.storageCells.hwSortingM.slowStartBelts()
+        _storageLogic.storageCells.hwSortingM.lazyStartBelts()
     }
     private fun stopLazyIntake()
     {

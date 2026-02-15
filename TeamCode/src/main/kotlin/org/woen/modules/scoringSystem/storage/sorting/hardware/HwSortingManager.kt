@@ -228,6 +228,12 @@ class HwSortingManager
         logM.logMd("SHOOT Started hw belts", Debug.HW)
         _hwSorting.shootStartBeltMotors()
     }
+    fun lazyStartBelts()
+    {
+        logM.logMd("LAZY Started hw belts", Debug.HW)
+        _hwSorting.lazyStartBeltMotors()
+    }
+
     fun slowStartBelts()
     {
         logM.logMd("SLOW Started hw belts", Debug.HW)
@@ -237,7 +243,7 @@ class HwSortingManager
     fun startBelts()
     {
         logM.logMd("Started hw belts", Debug.HW)
-        _hwSorting.startBeltMotors()
+        _hwSorting.fastStartBeltMotors()
     }
     fun reverseBelts()
     {

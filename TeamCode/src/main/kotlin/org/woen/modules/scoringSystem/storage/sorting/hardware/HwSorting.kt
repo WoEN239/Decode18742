@@ -7,39 +7,17 @@ import java.util.concurrent.atomic.AtomicReference
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.util.ElapsedTime
-//import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
 import org.woen.utils.motor.MotorOnly
-import org.woen.utils.events.SimpleEmptyEvent
 
 import org.woen.threading.hardware.ThreadedServo
 import org.woen.threading.hardware.ThreadedBattery
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.IHardwareDevice
 
-//import org.woen.telemetry.configs.Configs.DELAY
-//import org.woen.telemetry.configs.Configs.STORAGE.STORAGE_IS_FULL_BELTS_CURRENT
-
-import org.woen.telemetry.configs.Configs.STORAGE.GATE_SERVO_OPEN_VALUE
-import org.woen.telemetry.configs.Configs.STORAGE.GATE_SERVO_CLOSE_VALUE
-
-import org.woen.telemetry.configs.Configs.STORAGE.PUSH_SERVO_OPEN_VALUE
-import org.woen.telemetry.configs.Configs.STORAGE.PUSH_SERVO_CLOSE_VALUE
-
-import org.woen.telemetry.configs.Configs.STORAGE.LAUNCH_SERVO_OPEN_VALUE
-import org.woen.telemetry.configs.Configs.STORAGE.LAUNCH_SERVO_CLOSE_VALUE
-
-import org.woen.telemetry.configs.Configs.STORAGE.TURRET_GATE_SERVO_OPEN_VALUE
-import org.woen.telemetry.configs.Configs.STORAGE.TURRET_GATE_SERVO_CLOSE_VALUE
-
-import org.woen.telemetry.configs.Configs.STORAGE.BELT_MOTORS_DIRECTION
-
-import org.woen.telemetry.configs.Configs.STORAGE.BELT_POWER_SLOW_MODE
-import org.woen.telemetry.configs.Configs.STORAGE.BELT_POWER_FAST_MODE
-import org.woen.telemetry.configs.Configs.STORAGE.BELT_POWER_SHOOT_MODE
-
 import org.woen.telemetry.configs.Hardware
+//import org.woen.telemetry.configs.Configs.DELAY
+//import org.woen.telemetry.configs.Hardware.VALUES.BELTS.STORAGE_CURRENT_WHEN_FULL
 
 
 
@@ -48,26 +26,26 @@ class HwSorting : IHardwareDevice
     private lateinit var _beltMotors : MotorOnly
     private val _beltMotorsPower = AtomicReference(0.0)
 
-    val beltsCurrentPeakedEvent  = SimpleEmptyEvent()
-    private val _currentNoiseFilterTimer = ElapsedTime()
+//    val beltsCurrentPeakedEvent  = SimpleEmptyEvent()
+//    private val _currentNoiseFilterTimer = ElapsedTime()
 
 
 
     val gateServo = ThreadedServo(
         Hardware.DEVICE_NAMES.GATE_SERVO,
-        startAngle = 1.5 * PI * GATE_SERVO_CLOSE_VALUE)
+        startAngle = 1.5 * PI * Hardware.VALUES.SERVO.GATE_CLOSE)
 
     val pushServo = ThreadedServo(
         Hardware.DEVICE_NAMES.PUSH_SERVO,
-        startAngle = 1.5 * PI * PUSH_SERVO_CLOSE_VALUE)
+        startAngle = 1.5 * PI * Hardware.VALUES.SERVO.PUSH_CLOSE)
 
     val launchServo = ThreadedServo(
         Hardware.DEVICE_NAMES.LAUNCH_SERVO,
-        startAngle = 1.5 * PI * LAUNCH_SERVO_CLOSE_VALUE)
+        startAngle = 1.5 * PI * Hardware.VALUES.SERVO.LAUNCH_CLOSE)
 
     val turretGateServo = ThreadedServo(
         Hardware.DEVICE_NAMES.TURRET_GATE_SERVO,
-        startAngle = 1.5 * PI * TURRET_GATE_SERVO_CLOSE_VALUE)
+        startAngle = 1.5 * PI * Hardware.VALUES.SERVO.TURRET_GATE_CLOSE)
 
 
 
@@ -94,7 +72,7 @@ class HwSorting : IHardwareDevice
         _beltMotors.power = ThreadedBattery.LAZY_INSTANCE.voltageToPower(_beltMotorsPower.get())
 
 //        val beltsCurrent = _beltMotors.getCurrent(CurrentUnit.AMPS)
-//        if (beltsCurrent > STORAGE_IS_FULL_BELTS_CURRENT)
+//        if (beltsCurrent > STORAGE_CURRENT_WHEN_FULL)
 //        {
 //            if (_currentNoiseFilterTimer.milliseconds()
 //                > DELAY.IGNORE_BELTS_CURRENT_AFTER_START_MS)
@@ -109,7 +87,7 @@ class HwSorting : IHardwareDevice
     override fun opModeStart()
     {
         _beltMotors.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        _beltMotors.direction = BELT_MOTORS_DIRECTION
+        _beltMotors.direction  = Hardware.VALUES.BELTS.MOTORS_DIRECTION
 
         fullCalibrate()
     }
@@ -117,50 +95,51 @@ class HwSorting : IHardwareDevice
 
 
 
-    fun shootStartBeltMotors() = _beltMotorsPower.set(  BELT_POWER_SHOOT_MODE)
-    fun slowStartBeltMotors()  = _beltMotorsPower.set(  BELT_POWER_SLOW_MODE)
-    fun startBeltMotors()      = _beltMotorsPower.set(  BELT_POWER_FAST_MODE)
-    fun reverseBeltMotors()    = _beltMotorsPower.set( -BELT_POWER_FAST_MODE)
+    fun shootStartBeltMotors() = _beltMotorsPower.set(  Hardware.VALUES.BELTS.POWER.SHOOT)
+    fun lazyStartBeltMotors()  = _beltMotorsPower.set(  Hardware.VALUES.BELTS.POWER.LAZY)
+    fun slowStartBeltMotors()  = _beltMotorsPower.set(  Hardware.VALUES.BELTS.POWER.SLOW)
+    fun fastStartBeltMotors()  = _beltMotorsPower.set(  Hardware.VALUES.BELTS.POWER.FAST)
+    fun reverseBeltMotors()    = _beltMotorsPower.set( -Hardware.VALUES.BELTS.POWER.FAST)
     fun stopBeltMotors()       = _beltMotorsPower.set(0.0)
 
 
 
     fun openGate()
     {
-        gateServo.targetPosition = GATE_SERVO_OPEN_VALUE
+        gateServo.targetPosition = Hardware.VALUES.SERVO.GATE_OPEN
     }
     fun closeGate()
     {
-        gateServo.targetPosition = GATE_SERVO_CLOSE_VALUE
+        gateServo.targetPosition = Hardware.VALUES.SERVO.GATE_CLOSE
     }
 
     fun openPush()
     {
-        pushServo.targetPosition = PUSH_SERVO_OPEN_VALUE
+        pushServo.targetPosition = Hardware.VALUES.SERVO.PUSH_OPEN
     }
     fun closePush()
     {
-        pushServo.targetPosition = PUSH_SERVO_CLOSE_VALUE
+        pushServo.targetPosition = Hardware.VALUES.SERVO.PUSH_CLOSE
     }
 
     fun openLaunch()
     {
-        launchServo.targetPosition = LAUNCH_SERVO_OPEN_VALUE
+        launchServo.targetPosition = Hardware.VALUES.SERVO.LAUNCH_OPEN
     }
     fun closeLaunch()
     {
-        launchServo.targetPosition = LAUNCH_SERVO_CLOSE_VALUE
+        launchServo.targetPosition = Hardware.VALUES.SERVO.LAUNCH_CLOSE
     }
 
 
 
     fun openTurretGate()
     {
-        turretGateServo.targetPosition = TURRET_GATE_SERVO_OPEN_VALUE
+        turretGateServo.targetPosition = Hardware.VALUES.SERVO.TURRET_GATE_OPEN
     }
     fun closeTurretGate()
     {
-        turretGateServo.targetPosition = TURRET_GATE_SERVO_CLOSE_VALUE
+        turretGateServo.targetPosition = Hardware.VALUES.SERVO.TURRET_GATE_CLOSE
     }
 
 

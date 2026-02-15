@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
 
 import org.woen.utils.events.SimpleEvent
-import org.woen.utils.events.SimpleEmptyEvent
+//import org.woen.utils.events.SimpleEmptyEvent
 import org.woen.utils.updateCounter.UpdateCounter
 
 import org.woen.telemetry.ThreadedTelemetry
@@ -36,7 +36,7 @@ class HwSortingSensors() : IHardwareDevice {
     private val _greenTimer = ElapsedTime()
     private val _purpleTimer = ElapsedTime()
 
-    val opticDetectedShotFiringEvent = SimpleEmptyEvent()
+//    val opticDetectedShotFiringEvent = SimpleEmptyEvent()
     val colorSensorsDetectedIntakeEvent = SimpleEvent<ColorSensorsData>()
     private val _updatesCounter = UpdateCounter()
 
