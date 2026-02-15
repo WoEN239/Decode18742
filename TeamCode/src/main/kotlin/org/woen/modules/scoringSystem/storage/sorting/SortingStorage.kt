@@ -11,19 +11,16 @@ import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.Shooting
 
-import org.woen.hotRun.HotRun
 import org.woen.modules.camera.OnPatternDetectedEvent
 
 import org.woen.modules.light.Light.LightColor
 import org.woen.modules.light.SetLightColorEvent
-import org.woen.modules.scoringSystem.brush.Brush
-import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
 import org.woen.modules.scoringSystem.storage.Alias.Delay
 import org.woen.modules.scoringSystem.storage.Alias.Intake
 import org.woen.modules.scoringSystem.storage.Alias.Request
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-//import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
+import org.woen.modules.scoringSystem.storage.Alias.HotRunLI
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
 
@@ -46,11 +43,10 @@ import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.WaitForTerminateIntakeEvent
 
 import org.woen.telemetry.LogManager
-import org.woen.telemetry.configs.Configs.DELAY
-//import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.ProcessId
+import org.woen.telemetry.configs.Configs.DELAY
 import org.woen.telemetry.configs.RobotSettings.CONTROLS
 import org.woen.telemetry.configs.RobotSettings.SHOOTING
 
@@ -67,11 +63,10 @@ class SortingStorage
     {
         subscribeToInfoEvents()
         subscribeToActionEvents()
-        subscribeToGamepadEvents()
         subscribeToTerminateEvents()
         subscribeToSecondDriverPatternRecalibration()
 
-        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+        HotRunLI.opModeInitEvent += {
             SmartCoroutineLI.launch {
                 terminateIntake()
                 terminateRequest()
@@ -129,9 +124,6 @@ class SortingStorage
                     SmartCoroutineLI.launch {
                         logM.logMd("IS IDLE = starting lazy intake", Debug.START)
 
-                        EventBusLI.invoke(SwitchBrushStateEvent(
-                            Brush.BrushState.FORWARD))
-
                         startLazyIntake()
                     }
 
@@ -187,41 +179,6 @@ class SortingStorage
                 else _storageLogic.runStatus
                     .removeProcessFromQueue(ProcessId.STORAGE_CALIBRATION)
         }   )
-    }
-    private fun subscribeToGamepadEvents()
-    {
-//        GamepadLI.addGamepad1Listener(
-//            createClickDownListener(
-//                { it.touchpadWasPressed() }, {
-//
-//                    logM.logMd("SSM: Touchpad start 100 rotation test", PROCESS_STARTING)
-//
-//                    _storageLogic.runStatus.addProcessToQueue(SORTING_TESTING)
-//                    SmartCoroutineLI.launch {
-//                        unsafeTestSorting()
-//                    }
-//                    _storageLogic.runStatus.safeRemoveThisProcessIdFromQueue(SORTING_TESTING)
-//                }
-//        )   )
-//
-//        GamepadLI.addGamepad1Listener(
-//            createClickDownListener({ it.ps }, {
-//
-//                    SmartCoroutineLI.launch {
-//
-//                        val pattern = arrayOf(
-//                            BallRequest.Name.PREFER_GREEN,
-//                            BallRequest.Name.PREFER_PURPLE,
-//                            BallRequest.Name.PREFER_PURPLE)
-//
-//                        val canInitiate = _storageLogic.canInitiatePredictSort()
-//                        logM.logMd("SSM: initiating result: $canInitiate",
-//                            PROCESS_STARTING)
-//
-//                        if (canInitiate)
-//                            _storageLogic.safeInitiatePredictSort(pattern)
-//                    }
-//        }   )   )
     }
     private fun subscribeToTerminateEvents()
     {
@@ -344,21 +301,27 @@ class SortingStorage
         else return true
     }
 
-//    fun unsafeTestSorting()
-//    {
-//        val fill = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
-//        _storageLogic.storageCells.updateAfterLazyIntake(fill)
-//
-//        SmartCoroutineLI.launch {
-//            var iteration = 0
-//            while (iteration < 100)
-//            {
-//                logM.logMd("\nIteration: $iteration", GENERIC_INFO)
-//
-//                _storageLogic.storageCells.fullRotate()
-//                iteration++
-//        }   }
-//    }
+    fun unsafeTestSorting()
+    {
+        _storageLogic.runStatus.setActiveProcess(ProcessId.SORTING_TESTING)
+        _storageLogic.runStatus.addProcessToQueue(ProcessId.SORTING_TESTING)
+
+        val fill = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
+        _storageLogic.storageCells.updateAfterLazyIntake(fill)
+
+        SmartCoroutineLI.launch {
+            var iteration = 0
+            while (iteration < 100)
+            {
+                logM.logMd("\nIteration: $iteration", Debug.GENERIC)
+
+                _storageLogic.storageCells.fullRotate()
+                iteration++
+        }   }
+
+        _storageLogic.runStatus.clearActiveProcess()
+        _storageLogic.runStatus.removeProcessFromQueue(ProcessId.SORTING_TESTING)
+    }
 //    suspend fun hwSmartPushNextBall()
 //        = _storageLogic.storageCells.hwSortingM.smartPushNextBall()
     fun alreadyFull() = _storageLogic.storageCells.alreadyFull()
@@ -368,8 +331,6 @@ class SortingStorage
     private fun startLazyIntake()
     {
         logM.logMd("Started LazyIntake", Debug.START)
-
-        EventBusLI.invoke(SetLightColorEvent(LightColor.ORANGE))
 
         _storageLogic.runStatus.setActiveProcess(ProcessId.LAZY_INTAKE)
 

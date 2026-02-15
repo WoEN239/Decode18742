@@ -143,6 +143,9 @@ object RobotSettings
 
 
         @JvmField
+        var IGNORE_COLOR_SENSORS = true
+
+        @JvmField
         var PATTERN_SHOOTING_MODE = Shooting.Mode.FIRE_PATTERN_CAN_SKIP
     }
 }

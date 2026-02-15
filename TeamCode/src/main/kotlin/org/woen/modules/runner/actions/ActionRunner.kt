@@ -24,6 +24,8 @@ import org.woen.utils.smartMutex.SmartMutex
 import org.woen.telemetry.configs.Configs.DELAY
 
 import org.woen.threading.ThreadManager
+import org.woen.modules.scoringSystem.storage.Alias.LogM
+import org.woen.modules.scoringSystem.storage.Alias.HotRunLI
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 
 import org.woen.modules.runner.segment.RRTrajectorySegment
@@ -35,7 +37,6 @@ import org.woen.modules.scoringSystem.turret.SetRotateStateEvent
 
 import org.woen.modules.scoringSystem.DefaultFireEvent
 import org.woen.modules.scoringSystem.simple.SimpleShootEvent
-import org.woen.modules.scoringSystem.storage.Alias.LogM
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
@@ -45,8 +46,6 @@ import org.woen.modules.scoringSystem.storage.StorageUpdateAfterLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateIntakeEvent
 import org.woen.modules.scoringSystem.storage.TerminateRequestEvent
 import org.woen.modules.scoringSystem.storage.sorting.DynamicPattern
-import org.woen.telemetry.LogManager
-import org.woen.threading.ThreadedEventBus
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
@@ -87,10 +86,10 @@ class ActionRunner private constructor() : DisposableHandle {
     }
 
     private val _yColorMultiplier
-        get() = if (HotRun.LAZY_INSTANCE.currentStartPosition.color == HotRun.RunColor.BLUE) 1.0 else -1.0
+        get() = if (HotRunLI.currentStartPosition.color == HotRun.RunColor.BLUE) 1.0 else -1.0
 
     private val _hColorMultiplier
-        get() = if (HotRun.LAZY_INSTANCE.currentStartPosition.color == HotRun.RunColor.BLUE) 1.0 else -1.0
+        get() = if (HotRunLI.currentStartPosition.color == HotRun.RunColor.BLUE) 1.0 else -1.0
 
     private val _eatVelConstant = MinVelConstraint(
         listOf(
@@ -100,7 +99,7 @@ class ActionRunner private constructor() : DisposableHandle {
     )
 
     private val _shootingOrientation
-        get() = HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
+        get() = HotRunLI.currentStartPosition.shootingOrientation
 
     private val _eatOrientation
         get() = Orientation(Vec2(0.304, -1.1450 * _yColorMultiplier), Angle.ofDeg(-130.223 * _hColorMultiplier))
@@ -483,7 +482,7 @@ class ActionRunner private constructor() : DisposableHandle {
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
-            if (HotRun.LAZY_INSTANCE.currentStartPosition.position == HotRun.RunPosition.CLOSE) {
+            if (HotRunLI.currentStartPosition.position == HotRun.RunPosition.CLOSE) {
                 closeAuto12()
             }
         }
@@ -491,8 +490,8 @@ class ActionRunner private constructor() : DisposableHandle {
 
 
     fun init() {
-        HotRun.LAZY_INSTANCE.opModeStartEvent += {
-            if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)
+        HotRunLI.opModeStartEvent += {
+            if (HotRunLI.currentRunMode == HotRun.RunMode.AUTO)
                 _thread.start()
         }
 
@@ -513,8 +512,8 @@ class ActionRunner private constructor() : DisposableHandle {
 //              _sortingIsFinished.set(true)
 //        }   )
 
-        HotRun.LAZY_INSTANCE.opModeStopEvent += {
-            if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO)
+        HotRunLI.opModeStopEvent += {
+            if (HotRunLI.currentRunMode == HotRun.RunMode.AUTO)
                 _thread.interrupt()
         }
     }

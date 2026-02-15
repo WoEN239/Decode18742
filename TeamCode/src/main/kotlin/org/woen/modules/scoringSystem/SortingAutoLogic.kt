@@ -12,12 +12,11 @@ import org.woen.enumerators.BallRequest
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.Shooting
 
-import org.woen.hotRun.HotRun
 import org.woen.telemetry.LogManager
-
 import org.woen.modules.scoringSystem.storage.sorting.DynamicPattern
 
 import org.woen.modules.scoringSystem.storage.Alias.Request
+import org.woen.modules.scoringSystem.storage.Alias.HotRunLI
 import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
 import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
 
@@ -50,7 +49,7 @@ class SortingAutoLogic
         subscribeToPatternDetectionEvents()
         subscribeToDefaultFiringEvent()
 
-        HotRun.LAZY_INSTANCE.opModeInitEvent += {
+        HotRunLI.opModeInitEvent += {
             logM.logMd("Resetting parameters on initialisation", Debug.EVENTS)
             resetParametersToDefault()
         }

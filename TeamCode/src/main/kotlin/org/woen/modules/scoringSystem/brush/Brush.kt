@@ -62,7 +62,6 @@ class Brush : IModule {
                     tmr.reset()
                 }
             }
-
             BrushState.SAFE -> {
                 hwBrush.setDir(HardwareBrush.BrushDirection.REVERSE)
                 if (hwBrush.isSafe && difTmr) {
@@ -73,24 +72,13 @@ class Brush : IModule {
                 f11 = false
             }
 
+
             BrushState.STOP -> {
                 hwBrush.setDir(HardwareBrush.BrushDirection.STOP)
                 tmr2.reset()
                 tmr1.reset()
                 f11 = false
             }
-
-            BrushState.REVERSE -> {
-                reverse(timerRevers.get())
-                if (turnOn.get() == BrushState.REVERSE) turnOn.set(BrushState.STOP)
-                tmr2.reset()
-                tmr1.reset()
-                f11 = false
-            }
-            BrushState.INFINITE_REVERSE -> {
-                turnOn.set(BrushState.FORWARD)
-            }
-
             BrushState.STOP_ON_TIME->{
                 hwBrush.setDir(HardwareBrush.BrushDirection.STOP)
                 tmr2.reset()
@@ -99,6 +87,28 @@ class Brush : IModule {
                 f11 = false
             }
 
+
+            BrushState.REVERSE -> {
+                reverse(timerRevers.get())
+
+                if (turnOn.get() == BrushState.REVERSE)
+                    turnOn.set(BrushState.STOP)
+
+                tmr2.reset()
+                tmr1.reset()
+                f11 = false
+            }
+
+
+            //  не ломайте этот реверс - все проблемы от колоров
+            //  они фиксяться хаваньем по геймпаду а не здесь
+            BrushState.INFINITE_REVERSE -> {
+                hwBrush.setDir(HardwareBrush.BrushDirection.REVERSE)
+
+                tmr2.reset()
+                tmr1.reset()
+                f11 = false
+            }
         }
     }
 
