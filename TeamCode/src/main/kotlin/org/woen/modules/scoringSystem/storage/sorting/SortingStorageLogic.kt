@@ -371,6 +371,8 @@ class SortingStorageLogic
         var shootingResult  = Request.COLOR_NOT_PRESENT
         var curRequestId    = NOTHING
 
+        storageCells.hwReAdjustStorage()
+
         while (curRequestId < trimmedRequestSize)
         {
             if (isForcedToTerminate(ProcessId.DRUM_REQUEST))
@@ -390,7 +392,9 @@ class SortingStorageLogic
             val requestResult = storageCells.handleRequest(requested[curRequestId])
 
             shootingResult = shootRequestFinalPhase(
-                requestResult, ProcessId.DRUM_REQUEST,
+                if (requestResult.didFail())
+                     Request.TURRET_SLOT else requestResult,
+                ProcessId.DRUM_REQUEST,
                 autoUpdatePatternWhenSucceed)
 
             curRequestId++
@@ -452,6 +456,8 @@ class SortingStorageLogic
         var isNowPerfectlySorted = isNowPerfectlySorted
         var shootingResult  = defaultError
         var curRequestId    = NOTHING
+
+        storageCells.hwReAdjustStorage()
 
         while (curRequestId < trimmedRequestSize)
         {

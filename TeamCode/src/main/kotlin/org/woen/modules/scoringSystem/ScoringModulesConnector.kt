@@ -465,13 +465,13 @@ class ScoringModulesConnector
 //
 //        var timePassedWaitingForShot = NOTHING.toLong()
 //        while (!_shotWasFired.get() && !isUsedByAnyProcess)
-//            && timePassedWaitingForShot < DELAY.SMC_MAX_SHOT_AWAITING_MS)
+//            && timePassedWaitingForShot < Delay.MS.AWAIT.SMC_SHOT)
 //        {
-//            delay(DELAY.EVENT_AWAITING_MS)
-//            timePassedWaitingForShot += DELAY.EVENT_AWAITING_MS
+//            delay(Delay.MS.AWAIT.EVENTS)
+//            timePassedWaitingForShot += Delay.MS.AWAIT.EVENTS
 //        }
 //
-//        if (timePassedWaitingForShot >= DELAY.SMC_MAX_SHOT_AWAITING_MS)
+//        if (timePassedWaitingForShot >= Delay.MS.AWAIT.SMC_SHOT)
 //             logM.logMd("\n\n\nShot timeout, assume success\n", LOGIC_STEPS)
 //        else logM.logMd("\n\n\nRECEIVED - SHOT FIRED\n", LOGIC_STEPS)
 //

@@ -85,12 +85,10 @@ class StorageCells
 
 
 
-    suspend fun handleRequest(requested: BallRequest.Name): RequestResult
+    fun handleRequest(requested: BallRequest.Name): RequestResult
     {
         if (BallRequest.isNone(requested))
             return Request.F_ILLEGAL_ARGUMENT
-
-        hwReAdjustStorage()
 
         return if (isEmpty()) Request.F_IS_EMPTY
         else requestSearch(requested)
@@ -102,7 +100,7 @@ class StorageCells
 
         val result = Request.F_COLOR_NOT_PRESENT
 
-        var curSlotId    = StorageSlot.BOTTOM
+        var    curSlotId = StorageSlot.BOTTOM
         while (curSlotId < STORAGE_SLOT_COUNT)
         {
             val chosenSlotId = Request.SEARCH_ORDER[curSlotId]

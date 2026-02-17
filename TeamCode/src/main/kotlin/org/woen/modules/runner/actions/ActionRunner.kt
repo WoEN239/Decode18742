@@ -36,7 +36,6 @@ import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.modules.scoringSystem.turret.SetRotateStateEvent
 
 import org.woen.modules.scoringSystem.DefaultFireEvent
-import org.woen.modules.scoringSystem.simple.SimpleShootEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
@@ -386,7 +385,7 @@ class ActionRunner private constructor() : DisposableHandle {
 //                        _pattern.permanent()
 //            )   )   )
     }
-    private suspend fun stopIntakeStartSort(inputFromTurretSlotToBottom: Array<Ball.Name>)
+    private fun stopIntakeStartSort(inputFromTurretSlotToBottom: Array<Ball.Name>)
     {
         EventBusLI.invoke(StopLazyIntakeEvent())
         EventBusLI.invoke(TerminateIntakeEvent())
@@ -406,12 +405,6 @@ class ActionRunner private constructor() : DisposableHandle {
                     )
                 ).startingResult
             )
-
-//        SmartCoroutineLI.launch {
-//            delay(777)
-//            EventBusLI.invoke(SwitchBrushStateEvent(
-//                Brush.BrushState.REVERSE, 1500))
-//        }
     }
 
     private suspend fun waitForSortingEnd()

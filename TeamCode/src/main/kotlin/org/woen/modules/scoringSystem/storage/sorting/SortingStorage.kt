@@ -373,6 +373,7 @@ class SortingStorage
             return _storageLogic.terminateRequest(ProcessId.SINGLE_REQUEST)
 
         _storageLogic.runStatus.setActiveProcess(ProcessId.SINGLE_REQUEST)
+        _storageLogic.storageCells.hwReAdjustStorage()
 
         logM.logMd("searching for request slot", Debug.LOGIC)
         val requestResult = _storageLogic.storageCells.handleRequest(request)
