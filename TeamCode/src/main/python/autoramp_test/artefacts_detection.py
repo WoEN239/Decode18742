@@ -8,15 +8,20 @@ class ArtefactsDetection:
     purple_thresh_lower = np.array([120,5,150])
     purple_thresh_upper = np.array([160,255,255])
 
-    def __init__(self,contours_path="contours_data.json"):
-        with open(contours_path,"r") as f:
-            self.contours_list = json.load(f)
-            f.close()
+    contours_list = []
 
-    def _mask_color(self,frame,step=25,iterations=4):
+    def __init__(self):
+        pass
+
+    def load_contours(self,contours_path):
+        with open(contours_path, "r") as f:
+            loaded = json.load(f)
+        self.contours_list = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
+        print(f"CONTOURS LOADED: {self.contours_list}")
+
+    def color_masks(self,frame,step=25,iterations=4):
         masks = []
-
-        frame_hsv = cv2.cvtColor(frame,cv2.BGR2HSV)
+        frame_hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
         green_thresh_lower_rt = self.green_thresh_lower
         purple_thresh_lower_rt = self.purple_thresh_lower
@@ -31,27 +36,33 @@ class ArtefactsDetection:
             mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_OPEN, np.ones((4,4),np.uint8), iterations=3)
             mask_combined = cv2.erode(mask_combined, np.ones((4,4),np.uint8), iterations=4)
             mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_CLOSE, np.ones((4,4),np.uint8), iterations=1)
+            
 
             masks.append(mask_combined)
 
         return masks
 
-    def _match_contours(self,contour):
+    def match_contours(self,contour):
         best_match = float('inf')
         for stored_contour in self.contours_list:
-            match = cv2.matchShapes(contour, stored_contour, cv2.CONTOURS_MATCH_I1, 0.0)
+            match = cv2.matchShapes(contour, stored_contour,1,0.0)
             if match < best_match:
                 best_match = match
         return best_match
 
-    def detect_artefacts(self,frame,match_threshold=0.1,min_area=500,mask_thresh_step=25,mask_iterations=4):
-        masks = self._mask_color(frame,step=mask_thresh_step,iterations=mask_iterations)
-        detected_artefacts = []
+    def detect_artefacts(self,frame,match_threshold=5,min_area=0,mask_thresh_step=25,mask_iterations=4):
+        masks = self.color_masks(frame,step=mask_thresh_step,iterations=mask_iterations)
+        detected_artefacts_coords = []
         for mask in masks:
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             for contour in contours:
                 if cv2.contourArea(contour) > min_area:
-                    match_score = self._match_contours(contour)
-                    if match_score < match_threshold:
-                        detected_artefacts.append(contour)
-        return detected_artefacts
+                    match_score = self.match_contours(contour)
+                    if match_score < float(match_threshold):
+                        x,y,w,h = cv2.boundingRect(contour)
+                        for artefact in detected_artefacts_coords:
+                            if abs(artefact[0]-x) < 20 and abs(artefact[1]-y) < 20:
+                                break
+                            else:
+                                detected_artefacts_coords.append((x,y,w,h))
+        return detected_artefacts_coords
