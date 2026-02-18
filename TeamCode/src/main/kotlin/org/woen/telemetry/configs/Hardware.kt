@@ -20,25 +20,25 @@ object Hardware
         ).toDouble()
 
         @JvmField
-        var GREEN_THRESHOLD_RIGHT = 50.0
+        var GREEN_THRESHOLD_RIGHT = 60.0
 
         @JvmField
-        var GREEN_THRESHOLD_LEFT = 70.0
+        var GREEN_THRESHOLD_LEFT = 60.0
 
         @JvmField
-        var MIN_PURPLE_H_RIGHT = 2.9
+        var MIN_PURPLE_H_RIGHT = 3.0
 
         @JvmField
         var MAX_PURPLE_H_RIGHT = 4.0
 
         @JvmField
-        var MIN_PURPLE_H_LEFT = 2.8
+        var MIN_PURPLE_H_LEFT = 3.0
 
         @JvmField
         var MAX_PURPLE_H_LEFT = 4.0
 
         @JvmField
-        var DOUBLE_DETECT_TIMER = 0.4
+        var DOUBLE_DETECT_TIMER = 0.5
 
         @JvmField
         var DOUBLE_DETECT_COUNT_MAX = 2

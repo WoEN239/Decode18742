@@ -1,29 +1,23 @@
 package org.woen.modules.scoringSystem.storage.sorting.hardware
 
-import kotlin.math.max
-import kotlin.math.min
+//import org.woen.utils.events.SimpleEmptyEvent
+
 import android.annotation.SuppressLint
-
-import org.woen.hotRun.HotRun
-import org.woen.enumerators.Ball
-
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
-
-import org.woen.utils.events.SimpleEvent
-//import org.woen.utils.events.SimpleEmptyEvent
-import org.woen.utils.updateCounter.UpdateCounter
-
+import org.woen.enumerators.Ball
+import org.woen.hotRun.HotRun
 import org.woen.telemetry.ThreadedTelemetry
-import org.woen.threading.hardware.IHardwareDevice
-
 import org.woen.telemetry.configs.Hardware
-
+import org.woen.threading.hardware.IHardwareDevice
+import org.woen.utils.events.SimpleEvent
+import org.woen.utils.updateCounter.UpdateCounter
+import kotlin.math.max
+import kotlin.math.min
 
 
 class ColorSensorsData(var color: Ball.Name)
-
 
 
 class HwSortingSensors() : IHardwareDevice {
@@ -36,7 +30,7 @@ class HwSortingSensors() : IHardwareDevice {
     private val _greenTimer = ElapsedTime()
     private val _purpleTimer = ElapsedTime()
 
-//    val opticDetectedShotFiringEvent = SimpleEmptyEvent()
+    //    val opticDetectedShotFiringEvent = SimpleEmptyEvent()
     val colorSensorsDetectedIntakeEvent = SimpleEvent<ColorSensorsData>()
     private val _updatesCounter = UpdateCounter()
 
@@ -55,10 +49,12 @@ class HwSortingSensors() : IHardwareDevice {
     @SuppressLint("DefaultLocale")
     override fun init(hardwareMap: HardwareMap) {
         _rightColor = hardwareMap.get(
-            Hardware.DEVICE_NAMES.INTAKE_COLOR_SENSOR_R)
+            Hardware.DEVICE_NAMES.INTAKE_COLOR_SENSOR_R
+        )
                 as RevColorSensorV3
-        _leftColor  = hardwareMap.get(
-            Hardware.DEVICE_NAMES.INTAKE_COLOR_SENSOR_L)
+        _leftColor = hardwareMap.get(
+            Hardware.DEVICE_NAMES.INTAKE_COLOR_SENSOR_L
+        )
                 as RevColorSensorV3
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
@@ -94,13 +90,13 @@ class HwSortingSensors() : IHardwareDevice {
             val leftColor = _leftColor.normalizedColors
             val rightColor = _rightColor.normalizedColors
 
-            _leftR = leftColor.red   * Hardware.SENSORS.MAXIMUM_READING
+            _leftR = leftColor.red * Hardware.SENSORS.MAXIMUM_READING
             _leftG = leftColor.green * Hardware.SENSORS.MAXIMUM_READING
-            _leftB = leftColor.blue  * Hardware.SENSORS.MAXIMUM_READING
+            _leftB = leftColor.blue * Hardware.SENSORS.MAXIMUM_READING
 
-            _rightR = rightColor.red   * Hardware.SENSORS.MAXIMUM_READING
+            _rightR = rightColor.red * Hardware.SENSORS.MAXIMUM_READING
             _rightG = rightColor.green * Hardware.SENSORS.MAXIMUM_READING
-            _rightB = rightColor.blue  * Hardware.SENSORS.MAXIMUM_READING
+            _rightB = rightColor.blue * Hardware.SENSORS.MAXIMUM_READING
 
             val leftGreen =
                 (_leftG - max(_leftR, _leftB)) > Hardware.SENSORS.GREEN_THRESHOLD_LEFT
@@ -167,8 +163,7 @@ class HwSortingSensors() : IHardwareDevice {
             }
 
             _oldCombinedPurple = combinedPurple
-        }
-        catch (_: Exception){
+        } catch (_: Exception) {
 
         }
     }

@@ -27,9 +27,13 @@ data class Vec2(@JvmField var x: Double, @JvmField var y: Double) {
     }
 
     fun turn(rot: Double): Vec2 {
-        val currentRot = rot()
+        val cosRot = cos(rot)
+        val sinRot = sin(rot)
 
-        return setRot(currentRot + rot)
+        return Vec2(
+            x * cosRot - y *sinRot,
+            x * sinRot + y * cosRot
+        )
     }
 
     fun normalized() = Vec2(1.0, 0.0).setRot(rot())
