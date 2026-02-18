@@ -16,12 +16,12 @@ import org.woen.modules.camera.OnPatternDetectedEvent
 import org.woen.modules.light.Light.LightColor
 import org.woen.modules.light.SetLightColorEvent
 
-import org.woen.modules.scoringSystem.storage.Alias.Intake
-import org.woen.modules.scoringSystem.storage.Alias.Request
-import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-import org.woen.modules.scoringSystem.storage.Alias.HotRunLI
-import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
-import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
+import org.woen.telemetry.configs.Alias.Intake
+import org.woen.telemetry.configs.Alias.Request
+import org.woen.telemetry.configs.Alias.MAX_BALL_COUNT
+import org.woen.telemetry.configs.Alias.HotRunLI
+import org.woen.telemetry.configs.Alias.EventBusLI
+import org.woen.telemetry.configs.Alias.SmartCoroutineLI
 
 import org.woen.modules.scoringSystem.storage.ShotWasFiredEvent
 import org.woen.modules.scoringSystem.storage.OdometryIsAlignedForShootingEvent

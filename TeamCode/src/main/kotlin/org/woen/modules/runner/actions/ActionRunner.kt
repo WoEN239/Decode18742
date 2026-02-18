@@ -24,9 +24,9 @@ import org.woen.utils.smartMutex.SmartMutex
 import org.woen.telemetry.configs.Delay
 
 import org.woen.threading.ThreadManager
-import org.woen.modules.scoringSystem.storage.Alias.LogM
-import org.woen.modules.scoringSystem.storage.Alias.HotRunLI
-import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
+import org.woen.telemetry.configs.Alias.LogM
+import org.woen.telemetry.configs.Alias.HotRunLI
+import org.woen.telemetry.configs.Alias.EventBusLI
 
 import org.woen.modules.runner.segment.RRTrajectorySegment
 import org.woen.modules.runner.segment.RequireRRBuilderEvent

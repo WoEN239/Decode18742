@@ -15,10 +15,10 @@ import org.woen.enumerators.Shooting
 import org.woen.telemetry.LogManager
 import org.woen.modules.scoringSystem.storage.sorting.DynamicPattern
 
-import org.woen.modules.scoringSystem.storage.Alias.Request
-import org.woen.modules.scoringSystem.storage.Alias.HotRunLI
-import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
-import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
+import org.woen.telemetry.configs.Alias.Request
+import org.woen.telemetry.configs.Alias.HotRunLI
+import org.woen.telemetry.configs.Alias.EventBusLI
+import org.woen.telemetry.configs.Alias.MAX_BALL_COUNT
 
 import org.woen.modules.camera.OnPatternDetectedEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest

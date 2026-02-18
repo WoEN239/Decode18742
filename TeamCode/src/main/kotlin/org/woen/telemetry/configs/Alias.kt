@@ -1,16 +1,17 @@
-package org.woen.modules.scoringSystem.storage
+package org.woen.telemetry.configs
 
+
+import org.woen.hotRun.HotRun
 
 import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
-import org.woen.hotRun.HotRun
 
 import org.woen.telemetry.LogManager
-import org.woen.telemetry.configs.RobotSettings.ROBOT
-
 import org.woen.threading.ThreadManager
-import org.woen.threading.ThreadedEventBus
 import org.woen.threading.ThreadedGamepad
+import org.woen.threading.ThreadedEventBus
+
+import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 
 
@@ -20,15 +21,15 @@ object Alias
     {
         val FAIL_IS_BUSY = IntakeResult.Name.FAIL_IS_CURRENTLY_BUSY
         val FAIL_IS_FULL = IntakeResult.Name.FAIL_STORAGE_IS_FULL
-        val SUCCESS = IntakeResult.Name.SUCCESS
+        val SUCCESS      = IntakeResult.Name.SUCCESS
 
 
-        val INPUT_ORDER = ROBOT.PREFERRED_INTAKE_SLOT_SEARCHING_ORDER
+        val INPUT_ORDER = RobotSettings.ROBOT.PREFERRED_INTAKE_SLOT_SEARCHING_ORDER
     }
     object Request
     {
         val SUCCESS_NOW_EMPTY = RequestResult.Name.SUCCESS_IS_NOW_EMPTY
-        val SUCCESS = RequestResult.Name.SUCCESS
+        val SUCCESS           = RequestResult.Name.SUCCESS
 
         val TERMINATED = RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
 
@@ -41,7 +42,7 @@ object Alias
         val COULD_NOT_DETECT_PATTERN = RequestResult.Name.FAIL_COULD_NOT_DETECT_PATTERN
 
 
-        val SEARCH_ORDER = ROBOT.PREFERRED_REQUEST_SLOT_SEARCHING_ORDER
+        val SEARCH_ORDER = RobotSettings.ROBOT.PREFERRED_REQUEST_SLOT_SEARCHING_ORDER
 
 
 
@@ -49,45 +50,45 @@ object Alias
         val BOTTOM_SLOT = RequestResult.Name.SUCCESS_BOTTOM
         val CENTER_SLOT = RequestResult.Name.SUCCESS_CENTER
         val TURRET_SLOT = RequestResult(
-            RequestResult.SUCCESS_TURRET,
+            RequestResult.Companion.SUCCESS_TURRET,
             RequestResult.Name.SUCCESS_TURRET)
 
 
 
         val F_SUCCESS = RequestResult(
-            RequestResult.SUCCESS,
+            RequestResult.Companion.SUCCESS,
             RequestResult.Name.SUCCESS)
         val F_TERMINATED = RequestResult(
-            RequestResult.FAIL_PROCESS_WAS_TERMINATED,
+            RequestResult.Companion.FAIL_PROCESS_WAS_TERMINATED,
             RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
         val F_COLOR_NOT_PRESENT = RequestResult(
-            RequestResult.FAIL_COLOR_NOT_PRESENT,
+            RequestResult.Companion.FAIL_COLOR_NOT_PRESENT,
             RequestResult.Name.FAIL_COLOR_NOT_PRESENT)
 
         val F_ILLEGAL_ARGUMENT = RequestResult(
-            RequestResult.FAIL_ILLEGAL_ARGUMENT,
+            RequestResult.Companion.FAIL_ILLEGAL_ARGUMENT,
             RequestResult.Name.FAIL_ILLEGAL_ARGUMENT)
 
         val F_IS_EMPTY = RequestResult(
-            RequestResult.FAIL_IS_EMPTY,
+            RequestResult.Companion.FAIL_IS_EMPTY,
             RequestResult.Name.FAIL_IS_EMPTY)
 
 
         val IsReadyEvent = StorageRequestIsReadyEvent()
 
 
-        fun didFail   (name: RequestResult.Name) = RequestResult.didFail(name)
-        fun didSucceed(name: RequestResult.Name) = RequestResult.didSucceed(name)
-        fun wasTerminated(name: RequestResult.Name) = RequestResult.wasTerminated(name)
+        fun didFail      (name: RequestResult.Name) = RequestResult.Companion.didFail(name)
+        fun didSucceed   (name: RequestResult.Name) = RequestResult.Companion.didSucceed(name)
+        fun wasTerminated(name: RequestResult.Name) = RequestResult.Companion.wasTerminated(name)
     }
 
 
 
-    val LogM get() = LogManager
-    val HotRunLI   get() = HotRun.LAZY_INSTANCE
-    val GamepadLI  get() = ThreadedGamepad.LAZY_INSTANCE
-    val EventBusLI get() = ThreadedEventBus.LAZY_INSTANCE
-    val SmartCoroutineLI get() = ThreadManager.LAZY_INSTANCE.globalCoroutineScope
+    val LogM get() = LogManager.Companion
+    val HotRunLI   get() = HotRun.Companion.LAZY_INSTANCE
+    val GamepadLI  get() = ThreadedGamepad.Companion.LAZY_INSTANCE
+    val EventBusLI get() = ThreadedEventBus.Companion.LAZY_INSTANCE
+    val SmartCoroutineLI get() = ThreadManager.Companion.LAZY_INSTANCE.globalCoroutineScope
 
 
 

@@ -43,14 +43,14 @@ import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveStreamDrumRequest
 
-import org.woen.modules.scoringSystem.storage.Alias.Intake
-import org.woen.modules.scoringSystem.storage.Alias.Request
-import org.woen.modules.scoringSystem.storage.Alias.HotRunLI
-import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
-import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
-import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
-import org.woen.modules.scoringSystem.storage.Alias.NOTHING
-import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
+import org.woen.telemetry.configs.Alias.Intake
+import org.woen.telemetry.configs.Alias.Request
+import org.woen.telemetry.configs.Alias.HotRunLI
+import org.woen.telemetry.configs.Alias.GamepadLI
+import org.woen.telemetry.configs.Alias.EventBusLI
+import org.woen.telemetry.configs.Alias.SmartCoroutineLI
+import org.woen.telemetry.configs.Alias.NOTHING
+import org.woen.telemetry.configs.Alias.MAX_BALL_COUNT
 
 import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.Delay
@@ -330,6 +330,8 @@ class ScoringModulesConnector
         logM.logMd("Started - Intake, INPUT BALL: $inputToBottomSlot", Debug.START)
         val intakeResult = _storage.handleIntake(inputToBottomSlot)
 
+        if (_storage.alreadyFull()) GamepadLI.rumble1(
+            Delay.SEC.GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL)
 
         if (_storage.alreadyFull()) reverseBrushes(BRUSH.REVERSE_TIME)
 

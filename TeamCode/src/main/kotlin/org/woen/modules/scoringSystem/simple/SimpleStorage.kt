@@ -9,7 +9,7 @@ import org.woen.modules.driveTrain.DriveTrain
 import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
-import org.woen.modules.scoringSystem.storage.Alias.GamepadLI
+import org.woen.telemetry.configs.Alias.GamepadLI
 import org.woen.modules.scoringSystem.turret.WaitRotateAtTarget
 import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.configs.Hardware

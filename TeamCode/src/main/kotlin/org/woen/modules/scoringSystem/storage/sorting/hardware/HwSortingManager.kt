@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicLong
 import org.woen.telemetry.LogManager
 import org.woen.threading.hardware.HardwareThreads
 
-import org.woen.modules.scoringSystem.storage.Alias.EventBusLI
-import org.woen.modules.scoringSystem.storage.Alias.SmartCoroutineLI
+import org.woen.telemetry.configs.Alias.EventBusLI
+import org.woen.telemetry.configs.Alias.SmartCoroutineLI
 
 //import org.woen.modules.scoringSystem.storage.FillStorageWithUnknownColorsEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent

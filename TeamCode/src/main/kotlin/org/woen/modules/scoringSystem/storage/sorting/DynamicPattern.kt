@@ -5,7 +5,7 @@ import kotlin.math.min
 import java.util.concurrent.CopyOnWriteArrayList
 
 import org.woen.enumerators.BallRequest
-import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
+import org.woen.telemetry.configs.Alias.MAX_BALL_COUNT
 
 
 

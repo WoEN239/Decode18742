@@ -98,6 +98,7 @@ object Delay
 
     internal object SEC
     {
-
+        @JvmField
+        var GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL = 0.6
     }
 }

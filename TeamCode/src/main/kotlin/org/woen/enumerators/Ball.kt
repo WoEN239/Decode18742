@@ -45,7 +45,7 @@ class Ball
 
     fun id()   = _id
     fun name() = _name
-    fun formattedName(): String
+    fun paddedName(): String
     {
         return when (_name)
         {
@@ -54,6 +54,17 @@ class Ball
 
             Name.UNKNOWN_COLOR -> "UNKNOWN"
             Name.NONE          -> "NONE   "
+        }
+    }
+    fun formattedName(): String
+    {
+        return when (_name)
+        {
+            Name.PURPLE        -> "+ PURPLE +"
+            Name.GREEN         -> "+ GREEN  +"
+
+            Name.UNKNOWN_COLOR -> "+   ??   +"
+            Name.NONE          -> "    --    "
         }
     }
 

@@ -14,11 +14,11 @@ import org.woen.telemetry.LogManager
 import org.woen.modules.scoringSystem.storage.sorting.hardware.HwSortingManager
 import org.woen.modules.scoringSystem.storage.StorageHandleIdenticalColorsEvent
 
-import org.woen.modules.scoringSystem.storage.Alias.Intake
-import org.woen.modules.scoringSystem.storage.Alias.Request
-import org.woen.modules.scoringSystem.storage.Alias.NOTHING
-import org.woen.modules.scoringSystem.storage.Alias.MAX_BALL_COUNT
-import org.woen.modules.scoringSystem.storage.Alias.STORAGE_SLOT_COUNT
+import org.woen.telemetry.configs.Alias.Intake
+import org.woen.telemetry.configs.Alias.Request
+import org.woen.telemetry.configs.Alias.NOTHING
+import org.woen.telemetry.configs.Alias.MAX_BALL_COUNT
+import org.woen.telemetry.configs.Alias.STORAGE_SLOT_COUNT
 
 import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.Delay
@@ -350,16 +350,18 @@ class StorageCells
 
     private fun logAllStorageData()
     {
-        logM.logMd("[: Bottom  -  center  -  turret  -  mobile  :]" +
-              "\n|  ${_storageCells[StorageSlot.BOTTOM].formattedName()} "
-              + "|  ${_storageCells[StorageSlot.CENTER].name()} "
-              + "|  ${_storageCells[StorageSlot.TURRET].name()} "
-              + "|  ${_storageCells[StorageSlot.MOBILE].name()}  |" +
-              "\n[: BALL COUNT: ${anyBallCount()}" +
-                "                                   :]",
+        logM.log("--- Storage status report ---\n" +
+              "\n_______________________________________________         _________________" +
+              "\n[:  [↓] BTM #0  |  [→] CTR #1  |  [↑] TRT #2  |---   ---|  [←] MBL #3  :]" +
+              "\n|:  ${_storageCells[StorageSlot.BOTTOM].formattedName()}  "
+               + "|  ${_storageCells[StorageSlot.CENTER].formattedName()}  "
+               + "|  ${_storageCells[StorageSlot.TURRET].formattedName()}  |  -----  "
+               + "|  ${_storageCells[StorageSlot.MOBILE].formattedName()}  :|" +
+              "\n[:  BALL COUNT: ${anyBallCount()}" +
+                "                             |---   ---|              :]" +
+              "\n===============================================         =================\n ",
                 Debug.GENERIC)
     }
-    fun storageData() = _storageCells
 
     @Synchronized
     fun anyBallCount(): Int

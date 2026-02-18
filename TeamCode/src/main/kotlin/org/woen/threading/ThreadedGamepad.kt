@@ -135,14 +135,14 @@ class ThreadedGamepad {
 
     fun getIsGamepadsTriggered() = getIsGamepadTriggered(_gamepad1) || getIsGamepadTriggered(_gamepad2)
 
-    fun rumble1(duration: Double) {
+    fun rumble1(durationSec: Double) {
         if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
-            _gamepad1.rumble((duration * 1000.0).toInt())
+            _gamepad1.rumble((durationSec * 1000.0).toInt())
     }
 
-    fun rumble2(duration: Double) {
+    fun rumble2(durationSec: Double) {
         if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
-            _gamepad1.rumble((duration * 1000.0).toInt())
+            _gamepad1.rumble((durationSec * 1000.0).toInt())
     }
 
     fun init(gamepad1: Gamepad, gamepad2: Gamepad) {

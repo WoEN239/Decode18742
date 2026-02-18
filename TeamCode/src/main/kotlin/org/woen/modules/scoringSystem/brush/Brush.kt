@@ -14,7 +14,7 @@ import org.woen.threading.hardware.HardwareThreads
 import java.util.concurrent.atomic.AtomicReference
 
 
-class SwitchBrushStateEvent(var brushState: Brush.BrushState, var reverseTime: Long = 1000)
+class SwitchBrushStateEvent(var brushState: Brush.BrushState, var reverseTimeMs: Long = 1000)
 
 class Brush : IModule {
     enum class BrushState {
@@ -29,7 +29,7 @@ class Brush : IModule {
     private var _currentJob: Job? = null
     private var hwBrush = HardwareBrush()
     private var turnOn = AtomicReference(BrushState.FORWARD)
-    private var timerRevers = AtomicReference<Long>(0)
+    private var reverseTimerMs = AtomicReference<Long>(0)
     private var tmr = ElapsedTime()
     private var tmr1 = ElapsedTime()
     private var tmr2 = ElapsedTime()
@@ -89,7 +89,7 @@ class Brush : IModule {
 
 
             BrushState.REVERSE -> {
-                reverse(timerRevers.get())
+                reverse(reverseTimerMs.get())
 
                 if (turnOn.get() == BrushState.REVERSE)
                     turnOn.set(BrushState.STOP)
@@ -112,9 +112,9 @@ class Brush : IModule {
         }
     }
 
-    suspend fun reverse(tmr1: Long = 1000) {
+    suspend fun reverse(timeMs: Long = 1000) {
         hwBrush.setDir(HardwareBrush.BrushDirection.REVERSE)
-        delay(tmr1)
+        delay(timeMs)
     }
 
     override suspend fun process() {
@@ -144,7 +144,7 @@ class Brush : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SwitchBrushStateEvent::class, {
             turnOn.set(it.brushState)
-            timerRevers.set(it.reverseTime)
+            reverseTimerMs.set(it.reverseTimeMs)
         })
 
         ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
