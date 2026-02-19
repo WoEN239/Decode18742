@@ -165,8 +165,6 @@ class ThreadedTelemetry : DisposableHandle {
             }
 
             _dashboardPacket.addLine(i)
-
-            logWithTag(i, "18742telemetry")
         }
     }
 
@@ -178,7 +176,6 @@ class ThreadedTelemetry : DisposableHandle {
             _driverTelemetry?.addData(name, data)
         }
 
-        logWithTag("$name: $data", "18742telemetry")
         _dashboardPacket.put(name, data)
     }
 

@@ -105,11 +105,17 @@ class Turret : IModule {
             val newX = vXNew * t
 
             _hardwareTurretServos.anglePosition = atan(vY / vXNew)
-            _hardwareTurret.targetVelocity = clamp(sqrt(
+
+            var turretVelocity = clamp(sqrt(
                 (Configs.TURRET.GRAVITY_G * newX.pow(2)) / (2.0 * cos(_hardwareTurretServos.anglePosition)
                     .pow(2)
                         * (newX * tan(_hardwareTurretServos.anglePosition) - y))
             ) / Configs.TURRET.PULLEY_U, 0.0, 17.0)
+
+            if(turretVelocity.isNaN() || turretVelocity == Double.POSITIVE_INFINITY || turretVelocity == Double.NEGATIVE_INFINITY)
+                turretVelocity = 17.0
+
+            _hardwareTurret.targetVelocity = turretVelocity
         }
     }
 

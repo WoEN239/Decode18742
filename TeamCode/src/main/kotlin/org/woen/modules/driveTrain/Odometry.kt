@@ -32,6 +32,8 @@ class RobotEnterShootingAreaEvent()
 
 class RobotExitShootingAreaEvent()
 
+class RequirePinpointIsGoodEvent(var isGood: Boolean = false): StoppingEvent
+
 class Odometry : IModule {
     private var _odometryJob: Job? = null
 
@@ -204,6 +206,10 @@ class Odometry : IModule {
                     )
                 )
             )
+        })
+
+        ThreadedEventBus.LAZY_INSTANCE.subscribe(RequirePinpointIsGoodEvent::class, {
+            it.isGood = _hardwareOdometry.isPinpointIsGood
         })
     }
 }

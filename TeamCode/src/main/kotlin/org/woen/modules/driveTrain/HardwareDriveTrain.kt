@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.hotRun.HotRun
-import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.ThreadedTelemetry
+import org.woen.telemetry.configs.Configs
 import org.woen.threading.ThreadedEventBus
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
@@ -32,33 +32,69 @@ class HardwareDriveTrain : IHardwareDevice {
     private var _targetTranslateVelocity = Vec2.ZERO
     private var _targetRotateVelocity = 0.0
 
+    private var _powerTransVelocity = Vec2.ZERO
+    private var _powerRotateVelocity = 0.0
+
     private val _driveTrainMutex = SmartMutex()
 
-    override fun update() {
-        val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
-        val currentVelocity = odometry.odometryVelocity
-        val currentRotationVelocity = odometry.odometryRotateVelocity
+    enum class DriveMode {
+        POWER,
+        REGULATOR
+    }
 
-        var targetTranslateVelocity = Vec2.ZERO
-        var targetRotateVelocity = 0.0
+    var driveMode = DriveMode.REGULATOR
+        set(value) {
+            if (value == DriveMode.REGULATOR) {
+                _regulatorMutex.smartLock {
+                    _forwardRegulator.start()
+                    _sideRegulator.start()
+                    _rotateRegulator.start()
+                    _forwardRegulator.resetIntegral()
+                    _sideRegulator.resetIntegral()
+                    _rotateRegulator.resetIntegral()
+                }
+            }
 
-        _driveTrainMutex.smartLock {
-            targetTranslateVelocity = _targetTranslateVelocity
-            targetRotateVelocity = _targetRotateVelocity
+            field = value
         }
 
-        val velocityErr = targetTranslateVelocity - currentVelocity
+    override fun update() {
+        if (driveMode == DriveMode.REGULATOR) {
+            val odometry = ThreadedEventBus.LAZY_INSTANCE.invoke(RequireOdometryEvent())
+            val currentVelocity = odometry.odometryVelocity
+            val currentRotationVelocity = odometry.odometryRotateVelocity
 
-        val velocityRotateErr = targetRotateVelocity - currentRotationVelocity
+            var targetTranslateVelocity = Vec2.ZERO
+            var targetRotateVelocity = 0.0
 
-        _regulatorMutex.smartLock {
-            setVoltage(
-                Vec2(
-                    _forwardRegulator.update(velocityErr.x, targetTranslateVelocity.x),
-                    _sideRegulator.update(velocityErr.y, targetTranslateVelocity.y)
-                ),
-                _rotateRegulator.update(velocityRotateErr, targetRotateVelocity)
-            )
+            _driveTrainMutex.smartLock {
+                targetTranslateVelocity = _targetTranslateVelocity
+                targetRotateVelocity = _targetRotateVelocity
+            }
+
+            val velocityErr = targetTranslateVelocity - currentVelocity
+
+            val velocityRotateErr = targetRotateVelocity - currentRotationVelocity
+
+            _regulatorMutex.smartLock {
+                setVoltage(
+                    Vec2(
+                        _forwardRegulator.update(velocityErr.x, targetTranslateVelocity.x),
+                        _sideRegulator.update(velocityErr.y, targetTranslateVelocity.y)
+                    ),
+                    _rotateRegulator.update(velocityRotateErr, targetRotateVelocity)
+                )
+            }
+        } else {
+            var targetTranslateVelocity = Vec2.ZERO
+            var targetRotateVelocity = 0.0
+
+            _driveTrainMutex.smartLock {
+                targetTranslateVelocity = _powerTransVelocity
+                targetRotateVelocity = _powerRotateVelocity
+            }
+
+            setPower(targetTranslateVelocity, targetRotateVelocity)
         }
     }
 
@@ -117,6 +153,13 @@ class HardwareDriveTrain : IHardwareDevice {
         }
     }
 
+    fun drivePowered(translate: Vec2, rotate: Double){
+        _driveTrainMutex.smartLock {
+            _powerTransVelocity = translate
+            _powerRotateVelocity = rotate
+        }
+    }
+
     private fun setPowers(
         leftFrontPower: Double,
         rightBackPower: Double,
@@ -158,6 +201,15 @@ class HardwareDriveTrain : IHardwareDevice {
             ThreadedBattery.LAZY_INSTANCE.voltageToPower(direction.x - direction.y + rotate),
             ThreadedBattery.LAZY_INSTANCE.voltageToPower(direction.x + direction.y - rotate),
             ThreadedBattery.LAZY_INSTANCE.voltageToPower(direction.x + direction.y + rotate)
+        )
+    }
+
+    private fun setPower(direction: Vec2, rotate: Double) {
+        setPowers(
+            direction.x - direction.y - rotate,
+            direction.x - direction.y + rotate,
+            direction.x + direction.y - rotate,
+            direction.x + direction.y + rotate
         )
     }
 

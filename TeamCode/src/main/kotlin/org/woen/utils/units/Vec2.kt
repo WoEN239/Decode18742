@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import com.acmerobotics.roadrunner.Vector2d
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -16,7 +17,7 @@ data class Vec2(@JvmField var x: Double, @JvmField var y: Double) {
     constructor(rrVec: Vector2d) : this(rrVec.x, rrVec.y)
     constructor(x: Double) : this(x, x)
 
-    fun length() = sqrt(x * x + y * y)
+    fun length() = hypot(x, y)
 
     fun rot() = atan2(y, x)
 

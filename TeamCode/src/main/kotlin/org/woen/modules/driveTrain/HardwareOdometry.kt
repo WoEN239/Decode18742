@@ -2,11 +2,15 @@ package org.woen.modules.driveTrain
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.util.ElapsedTime
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import org.woen.hotRun.HotRun
 import org.woen.telemetry.configs.Configs
+import org.woen.threading.ThreadManager
 import org.woen.threading.hardware.IHardwareDevice
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
@@ -17,34 +21,60 @@ class HardwareOdometry : IHardwareDevice {
     var currentOrientation = Orientation()
     var velocity = Vec2.ZERO
     var headingVelocity = 0.0
+    val timeOutTimer = ElapsedTime()
+
+    var isPinpointIsGood = false
+        private set
 
     override fun update() {
         _computer.update()
 
-        val odometryStatus = _computer.deviceStatus
+        if(!isPinpointIsGood)
+            return
 
-        if (odometryStatus == GoBildaPinpointDriver.DeviceStatus.READY) {
-            val pos = _computer.position
+        val odometryCoroutine = ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
+            val odometryStatus = _computer.deviceStatus
 
-            currentOrientation = Orientation(
-                Vec2(
-                    pos.getX(DistanceUnit.METER),
-                    pos.getY(DistanceUnit.METER)
-                ).turn(HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.angle),
-                Angle(pos.getHeading(AngleUnit.RADIANS))
-            ) + HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
+            if (odometryStatus == GoBildaPinpointDriver.DeviceStatus.READY) {
+                val pos = _computer.position
 
-            velocity =
-                Vec2(
-                    _computer.getVelX(DistanceUnit.METER),
-                    _computer.getVelY(DistanceUnit.METER)
-                ).turn(
-                    HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.angle
-                ).turn(-currentOrientation.angle)
-            headingVelocity = _computer.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS)
-        } else {
-            velocity = Vec2.ZERO
-            headingVelocity = 0.0
+                currentOrientation = Orientation(
+                    Vec2(
+                        pos.getX(DistanceUnit.METER),
+                        pos.getY(DistanceUnit.METER)
+                    ).turn(HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.angle),
+                    Angle(pos.getHeading(AngleUnit.RADIANS))
+                ) + HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation
+
+                velocity =
+                    Vec2(
+                        _computer.getVelX(DistanceUnit.METER),
+                        _computer.getVelY(DistanceUnit.METER)
+                    ).turn(
+                        HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.angle
+                    ).turn(-currentOrientation.angle)
+                headingVelocity = _computer.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS)
+            } else {
+                velocity = Vec2.ZERO
+                headingVelocity = 0.0
+            }
+        }
+
+        timeOutTimer.reset()
+
+        while (!odometryCoroutine.isCompleted){
+            if(timeOutTimer.seconds() > Configs.ODOMETRY.TIMEOUT_REQUEST_TIME){
+                odometryCoroutine.cancel()
+
+                isPinpointIsGood = false
+
+                velocity = Vec2.ZERO
+                headingVelocity = 0.0
+
+                break
+            }
+
+            Thread.sleep(2)
         }
     }
 
@@ -57,6 +87,8 @@ class HardwareOdometry : IHardwareDevice {
         _computer.resetPosAndIMU()
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
+            isPinpointIsGood = true
+
             _computer.setOffsets(
                 Configs.ODOMETRY.X_ODOMETER_POSITION, Configs.ODOMETRY.Y_ODOMETER_POSITION,
                 DistanceUnit.METER

@@ -95,13 +95,16 @@ object Configs {
         var Y_ODOMETER_POSITION = -0.0895
 
         @EventConfig
-        var MERGE_X_K = ThreadedTelemetry.EventValueProvider(0.9)
+        var MERGE_X_K = ThreadedTelemetry.EventValueProvider(0.7)
 
         @EventConfig
-        var MERGE_Y_K = ThreadedTelemetry.EventValueProvider(0.9)
+        var MERGE_Y_K = ThreadedTelemetry.EventValueProvider(0.7)
 
         @EventConfig
-        var MERGE_H_K = ThreadedTelemetry.EventValueProvider(0.9)
+        var MERGE_H_K = ThreadedTelemetry.EventValueProvider(0.7)
+
+        @JvmField
+        var TIMEOUT_REQUEST_TIME = 0.1
     }
 
     @Config
@@ -135,7 +138,7 @@ object Configs {
 
         @JvmField
         var H_REGULATOR_PARAMETERS =
-            RegulatorParameters(kP = 6.5, limitU = MAX_DRIVE_ANGLE_VELOCITY)
+            RegulatorParameters(kP = 7.5, kD = 0.3, limitU = MAX_DRIVE_ANGLE_VELOCITY)
 
         @JvmField
         var X_REGULATOR_PARAMETERS =
@@ -238,10 +241,10 @@ object Configs {
         var TARGET_TIMER = 0.1
 
         @JvmField
-        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.1, -3.66 / 2.0 + 0.1)
+        var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, -3.66 / 2.0 + 0.2)
 
         @JvmField
-        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.25, 3.66 / 2.0 - 0.25)
+        var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, 3.66 / 2.0 - 0.2)
 
         @JvmField
         var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.93
@@ -301,7 +304,7 @@ object Configs {
         var PULLEY_RATION = 30.0 / 40.0
 
         @JvmField
-        var PULLEY_U = 0.48
+        var PULLEY_U = 0.47
     }
 
 

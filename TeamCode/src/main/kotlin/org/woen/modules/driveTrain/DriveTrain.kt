@@ -62,14 +62,24 @@ class DriveTrain : IModule {
             _currentRobotRotation = odometry.odometryOrientation.angl
 
             when (_currentMode) {
-                DriveMode.DRIVE ->
-                    _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
+                DriveMode.DRIVE -> {
+                    if (_hardwareDriveTrain.driveMode == HardwareDriveTrain.DriveMode.REGULATOR)
+                        _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
+                    else
+                        _hardwareDriveTrain.drivePowered(
+                            _targetTranslateVelocity,
+                            _targetRotateVelocity
+                        )
+                }
 
                 DriveMode.SHOOTING -> {
 //                    _targetOrientation =
 //                        HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
 
-                    _targetOrientation = Orientation(Vec2.ZERO, Angle((HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - odometry.odometryOrientation.pos).rot()))
+                    _targetOrientation = Orientation(
+                        Vec2.ZERO,
+                        Angle((HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - odometry.odometryOrientation.pos).rot())
+                    )
 
                     _hardwareDriveTrain.drive(
                         /*Vec2(
@@ -99,6 +109,10 @@ class DriveTrain : IModule {
                     _currentProcess.close()
             } else
                 _targetTimer.reset()
+
+            if(!ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    RequirePinpointIsGoodEvent()).isGood)
+                _currentMode = DriveMode.DRIVE
         }
     }
 
@@ -106,7 +120,8 @@ class DriveTrain : IModule {
         get() = _driveJob != null && !_driveJob!!.isCompleted
 
     override fun opModeStart() {
-
+        if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
+            _hardwareDriveTrain.driveMode = HardwareDriveTrain.DriveMode.POWER
     }
 
     override fun opModeStop() {
@@ -157,21 +172,24 @@ class DriveTrain : IModule {
                                     Angle.ofDeg(90.0)).angle
                             else
                                 (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle
-                        ) */ * /* Vec2(if (_currentMode == DriveMode.SHOOTING)*/ Vec2(Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY/* else 1.0*/),
-                        rx * Configs.DRIVE_TRAIN.MAX_DRIVE_ANGLE_VELOCITY
+                        ) */,
+                        rx
                     )
                 )
             }
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveModeEvent::class, {
-            if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO) {
+            if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO || !ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    RequirePinpointIsGoodEvent()).isGood) {
                 it.process.close()
             } else {
                 _currentMode = it.mode
                 _currentProcess = it.process
 
                 if (it.mode != DriveMode.DRIVE) {
+                    _hardwareDriveTrain.driveMode = HardwareDriveTrain.DriveMode.REGULATOR
+
                     _targetTimer.reset()
 
                     if (it.mode == DriveMode.PARKING)
@@ -184,7 +202,8 @@ class DriveTrain : IModule {
                     _yRegulator.resetIntegral()
                     _hRegulator.start()
                     _hRegulator.resetIntegral()
-                }
+                } else
+                    _hardwareDriveTrain.driveMode = HardwareDriveTrain.DriveMode.POWER
             }
         })
 
