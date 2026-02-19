@@ -38,13 +38,13 @@ class Ball
     }
     fun set(ball: Ball)
     {
-        _id   = ball.id()
-        _name = ball.name()
+        _id   = ball.id
+        _name = ball.name
     }
 
 
-    fun id()   = _id
-    fun name() = _name
+    val id   get() = _id
+    val name get() = _name
     fun paddedName(): String
     {
         return when (_name)
@@ -61,9 +61,9 @@ class Ball
         return when (_name)
         {
             Name.PURPLE        -> "+ PURPLE +"
-            Name.GREEN         -> "+ GREEN  +"
+            Name.GREEN         -> "+ GREEN + "
 
-            Name.UNKNOWN_COLOR -> "+   ??   +"
+            Name.UNKNOWN_COLOR -> "  + ?? +  "
             Name.NONE          -> "    --    "
         }
     }
@@ -77,18 +77,14 @@ class Ball
     fun hasBall(name: Name) = _name == name
 
 
-    fun doesMatch(id:  Int)
-        = !isEmpty() &&
-            (
-                isAbstractAny(id) ||
-                hasBall(toBall(id))
-            )
-    fun doesMatch(name: BallRequest.Name)
+    fun isPseudoMatch(name: BallRequest.Name)
         = !isEmpty() &&
             (
                 isAbstractAny(name) ||
                 hasBall(toBall(name))
             )
+    fun isTrueMatch(name: BallRequest.Name)
+        = !isEmpty() && hasBall(toBall(name))
 
 
 

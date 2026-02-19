@@ -99,22 +99,27 @@ class StorageCells
         logAllStorageData()
 
         val result = Request.F_COLOR_NOT_PRESENT
+        var alreadyFoundPseudoMatch = false
 
         var    curSlotId = StorageSlot.BOTTOM
         while (curSlotId < STORAGE_SLOT_COUNT)
         {
             val chosenSlotId = Request.SEARCH_ORDER[curSlotId]
 
-            if (_storageCells[chosenSlotId].doesMatch(requested))
+            if (_storageCells[chosenSlotId].isTrueMatch(requested))
+                return RequestResult.fromStorageSlot(chosenSlotId)
+            else if (!alreadyFoundPseudoMatch &&
+                _storageCells[chosenSlotId].isPseudoMatch(requested))
             {
-                result.set(chosenSlotId)
-                curSlotId += STORAGE_SLOT_COUNT
+                result.setFromStorageSlot(chosenSlotId)
+                alreadyFoundPseudoMatch = true
             }
             curSlotId++
         }
 
         return result
     }
+
 
     private fun predictSortSearch(
         requested: Array<BallRequest>,
@@ -129,7 +134,7 @@ class StorageCells
             var localMaximum  = SORTING.PREDICT.START_WEIGHT
             var requestId     = startRequestId
 
-            logM.logMd("search round: $startRequestId", Debug.GENERIC)
+            logM.logMd("[i] Predict sort search round: $startRequestId", Debug.GENERIC)
 
             while  (requestId   <  trimmedRequestSize + startRequestId)
             {
@@ -137,21 +142,16 @@ class StorageCells
                 val storageBall = _storageCells[Request.SEARCH_ORDER[requestId % MAX_BALL_COUNT]]
                 //  Taking the module for the storage ball by 3 prevents counting empty mobile slot
 
-                val canMatchRequest = storageBall.name() == curRequest.toBall()
 
-                if (curRequest.isAbstractAny())
-                {
-                    if (canMatchRequest) localMaximum += TRUE_MATCH_WEIGHT
-                    else if (storageBall.isFilled())
-                        localMaximum += if (curRequest.isAny()) TRUE_MATCH_WEIGHT
-                                        else                  PSEUDO_MATCH_WEIGHT
-                    else requestId += trimmedRequestSize
-                }
-                else if (canMatchRequest) localMaximum += TRUE_MATCH_WEIGHT
-                else requestId += trimmedRequestSize
+                if (storageBall.isTrueMatch(curRequest.name))
+                    localMaximum += TRUE_MATCH_WEIGHT
+                else if (storageBall.isPseudoMatch(curRequest.name))
+                    localMaximum += PSEUDO_MATCH_WEIGHT
+                else   requestId += trimmedRequestSize
 
-                logM.logMd("requestId: ${requestId % MAX_BALL_COUNT}, direct match: $canMatchRequest"
-                      + "\n\t\t> request ball: ${curRequest.name()}, storage ball: ${storageBall.name()}",
+                logM.logMd("[=] RequestId: ${requestId % MAX_BALL_COUNT}, " +
+                        "did match: ${requestId < trimmedRequestSize + startRequestId}"
+                      + "\n    Request ball: ${curRequest.name}, storage ball: ${storageBall.name}",
                         Debug.GENERIC)
 
                 requestId++
@@ -179,8 +179,8 @@ class StorageCells
         logM.logMd("Done searching, max: $globalMaximum, rotations: $doRotations", Debug.END)
         return PredictSortResult(doRotations, globalMaximum)
     }
-    suspend fun initiatePredictSort(requested: Array<BallRequest.Name>,
-                                    minValidInSequence: Double = 0.75): Boolean
+    suspend fun initiatePredictSort(
+        requested: Array<BallRequest.Name>): Boolean
     {
         val trimmedRequestSize = min(requested.size, MAX_BALL_COUNT)
         if (trimmedRequestSize == NOTHING) return false
@@ -190,6 +190,7 @@ class StorageCells
         logM.logMd("Start predict sort search", Debug.START)
         val requestedFullData  = Array(requested.size) { BallRequest(requested[it]) }
         val searchResult = predictSortSearch(requestedFullData, trimmedRequestSize)
+        val minValidInSequence: Double = SORTING.PREDICT.MIN_SEQUENCE_SCORE
 
         logM.logMd("Best score: ${searchResult.maxSequenceScore}" +
                        ", required >= $minValidInSequence", Debug.GENERIC)
@@ -204,8 +205,7 @@ class StorageCells
     suspend fun tryInitiatePredictSort(requested: Array<BallRequest.Name>): Boolean
     {
         return if (SORTING.PREDICT.ALWAYS_TRY_IN_ADVANCE)
-            initiatePredictSort(requested,
-                SORTING.PREDICT.MIN_SEQUENCE_SCORE)
+            initiatePredictSort(requested)
         else false
     }
 
@@ -381,7 +381,7 @@ class StorageCells
     @Synchronized
     fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT
     @Synchronized
-    fun notFullYet()  = anyBallCount() < MAX_BALL_COUNT
+    fun notFullYet()  = anyBallCount() <  MAX_BALL_COUNT
     @Synchronized
     fun onlyOneBallLeft() = anyBallCount() == 1
 
@@ -411,7 +411,7 @@ class StorageCells
 
         while (curSlotId < STORAGE_SLOT_COUNT)
         {
-            intPG[_storageCells[curSlotId].id()]++
+            intPG[_storageCells[curSlotId].id]++
             curSlotId++
         }
 

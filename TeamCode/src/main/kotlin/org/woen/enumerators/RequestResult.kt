@@ -46,10 +46,24 @@ class RequestResult
         _id   = id
         _name = name
     }
+    fun setFromStorageSlot(slotId: Int)
+    {
+        set(
+            when (slotId)
+            {
+                StorageSlot.TURRET -> Name.SUCCESS_TURRET
+                StorageSlot.CENTER -> Name.SUCCESS_CENTER
+                StorageSlot.BOTTOM -> Name.SUCCESS_BOTTOM
+                StorageSlot.MOBILE -> Name.SUCCESS_MOBILE
+
+                else -> Name.FAIL_ILLEGAL_ARGUMENT
+            }
+        )
+    }
 
 
-    fun id()   = _id
-    fun name() = _name
+    val id   get() = _id
+    val name get() = _name
 
 
     fun didFail()       = _id > SUCCESS_IS_NOW_EMPTY
@@ -147,5 +161,17 @@ class RequestResult
                 Name.FAIL_PROCESS_WAS_TERMINATED -> FAIL_PROCESS_WAS_TERMINATED
             }
         }
+
+        fun fromStorageSlot(slotId: Int)
+            = RequestResult(
+                when (slotId)
+                {
+                    StorageSlot.TURRET -> Name.SUCCESS_TURRET
+                    StorageSlot.CENTER -> Name.SUCCESS_CENTER
+                    StorageSlot.BOTTOM -> Name.SUCCESS_BOTTOM
+                    StorageSlot.MOBILE -> Name.SUCCESS_MOBILE
+
+                    else -> Name.FAIL_ILLEGAL_ARGUMENT
+            }   )
     }
 }

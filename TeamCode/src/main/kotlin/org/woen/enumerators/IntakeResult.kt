@@ -40,8 +40,8 @@ class IntakeResult
     }
 
 
-    fun id()   = _id
-    fun name() = _name
+    val id   get() = _id
+    val name get() = _name
 
 
     fun didFail()    = _id > STARTED_SUCCESSFULLY

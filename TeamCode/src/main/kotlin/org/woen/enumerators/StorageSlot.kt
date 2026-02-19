@@ -31,8 +31,8 @@ class StorageSlot
     }
 
 
-    fun id()   = _id
-    fun name() = _name
+    val id   get() = _id
+    val name get() = _name
 
 
     companion object

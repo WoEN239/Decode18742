@@ -194,7 +194,7 @@ class SortingStorageLogic
             storageCells.hwSortingM.stopBelts()
         }
 
-        val fullRotations = when (requestResult.name())
+        val fullRotations = when (requestResult.name)
         {
             Request.MOBILE_SLOT -> 2
             Request.BOTTOM_SLOT -> 2
@@ -215,9 +215,7 @@ class SortingStorageLogic
         processId: Int,
         autoUpdatePatternWhenSucceed: Boolean = false): RequestResult.Name
     {
-        if (requestResult.didFail()) return requestResult.name()
-        if (isForcedToTerminate(processId))
-            return Request.TERMINATED
+        if (requestResult.didFail()) return requestResult.name
 
         val updateResult = if (requestResult == Request.TURRET_SLOT) Request.TURRET_SLOT
             else rotateToFoundBall(requestResult, processId, true)
@@ -238,7 +236,7 @@ class SortingStorageLogic
                  Request.SUCCESS
             else Request.SUCCESS_NOW_EMPTY
         }
-        else updateResult.name()
+        else updateResult.name
     }
 
     private suspend fun requestRaceConditionIsPresent(processId: Int):  Boolean
@@ -389,11 +387,13 @@ class SortingStorageLogic
             }
 
 
-            val requestResult = storageCells.handleRequest(requested[curRequestId])
+            val requestResult = storageCells.handleRequest(
+                BallRequest.toAbstract(
+                    requested[curRequestId]
+            )   )
 
             shootingResult = shootRequestFinalPhase(
-                if (requestResult.didFail())
-                     Request.TURRET_SLOT else requestResult,
+                requestResult,
                 ProcessId.DRUM_REQUEST,
                 autoUpdatePatternWhenSucceed)
 
@@ -475,7 +475,8 @@ class SortingStorageLogic
             }
 
 
-            val requestResult = storageCells.handleRequest(requested[curRequestId])
+            val requestResult = storageCells.handleRequest(
+                requested[curRequestId])
 
             shootingResult = shootRequestFinalPhase(
                 requestResult, ProcessId.DRUM_REQUEST,

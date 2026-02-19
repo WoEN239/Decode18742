@@ -377,7 +377,7 @@ class SortingStorage
 
         logM.logMd("searching for request slot", Debug.LOGIC)
         val requestResult = _storageLogic.storageCells.handleRequest(request)
-        logM.logMd("FINISHED searching, result: ${requestResult.name()}", Debug.END)
+        logM.logMd("FINISHED searching, result: ${requestResult.name}", Debug.END)
 
 
         val shootingResult = _storageLogic.shootRequestFinalPhase(

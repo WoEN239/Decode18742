@@ -36,8 +36,8 @@ class BallRequest
     }
 
 
-    fun id()   = _id
-    fun name() = _name
+    val id   get() = _id
+    val name get() = _name
 
 
     fun isNone() = _id == NONE
@@ -128,6 +128,21 @@ class BallRequest
 
                 Name.ANY_CLOSEST -> Ball.Name.UNKNOWN_COLOR
                 Name.NONE        -> Ball.Name.NONE
+            }
+        }
+
+        fun toAbstract(name: Name): Name
+        {
+            return when (name)
+            {
+                Name.PURPLE -> Name.PREFER_PURPLE
+                Name.GREEN  -> Name.PREFER_GREEN
+
+                Name.PREFER_PURPLE,
+                Name.PREFER_GREEN,
+                Name.ANY_CLOSEST -> name
+
+                Name.NONE        -> Name.NONE
             }
         }
 
