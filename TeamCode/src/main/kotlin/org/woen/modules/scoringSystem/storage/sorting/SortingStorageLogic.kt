@@ -656,7 +656,7 @@ class SortingStorageLogic
         canShoot.set(false)
         EventBusLI.invoke(Request.IsReadyEvent)
 
-        var timePassedWaiting: Long = NOTHING.toLong()
+        var timePassedWaiting: Long = 0
         while (!canShoot.get() && timePassedWaiting <
             Delay.MS.AWAIT.ODOMETRY_TURNING)
         {
@@ -684,7 +684,7 @@ class SortingStorageLogic
 
         storageCells.updateAfterRequest()
 
-        if (doWaitBeforeNextShot) delay(Delay.MS.AWAIT.EVENTS)
+        if (doWaitBeforeNextShot) delay(Delay.MS.BETWEEN_SHOTS)
 
         if (autoUpdatePatternWhenSucceed)
             dynamicMemoryPattern.removeFromTemporary()

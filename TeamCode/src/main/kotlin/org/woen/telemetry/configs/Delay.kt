@@ -85,8 +85,6 @@ object Delay
 
         @JvmField
         var BETWEEN_SHOTS: Long = 100
-        @JvmField
-        var BETWEEN_INTAKES: Long = 500
 
 
         @JvmField
