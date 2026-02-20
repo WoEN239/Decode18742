@@ -6,6 +6,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.camera.RequestCameraSeeTagEvent
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.telemetry.configs.Configs
 import org.woen.threading.StoppingEvent
@@ -73,19 +74,16 @@ class DriveTrain : IModule {
                 }
 
                 DriveMode.SHOOTING -> {
-//                    _targetOrientation =
-//                        HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
-
                     _targetOrientation = Orientation(
                         Vec2.ZERO,
                         Angle((HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - odometry.odometryOrientation.pos).rot())
                     )
 
                     _hardwareDriveTrain.drive(
-                        /*Vec2(
-                            _xRegulator.update(_targetOrientation.x - odometry.odometryOrientation.pos.x),
-                            _yRegulator.update(_targetOrientation.y - odometry.odometryOrientation.pos.y)
-                        ).turn(-odometry.odometryOrientation.angle)*/ _targetTranslateVelocity,
+                        _targetTranslateVelocity * Vec2(
+                            if (_hardwareDriveTrain.driveMode == HardwareDriveTrain.DriveMode.REGULATOR)
+                                Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY else 1.0
+                        ),
                         _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
                     )
                 }
@@ -110,8 +108,12 @@ class DriveTrain : IModule {
             } else
                 _targetTimer.reset()
 
-            if(!ThreadedEventBus.LAZY_INSTANCE.invoke(
-                    RequirePinpointIsGoodEvent()).isGood)
+            if (!ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    RequirePinpointIsGoodEvent()
+                ).isGood && !ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    RequestCameraSeeTagEvent()
+                ).see
+            )
                 _currentMode = DriveMode.DRIVE
         }
     }
@@ -120,7 +122,7 @@ class DriveTrain : IModule {
         get() = _driveJob != null && !_driveJob!!.isCompleted
 
     override fun opModeStart() {
-        if(HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
+        if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.MANUAL)
             _hardwareDriveTrain.driveMode = HardwareDriveTrain.DriveMode.POWER
     }
 
@@ -164,15 +166,7 @@ class DriveTrain : IModule {
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(
                     SetDriveTargetVelocityEvent(
-                        Vec2(
-                            ly,
-                            lx
-                        )/*.turn(
-                            if (currentRunColor == HotRun.RunColor.BLUE) (_currentRobotRotation * -1.0 -
-                                    Angle.ofDeg(90.0)).angle
-                            else
-                                (_currentRobotRotation * -1.0 + Angle.ofDeg(90.0)).angle
-                        ) */,
+                        Vec2(ly, lx),
                         rx
                     )
                 )
@@ -180,8 +174,12 @@ class DriveTrain : IModule {
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetDriveModeEvent::class, {
-            if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO || !ThreadedEventBus.LAZY_INSTANCE.invoke(
-                    RequirePinpointIsGoodEvent()).isGood) {
+            if (HotRun.LAZY_INSTANCE.currentRunMode == HotRun.RunMode.AUTO || (!ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    RequirePinpointIsGoodEvent()
+                ).isGood && !ThreadedEventBus.LAZY_INSTANCE.invoke(
+                    RequestCameraSeeTagEvent()
+                ).see)
+            ) {
                 it.process.close()
             } else {
                 _currentMode = it.mode

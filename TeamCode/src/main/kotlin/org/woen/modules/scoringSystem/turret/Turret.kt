@@ -141,7 +141,8 @@ class Turret : IModule {
         HardwareThreads.LAZY_INSTANCE.CONTROL.addDevices(_hardwareTurretServos)
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestTurretCurrentRotation::class, {
-            it.rotation = Angle(_hardwareTurretServos.currentRotatePosition)
+            it.rotation = Angle.ZERO
+//            it.rotation = Angle(_hardwareTurretServos.currentRotatePosition)
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(SetRotateStateEvent::class, {

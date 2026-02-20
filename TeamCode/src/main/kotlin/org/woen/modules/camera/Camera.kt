@@ -11,6 +11,7 @@ import org.woen.modules.scoringSystem.turret.Pattern
 import org.woen.modules.scoringSystem.turret.RequestTurretCurrentRotation
 import org.woen.telemetry.ThreadedTelemetry
 import org.woen.telemetry.configs.Configs
+import org.woen.threading.StoppingEvent
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
 import org.woen.utils.smartMutex.SmartMutex
@@ -22,6 +23,7 @@ import kotlin.concurrent.thread
 
 data class OnPatternDetectedEvent(val pattern: Pattern)
 data class CameraUpdateEvent(val orientation: Orientation)
+data class RequestCameraSeeTagEvent(var see: Boolean = false): StoppingEvent
 
 class Camera : DisposableHandle {
     companion object {
@@ -41,6 +43,8 @@ class Camera : DisposableHandle {
 
     var currentPattern: Pattern? = null
 
+    private var _isCameraSeeAprilTag = false
+
     private val _thread =
         ThreadManager.LAZY_INSTANCE.register(thread(start = false, name = "Limelight thread") {
             val hardwareMap =
@@ -57,7 +61,7 @@ class Camera : DisposableHandle {
                     val botPos = result.botpose
 
                     val turretAngle =
-                        Angle(0.0)// ThreadedEventBus.LAZY_INSTANCE.invoke(RequestTurretCurrentRotation()).rotation
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(RequestTurretCurrentRotation()).rotation
 
                     val cameraRotation = botPos.orientation.getYaw(AngleUnit.RADIANS)
 
@@ -70,7 +74,9 @@ class Camera : DisposableHandle {
                         robotRotation
                     )
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(CameraUpdateEvent(_currentOrientation))
+                    _isCameraSeeAprilTag = result.fiducialResults.isNotEmpty()
+
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(CameraUpdateEvent(_currentOrientation.clone()))
 
                     val fiducialResults = result.fiducialResults
                     if (currentPattern == null && fiducialResults.isNotEmpty()) {
@@ -89,8 +95,11 @@ class Camera : DisposableHandle {
                             }
                         }
                     }
-                } else
+                } else {
                     Thread.sleep(5)
+
+                    _isCameraSeeAprilTag = false
+                }
             }
 
             limelight.stop()
@@ -103,10 +112,12 @@ class Camera : DisposableHandle {
     private constructor() {
         if (Configs.CAMERA.CAMERA_ENABLE) {
             ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+                val orientation = _currentOrientation.clone()
+
                 it.drawRect(
-                    _currentOrientation.pos,
+                    orientation.pos,
                     Configs.DRIVE_TRAIN.ROBOT_SIZE,
-                    _currentOrientation.angle,
+                    orientation.angle,
                     Color.BLACK
                 )
             }
@@ -119,6 +130,10 @@ class Camera : DisposableHandle {
             HotRun.LAZY_INSTANCE.opModeStopEvent += {
                 _thread.interrupt()
             }
+
+            ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestCameraSeeTagEvent::class, {
+                it.see = _isCameraSeeAprilTag
+            })
         }
     }
 }
