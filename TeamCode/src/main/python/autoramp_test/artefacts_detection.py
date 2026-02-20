@@ -3,10 +3,10 @@ import numpy as np
 import json
 
 class ArtefactsDetection:
-    green_thresh_lower = np.array([50,5,150])
+    green_thresh_lower = np.array([40,5,100])
     green_thresh_upper = np.array([90,255,255])
-    purple_thresh_lower = np.array([120,5,150])
-    purple_thresh_upper = np.array([160,255,255])
+    purple_thresh_lower = np.array([120,5,100])
+    purple_thresh_upper = np.array([180,255,255])
 
     contours_list = []
 
@@ -17,7 +17,6 @@ class ArtefactsDetection:
         with open(contours_path, "r") as f:
             loaded = json.load(f)
         self.contours_list = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
-        print(f"CONTOURS LOADED: {self.contours_list}")
 
     def color_masks(self,frame,step=25,iterations=4):
         masks = []
