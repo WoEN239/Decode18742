@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
-from artefacts_detection import ArtefactsDetection
+from sosat import SoSAT
 import json
 
-detector = ArtefactsDetection()
+detector = SoSAT()
 
 is_selecting = False
 is_selected = False
@@ -67,11 +67,12 @@ while True:
     cv2.imshow("Set contour",display_frame)
 
     key = cv2.waitKey(1) & 0xFF
+    if key == ord('s'):
+        with open("contours_data.json","w") as f:
+            json.dump(contours_list,f,indent=4)
+            f.close()
+        print(f"TOTAL CONTOURS SAVED: {len(contours_list)}")
+        
     if key == ord('q'):
+        print("EXITTING...")
         break
-
-with open("contours_data.json","w") as f:
-    json.dump(contours_list,f,indent=4)
-    f.close()
-
-print(f"TOTAL CONTOURS SAVED: {len(contours_list)}")
