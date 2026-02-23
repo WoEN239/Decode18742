@@ -3,10 +3,10 @@ import numpy as np
 import json
 
 class ArtefactsDetection:
-    green_thresh_lower = np.array([40,5,100])
-    green_thresh_upper = np.array([90,255,255])
-    purple_thresh_lower = np.array([120,5,100])
-    purple_thresh_upper = np.array([180,255,255])
+    green_thresh_lower = np.array([60,60,135])
+    green_thresh_upper = np.array([100,255,230])
+    purple_thresh_lower = np.array([130,20,100])
+    purple_thresh_upper = np.array([160,255,235])
 
     contours_list = []
 
@@ -16,7 +16,7 @@ class ArtefactsDetection:
     def load_contours(self,contours_path):
         with open(contours_path, "r") as f:
             loaded = json.load(f)
-        self.contours_list = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
+            self.contours_list = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
 
     def color_masks(self,frame,step=25,iterations=4):
         masks = []
@@ -32,9 +32,10 @@ class ArtefactsDetection:
             mask_purple = cv2.inRange(frame_hsv,purple_thresh_lower_rt,self.purple_thresh_upper)
             mask_combined = cv2.bitwise_or(mask_green,mask_purple)
 
-            mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_OPEN, np.ones((4,4),np.uint8), iterations=3)
-            mask_combined = cv2.erode(mask_combined, np.ones((4,4),np.uint8), iterations=4)
-            mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_CLOSE, np.ones((4,4),np.uint8), iterations=1)
+            kernel = np.ones((3,3),np.uint8)
+            mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_OPEN, kernel, iterations=1)
+            mask_combined = cv2.erode(mask_combined, kernel, iterations=2)
+            mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_CLOSE, kernel, iterations=3)
             
 
             masks.append(mask_combined)
@@ -59,9 +60,14 @@ class ArtefactsDetection:
                     match_score = self.match_contours(contour)
                     if match_score < float(match_threshold):
                         x,y,w,h = cv2.boundingRect(contour)
+
+                        is_redetected = False
                         for artefact in detected_artefacts_coords:
-                            if abs(artefact[0]-x) < 20 and abs(artefact[1]-y) < 20:
+                            if abs(artefact[0]-x) < 5 or abs(artefact[1]-y) < 5:
+                                is_redetected = True
                                 break
-                            else:
-                                detected_artefacts_coords.append((x,y,w,h))
+
+                        if not(is_redetected):
+                            detected_artefacts_coords.append([x,y,w,h,match_score])
+
         return detected_artefacts_coords
