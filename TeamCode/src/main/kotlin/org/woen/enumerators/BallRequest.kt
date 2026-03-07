@@ -131,6 +131,16 @@ class BallRequest
             }
         }
 
+        fun toInverse(name: Name): Name
+        {
+            return when(name)
+            {
+                Name.NONE, Name.ANY_CLOSEST -> name
+
+                Name.GREEN,  Name.PREFER_GREEN  -> Name.PREFER_PURPLE
+                Name.PURPLE, Name.PREFER_PURPLE -> Name.PREFER_GREEN
+            }
+        }
         fun toAbstract(name: Name): Name
         {
             return when (name)

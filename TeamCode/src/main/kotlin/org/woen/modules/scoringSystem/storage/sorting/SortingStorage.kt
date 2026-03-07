@@ -46,8 +46,9 @@ import org.woen.telemetry.LogManager
 import org.woen.telemetry.configs.Debug
 import org.woen.telemetry.configs.Delay
 import org.woen.telemetry.configs.ProcessId
-import org.woen.telemetry.configs.RobotSettings.CONTROLS
+import org.woen.telemetry.configs.RobotSettings.SORTING
 import org.woen.telemetry.configs.RobotSettings.SHOOTING
+import org.woen.telemetry.configs.RobotSettings.CONTROLS
 
 
 
@@ -323,6 +324,17 @@ class SortingStorage
     }
 //    suspend fun hwSmartPushNextBall()
 //        = _storageLogic.storageCells.hwSortingM.smartPushNextBall()
+    private fun inversePattern(
+        initial: Array<BallRequest.Name>): Array<BallRequest.Name>
+    {
+        var i = 0
+        while (i < initial.size)
+        {
+            initial[i] = BallRequest.toInverse(initial[i])
+            i++
+        }
+        return initial
+    }
     fun alreadyFull() = _storageLogic.storageCells.alreadyFull()
 
 
@@ -443,10 +455,14 @@ class SortingStorage
         _storageLogic.runStatus.setActiveProcess(ProcessId.DRUM_REQUEST)
 
 
-        val  standardPatternOrder = if (!includePreviousUnfinishedToRequest) requestOrder
+        var  standardPatternOrder = if (!includePreviousUnfinishedToRequest) requestOrder
         else DynamicPattern.trimPattern(
             _storageLogic.dynamicMemoryPattern.lastUnfinished(),
             requestOrder)
+
+        if (SORTING.INVERSE_SHOOTING_PATTERNS)
+            standardPatternOrder = inversePattern(standardPatternOrder)
+
 
         if (autoUpdateUnfinishedForNextPattern)
             _storageLogic.dynamicMemoryPattern.setTemporary(standardPatternOrder)
@@ -502,15 +518,21 @@ class SortingStorage
         _storageLogic.runStatus.setActiveProcess(ProcessId.DRUM_REQUEST)
 
 
-        val  standardPatternOrder = if (!includePreviousUnfinishedToRequest) requestOrder
+        var  standardPatternOrder = if (!includePreviousUnfinishedToRequest) requestOrder
         else DynamicPattern.trimPattern(
             _storageLogic.dynamicMemoryPattern.lastUnfinished(),
             requestOrder)
 
-        val  failsafePatternOrder = if (!includePreviousUnfinishedToFailsafe) requestOrder
+        var  failsafePatternOrder = if (!includePreviousUnfinishedToFailsafe) requestOrder
         else DynamicPattern.trimPattern(
             _storageLogic.dynamicMemoryPattern.lastUnfinished(),
             requestOrder)
+
+        if (SORTING.INVERSE_SHOOTING_PATTERNS)
+        {
+            standardPatternOrder = inversePattern(standardPatternOrder)
+            failsafePatternOrder = inversePattern(failsafePatternOrder)
+        }
 
 
         val autoUpdateUnfinishedWithFailsafe =

@@ -78,6 +78,9 @@ object RobotSettings
 
 
         @JvmField
+        var INVERSE_SHOOTING_PATTERNS = false
+
+        @JvmField
         var USE_CURRENT_PROTECTION_FOR_STORAGE_BELTS = false
 
         @JvmField
