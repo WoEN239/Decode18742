@@ -89,15 +89,15 @@ object Hardware
         internal object SERVO
         {
             @JvmField
-            var GATE_OPEN = 0.78
+            var GATE_OPEN = 0.4
             @JvmField
-            var GATE_CLOSE = 0.355
+            var GATE_CLOSE = 0.1
 
 
             @JvmField
-            var PUSH_OPEN = 0.31
+            var PUSH_OPEN = 0.04
             @JvmField
-            var PUSH_CLOSE = 0.545
+            var PUSH_CLOSE = 0.275
 
 
             @JvmField
@@ -107,9 +107,9 @@ object Hardware
 
 
             @JvmField
-            var TURRET_GATE_OPEN = 0.7
+            var TURRET_GATE_OPEN = 0.55
             @JvmField
-            var TURRET_GATE_CLOSE = 0.36
+            var TURRET_GATE_CLOSE = 0.82
         }
 
         internal object BELTS
