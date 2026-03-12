@@ -22,71 +22,27 @@ import org.woen.threading.hardware.IHardwareDevice
 import org.woen.threading.hardware.ThreadedBattery
 
 
-
 class ExpansionHardwareSimpleStorage : IHardwareDevice {
     enum class BeltState {
-        LAZY_RUN,
-        STOP,
-        RUN_REVERSE,
         RUN,
-        SHOOT
+        REVERS,
+        STOP,
+        SHOOTING
     }
 
     private lateinit var _beltMotor: MotorOnly
 
-    private var _isStart = false
-
     var beltState = BeltState.STOP
-        get() {
-            return field
-        }
-        set(value) {
-            field = value
-
-            if(value == BeltState.SHOOT) {
-                ThreadManager.LAZY_INSTANCE.globalCoroutineScope.launch {
-                    _isStart = true
-
-                    val timer = ElapsedTime()
-
-                    while (timer.seconds() < 0.15)
-                        _beltMotor.power =
-                            ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_SHOOT_POWER * (timer.seconds() / 0.15))
-
-                    _isStart = false
-                }
-            }
-        }
-    var beltsCurrent = 0.0
-
-    val currentTriggerEvent = SimpleEvent<Int>()
 
     private var _fullTriggerTimer = ElapsedTime()
 
     override fun update() {
-        if (HotRun.LAZY_INSTANCE.currentRunState != HotRun.RunState.RUN)
-            return
-
-        if(!_isStart) {
-            _beltMotor.power = when (beltState) {
-                BeltState.STOP -> 0.0
-
-                BeltState.RUN_REVERSE -> -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
-
-                BeltState.RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
-
-                BeltState.LAZY_RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
-
-                BeltState.SHOOT -> 1.0//ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_SHOOT_POWER)
-            }
+        _beltMotor.power = when (beltState) {
+            BeltState.STOP -> 0.0
+            BeltState.SHOOTING -> Configs.SIMPLE_STORAGE.BELTS_POWER
+            BeltState.REVERS -> -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
+            BeltState.RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
         }
-
-        beltsCurrent = _beltMotor.getCurrent(CurrentUnit.AMPS)
-
-        if (beltsCurrent > Configs.SIMPLE_STORAGE.BELTS_FULL_CURRENT)
-            if (_fullTriggerTimer.seconds() > Configs.SIMPLE_STORAGE.BELTS_FULL_TIMER)
-                currentTriggerEvent.invoke(0)
-        else _fullTriggerTimer.reset()
     }
 
     override fun init(hardwareMap: HardwareMap) {
@@ -97,10 +53,6 @@ class ExpansionHardwareSimpleStorage : IHardwareDevice {
             _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
             _beltMotor.direction = Hardware.VALUES.BELTS.MOTORS_DIRECTION
-        }
-
-        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
-            it.addData("beltsCurrent", beltsCurrent)
         }
     }
 

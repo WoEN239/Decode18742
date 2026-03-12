@@ -311,29 +311,23 @@ object Configs {
 
     @Config
     internal object SIMPLE_STORAGE {
-        @JvmField
-        var REVERS_TIME = 0.2
+       @JvmField
+       var BELTS_POWER = 10.0
 
         @JvmField
-        var BELTS_FULL_CURRENT = 8.9
-
-        @JvmField
-        var BELTS_FULL_TIMER = 0.1
-
-        @JvmField
-        var BELTS_POWER = 11.0
-
-        @JvmField
-        var BELTS_SHOOT_POWER = 11.0
-
-        @JvmField
-        var SHOOTING_TIME = 0.5
-
-        @JvmField
-        var PUSH_TIME = 0.5
+        var BELTS_SHOOT_POWER = 1.0
 
         @JvmField
         var COLOR_THRESHOLD = 60.0
+
+        @JvmField
+        var PUSH_TIME = 0.2
+
+        @JvmField
+        var SORTING_PUSH_TIME = 0.2
+
+        @JvmField
+        var REVERS_TIMER = 0.2
     }
 
     @Config
