@@ -9,7 +9,6 @@ import org.woen.hotRun.HotRun
 
 
 @TeleOp
-@Disabled
 class FullRestart : LinearOpMode() {
     override fun runOpMode() {
         HotRun.restart()

@@ -319,7 +319,7 @@ class HwSortingManager
         openGate()
         openPush()
 
-        reverseBelts()
+//        reverseBelts()
         delay(Delay.MS.HW_REQUEST_FREQUENCY * 8)
 
         closeGateWithPush()

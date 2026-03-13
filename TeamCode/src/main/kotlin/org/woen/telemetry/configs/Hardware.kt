@@ -50,10 +50,10 @@ object Hardware
     internal object DEVICE_NAMES
     {
         @JvmField
-        var INTAKE_COLOR_SENSOR_L = "leftColorSensor"
+        var INTAKE_COLOR_SENSOR_L = "leftColor"
 
         @JvmField
-        var INTAKE_COLOR_SENSOR_R = "rightColorSensor"
+        var INTAKE_COLOR_SENSOR_R = "rightColor"
 
 
         @JvmField
@@ -118,7 +118,7 @@ object Hardware
             var STORAGE_CURRENT_WHEN_FULL = 8.1
 
             @JvmField
-            var MOTORS_DIRECTION = DcMotorSimple.Direction.REVERSE
+            var MOTORS_DIRECTION = DcMotorSimple.Direction.FORWARD
 
 
             internal object POWER

@@ -35,7 +35,7 @@ object RobotSettings
     internal object CONTROLS
     {
         @JvmField
-        var USE_AUTO_SHOOTING_WHEN_IN_ZONE = true
+        var USE_AUTO_SHOOTING_WHEN_IN_ZONE = false
         @JvmField
         var DISABLE_AUTO_SHOOTING_IN_END_GAME = true
 

@@ -86,7 +86,7 @@ class ScoringModulesConnector
     {
         subscribeToEvents()
         subscribeToGamepad()
-//        subscribeToGamepadTests()
+        subscribeToGamepadTests()
 
         HotRunLI.opModeInitEvent += {
             resetParametersToDefault()
