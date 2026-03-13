@@ -30,11 +30,11 @@ class HardwareTurretServos : IHardwareDevice {
         }
 
     var targetRotatePosition
-        get() = -(_rotateServo.targetPosition * Configs.TURRET.ROTATE_SERVO_RATIO - Configs.TURRET.ZERO_ROTATE_POS)
+        get() = _rotateServo.targetPosition * Configs.TURRET.ROTATE_SERVO_RATIO - Configs.TURRET.ZERO_ROTATE_POS
         set(value) {
             _rotateServo.targetPosition =
                 (clamp(
-                    -value,
+                    value,
                     Configs.TURRET.MIN_ROTATE,
                     Configs.TURRET.MAX_ROTATE
                 ) + Configs.TURRET.ZERO_ROTATE_POS) / Configs.TURRET.ROTATE_SERVO_RATIO

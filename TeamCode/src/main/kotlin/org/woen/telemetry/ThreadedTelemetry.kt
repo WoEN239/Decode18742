@@ -90,7 +90,7 @@ class ThreadedTelemetry : DisposableHandle {
     }
 
     override fun dispose() {
-        Debug.TELEMETRY_UPDATE_HZ.onSet -= ::onUpdateHZChanged
+        Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.onSet -= ::onUpdateHZChanged
     }
 
     private var _temporarySenders =
@@ -125,7 +125,7 @@ class ThreadedTelemetry : DisposableHandle {
 
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = true) {
         while (!Thread.currentThread().isInterrupted) {
-            if (telemetryEnabled && Debug.TELEMETRY_ENABLE) {
+            if (telemetryEnabled && Configs.TELEMETRY.TELEMETRY_ENABLE) {
                 onTelemetrySend.invoke(this)
 
                 val telemetry = this
@@ -153,7 +153,7 @@ class ThreadedTelemetry : DisposableHandle {
 
             _dashboardPacket = TelemetryPacket()
 
-            Thread.sleep((1000.0 / Debug.TELEMETRY_UPDATE_HZ.get()).toLong())
+            Thread.sleep((1000.0 / Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.get()).toLong())
         }
     })
 
@@ -243,8 +243,8 @@ class ThreadedTelemetry : DisposableHandle {
     }
 
     private constructor() {
-        Debug.TELEMETRY_UPDATE_HZ.onSet += ::onUpdateHZChanged
+        Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.onSet += ::onUpdateHZChanged
 
-        onUpdateHZChanged(Debug.TELEMETRY_UPDATE_HZ.get())
+        onUpdateHZChanged(Configs.TELEMETRY.TELEMETRY_UPDATE_HZ.get())
     }
 }

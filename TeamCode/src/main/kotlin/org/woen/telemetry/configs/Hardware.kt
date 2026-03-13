@@ -1,11 +1,9 @@
 package org.woen.telemetry.configs
 
-import kotlin.math.max
-import kotlin.math.ceil
-
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-
+import kotlin.math.ceil
+import kotlin.math.max
 
 
 object Hardware
@@ -22,19 +20,19 @@ object Hardware
         ).toDouble()
 
         @JvmField
-        var GREEN_THRESHOLD_RIGHT = 45.0
+        var GREEN_THRESHOLD_RIGHT = 60.0
 
         @JvmField
-        var GREEN_THRESHOLD_LEFT = 45.0
+        var GREEN_THRESHOLD_LEFT = 60.0
 
         @JvmField
-        var MIN_PURPLE_H_RIGHT = 2.9
+        var MIN_PURPLE_H_RIGHT = 2.8
 
         @JvmField
         var MAX_PURPLE_H_RIGHT = 4.0
 
         @JvmField
-        var MIN_PURPLE_H_LEFT = 2.9
+        var MIN_PURPLE_H_LEFT = 2.8
 
         @JvmField
         var MAX_PURPLE_H_LEFT = 4.0
@@ -52,10 +50,10 @@ object Hardware
     internal object DEVICE_NAMES
     {
         @JvmField
-        var INTAKE_COLOR_SENSOR_L = "leftColor"
+        var INTAKE_COLOR_SENSOR_L = "leftColorSensor"
 
         @JvmField
-        var INTAKE_COLOR_SENSOR_R = "rightColor"
+        var INTAKE_COLOR_SENSOR_R = "rightColorSensor"
 
 
         @JvmField
@@ -91,9 +89,9 @@ object Hardware
         internal object SERVO
         {
             @JvmField
-            var GATE_OPEN = 0.4
+            var GATE_OPEN = 0.42
             @JvmField
-            var GATE_CLOSE = 0.1
+            var GATE_CLOSE = 0.0
 
 
             @JvmField
@@ -109,9 +107,9 @@ object Hardware
 
 
             @JvmField
-            var TURRET_GATE_OPEN = 0.55
+            var TURRET_GATE_OPEN = 0.72
             @JvmField
-            var TURRET_GATE_CLOSE = 0.82
+            var TURRET_GATE_CLOSE = 0.45
         }
 
         internal object BELTS

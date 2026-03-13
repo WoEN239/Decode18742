@@ -5,6 +5,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.launch
@@ -51,8 +52,6 @@ class ExpansionHardwareSimpleStorage : IHardwareDevice {
 
         HotRun.LAZY_INSTANCE.opModeInitEvent += {
             _beltMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-            _beltMotor.direction = Hardware.VALUES.BELTS.MOTORS_DIRECTION
         }
     }
 

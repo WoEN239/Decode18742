@@ -1,5 +1,6 @@
 package org.woen.linearOpModes
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -8,6 +9,7 @@ import org.woen.hotRun.HotRun
 
 
 @TeleOp
+@Disabled
 class FullRestart : LinearOpMode() {
     override fun runOpMode() {
         HotRun.restart()

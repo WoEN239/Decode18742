@@ -79,13 +79,13 @@ class DriveTrain : IModule {
                         Angle((HotRun.LAZY_INSTANCE.currentStartPosition.basketPosition - odometry.odometryOrientation.pos).rot())
                     )
 
-                    _hardwareDriveTrain.drive(
-                        _targetTranslateVelocity * Vec2(
-                            if (_hardwareDriveTrain.driveMode == HardwareDriveTrain.DriveMode.REGULATOR)
-                                Configs.DRIVE_TRAIN.MAX_DRIVE_VELOCITY else 1.0
-                        ),
-                        _hRegulator.update((_targetOrientation.angl - odometry.odometryOrientation.angl).angle)
-                    )
+                    if (_hardwareDriveTrain.driveMode == HardwareDriveTrain.DriveMode.REGULATOR)
+                        _hardwareDriveTrain.drive(_targetTranslateVelocity, _targetRotateVelocity)
+                    else
+                        _hardwareDriveTrain.drivePowered(
+                            _targetTranslateVelocity,
+                            _targetRotateVelocity
+                        )
                 }
 
                 DriveMode.PARKING -> {
@@ -101,7 +101,7 @@ class DriveTrain : IModule {
 
             if ((abs(_targetOrientation.x - odometry.odometryOrientation.x) < Configs.DRIVE_TRAIN.POS_SENS || _currentMode == DriveMode.SHOOTING) &&
                 (abs(_targetOrientation.y - odometry.odometryOrientation.y) < Configs.DRIVE_TRAIN.POS_SENS || _currentMode == DriveMode.SHOOTING) &&
-                (abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS)
+                ((abs((_targetOrientation.angl - odometry.odometryOrientation.angl).angle) < Configs.DRIVE_TRAIN.H_SENS  || _currentMode == DriveMode.SHOOTING))
             ) {
                 if (_targetTimer.seconds() > Configs.DRIVE_TRAIN.TARGET_TIMER)
                     _currentProcess.close()
@@ -184,23 +184,23 @@ class DriveTrain : IModule {
             } else {
                 _currentMode = it.mode
                 _currentProcess = it.process
-
-                if (it.mode != DriveMode.DRIVE) {
-                    _hardwareDriveTrain.driveMode = HardwareDriveTrain.DriveMode.REGULATOR
-
-                    _targetTimer.reset()
-
-                    if (it.mode == DriveMode.PARKING)
-                        _targetOrientation =
-                            HotRun.LAZY_INSTANCE.currentStartPosition.parkingOrientation
-
-                    _xRegulator.start()
-                    _xRegulator.resetIntegral()
-                    _yRegulator.start()
-                    _yRegulator.resetIntegral()
-                    _hRegulator.start()
-                    _hRegulator.resetIntegral()
-                } else
+//
+//                if (it.mode != DriveMode.DRIVE) {
+//                    _hardwareDriveTrain.driveMode = HardwareDriveTrain.DriveMode.REGULATOR
+//
+//                    _targetTimer.reset()
+//
+//                    if (it.mode == DriveMode.PARKING)
+//                        _targetOrientation =
+//                            HotRun.LAZY_INSTANCE.currentStartPosition.parkingOrientation
+//
+//                    _xRegulator.start()
+//                    _xRegulator.resetIntegral()
+//                    _yRegulator.start()
+//                    _yRegulator.resetIntegral()
+//                    _hRegulator.start()
+//                    _hRegulator.resetIntegral()
+//                } else
                     _hardwareDriveTrain.driveMode = HardwareDriveTrain.DriveMode.POWER
             }
         })

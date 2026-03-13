@@ -22,12 +22,6 @@ object Debug
     var SHOW_DEBUG_SUPPRESS_WARNINGS = true
 
 
-    @JvmField
-    var TELEMETRY_ENABLE = true
-    @EventConfig
-    var TELEMETRY_UPDATE_HZ = ThreadedTelemetry.EventValueProvider(5)
-
-
 
     const val HW_LOW = 1
     const val HARDWARE_LOW = 1

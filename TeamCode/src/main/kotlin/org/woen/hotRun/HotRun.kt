@@ -118,7 +118,7 @@ class HotRun private constructor() {
         CLOSE
     }
 
-    var currentStartPosition = StartPosition.BLUE_CLOSE
+    var currentStartPosition = StartPosition.RED_CLOSE
 
     val opModeInitEvent = SimpleEmptyEvent()
     val opModeStartEvent = SimpleEmptyEvent()

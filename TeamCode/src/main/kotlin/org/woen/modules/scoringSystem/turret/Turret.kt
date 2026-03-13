@@ -165,11 +165,12 @@ class Turret : IModule {
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestRotateAtTarget::class, {
-            it.atTarget = _hardwareTurretServos.rotateAtTarget
+            it.atTarget = _hardwareTurretServos.rotateAtTarget &&
+                    _hardwareTurretServos.targetRotatePosition in Configs.TURRET.MIN_ROTATE..Configs.TURRET.MAX_ROTATE
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitRotateAtTarget::class, {
-            while (!_hardwareTurretServos.rotateAtTarget)
+            while (!_hardwareTurretServos.rotateAtTarget || _hardwareTurretServos.targetRotatePosition !in Configs.TURRET.MIN_ROTATE..Configs.TURRET.MAX_ROTATE)
                 delay(5)
 
             it.process.wait()

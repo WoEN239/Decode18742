@@ -27,6 +27,15 @@ import org.woen.utils.units.Vec2
 
 object Configs {
     @Config
+    internal object TELEMETRY{
+        @JvmField
+        var TELEMETRY_ENABLE = true
+
+        @EventConfig
+        var TELEMETRY_UPDATE_HZ = ThreadedTelemetry.EventValueProvider(5)
+    }
+
+    @Config
     internal object BRUSH {
         @JvmField
         var BRUSH_SAFE_TIME = 0.5
@@ -216,7 +225,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = true
+        var CAMERA_ENABLE = false
 
         @JvmField
         var CAMERA_TURRET_POS = Vec2(0.0, 0.164)
@@ -225,14 +234,14 @@ object Configs {
     @Config
     internal object TURRET {
         @JvmField
-        var PULLEY_RADIUS = 0.0425
+        var PULLEY_RADIUS = 0.075 / 2.0
 
         @JvmField
         var PULLEY_TICKS_IN_REVOLUTION = 28.0
 
         @JvmField
         var PULLEY_REGULATOR =
-            RegulatorParameters(kF = 0.0055, kP = 0.08, kI = 0.01 /*, limitU = 12.0*/)
+            RegulatorParameters(kF = 0.00585, kP = 0.085, kI = 0.005 /*, limitU = 12.0*/)
 
         @JvmField
         var REGULATOR_SENS = 0.5
@@ -247,10 +256,10 @@ object Configs {
         var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, 3.66 / 2.0 - 0.2)
 
         @JvmField
-        var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.93
+        var MIN_TURRET_ANGLE_SERVO = 1.0 - 0.58
 
         @JvmField
-        var MAX_TURRET_ANGLE_SERVO = 1.0 - 0.15
+        var MAX_TURRET_ANGLE_SERVO = 1.0 - 0.44
 
         @JvmField
         var MIN_TURRET_ANGLE = PI / 2.0 - Math.toRadians(45.0)
@@ -262,20 +271,20 @@ object Configs {
         var TURRET_CENTER_POS = Vec2(0.0, -0.035)
 
         @JvmField
-        var ZERO_ROTATE_POS = Math.toRadians(167.81818181818184)
+        var ZERO_ROTATE_POS = Math.toRadians(85.69090909090909)
 
         @JvmField
-        var ROTATE_SERVO_RATIO = (30.0 / 18.0) * (60.0 / 120.0)
+        var ROTATE_SERVO_RATIO = 0.5
 
         @JvmField
         var ROTATE_SERVO_REGULATOR =
-            RegulatorParameters(kP = 0.85, kD = 0.015, limitU = 1.0)
+            RegulatorParameters(kP = 0.9, kD = 0.01, limitU = 1.0)
 
         @JvmField
-        var MAX_ROTATE = Math.toRadians(343.0) - ZERO_ROTATE_POS
+        var MAX_ROTATE = Math.toRadians(90.0)
 
         @JvmField
-        var MIN_ROTATE = Math.toRadians(-12.0) - ZERO_ROTATE_POS
+        var MIN_ROTATE = Math.toRadians(-90.0)
 
         @JvmField
         var SHOOTING_RED_ORIENTATION =
@@ -301,10 +310,10 @@ object Configs {
         var SCORE_ANGLE = Math.toRadians(-20.0)
 
         @JvmField
-        var PULLEY_RATION = 30.0 / 40.0
+        var PULLEY_RATION = 1.0
 
         @JvmField
-        var PULLEY_U = 0.47
+        var PULLEY_U = 0.35
     }
 
 
@@ -318,16 +327,16 @@ object Configs {
         var BELTS_SHOOT_POWER = 1.0
 
         @JvmField
-        var COLOR_THRESHOLD = 60.0
-
-        @JvmField
-        var PUSH_TIME = 0.2
+        var PUSH_TIME = 0.4
 
         @JvmField
         var SORTING_PUSH_TIME = 0.2
 
         @JvmField
-        var REVERS_TIMER = 0.2
+        var REVERS_TIMER = 0.1
+
+        @JvmField
+        var VELOCITY_THRESHOLD = 0.3
     }
 
     @Config

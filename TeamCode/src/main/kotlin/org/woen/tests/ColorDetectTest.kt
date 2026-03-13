@@ -36,8 +36,8 @@ internal object COLOR_DETECT_TEST{
 class ColorDetectTest : LinearOpMode() {
     @SuppressLint("DefaultLocale")
     override fun runOpMode() {
-        val leftSensor = hardwareMap.get("leftColorSensor") as RevColorSensorV3
-        val rightSensor = hardwareMap.get("rightColorSensor") as RevColorSensorV3
+        val leftSensor = hardwareMap.get("leftColor") as RevColorSensorV3
+        val rightSensor = hardwareMap.get("rightColor") as RevColorSensorV3
 
         leftSensor.gain = 4.0f
         rightSensor.gain = 4.0f

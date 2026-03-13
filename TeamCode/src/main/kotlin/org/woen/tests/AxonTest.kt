@@ -13,21 +13,18 @@ import org.woen.utils.regulator.RegulatorParameters
 import kotlin.math.PI
 
 @Config
-@Disabled
 internal object AXON_TEST {
     @JvmField
     var TARGET_POSITION = 0.0
 
     @JvmField
-    var REGULATOR = RegulatorParameters()
+    var REGULATOR = RegulatorParameters(kP = 1.2, kD = 0.01, limitU = 1.0)
 }
 
 @TeleOp(group = "tests")
-@Disabled
 class AxonTest : LinearOpMode() {
     override fun runOpMode() {
         val servo = InfinityAxon("turretRotateServo", "turretRotateEncoder", hardwareMap, regulator = AXON_TEST.REGULATOR)
-        val pulleyMotor = hardwareMap.get("pulleyMotor") as DcMotorEx
 
         var state = false
         val timer = ElapsedTime()
@@ -40,19 +37,19 @@ class AxonTest : LinearOpMode() {
         servo.start()
 
         while (opModeIsActive()) {
-//            servo.targetPosition = (if(state) PI / 2.0 else -PI / 2.0) + Math.toRadians(164.5454545454546)
-//
-//            if(timer.seconds() > 1.2) {
-//                state = !state
-//                timer.reset()
-//            }
+            servo.targetPosition = ((if(state) PI / 2.0 else -PI / 2.0) + Math.toRadians(85.69090909090909)) / Configs.TURRET.ROTATE_SERVO_RATIO
 
-            servo.targetPosition = ((AXON_TEST.TARGET_POSITION + 164.5454545454546) / 180.0 * PI) / Configs.TURRET.ROTATE_SERVO_RATIO
+            if(timer.seconds() > 2.0) {
+                state = !state
+                timer.reset()
+            }
+
+//            servo.targetPosition = ((AXON_TEST.TARGET_POSITION + 85.69090909090909) / Configs.TURRET.ROTATE_SERVO_RATIO / 180.0 * PI)
 
             val telem = FtcDashboard.getInstance().telemetry
 
-            telem.addData("target", Math.toDegrees(servo.targetPosition) * Configs.TURRET.ROTATE_SERVO_RATIO)
-            telem.addData("position", servo.position / PI * 180.0 * Configs.TURRET.ROTATE_SERVO_RATIO)
+            telem.addData("target", Math.toDegrees(servo.targetPosition) * Configs.TURRET.ROTATE_SERVO_RATIO - 85.69090909090909)
+            telem.addData("position", servo.position / PI * 180.0 * Configs.TURRET.ROTATE_SERVO_RATIO - 85.69090909090909)
 
             telem.update()
 
