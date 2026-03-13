@@ -15,6 +15,7 @@ import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.configs.Hardware
 import org.woen.threading.ThreadManager
 import org.woen.threading.ThreadedEventBus
+import org.woen.threading.ThreadedGamepad
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedServo
 
@@ -83,7 +84,15 @@ class SimpleStorage : IModule {
         ThreadedEventBus.LAZY_INSTANCE.subscribe(StartSorting::class, {
             _currentState = StorageState.SORTING
             _requiredSwaps = 3
+
+            _turretGateServo.targetPosition = Hardware.VALUES.SERVO.TURRET_GATE_CLOSE
+            _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
         })
+
+        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(ThreadedGamepad.createClickDownListener({it.left_bumper}, {
+            _currentState = StorageState.SORTING
+            _requiredSwaps = 3
+        }))
     }
 
     override suspend fun process() {
@@ -139,12 +148,12 @@ class SimpleStorage : IModule {
                 while (_requiredSwaps > 0 && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN) {
                     _pushServo.targetPosition = Hardware.VALUES.SERVO.PUSH_OPEN
 
-                    while (_pushServo.atTargetAngle && !Thread.currentThread().isInterrupted)
+                    while (_pushServo.atTargetAngle && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN)
                         delay(5)
 
                     _pushServo.targetPosition = Hardware.VALUES.SERVO.PUSH_CLOSE
 
-                    while (_pushServo.atTargetAngle && !Thread.currentThread().isInterrupted)
+                    while (_pushServo.atTargetAngle && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN)
                         delay(5)
 
                     _hardwareExpansionStorage.beltState =
