@@ -7,9 +7,9 @@ import org.woen.threading.StoppingEvent
 
 
 
-class TerminateIntakeEvent(
+data class TerminateIntakeEvent(
     var stoppingResult: Boolean = false) : StoppingEvent
-class WaitForTerminateIntakeEvent(
+data class WaitForTerminateIntakeEvent(
     var stoppingResult: Boolean = false) : StoppingEvent
 
 
@@ -23,14 +23,15 @@ class StopLazyIntakeEvent() : StoppingEvent
 
 
 
-class StorageUpdateAfterLazyIntakeEvent(
+@Suppress("ArrayInDataClass")
+data class StorageUpdateAfterLazyIntakeEvent(
     var inputFromTurretSlotToBottom: Array<Ball.Name>,
     var startingResult: Boolean = false) : StoppingEvent
 
-class FillStorageWithUnknownColorsEvent(
+data class FillStorageWithUnknownColorsEvent(
     var startingResult: Boolean = false) : StoppingEvent
 
 
 
-class FullFinishedIntakeEvent(
+data class FullFinishedIntakeEvent(
     var ballCountInStorage: Int = 0)

@@ -21,7 +21,8 @@ class StorageGiveDrumRequest(
     var failsafePattern: Array<BallRequest.Name> = arrayOf())
 
 
-class StorageInitiatePredictSortEvent(
+@Suppress("ArrayInDataClass")
+data class StorageInitiatePredictSortEvent(
     var requestedPattern: Array<BallRequest.Name>,
     var startingResult: Boolean = false) : StoppingEvent
 
@@ -33,5 +34,5 @@ class TerminateRequestEvent()
 
 
 class StorageRequestIsReadyEvent()
-class FullFinishedFiringEvent(
+data class FullFinishedFiringEvent(
     var requestResult: RequestResult.Name)

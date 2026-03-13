@@ -1,6 +1,7 @@
 package org.woen.modules.scoringSystem
 
 
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -64,7 +65,9 @@ import org.woen.telemetry.configs.RobotSettings.AUTONOMOUS
 
 
 
-class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
+private class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
+
+data class IsEndGameEvent(var isEndGame: Boolean = false)
 
 
 
@@ -73,7 +76,7 @@ class ScoringModulesConnector
     private val _storage   = SortingStorage()
     private val _runStatus = RunStatus(ProcessId.PRIORITY_SETTING_FOR_SMC)
     private val logM = LogManager(Debug.SMC)
-    //  don't use _naming for shortening reasons
+    private val _gameTimer = ElapsedTime()
 
 //    private val _shotWasFired      = AtomicBoolean(false)
 
@@ -89,13 +92,17 @@ class ScoringModulesConnector
             resetParametersToDefault()
             //  SortingStorageModule resets automatically
         }
+        HotRunLI.opModeStartEvent += {
+            _gameTimer.reset()
+        }
     }
 
     private fun subscribeToEvents()
     {
         EventBusLI.subscribe(RobotEnterShootingAreaEvent::class, {
 
-                if (CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE)
+                if  (CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE && (
+                    !CONTROLS.DISABLE_AUTO_SHOOTING_IN_END_GAME) || !isEndGame)
                 {
                     logM.logMd("Trying to start AutoShooting", Debug.TRYING)
                     startStreamDrumRequest()
@@ -170,6 +177,11 @@ class ScoringModulesConnector
 
                 EventBusLI.invoke(SetLightColorEvent(Light.LightColor.BLUE))
                 EventBusLI.invoke(SetDriveModeEvent(DriveMode.DRIVE))
+        }   )
+
+        EventBusLI.subscribe(IsEndGameEvent::class, {
+
+                it.isEndGame = isEndGame
         }   )
     }
     private fun subscribeToGamepad()
@@ -320,6 +332,13 @@ class ScoringModulesConnector
 
 //        _shotWasFired.set(false)
     }
+
+
+
+    private val isEndGame get()
+        =   HotRunLI.currentRunMode  == HotRun.RunMode.MANUAL
+        &&  HotRunLI.currentRunState == HotRun.RunState.RUN
+        && _gameTimer.seconds() > 90.0
 
 
 
