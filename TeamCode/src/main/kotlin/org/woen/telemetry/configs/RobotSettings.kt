@@ -35,13 +35,28 @@ object RobotSettings
     internal object CONTROLS
     {
         @JvmField
+        var USE_AUTO_SHOOTING_WHEN_IN_ZONE = true
+
+        @JvmField
+        var TERMINATE_AUTO_SHOOTING_WHEN_LEAVING_ZONE = false
+
+
+
+        @JvmField
+        var WAIT_FOR_CORRECT_TURRET_ANGLE = true
+
+        @JvmField
         var DRIVE_TO_SHOOTING_ZONE = true
+
+
 
         @JvmField
         var TRY_TERMINATE_INTAKE_WHEN_SHOOTING = true
 
         @JvmField
         var IGNORE_DUPLICATE_SHOOTING_COMMAND  = true
+
+
 
         @JvmField
         var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = false

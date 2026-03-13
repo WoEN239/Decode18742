@@ -1,9 +1,11 @@
 package org.woen.telemetry.configs
 
+import kotlin.math.max
+import kotlin.math.ceil
+
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-import kotlin.math.ceil
-import kotlin.math.max
+
 
 
 object Hardware
@@ -20,19 +22,19 @@ object Hardware
         ).toDouble()
 
         @JvmField
-        var GREEN_THRESHOLD_RIGHT = 70.0
+        var GREEN_THRESHOLD_RIGHT = 45.0
 
         @JvmField
-        var GREEN_THRESHOLD_LEFT = 70.0
+        var GREEN_THRESHOLD_LEFT = 45.0
 
         @JvmField
-        var MIN_PURPLE_H_RIGHT = 3.0
+        var MIN_PURPLE_H_RIGHT = 2.9
 
         @JvmField
         var MAX_PURPLE_H_RIGHT = 4.0
 
         @JvmField
-        var MIN_PURPLE_H_LEFT = 3.0
+        var MIN_PURPLE_H_LEFT = 2.9
 
         @JvmField
         var MAX_PURPLE_H_LEFT = 4.0
@@ -50,10 +52,10 @@ object Hardware
     internal object DEVICE_NAMES
     {
         @JvmField
-        var INTAKE_COLOR_SENSOR_L = "leftColorSensor"
+        var INTAKE_COLOR_SENSOR_L = "leftColor"
 
         @JvmField
-        var INTAKE_COLOR_SENSOR_R = "rightColorSensor"
+        var INTAKE_COLOR_SENSOR_R = "rightColor"
 
 
         @JvmField

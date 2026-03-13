@@ -14,6 +14,7 @@ import org.woen.modules.light.Light.LightColor
 import org.woen.modules.light.SetLightColorEvent
 
 import org.woen.modules.scoringSystem.storage.FullFinishedIntakeEvent
+import org.woen.modules.scoringSystem.turret.RequestRotateAtTarget
 
 import org.woen.telemetry.configs.Alias.Intake
 import org.woen.telemetry.configs.Alias.Request
@@ -29,6 +30,7 @@ import org.woen.telemetry.configs.Delay
 import org.woen.telemetry.configs.ProcessId
 import org.woen.telemetry.configs.RobotSettings.SORTING
 import org.woen.telemetry.configs.RobotSettings.SHOOTING
+import org.woen.telemetry.configs.RobotSettings.CONTROLS
 
 
 
@@ -300,6 +302,20 @@ class SortingStorageLogic
         }
 
         logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
+
+
+        if (CONTROLS.WAIT_FOR_CORRECT_TURRET_ANGLE)
+        {
+            var turretIsTurned = EventBusLI.invoke(RequestRotateAtTarget())
+
+            while (!turretIsTurned.atTarget)
+            {
+                delay(Delay.MS.AWAIT.EVENTS)
+                if (isForcedToTerminate(ProcessId.DRUM_REQUEST)) return
+                turretIsTurned = EventBusLI.invoke(RequestRotateAtTarget())
+            }
+        }
+
 
         storageCells.hwSortingM.stopBelts()
         storageCells.hwSortingM.openTurretGate()
@@ -658,13 +674,18 @@ class SortingStorageLogic
         EventBusLI.invoke(Request.IsReadyEvent)
 
         var timePassedWaiting: Long = 0
-        while (!canShoot.get() && timePassedWaiting <
-            Delay.MS.AWAIT.ODOMETRY_TURNING)
+        var turretIsTurned = EventBusLI.invoke(RequestRotateAtTarget())
+        while (!turretIsTurned.atTarget || (
+                    !canShoot.get() &&
+                    timePassedWaiting < Delay.MS.AWAIT.ODOMETRY_TURNING))
         {
             delay(Delay.MS.AWAIT.EVENTS)
             timePassedWaiting += Delay.MS.AWAIT.EVENTS
+
             if (isForcedToTerminate(processId)) return false
+            turretIsTurned = EventBusLI.invoke(RequestRotateAtTarget())
         }
+
 
         if (!canShoot.get()) return false
 

@@ -25,6 +25,8 @@ import org.woen.threading.ThreadedGamepad.Companion.createClickDownListener
 
 import org.woen.modules.driveTrain.SetDriveModeEvent
 import org.woen.modules.driveTrain.DriveTrain.DriveMode
+import org.woen.modules.driveTrain.RobotEnterShootingAreaEvent
+import org.woen.modules.driveTrain.RobotExitShootingAreaEvent
 
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 
@@ -91,6 +93,25 @@ class ScoringModulesConnector
 
     private fun subscribeToEvents()
     {
+        EventBusLI.subscribe(RobotEnterShootingAreaEvent::class, {
+
+                if (CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE)
+                {
+                    logM.logMd("Trying to start AutoShooting", Debug.TRYING)
+                    startStreamDrumRequest()
+                }
+        }   )
+        EventBusLI.subscribe(RobotExitShootingAreaEvent::class,  {
+
+                if (CONTROLS.TERMINATE_AUTO_SHOOTING_WHEN_LEAVING_ZONE)
+                {
+                    logM.logMd("Terminating AutoShooting", Debug.TRYING)
+                    terminateRequest()
+                }
+        }   )
+
+
+
         EventBusLI.subscribe(StorageGetReadyForIntakeEvent::class, {
                 SmartCoroutineLI.launch {
 
@@ -201,16 +222,7 @@ class ScoringModulesConnector
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.left_bumper  }, {
 
-                    val activeProcessId = _runStatus.getActiveProcess()
-                    if (activeProcessId == ProcessId.DRUM_REQUEST ||
-                        activeProcessId == ProcessId.SINGLE_REQUEST)
-                        _runStatus.addProcessToTermination(activeProcessId)
-
-                    EventBusLI.invoke(TerminateRequestEvent())
-                    EventBusLI.invoke(SetDriveModeEvent(DriveMode.DRIVE))
-
-                    logM.logMd("STOP  - ANY Request - GAMEPAD", Debug.GAMEPAD)
-                    logM.logMd("isBusy: $isUsedByAnyProcess",   Debug.RACE_CONDITION)
+                    terminateRequest()
         }   )   )
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.right_bumper }, {
@@ -418,6 +430,20 @@ class ScoringModulesConnector
         logM.logMd("FINISHED - Single request", Debug.END)
 
         return resumeLogicAfterShooting(requestResult, ProcessId.SINGLE_REQUEST)
+    }
+
+    private fun terminateRequest()
+    {
+        val activeProcessId = _runStatus.getActiveProcess()
+        if (activeProcessId == ProcessId.DRUM_REQUEST ||
+            activeProcessId == ProcessId.SINGLE_REQUEST)
+            _runStatus.addProcessToTermination(activeProcessId)
+
+        EventBusLI.invoke(TerminateRequestEvent())
+        EventBusLI.invoke(SetDriveModeEvent(DriveMode.DRIVE))
+
+        logM.logMd("STOP  - ANY Request - GAMEPAD", Debug.GAMEPAD)
+        logM.logMd("isBusy: $isUsedByAnyProcess",   Debug.RACE_CONDITION)
     }
 
 

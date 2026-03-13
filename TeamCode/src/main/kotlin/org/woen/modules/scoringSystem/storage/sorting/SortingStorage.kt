@@ -129,7 +129,7 @@ class SortingStorage
 
                 else _storageLogic.resumeLogicAfterIntake(ProcessId.LAZY_INTAKE)
         }   )
-        EventBusLI.subscribe(StopLazyIntakeEvent::class, {
+        EventBusLI.subscribe(StopLazyIntakeEvent::class,  {
 
                 stopLazyIntake()
         }   )
@@ -150,7 +150,7 @@ class SortingStorage
 
 
 
-        EventBusLI.subscribe(StorageInitiatePredictSortEvent::class, {
+        EventBusLI.subscribe(StorageInitiatePredictSortEvent::class,   {
 
                 val canInitiate   = _storageLogic.canInitiatePredictSort()
                 it.startingResult = canInitiate
