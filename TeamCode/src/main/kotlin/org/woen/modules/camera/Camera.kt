@@ -74,11 +74,14 @@ class Camera : DisposableHandle {
                         robotRotation
                     )
 
-                    _isCameraSeeAprilTag = result.fiducialResults.isNotEmpty()
+                    _isCameraSeeAprilTag =
+                        result.fiducialResults.any { it.fiducialId != 21 && it.fiducialId != 22 && it.fiducialId != 23 }
 
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(CameraUpdateEvent(_currentOrientation.clone()))
+                    if(_isCameraSeeAprilTag)
+                        ThreadedEventBus.LAZY_INSTANCE.invoke(CameraUpdateEvent(_currentOrientation.clone()))
 
                     val fiducialResults = result.fiducialResults
+
                     if (currentPattern == null && fiducialResults.isNotEmpty()) {
                         for (fr in fiducialResults) {
                             val tagId = fr.fiducialId
@@ -91,7 +94,7 @@ class Camera : DisposableHandle {
                                         currentPattern!!
                                     )
                                 )
-                                ThreadedTelemetry.LAZY_INSTANCE.log("LL Pattern: ${foundPattern.cameraTagId}")
+
                             }
                         }
                     }

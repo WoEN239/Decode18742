@@ -225,7 +225,7 @@ object Configs {
     @Config
     internal object CAMERA {
         @JvmField
-        var CAMERA_ENABLE = false
+        var CAMERA_ENABLE = true
 
         @JvmField
         var CAMERA_TURRET_POS = Vec2(0.0, 0.164)
@@ -278,7 +278,7 @@ object Configs {
 
         @JvmField
         var ROTATE_SERVO_REGULATOR =
-            RegulatorParameters(kP = 0.9, kD = 0.01, limitU = 1.0)
+            RegulatorParameters(kP = 0.5, limitU = 1.0)
 
         @JvmField
         var MAX_ROTATE = Math.toRadians(90.0)
@@ -324,19 +324,19 @@ object Configs {
        var BELTS_POWER = 10.0
 
         @JvmField
-        var BELTS_SHOOT_POWER = 1.0
+        var PUSH_TIME = 0.5
 
         @JvmField
-        var PUSH_TIME = 0.4
+        var SORTING_PUSH_TIME = 0.8
 
         @JvmField
-        var SORTING_PUSH_TIME = 0.2
+        var SORTING_REVERS_TIME = 0.3
 
         @JvmField
         var REVERS_TIMER = 0.1
 
         @JvmField
-        var VELOCITY_THRESHOLD = 0.3
+        var VELOCITY_THRESHOLD = 0.5
     }
 
     @Config

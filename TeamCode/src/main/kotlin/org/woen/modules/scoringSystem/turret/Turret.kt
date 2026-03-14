@@ -30,13 +30,13 @@ class SetRotateStateEvent(val rotateState: Turret.RotateState)
 
 class RequestRotateStateEvent(var state: Turret.RotateState) : StoppingEvent
 
-data class RequestTurretAtTarget(var atTarget: Boolean = false): StoppingEvent
+data class RequestTurretAtTarget(var atTarget: Boolean = false) : StoppingEvent
 data class WaitTurretAtTarget(val process: Process = Process())
 
-data class RequestPulleyAtTarget(var atTarget: Boolean = false): StoppingEvent
+data class RequestPulleyAtTarget(var atTarget: Boolean = false) : StoppingEvent
 data class WaitPulleyAtTarget(val process: Process = Process())
 
-data class RequestRotateAtTarget(var atTarget: Boolean = false): StoppingEvent
+data class RequestRotateAtTarget(var atTarget: Boolean = false) : StoppingEvent
 data class WaitRotateAtTarget(val process: Process = Process())
 
 class Turret : IModule {
@@ -106,13 +106,15 @@ class Turret : IModule {
 
             _hardwareTurretServos.anglePosition = atan(vY / vXNew)
 
-            var turretVelocity = clamp(sqrt(
-                (Configs.TURRET.GRAVITY_G * newX.pow(2)) / (2.0 * cos(_hardwareTurretServos.anglePosition)
-                    .pow(2)
-                        * (newX * tan(_hardwareTurretServos.anglePosition) - y))
-            ) / Configs.TURRET.PULLEY_U, 0.0, 17.0)
+            var turretVelocity = clamp(
+                sqrt(
+                    (Configs.TURRET.GRAVITY_G * newX.pow(2)) / (2.0 * cos(_hardwareTurretServos.anglePosition)
+                        .pow(2)
+                            * (newX * tan(_hardwareTurretServos.anglePosition) - y))
+                ) / Configs.TURRET.PULLEY_U, 0.0, 17.0
+            )
 
-            if(turretVelocity.isNaN() || turretVelocity == Double.POSITIVE_INFINITY || turretVelocity == Double.NEGATIVE_INFINITY)
+            if (turretVelocity.isNaN() || turretVelocity == Double.POSITIVE_INFINITY || turretVelocity == Double.NEGATIVE_INFINITY)
                 turretVelocity = 17.0
 
             _hardwareTurret.targetVelocity = turretVelocity
@@ -166,11 +168,14 @@ class Turret : IModule {
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestRotateAtTarget::class, {
             it.atTarget = _hardwareTurretServos.rotateAtTarget &&
-                    _hardwareTurretServos.targetRotatePosition in Configs.TURRET.MIN_ROTATE..Configs.TURRET.MAX_ROTATE
+                    _hardwareTurretServos.targetRotatePosition in Configs.TURRET.MIN_ROTATE..Configs.TURRET.MAX_ROTATE &&
+                    _currentRotateState == RotateState.TO_BASKET
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(WaitRotateAtTarget::class, {
-            while (!_hardwareTurretServos.rotateAtTarget || _hardwareTurretServos.targetRotatePosition !in Configs.TURRET.MIN_ROTATE..Configs.TURRET.MAX_ROTATE)
+            while (!_hardwareTurretServos.rotateAtTarget || _hardwareTurretServos.targetRotatePosition !in Configs.TURRET.MIN_ROTATE..Configs.TURRET.MAX_ROTATE ||
+                _currentRotateState != RotateState.TO_BASKET
+            )
                 delay(5)
 
             it.process.wait()

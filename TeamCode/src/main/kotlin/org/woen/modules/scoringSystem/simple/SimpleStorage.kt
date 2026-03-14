@@ -4,13 +4,16 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.woen.enumerators.Ball
+import org.woen.enumerators.BallRequest
 import org.woen.hotRun.HotRun
 import org.woen.modules.IModule
+import org.woen.modules.camera.Camera
 import org.woen.modules.driveTrain.RequireOdometryEvent
 import org.woen.modules.driveTrain.RequireRobotLocatedShootingArea
 import org.woen.modules.scoringSystem.brush.Brush
 import org.woen.modules.scoringSystem.brush.SwitchBrushStateEvent
 import org.woen.modules.scoringSystem.turret.RequestRotateAtTarget
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.configs.Hardware
 import org.woen.threading.ThreadManager
@@ -19,7 +22,7 @@ import org.woen.threading.ThreadedGamepad
 import org.woen.threading.hardware.HardwareThreads
 import org.woen.threading.hardware.ThreadedServo
 
-data class StartSorting(val bal1: Ball, val bal2: Ball, val bal3: Ball)
+data class StartSorting(val bal1: Ball.Name, val bal2: Ball.Name, val bal3: Ball.Name)
 
 class SimpleStorage : IModule {
     private val _hardwareExpansionStorage = ExpansionHardwareSimpleStorage()
@@ -40,7 +43,8 @@ class SimpleStorage : IModule {
 
     private val _pushServo = ThreadedServo(
         Hardware.DEVICE_NAMES.PUSH_SERVO,
-        startPosition = Hardware.VALUES.SERVO.PUSH_CLOSE
+        startPosition = Hardware.VALUES.SERVO.PUSH_CLOSE,
+        a = Configs.SERVO_ANGLE.DEFAULT_SERVO_A * 2.0
     )
 
     enum class StorageState {
@@ -82,17 +86,39 @@ class SimpleStorage : IModule {
         }
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(StartSorting::class, {
-            _currentState = StorageState.SORTING
-            _requiredSwaps = 3
+            val currentPattern = Camera.LAZY_INSTANCE.currentPattern
 
-            _turretGateServo.targetPosition = Hardware.VALUES.SERVO.TURRET_GATE_CLOSE
-            _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
+            if (currentPattern != null) {
+                val patternGreenNumber = when (BallRequest.Name.GREEN) {
+                    currentPattern.subsequence[0] -> 1
+                    currentPattern.subsequence[1] -> 2
+                    else -> 3
+                }
+
+                val storageGreenName = when (Ball.Name.GREEN) {
+                    it.bal1 -> 1
+                    it.bal2 -> 2
+                    else -> 3
+                }
+
+                var swaps = patternGreenNumber - storageGreenName
+
+                if (swaps < 0)
+                    swaps += 3
+
+                if (swaps != 0) {
+                    _currentState = StorageState.SORTING
+                    _requiredSwaps = swaps
+                }
+
+                _turretGateServo.targetPosition = Hardware.VALUES.SERVO.TURRET_GATE_CLOSE
+                _hardwareExpansionStorage.beltState = ExpansionHardwareSimpleStorage.BeltState.STOP
+            }
         })
 
-        ThreadedGamepad.LAZY_INSTANCE.addGamepad1Listener(ThreadedGamepad.createClickDownListener({it.left_bumper}, {
-            _currentState = StorageState.SORTING
-            _requiredSwaps = 3
-        }))
+        ThreadedTelemetry.LAZY_INSTANCE.onTelemetrySend += {
+            it.addData("storage state", _currentState)
+        }
     }
 
     override suspend fun process() {
@@ -140,20 +166,28 @@ class SimpleStorage : IModule {
             } else if (_currentState == StorageState.SORTING) {
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.REVERSE))
 
-                _turretGateServo.targetPosition = Hardware.VALUES.SERVO.TURRET_GATE_OPEN
+                _gateServo.targetPosition = Hardware.VALUES.SERVO.GATE_OPEN
 
-                while (_turretGateServo.atTargetAngle && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN)
+                while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN)
                     delay(5)
 
                 while (_requiredSwaps > 0 && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN) {
+                    _hardwareExpansionStorage.beltState =
+                        ExpansionHardwareSimpleStorage.BeltState.REVERS
+
+                    delay((Configs.SIMPLE_STORAGE.SORTING_REVERS_TIME * 1000.0).toLong())
+
+                    _hardwareExpansionStorage.beltState =
+                        ExpansionHardwareSimpleStorage.BeltState.STOP
+
                     _pushServo.targetPosition = Hardware.VALUES.SERVO.PUSH_OPEN
 
-                    while (_pushServo.atTargetAngle && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN)
+                    while (!_pushServo.atTargetAngle && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN)
                         delay(5)
 
                     _pushServo.targetPosition = Hardware.VALUES.SERVO.PUSH_CLOSE
 
-                    while (_pushServo.atTargetAngle && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN)
+                    while (!_pushServo.atTargetAngle && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN)
                         delay(5)
 
                     _hardwareExpansionStorage.beltState =
@@ -165,14 +199,18 @@ class SimpleStorage : IModule {
                         ExpansionHardwareSimpleStorage.BeltState.STOP
 
                     _requiredSwaps--
+
+                    delay(200)
                 }
 
-                _turretGateServo.targetPosition = Hardware.VALUES.SERVO.TURRET_GATE_CLOSE
+                _gateServo.targetPosition = Hardware.VALUES.SERVO.GATE_CLOSE
 
-                while (_turretGateServo.atTargetAngle && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN)
+                while (!_gateServo.atTargetAngle && !Thread.currentThread().isInterrupted && HotRun.LAZY_INSTANCE.currentRunState == HotRun.RunState.RUN)
                     delay(5)
 
                 ThreadedEventBus.LAZY_INSTANCE.invoke(SwitchBrushStateEvent(Brush.BrushState.FORWARD))
+
+                _requiredSwaps = 0
 
                 _currentState = StorageState.STOP
             }
