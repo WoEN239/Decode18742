@@ -52,6 +52,13 @@ object Delay
 
             @JvmField
             var FIRE_1: Long = 200
+
+            @JvmField
+            var BETWEEN_SHOTS: Long = 100
+
+
+            @JvmField
+            var BEFORE_AUTOSHOT: Long = 50
         }
 
 
@@ -60,7 +67,7 @@ object Delay
             @JvmField
             var SORTING_FORWARD: Long = 444
             @JvmField
-            var SORTING_REVERSE: Long = 75
+            var SORTING_REVERSE: Long = 85
 
             @JvmField
             var SHOOTING_FORWARD: Long = 222
@@ -82,9 +89,6 @@ object Delay
             var SSL_SHOT: Long = 245       //  8.5V configuration
         }
 
-
-        @JvmField
-        var BETWEEN_SHOTS: Long = 100
 
 
         @JvmField

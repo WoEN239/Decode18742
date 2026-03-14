@@ -706,7 +706,8 @@ class SortingStorageLogic
 
         storageCells.updateAfterRequest()
 
-        if (doWaitBeforeNextShot) delay(Delay.MS.BETWEEN_SHOTS)
+        if (doWaitBeforeNextShot)
+            delay(Delay.MS.SHOOTING.BETWEEN_SHOTS)
 
         if (autoUpdatePatternWhenSucceed)
             dynamicMemoryPattern.removeFromTemporary()

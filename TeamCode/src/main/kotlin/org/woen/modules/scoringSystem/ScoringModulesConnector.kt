@@ -62,7 +62,7 @@ import org.woen.telemetry.configs.Configs.BRUSH
 import org.woen.telemetry.configs.RobotSettings.CONTROLS
 import org.woen.telemetry.configs.RobotSettings.TELEOP
 import org.woen.telemetry.configs.RobotSettings.AUTONOMOUS
-
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 private class ReverseAndThenStartBrushesAgain(var reverseTime: Long)
@@ -76,8 +76,9 @@ class ScoringModulesConnector
     private val _storage   = SortingStorage()
     private val _runStatus = RunStatus(ProcessId.PRIORITY_SETTING_FOR_SMC)
     private val logM = LogManager(Debug.SMC)
-    private val _gameTimer = ElapsedTime()
 
+    private val _gameTimer = ElapsedTime()
+    private val _inShootingZone = AtomicBoolean(false)
 //    private val _shotWasFired      = AtomicBoolean(false)
 
 
@@ -101,15 +102,13 @@ class ScoringModulesConnector
     {
         EventBusLI.subscribe(RobotEnterShootingAreaEvent::class, {
 
-                if  (CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE && (
-                    !CONTROLS.DISABLE_AUTO_SHOOTING_IN_END_GAME) || !isEndGame)
-                {
-                    logM.logMd("Trying to start AutoShooting", Debug.TRYING)
-                    startStreamDrumRequest()
-                }
+                _inShootingZone.set(true)
+                delay(Delay.MS.SHOOTING.BEFORE_AUTOSHOT)
+                attemptAutoShooting()
         }   )
         EventBusLI.subscribe(RobotExitShootingAreaEvent::class,  {
 
+                _inShootingZone.set(false)
                 if (CONTROLS.TERMINATE_AUTO_SHOOTING_WHEN_LEAVING_ZONE)
                 {
                     logM.logMd("Terminating AutoShooting", Debug.TRYING)
@@ -126,7 +125,8 @@ class ScoringModulesConnector
                     if (curMode == HotRun.RunMode.AUTO
                         && AUTONOMOUS.IGNORE_COLOR_SENSORS
                     ||  curMode == HotRun.RunMode.MANUAL
-                        && TELEOP.IGNORE_COLOR_SENSORS)
+                        && TELEOP.IGNORE_COLOR_SENSORS
+                    || _runStatus.isUsedByThisProcess(ProcessId.LAZY_INTAKE))
                         return@launch
 
                     EventBusLI.invoke(SetLightColorEvent(
@@ -370,6 +370,7 @@ class ScoringModulesConnector
         logM.logMd("FINISHED - INTAKE, result: $intakeResult", Debug.END)
 
         resumeLogicAfterIntake()
+        attemptAutoShooting()
         return intakeResult
     }
 
@@ -451,6 +452,17 @@ class ScoringModulesConnector
         return resumeLogicAfterShooting(requestResult, ProcessId.SINGLE_REQUEST)
     }
 
+
+    private suspend fun attemptAutoShooting()
+    {
+        if  ( CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE &&
+            (!CONTROLS.DISABLE_AUTO_SHOOTING_IN_END_GAME || !isEndGame)
+            && _inShootingZone.get())
+        {
+            logM.logMd("Trying to start AutoShooting", Debug.TRYING)
+            startStreamDrumRequest()
+        }
+    }
     private fun terminateRequest()
     {
         val activeProcessId = _runStatus.getActiveProcess()

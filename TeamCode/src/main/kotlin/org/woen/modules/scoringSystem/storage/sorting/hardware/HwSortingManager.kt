@@ -319,8 +319,7 @@ class HwSortingManager
         openGate()
         openPush()
 
-//        reverseBelts()
-        delay(Delay.MS.HW_REQUEST_FREQUENCY * 8)
+        forwardBeltsTime(Delay.MS.HW_REQUEST_FREQUENCY * 8)
 
         closeGateWithPush()
         forwardBeltsTime(Delay.MS.REALIGNMENT.SORTING_FORWARD)
