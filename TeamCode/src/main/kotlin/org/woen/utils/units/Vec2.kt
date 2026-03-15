@@ -6,7 +6,6 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 data class Vec2(@JvmField var x: Double, @JvmField var y: Double) {
     companion object {

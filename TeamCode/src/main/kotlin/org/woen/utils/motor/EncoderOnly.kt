@@ -1,9 +1,8 @@
 package org.woen.utils.motor
 
 import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotor.RunMode
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.PIDCoefficients
 import com.qualcomm.robotcore.hardware.PIDFCoefficients
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType
@@ -11,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
 class EncoderOnly : DcMotorEx {
-    private var _direction = Direction.FORWARD
+    private var _direction = DcMotorSimple.Direction.FORWARD
 
     override fun getManufacturer() = _motor.manufacturer
 
@@ -29,13 +28,13 @@ class EncoderOnly : DcMotorEx {
         _motor.close()
     }
 
-    override fun setDirection(direction: Direction?) {
+    override fun setDirection(direction: DcMotorSimple.Direction?) {
         _direction = direction!!
     }
 
     fun resetEncoder() {
-        _motor.mode = RunMode.STOP_AND_RESET_ENCODER
-        _motor.mode = RunMode.RUN_WITHOUT_ENCODER
+        _motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
     }
 
     override fun getDirection() = _direction
@@ -85,17 +84,17 @@ class EncoderOnly : DcMotorEx {
     override fun isBusy() = _motor.isBusy
 
     override fun getCurrentPosition(): Int {
-        if (_direction == Direction.FORWARD)
+        if (_direction == DcMotorSimple.Direction.FORWARD)
             return _motor.currentPosition
 
         return -_motor.currentPosition
     }
 
-    override fun setMode(mode: RunMode?) {
+    override fun setMode(mode: DcMotor.RunMode?) {
         throw Exception("encoderOnly not support mode")
     }
 
-    override fun getMode(): RunMode {
+    override fun getMode(): DcMotor.RunMode {
         throw Exception("encoderOnly not support mode")
     }
 
@@ -120,24 +119,24 @@ class EncoderOnly : DcMotorEx {
     }
 
     override fun getVelocity(): Double {
-        if (_direction == Direction.FORWARD)
+        if (_direction == DcMotorSimple.Direction.FORWARD)
             return _motor.velocity
 
         return -_motor.velocity
     }
 
     override fun getVelocity(unit: AngleUnit?): Double {
-        if (_direction == Direction.FORWARD)
+        if (_direction == DcMotorSimple.Direction.FORWARD)
             return _motor.getVelocity(unit)
 
         return -_motor.getVelocity(unit)
     }
 
-    override fun setPIDCoefficients(mode: RunMode?, pidCoefficients: PIDCoefficients?) {
+    override fun setPIDCoefficients(mode: DcMotor.RunMode?, pidCoefficients: PIDCoefficients?) {
         throw Exception("encoderOnly not support pid")
     }
 
-    override fun setPIDFCoefficients(mode: RunMode?, pidfCoefficients: PIDFCoefficients?) {
+    override fun setPIDFCoefficients(mode: DcMotor.RunMode?, pidfCoefficients: PIDFCoefficients?) {
         throw Exception("encoderOnly not support pid")
     }
 
@@ -149,11 +148,11 @@ class EncoderOnly : DcMotorEx {
         throw Exception("encoderOnly not support pid")
     }
 
-    override fun getPIDCoefficients(mode: RunMode?): PIDCoefficients {
+    override fun getPIDCoefficients(mode: DcMotor.RunMode?): PIDCoefficients {
         throw Exception("encoderOnly not support pid")
     }
 
-    override fun getPIDFCoefficients(mode: RunMode?): PIDFCoefficients {
+    override fun getPIDFCoefficients(mode: DcMotor.RunMode?): PIDFCoefficients {
         throw Exception("encoderOnly not support pid")
     }
 
@@ -186,8 +185,8 @@ class EncoderOnly : DcMotorEx {
     constructor(motor: DcMotorEx) {
         _motor = motor
 
-        _motor.direction = Direction.FORWARD
-        _motor.mode = RunMode.RESET_ENCODERS
-        _motor.mode = RunMode.RUN_WITHOUT_ENCODER
+        _motor.direction = DcMotorSimple.Direction.FORWARD
+        _motor.mode = DcMotor.RunMode.RESET_ENCODERS
+        _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
     }
 }

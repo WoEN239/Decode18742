@@ -2,7 +2,7 @@ package org.woen.utils.motor
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.PIDCoefficients
 import com.qualcomm.robotcore.hardware.PIDFCoefficients
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType
@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
 class MotorOnly : DcMotorEx {
-    private var _direction = Direction.FORWARD
+    private var _direction = DcMotorSimple.Direction.FORWARD
 
     override fun getManufacturer() = _motor.manufacturer
 
@@ -28,14 +28,14 @@ class MotorOnly : DcMotorEx {
         _motor.close()
     }
 
-    override fun setDirection(direction: Direction?) {
+    override fun setDirection(direction: DcMotorSimple.Direction?) {
         _direction = direction!!
     }
 
     override fun getDirection() = _direction
 
     override fun setPower(power: Double) {
-        if (_direction == Direction.FORWARD) {
+        if (_direction == DcMotorSimple.Direction.FORWARD) {
             _motor.power = power
 
             return
@@ -45,7 +45,7 @@ class MotorOnly : DcMotorEx {
     }
 
     override fun getPower(): Double {
-        if (_direction == Direction.FORWARD)
+        if (_direction == DcMotorSimple.Direction.FORWARD)
             return _motor.power
 
         return -_motor.power
@@ -171,7 +171,7 @@ class MotorOnly : DcMotorEx {
     constructor(motor: DcMotorEx) {
         _motor = motor
 
-        _motor.direction = Direction.FORWARD
+        _motor.direction = DcMotorSimple.Direction.FORWARD
         _motor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
     }
 }

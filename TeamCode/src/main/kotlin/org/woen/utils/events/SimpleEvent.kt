@@ -1,9 +1,7 @@
 package org.woen.utils.events
 
-import java.util.concurrent.CopyOnWriteArrayList
-
 class SimpleEvent<T> {
-    private val listeners = CopyOnWriteArrayList<(T) -> Unit>()
+    private val listeners = ArrayList<(T) -> Unit>()
 
     operator fun plusAssign(listener: (T) -> Unit) {
         listeners.add(listener)
@@ -24,7 +22,7 @@ class SimpleEvent<T> {
 }
 
 class SimpleEmptyEvent {
-    private val listeners = CopyOnWriteArrayList<() -> Unit>()
+    private val listeners = ArrayList<() -> Unit>()
 
     operator fun plusAssign(listener: () -> Unit) {
         listeners.add(listener)

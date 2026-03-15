@@ -2,7 +2,6 @@ package org.woen.utils.regulator
 
 import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.util.ElapsedTime
-import org.woen.threading.hardware.ThreadedBattery
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sign
@@ -26,12 +25,10 @@ class Regulator(val parameters: RegulatorParameters) {
     private var _errOld = 0.0
     private var _oldKi = parameters.kI
 
-    @Synchronized
     fun start() {
         _deltaTime.reset()
     }
 
-    @Synchronized
     fun update(err: Double, target: Double): Double {
         val uP = err * parameters.kP
 
@@ -54,7 +51,7 @@ class Regulator(val parameters: RegulatorParameters) {
 
         val limitU = parameters.limitU
 
-        val volts = if(limitU < 0.0) ThreadedBattery.LAZY_INSTANCE.currentVoltage else 0.0
+        val volts = 0.0
 
         if (
             (limitU > 0.0 && u < limitU && u > -limitU) ||
@@ -77,7 +74,6 @@ class Regulator(val parameters: RegulatorParameters) {
         return u
     }
 
-    @Synchronized
     fun resetIntegral() {
         _integral = 0.0
     }
