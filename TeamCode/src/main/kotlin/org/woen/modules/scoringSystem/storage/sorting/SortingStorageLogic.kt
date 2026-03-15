@@ -306,6 +306,8 @@ class SortingStorageLogic
 
         if (CONTROLS.WAIT_FOR_CORRECT_TURRET_ANGLE)
         {
+            logM.logMd("Waiting for turret angle", Debug.LOGIC)
+
             var turretIsTurned = EventBusLI.invoke(RequestRotateAtTarget())
 
             while (!turretIsTurned.atTarget)
@@ -314,6 +316,8 @@ class SortingStorageLogic
                 if (isForcedToTerminate(ProcessId.DRUM_REQUEST)) return
                 turretIsTurned = EventBusLI.invoke(RequestRotateAtTarget())
             }
+
+            logM.logMd("Turret turned successfully", Debug.END)
         }
 
 

@@ -51,6 +51,9 @@ object RobotSettings
         var DRIVE_TO_SHOOTING_ZONE = true
 
 
+        @JvmField
+        var STOP_LAZY_INTAKE_ON_SECOND_BUTTON_PRESSED = true
+
 
         @JvmField
         var TRY_TERMINATE_INTAKE_WHEN_SHOOTING = true

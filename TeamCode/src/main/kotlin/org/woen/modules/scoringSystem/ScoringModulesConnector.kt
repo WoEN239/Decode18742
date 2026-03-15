@@ -41,6 +41,7 @@ import org.woen.modules.scoringSystem.storage.BallCountInStorageEvent
 import org.woen.modules.scoringSystem.storage.FullFinishedFiringEvent
 
 import org.woen.modules.scoringSystem.storage.StartLazyIntakeEvent
+import org.woen.modules.scoringSystem.storage.StopLazyIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGetReadyForIntakeEvent
 import org.woen.modules.scoringSystem.storage.StorageGiveSingleRequest
 import org.woen.modules.scoringSystem.storage.StorageGiveDrumRequest
@@ -189,27 +190,27 @@ class ScoringModulesConnector
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.right_trigger > 0.5 }, {
 
-                    logM.logMd("Gamepad: try start lazy intake", Debug.GAMEPAD)
-                    val startingResult = EventBusLI.invoke(StartLazyIntakeEvent())
+                    logM.logMd("Gamepad: Manage LazyIntake", Debug.GAMEPAD)
 
-                    if (startingResult.startingResult)
+                    if (CONTROLS.STOP_LAZY_INTAKE_ON_SECOND_BUTTON_PRESSED &&
+                        _runStatus.isUsedByThisProcess(ProcessId.LAZY_INTAKE))
+                    {
+                        EventBusLI.invoke(StopLazyIntakeEvent())
+                        EventBusLI.invoke(SetLightColorEvent(
+                            Light.LightColor.BLUE))
+
+                        logM.logMd("Stopped LazyIntake on secondary button press", Debug.END)
+                    }
+                    else if (EventBusLI.invoke(StartLazyIntakeEvent()).startingResult)
                     {
                         EventBusLI.invoke(SetLightColorEvent(
                             Light.LightColor.ORANGE))
 
                         startBrushes()
                         setActiveProcess(ProcessId.LAZY_INTAKE)
-                    }
-                    else
-                    {
-                        EventBusLI.invoke(SetLightColorEvent(
-                            Light.LightColor.BLUE))
 
-                        reverseBrushes(BRUSH.REVERSE_TIME)
+                        logM.logMd("\nSuccessfully started LazyIntake: ", Debug.START)
                     }
-
-                    logM.logMd("\ntry start LazyIntake: " +
-                            "${startingResult.startingResult}", Debug.TRYING)
         }   )   )
         GamepadLI.addGamepad1Listener(createClickDownListener(
             { it.left_trigger > 0.5  }, {
