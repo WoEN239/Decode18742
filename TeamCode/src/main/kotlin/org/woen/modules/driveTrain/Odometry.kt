@@ -107,7 +107,9 @@ class Odometry : IModule {
             val shortLocate = checkToLocate(Configs.DRIVE_TRAIN.SHOOT_SHORT_TRIANGLE)
             val longLocate = checkToLocate(Configs.DRIVE_TRAIN.SHOOT_LONG_TRIANGLE)
 
-            val locate = shortLocate || longLocate
+            val l = (_currentOrientation.get().pos - HotRun.LAZY_INSTANCE.currentStartPosition.startOrientation.pos).length()
+
+            val locate = shortLocate && l > 0.8 && l < 2.0// || longLocate
 
             _robotLocatedInShootingArea = locate
 

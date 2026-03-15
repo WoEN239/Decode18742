@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Servo
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
+import org.woen.OpMode
 import org.woen.telemetry.configs.Configs
 import org.woen.telemetry.configs.Hardware
 import org.woen.utils.motor.MotorOnly
@@ -17,7 +18,6 @@ import org.woen.utils.motor.MotorOnly
 
 
 @Autonomous
-@Disabled
 class FarAuto: LinearOpMode() {
     override fun runOpMode() {
         val _computer = hardwareMap.get("odometry") as GoBildaPinpointDriver
@@ -25,16 +25,10 @@ class FarAuto: LinearOpMode() {
         _computer.recalibrateIMU()
         _computer.resetPosAndIMU()
 
-        val launchServo = hardwareMap.get(Hardware.DEVICE_NAMES.LAUNCH_SERVO) as Servo
-
         val leftForwardDrive = MotorOnly(hardwareMap.get("leftForwardDrive") as DcMotorEx)
         val leftBackDrive = MotorOnly(hardwareMap.get("leftBackDrive") as DcMotorEx)
         val rightForwardDrive = MotorOnly(hardwareMap.get("rightForwardDrive") as DcMotorEx)
         val rightBackDrive = MotorOnly(hardwareMap.get("rightBackDrive") as DcMotorEx)
-
-        val gateServo = hardwareMap.get(Hardware.DEVICE_NAMES.GATE_SERVO) as Servo
-
-        val pulleyMotor = hardwareMap.get("pulleyMotor") as DcMotorEx
 
         leftBackDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         leftForwardDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
@@ -44,58 +38,16 @@ class FarAuto: LinearOpMode() {
         leftBackDrive.direction = DcMotorSimple.Direction.REVERSE
         leftForwardDrive.direction = DcMotorSimple.Direction.REVERSE
         rightForwardDrive.direction = DcMotorSimple.Direction.REVERSE
-        rightBackDrive.direction = DcMotorSimple.Direction.REVERSE
-
-        pulleyMotor.direction = DcMotorSimple.Direction.REVERSE
-
-        val beltMotor =
-            MotorOnly(hardwareMap.get(Hardware.DEVICE_NAMES.STORAGE_BELT_MOTOR) as DcMotorEx)
-
-        beltMotor.direction = DcMotorSimple.Direction.REVERSE
 
         waitForStart()
         resetRuntime()
 
-        pulleyMotor.power = 1.0
-
-        gateServo.position   = Hardware.VALUES.SERVO.GATE_CLOSE
-        launchServo.position = Hardware.VALUES.SERVO.LAUNCH_CLOSE
-
-        sleep(1500)
-
         leftForwardDrive.power = 1.0
         leftBackDrive.power = 1.0
         rightForwardDrive.power = 1.0
         rightBackDrive.power = 1.0
 
-        sleep(250)
-
-        leftForwardDrive.power = -1.0
-        leftBackDrive.power = -1.0
-        rightForwardDrive.power = 1.0
-        rightBackDrive.power = 1.0
-
-        sleep(120)
-
-        leftForwardDrive.power = 0.0
-        leftBackDrive.power = 0.0
-        rightForwardDrive.power = 0.0
-        rightBackDrive.power = 0.0
-
-        beltMotor.power = 0.7
-
-        sleep(950)
-
-        launchServo.position = Hardware.VALUES.SERVO.LAUNCH_OPEN
-
-        sleep(800)
-
-        leftForwardDrive.power = 1.0
-        leftBackDrive.power = 1.0
-        rightForwardDrive.power = 1.0
-        rightBackDrive.power = 1.0
-
-        sleep(300)
+        sleep(400)
 
         leftForwardDrive.power = 0.0
         leftBackDrive.power = 0.0
@@ -105,6 +57,6 @@ class FarAuto: LinearOpMode() {
         while (opModeIsActive()){}
 
         OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().activity)
-            .initOpMode(TeleOp::class.simpleName)
+            .initOpMode(OpMode::class.simpleName)
     }
 }

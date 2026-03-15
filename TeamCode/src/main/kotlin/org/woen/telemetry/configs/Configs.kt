@@ -281,10 +281,10 @@ object Configs {
             RegulatorParameters(kP = 0.5, limitU = 1.0)
 
         @JvmField
-        var MAX_ROTATE = Math.toRadians(90.0)
+        var MAX_ROTATE = Math.toRadians(80.0)
 
         @JvmField
-        var MIN_ROTATE = Math.toRadians(-90.0)
+        var MIN_ROTATE = Math.toRadians(-80.0)
 
         @JvmField
         var SHOOTING_RED_ORIENTATION =
@@ -313,7 +313,7 @@ object Configs {
         var PULLEY_RATION = 1.0
 
         @JvmField
-        var PULLEY_U = 0.35
+        var PULLEY_U = 0.34
     }
 
 
@@ -324,7 +324,7 @@ object Configs {
        var BELTS_POWER = 10.0
 
         @JvmField
-        var PUSH_TIME = 0.5
+        var PUSH_TIME = 0.3
 
         @JvmField
         var SORTING_PUSH_TIME = 0.8
@@ -336,7 +336,7 @@ object Configs {
         var REVERS_TIMER = 0.1
 
         @JvmField
-        var VELOCITY_THRESHOLD = 0.5
+        var VELOCITY_THRESHOLD = 0.3
     }
 
     @Config

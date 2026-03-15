@@ -17,8 +17,8 @@ class InfinityAxon(
     startPosition: Double = 0.0,
     var direction: Servo.Direction = Servo.Direction.FORWARD,
     regulator: RegulatorParameters =  RegulatorParameters(kP = 0.2, kD = 0.00005, kPow = 0.0001, limitU = 1.0),
-    private var _sens: Double = 40.0 / 180.0 * PI,
-    private var _deltaBorder: Double = 0.53,
+    private var _sens: Double = 35.0 / 180.0 * PI,
+    private var _deltaBorder: Double = 0.56,
     private var _deltasCount: Int = 5
 ) {
     private val _servo = hardwareMap.get(servoName) as Servo
@@ -92,6 +92,6 @@ class InfinityAxon(
 
         _position = (_turns.toDouble() + rawPos) * PI * 2.0
 
-        _servo.position = (_regulator.update(_targetPosition - _position) + 1.0) / 2.0
+        _servo.position = 0.5//(_regulator.update(_targetPosition - _position) + 1.0) / 2.0
     }
 }

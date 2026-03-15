@@ -77,8 +77,8 @@ class Camera : DisposableHandle {
                     _isCameraSeeAprilTag =
                         result.fiducialResults.any { it.fiducialId != 21 && it.fiducialId != 22 && it.fiducialId != 23 }
 
-                    if(_isCameraSeeAprilTag)
-                        ThreadedEventBus.LAZY_INSTANCE.invoke(CameraUpdateEvent(_currentOrientation.clone()))
+//                    if(_isCameraSeeAprilTag)
+//                        ThreadedEventBus.LAZY_INSTANCE.invoke(CameraUpdateEvent(_currentOrientation.clone()))
 
                     val fiducialResults = result.fiducialResults
 

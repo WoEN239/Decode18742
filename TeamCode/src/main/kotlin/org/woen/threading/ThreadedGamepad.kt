@@ -159,8 +159,12 @@ class ThreadedGamepad {
 
                     for(i in _gamepad2Listeners)
                         i.update(_gamepad2)
+
+                    _bumperPresed = _gamepad1.left_bumper
                 }
             }
         }
     }
+
+    var _bumperPresed = false
 }

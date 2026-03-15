@@ -34,16 +34,25 @@ class ExpansionHardwareSimpleStorage : IHardwareDevice {
     private lateinit var _beltMotor: MotorOnly
 
     var beltState = BeltState.STOP
+        set(value){
+            _beltMotor.power = when (value) {
+                BeltState.STOP -> 0.0
+                BeltState.SHOOTING -> Configs.SIMPLE_STORAGE.BELTS_POWER
+                BeltState.REVERS -> -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
+                BeltState.RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
+            }
+            field = value
+        }
 
     private var _fullTriggerTimer = ElapsedTime()
 
     override fun update() {
-        _beltMotor.power = when (beltState) {
-            BeltState.STOP -> 0.0
-            BeltState.SHOOTING -> Configs.SIMPLE_STORAGE.BELTS_POWER
-            BeltState.REVERS -> -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
-            BeltState.RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
-        }
+//        _beltMotor.power = when (beltState) {
+//            BeltState.STOP -> 0.0
+//            BeltState.SHOOTING -> Configs.SIMPLE_STORAGE.BELTS_POWER
+//            BeltState.REVERS -> -ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
+//            BeltState.RUN -> ThreadedBattery.LAZY_INSTANCE.voltageToPower(Configs.SIMPLE_STORAGE.BELTS_POWER)
+//        }
     }
 
     override fun init(hardwareMap: HardwareMap) {

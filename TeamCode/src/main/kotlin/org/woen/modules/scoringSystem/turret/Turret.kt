@@ -178,7 +178,7 @@ class Turret : IModule {
             )
                 delay(5)
 
-            it.process.wait()
+            it.process.close()
         })
 
         ThreadedEventBus.LAZY_INSTANCE.subscribe(RequestPulleyAtTarget::class, {

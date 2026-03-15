@@ -1,5 +1,7 @@
 package org.woen
 
+import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
@@ -7,10 +9,21 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.hardware.VoltageSensor
+import org.woen.utils.regulator.Regulator
+import org.woen.utils.regulator.RegulatorParameters
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sign
+
+@Config
+internal object OPMODE_CONFIG{
+    @JvmField
+    var PULLEY_VELOCITY = 1600.0
+
+    @JvmField
+    var PARMETER = RegulatorParameters(kF = 0.0053, kP = 0.03, kI = 0.01, limitU = 12.0)
+}
 
 @TeleOp
 class OpMode : LinearOpMode() {
@@ -20,6 +33,12 @@ class OpMode : LinearOpMode() {
         val rightForwardDrive = hardwareMap.get("rightForwardDrive") as DcMotorEx
         val rightBackDrive = hardwareMap.get("rightBackDrive") as DcMotorEx
 
+        val turretAngleServo = hardwareMap.get("turretAngleServo") as Servo
+        val pushServo = hardwareMap.get("pushServo") as Servo
+        val gateServo2 = hardwareMap.get("gateServo") as Servo
+
+        val regulator = Regulator(OPMODE_CONFIG.PARMETER)
+
         leftBackDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         leftForwardDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         rightForwardDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
@@ -28,7 +47,6 @@ class OpMode : LinearOpMode() {
         leftBackDrive.direction = DcMotorSimple.Direction.REVERSE
         leftForwardDrive.direction = DcMotorSimple.Direction.REVERSE
         rightForwardDrive.direction = DcMotorSimple.Direction.REVERSE
-        rightBackDrive.direction = DcMotorSimple.Direction.REVERSE
 
         val brushMotor = hardwareMap.get("brushMotor") as DcMotorEx
 
@@ -49,8 +67,22 @@ class OpMode : LinearOpMode() {
         waitForStart()
         resetRuntime()
 
+        regulator.start()
+
+        turretAngleServo.position = 0.47
+        pushServo.position = 0.275
+        gateServo2.position = 0.0
+
         while (opModeIsActive()) {
-            pulleyMotor.power = battery.voltage / 10.0
+            val telem = FtcDashboard.getInstance().telemetry
+
+            telem.addData("curent", pulleyMotor.velocity)
+            telem.addData("target", OPMODE_CONFIG.PULLEY_VELOCITY )
+
+            telem.update()
+
+            pulleyMotor.power = regulator.update(OPMODE_CONFIG.PULLEY_VELOCITY - pulleyMotor.velocity,
+                OPMODE_CONFIG.PULLEY_VELOCITY) / battery.voltage
 
             var ly = -gamepad1.left_stick_y.toDouble()
             var lx = -gamepad1.left_stick_x.toDouble()
@@ -90,7 +122,7 @@ class OpMode : LinearOpMode() {
             rightForwardDrive.power = rightForwardPower
 
             if (gamepad1.left_bumper) {
-                gateServo.position = 0.73
+                gateServo.position = 0.75
 
                 brushMotor.power = 0.0
                 beltMotor.power = 1.0

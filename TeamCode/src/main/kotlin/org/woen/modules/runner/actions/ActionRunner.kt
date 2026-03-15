@@ -18,10 +18,12 @@ import org.woen.threading.ThreadManager
 import org.woen.modules.runner.segment.RRTrajectorySegment
 import org.woen.modules.runner.segment.RequireRRBuilderEvent
 import org.woen.modules.runner.segment.RunSegmentEvent
+import org.woen.modules.scoringSystem.simple.SimpleShootEvent
 import org.woen.modules.scoringSystem.turret.Turret
 import org.woen.modules.scoringSystem.turret.SetRotateStateEvent
 import org.woen.modules.scoringSystem.simple.StartSorting
 import org.woen.modules.scoringSystem.turret.WaitRotateAtTarget
+import org.woen.telemetry.ThreadedTelemetry
 import org.woen.threading.ThreadedEventBus
 
 class ActionRunner private constructor() : DisposableHandle {
@@ -73,6 +75,24 @@ class ActionRunner private constructor() : DisposableHandle {
     private val _shootingOrientation
         get() = HotRun.LAZY_INSTANCE.currentStartPosition.shootingOrientation
 
+    private suspend fun farAuto(){
+        //Vec2(1.631, -0.39), Angle(PI)
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(
+            RunSegmentEvent(
+                RRTrajectorySegment(
+                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+                        RequireRRBuilderEvent()
+                    ).trajectoryBuilder!!.strafeTo(
+                        Vector2d(1.031, -0.39 * _yColorMultiplier)
+                    )
+
+                        .build()
+                )
+            )
+        ).process.wait()
+    }
+
     private suspend fun closeAuto12()
     {
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetRotateStateEvent(Turret.RotateState.TO_OBELISK))
@@ -91,12 +111,15 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        delay(100)
+        Thread.sleep(200)
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(SetRotateStateEvent(Turret.RotateState.TO_BASKET))
-        ThreadedEventBus.LAZY_INSTANCE.invoke(WaitRotateAtTarget()).process.wait()
+//        ThreadedEventBus.LAZY_INSTANCE.invoke(WaitRotateAtTarget()).process.wait()
+        Thread.sleep(1000)
 
-        delay(500)
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
+
+        Thread.sleep(6000)
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             RunSegmentEvent(
@@ -107,19 +130,17 @@ class ActionRunner private constructor() : DisposableHandle {
                         Vector2d(-0.314, -0.716 * _yColorMultiplier),
                         -PI / 2.0 * _hColorMultiplier
                     ).strafeTo(Vector2d(-0.314, -1.35 * _yColorMultiplier), _eatVelConstant)
-                        .setReversed(true)
-                        .splineTo(
-                            Vector2d(-0.05, -1.44 * _yColorMultiplier),
-                            -PI / 2.0 * _hColorMultiplier
-                        )
+//                        .setReversed(true)
+//                        .splineTo(
+//                            Vector2d(-0.05, -1.44 * _yColorMultiplier),
+//                            -PI / 2.0 * _hColorMultiplier
+//                        )
                         .build()
                 )
             )
         ).process.wait()
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(StartSorting(Ball.Name.PURPLE, Ball.Name.PURPLE, Ball.Name.GREEN))
-        
-        delay(500)
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             RunSegmentEvent(
@@ -136,7 +157,11 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        delay(500)
+        Thread.sleep(1000)
+
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
+
+        Thread.sleep(6000)
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             RunSegmentEvent(
@@ -175,39 +200,43 @@ class ActionRunner private constructor() : DisposableHandle {
             )
         ).process.wait()
 
-        delay(500)
+        Thread.sleep(1000)
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            RunSegmentEvent(
-                RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!
-                        .strafeToLinearHeading(
-                            Vector2d(0.95, -0.712 * _yColorMultiplier),
-                            -PI / 2.0 * _hColorMultiplier
-                        )
-                        .strafeTo(Vector2d(1.0, -1.45 * _yColorMultiplier), _eatVelConstant).build()
-                )   )   ).process.wait()
+        ThreadedEventBus.LAZY_INSTANCE.invoke(SimpleShootEvent())
 
-        ThreadedEventBus.LAZY_INSTANCE.invoke(StartSorting(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE))
-
-        ThreadedEventBus.LAZY_INSTANCE.invoke(
-            RunSegmentEvent(
-                RRTrajectorySegment(
-                    ThreadedEventBus.LAZY_INSTANCE.invoke(
-                        RequireRRBuilderEvent()
-                    ).trajectoryBuilder!!
-                        .strafeToLinearHeading(
-                            _shootingOrientation.pos.rrVec(),
-                            _shootingOrientation.angle
-                        )
-                        .build()
-                )
-            )
-        ).process.wait()
-
-        delay(500)
+        Thread.sleep(6000)
+//
+//        ThreadedEventBus.LAZY_INSTANCE.invoke(
+//            RunSegmentEvent(
+//                RRTrajectorySegment(
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        RequireRRBuilderEvent()
+//                    ).trajectoryBuilder!!
+//                        .strafeToLinearHeading(
+//                            Vector2d(0.95, -0.712 * _yColorMultiplier),
+//                            -PI / 2.0 * _hColorMultiplier
+//                        )
+//                        .strafeTo(Vector2d(1.0, -1.45 * _yColorMultiplier), _eatVelConstant).build()
+//                )   )   ).process.wait()
+//
+//        ThreadedEventBus.LAZY_INSTANCE.invoke(StartSorting(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE))
+//
+//        ThreadedEventBus.LAZY_INSTANCE.invoke(
+//            RunSegmentEvent(
+//                RRTrajectorySegment(
+//                    ThreadedEventBus.LAZY_INSTANCE.invoke(
+//                        RequireRRBuilderEvent()
+//                    ).trajectoryBuilder!!
+//                        .strafeToLinearHeading(
+//                            _shootingOrientation.pos.rrVec(),
+//                            _shootingOrientation.angle
+//                        )
+//                        .build()
+//                )
+//            )
+//        ).process.wait()
+//
+//        delay(500)
 
         ThreadedEventBus.LAZY_INSTANCE.invoke(
             RunSegmentEvent(
@@ -224,6 +253,7 @@ class ActionRunner private constructor() : DisposableHandle {
     private val _thread = ThreadManager.LAZY_INSTANCE.register(thread(start = false) {
         runBlocking {
             if (HotRun.LAZY_INSTANCE.currentStartPosition.position == HotRun.RunPosition.CLOSE) {
+//                farAuto()
                 closeAuto12()
             }
         }
