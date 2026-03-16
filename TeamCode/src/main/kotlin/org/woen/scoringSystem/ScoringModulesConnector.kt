@@ -3,6 +3,8 @@ package org.woen.scoringSystem
 
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
+import org.woen.configs.DebugSettings
+import org.woen.configs.RobotSettings.CONTROLS
 
 import org.woen.enumerators.BallRequest
 
@@ -31,23 +33,24 @@ class ScoringModulesConnector
     constructor(collector: Collector)
     {
         _collector = collector
-        _cms = ConnectorModuleStatus()
+        _cms = ConnectorModuleStatus(collector)
 
-        _storage = Storage(_collector, _cms)
+        _storage = Storage(_cms)
 
-        logM = LogManager(_collector, Debug.SMC)
+        logM = LogManager(_collector, DebugSettings.SMC)
 
 //        subscribeToEvents()
 //        subscribeToGamepad()
 //        subscribeToGamepadTests()
+//        subscribeToSecondDriverPatternRecalibration
 
         collector.startEvent += {
 
-            _storage.reset()
-            _storage.cells.reset()
-            _storage.cells.hwSortingM.reset()
+            _storage.relink()
+            _storage.cells.relink()
+            _storage.cells.hwSortingM.relink()
 
-            logM.reset(Debug.SMC)
+            logM.relink(DebugSettings.SMC)
             _gameTimer.reset()
         }
     }
@@ -72,48 +75,64 @@ class ScoringModulesConnector
 //    }
 
 
-
-
-
-//    private fun forwardBrushes()
-//        = _storage.cells.hwSortingM.forwardBrushes()
+    private fun subscribeToSecondDriverPatternRecalibration()
+    {
+        if (CONTROLS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION)
+        {
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.triangle }, {
 //
-//    private fun reverseBrushes()
-//            = _storage.cells.hwSortingM.reverseBrushes()
+//                        _storageLogic.dynamicMemoryPattern.resetTemporary()
+//            }   )   )
+//
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.square }, {
+//
+//                        _storageLogic.dynamicMemoryPattern.addToTemporary()
+//            }   )   )
+//
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.circle }, {
+//
+//                        _storageLogic.dynamicMemoryPattern.removeFromTemporary()
+//            }   )   )
+//
+//
+//
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.dpad_left }, {
+//
+//                        _storageLogic.dynamicMemoryPattern.setPermanent(
+//                            Shooting.StockPattern.Sequence.Request.GPP)
+//            }   )   )
+//
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.dpad_up }, {
+//
+//                        _storageLogic.dynamicMemoryPattern.setPermanent(
+//                            Shooting.StockPattern.Sequence.Request.PGP)
+//            }   )   )
+//
+//            GamepadLI.addGamepad2Listener(
+//                createClickDownListener({ it.dpad_right }, {
+//
+//                        _storageLogic.dynamicMemoryPattern.setPermanent(
+//                            Shooting.StockPattern.Sequence.Request.PPG)
+//            }   )   )
+
+
+            logM.logMd("Init settings: USE SECOND DRIVER", Debug.GAMEPAD)
+        }
+        else logM.logMd("Init settings: DON'T use second driver", Debug.GAMEPAD)
+    }
 
 
 
-    private fun startDrumRequest(
-        shootingMode:    Shooting.Mode,
-        requestPattern:  Array<BallRequest.Name>,
-        failsafePattern: Array<BallRequest.Name>
-    )
+    fun update()
     {
-        logM.logMd("Started - SMART drum request", Debug.START)
-        val requestResult = _storage.shootEntireDrumRequest(
-                shootingMode,
-                requestPattern,
-                failsafePattern,
-            TELEOP.INCLUDE_PREVIOUS_UNFINISHED_TO_REQUEST_ORDER,
-            TELEOP.INCLUDE_PREVIOUS_UNFINISHED_TO_FAILSAFE_ORDER,
-            TELEOP.AUTO_UPDATE_UNFINISHED_FOR_NEXT_PATTERN,
-            TELEOP.IF_AUTO_UPDATE_UNFINISHED_USE_FAILSAFE_ORDER)
-
-
-        logM.logMd("FINISHED - SMART drum request", Debug.END)
 
     }
-    private fun startStreamDrumRequest()
-    {
-        logM.logMd("Started  - StreamDrum request", Debug.START)
-        val requestResult = _storage.streamDrumRequest()
-        logM.logMd("FINISHED - StreamDrum request", Debug.END)
-    }
-    private fun startSingleRequest(
-        ballRequest: BallRequest.Name)
-    {
-        logM.logMd("Started - Single request", Debug.START)
-        val requestResult = _storage.handleRequest(ballRequest)
-        logM.logMd("FINISHED - Single request", Debug.END)
-    }
+
+
+
 }

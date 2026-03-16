@@ -1,15 +1,14 @@
 package org.woen.scoringSystem
 
 
+import org.woen.collector.Collector
 import org.woen.scoringSystem.misc.DynamicPattern
-import java.util.concurrent.atomic.AtomicBoolean
 
 
 
-class ConnectorModuleStatus
+class ConnectorModuleStatus(var collector: Collector)
 {
-    val dynamicMemoryPattern = DynamicPattern()
+    var dynamicMemoryPattern = DynamicPattern()
 
-    val canTriggerIntake = AtomicBoolean(false)
-
+    var canTriggerIntake = false
 }

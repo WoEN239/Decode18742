@@ -1,12 +1,8 @@
 package org.woen.utils.debug
 
 
-import org.woen.collector.Collector
 import org.woen.modules.Telemetry
-import java.util.concurrent.atomic.AtomicIntegerArray
-
-import org.woen.utils.atomicExtend.isEmpty
-import org.woen.utils.atomicExtend.contains
+import org.woen.collector.Collector
 
 
 
@@ -40,53 +36,60 @@ class LogManager
 
 
 
-    private var _debugLevels   = AtomicIntegerArray(0)
-    private var _warningLevels = AtomicIntegerArray(0)
+    private var _debugLevels:   Array<Int> = arrayOf()
+    private var _warningLevels: Array<Int> = arrayOf()
 
     private var _debugShowSetting   = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE
     private var _warningShowSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE
 
     private var _moduleName = ""
-    private val _telemetryM: Telemetry
+    private var _telemetryM: Telemetry
 
 
 
     constructor(collector: Collector, config: Config)
     {
         _telemetryM = collector.telemetry
-        reset(config)
+        relink(config)
     }
-    constructor(collector: Collector,
-                debugSetting:   DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
-                warningSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
+    constructor(telemetry: Telemetry,
+                debugSetting:    DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
+                warningSetting:  DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
                 debugLevels:   ArrayList<Int> = arrayListOf(0),
                 warningLevels: ArrayList<Int> = arrayListOf(0),
                 moduleName: String = "")
     {
-        _telemetryM = collector.telemetry
-        reset(debugSetting, warningSetting, debugLevels, warningLevels, moduleName)
+        _telemetryM = telemetry
+        relink(debugSetting,
+               warningSetting,
+               debugLevels,
+               warningLevels,
+               moduleName)
     }
-    fun reset(config: Config)
-    {
-        reset(config.debugSetting,
-              config.warningSetting,
-              config.debugLevels,
-              config.warningLevels,
-              config.moduleName)
-    }
-    fun reset(debugSetting:   DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
-              warningSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
-              debugLevels:   ArrayList<Int> = arrayListOf(0),
-              warningLevels: ArrayList<Int> = arrayListOf(0),
-              moduleName: String = "")
+    fun relink(config: Config, telemetry: Telemetry? = null)
+        = relink(config.debugSetting,
+            config.warningSetting,
+            config.debugLevels,
+            config.warningLevels,
+            config.moduleName,
+            telemetry)
+
+    fun relink(debugSetting:   DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
+               warningSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
+               debugLevels:   ArrayList<Int> = arrayListOf(0),
+               warningLevels: ArrayList<Int> = arrayListOf(0),
+               moduleName: String = "",
+               telemetry: Telemetry? = null)
     {
         updateDebugSetting  (debugSetting)
         updateWarningSetting(warningSetting)
 
-        setShowedDebugLevels  (debugLevels  .toIntArray())
-        setShowedWarningLevels(warningLevels.toIntArray())
+        setShowedDebugLevels  (debugLevels.toTypedArray())
+        setShowedWarningLevels(warningLevels.toTypedArray())
 
         setModuleName(moduleName)
+
+        if (telemetry != null) _telemetryM = telemetry
     }
 
 
@@ -96,7 +99,7 @@ class LogManager
         fun log(collector: Collector, s: String)
             = collector.telemetry.log(s)
         fun log(collector: Collector, vararg s: String)
-                = collector.telemetry.log(*s)
+            = collector.telemetry.log(*s)
 
         fun logTag(collector: Collector, s: String, tag: String)
             = collector.telemetry.logWithTag(s, tag)
@@ -115,13 +118,13 @@ class LogManager
         _warningShowSetting = warningSetting
     }
 
-    fun setShowedDebugLevels  (levels: IntArray)
+    fun setShowedDebugLevels  (levels: Array<Int>)
     {
-        _debugLevels   = AtomicIntegerArray(levels)
+        _debugLevels = levels.copyOf()
     }
-    fun setShowedWarningLevels(levels: IntArray)
+    fun setShowedWarningLevels(levels: Array<Int>)
     {
-        _warningLevels = AtomicIntegerArray(levels)
+        _warningLevels = levels.copyOf()
     }
 
     fun setModuleName(moduleName: String)
@@ -179,7 +182,7 @@ class LogManager
     private fun toMdString(s: String)
         = if    (_moduleName.isEmpty()) s
           else "$_moduleName: $s"
-    private fun allowedToShow(debugLevel: Int, show: AtomicIntegerArray): Boolean
+    private fun allowedToShow(debugLevel: Int, show: Array<Int>): Boolean
     {
         return !Debug.DISABLE_ALL_LOGS && when (_debugShowSetting)
         {
@@ -199,22 +202,22 @@ class LogManager
 
 
 
-    private fun customSelected(debugLevel: Int, show: AtomicIntegerArray): Boolean
+    private fun customSelected(debugLevel: Int, show: Array<Int>): Boolean
         = show.contains(debugLevel)
 
 
-    private fun aboveInclusive(debugLevel: Int, show: AtomicIntegerArray): Boolean
+    private fun aboveInclusive(debugLevel: Int, show: Array<Int>): Boolean
         = if (show.isEmpty()) false
           else debugLevel >= show[0]
-    private fun aboveExclusive(debugLevel: Int, show: AtomicIntegerArray): Boolean
+    private fun aboveExclusive(debugLevel: Int, show: Array<Int>): Boolean
         = if (show.isEmpty()) false
           else debugLevel >  show[0]
 
 
-    private fun belowInclusive(debugLevel: Int, show: AtomicIntegerArray): Boolean
+    private fun belowInclusive(debugLevel: Int, show: Array<Int>): Boolean
         = if (show.isEmpty()) false
           else debugLevel <= show[0]
-    private fun belowExclusive(debugLevel: Int, show: AtomicIntegerArray): Boolean
+    private fun belowExclusive(debugLevel: Int, show: Array<Int>): Boolean
         = if (show.isEmpty()) false
           else debugLevel <  show[0]
 }

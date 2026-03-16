@@ -3,9 +3,7 @@ package org.woen.scoringSystem.storage.hardware
 
 import kotlin.math.max
 import com.qualcomm.robotcore.util.ElapsedTime
-import org.woen.collector.Collector
-
-import java.util.concurrent.atomic.AtomicLong
+import org.woen.configs.DebugSettings
 
 import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
@@ -22,21 +20,19 @@ class HwSortingManager
     private val _hwSorting = HwSorting()
 //    private val _hwSensors = HwSortingSensors()
     private val _cms: ConnectorModuleStatus
-    private val _collector: Collector
 
     val logM: LogManager
 
-    val currentPushTime = AtomicLong(0)
+    var currentPushTime: Long = 0
     val reinstantiableBeltsTimer = ElapsedTime()
 
 
 
-    constructor(collector: Collector, cms: ConnectorModuleStatus)
+    constructor(cms: ConnectorModuleStatus)
     {
-        _collector = collector
         _cms = cms
 
-        logM = LogManager(_collector, Debug.HSM)
+        logM = LogManager(_cms.collector, DebugSettings.HSM)
 
         subscribeToColorDetectEvents()
     }
@@ -59,12 +55,11 @@ class HwSortingManager
 //            }
 //        }
     }
-    fun reset()
+    fun relink()
     {
-        _cms.canTriggerIntake.set(false)
         fullCalibrate()
 
-        logM.reset(Debug.HSM)
+        logM.relink(DebugSettings.HSM)
     }
 
 
@@ -209,16 +204,15 @@ class HwSortingManager
 
     fun reinstantiableForwardBeltsTime(timeMs: Long, firstInstance: Boolean = false)
     {
-        val pushTime =
+        val pushTime: Long =
             if (firstInstance) timeMs
-            else max(
-                timeMs,
-                currentPushTime.get()
+            else max(timeMs,
+                    currentPushTime
                         - reinstantiableBeltsTimer
                             .milliseconds().toLong())
 
         reinstantiableBeltsTimer.reset()
-        currentPushTime.set(pushTime)
+        currentPushTime = pushTime
         logM.logMd("Chosen time period: $pushTime", Debug.HW)
 
 //        val pushing = SmartCoroutineLI.launch {
@@ -257,7 +251,7 @@ class HwSortingManager
     fun rotateMobileSlot()
     {
         logM.logMd("ROTATING MOBILE SLOT", Debug.HW_HIGH)
-        _cms.canTriggerIntake.set(false)
+        _cms.canTriggerIntake = false
 
         closeLaunch()
         closeTurretGate()

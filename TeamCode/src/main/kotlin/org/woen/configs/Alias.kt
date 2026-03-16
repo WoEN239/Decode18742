@@ -1,15 +1,8 @@
 package org.woen.configs
 
 
-
-import org.woen.utils.debug.LogManager
 import org.woen.enumerators.IntakeResult
 import org.woen.enumerators.RequestResult
-
-//import org.woen.hotRun.HotRun
-//import org.woen.threading.ThreadedGamepad
-//import org.woen.threading.ThreadedEventBus
-//import org.woen.modules.scoringSystem.storage.StorageRequestIsReadyEvent
 
 
 
@@ -28,8 +21,6 @@ object Alias
     {
         val SUCCESS_NOW_EMPTY = RequestResult.Name.SUCCESS_IS_NOW_EMPTY
         val SUCCESS           = RequestResult.Name.SUCCESS
-
-        val TERMINATED = RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED
 
         val FAIL_UNKNOWN  = RequestResult.Name.FAIL_UNKNOWN
         val FAIL_IS_EMPTY = RequestResult.Name.FAIL_IS_EMPTY
@@ -56,9 +47,6 @@ object Alias
         val F_SUCCESS = RequestResult(
             RequestResult.Companion.SUCCESS,
             RequestResult.Name.SUCCESS)
-        val F_TERMINATED = RequestResult(
-            RequestResult.Companion.FAIL_PROCESS_WAS_TERMINATED,
-            RequestResult.Name.FAIL_PROCESS_WAS_TERMINATED)
         val F_COLOR_NOT_PRESENT = RequestResult(
             RequestResult.Companion.FAIL_COLOR_NOT_PRESENT,
             RequestResult.Name.FAIL_COLOR_NOT_PRESENT)
@@ -72,8 +60,6 @@ object Alias
             RequestResult.Name.FAIL_IS_EMPTY)
 
 
-//        val IsReadyEvent = StorageRequestIsReadyEvent()
-
 
         fun didFail      (name: RequestResult.Name) = RequestResult.Companion.didFail(name)
         fun didSucceed   (name: RequestResult.Name) = RequestResult.Companion.didSucceed(name)
@@ -82,14 +68,6 @@ object Alias
 
 
 
-    val LogM get() = LogManager.Companion
-//    val HotRunLI   get() = HotRun.Companion.LAZY_INSTANCE
-//    val GamepadLI  get() = ThreadedGamepad.Companion.LAZY_INSTANCE
-//    val EventBusLI get() = ThreadedEventBus.Companion.LAZY_INSTANCE
-
-
-
-    const val NOTHING            = 0
     const val MAX_BALL_COUNT     = 3
     const val STORAGE_SLOT_COUNT = 4
 }

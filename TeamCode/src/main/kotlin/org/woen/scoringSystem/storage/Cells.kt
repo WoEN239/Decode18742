@@ -1,13 +1,11 @@
 package org.woen.scoringSystem.storage
 
 
-import org.woen.collector.Collector
 import kotlin.math.min
 
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
 
-import org.woen.enumerators.RequestResult
 import org.woen.enumerators.StorageSlot
 
 import org.woen.utils.debug.Debug
@@ -17,9 +15,9 @@ import org.woen.scoringSystem.storage.hardware.HwSortingManager
 
 import org.woen.configs.Alias.Intake
 import org.woen.configs.Alias.Request
-import org.woen.configs.Alias.NOTHING
 import org.woen.configs.Alias.MAX_BALL_COUNT
 import org.woen.configs.Alias.STORAGE_SLOT_COUNT
+import org.woen.configs.DebugSettings
 
 import org.woen.configs.Delay
 import org.woen.configs.RobotSettings.ROBOT
@@ -27,6 +25,7 @@ import org.woen.configs.RobotSettings.SORTING
 import org.woen.configs.RobotSettings.SORTING.PREDICT.TRUE_MATCH_WEIGHT
 import org.woen.configs.RobotSettings.SORTING.PREDICT.PSEUDO_MATCH_WEIGHT
 import org.woen.scoringSystem.ConnectorModuleStatus
+import kotlin.math.floor
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -52,8 +51,11 @@ import org.woen.scoringSystem.ConnectorModuleStatus
 
 
 
-class CountPGA(var purple: Int, var green: Int, var any: Int = NOTHING)
-class PredictSortResult(var totalRotations: Int, var maxSequenceScore: Double)
+class CountPGA(var purple: Int, var green: Int, var any: Int = 0)
+class PredictSortResult(
+    var totalRotations: Int,
+    var maxSequenceScore: Double,
+    var totalMatches: Int)
 
 
 
@@ -63,29 +65,26 @@ class Cells
     private val _cms: ConnectorModuleStatus
     val hwSortingM: HwSortingManager
 
-    private val _collector: Collector
     val logM: LogManager
 
 
 
-    constructor(collector: Collector, cms: ConnectorModuleStatus)
+    constructor(cms: ConnectorModuleStatus)
     {
-        _collector = collector
         _cms = cms
 
-        hwSortingM = HwSortingManager(_collector, _cms)
+        hwSortingM = HwSortingManager(_cms)
 
-        logM = LogManager(_collector, Debug.CELLS)
+        logM = LogManager(_cms.collector, DebugSettings.CELLS)
     }
 
 
 
-
-    fun reset()
+    fun relink()
     {
-        if (notFullYet()) _cms.canTriggerIntake.set(true)
+        if (notFullYet()) _cms.canTriggerIntake = true
 
-        logM.reset(Debug.CELLS)
+        logM.relink(DebugSettings.CELLS)
     }
 
     fun fullEmptyStorageCells()
@@ -96,53 +95,13 @@ class Cells
         _storageCells[StorageSlot.MOBILE].empty()
     }
 
-
-
-
-
-    fun handleRequest(requested: BallRequest.Name): RequestResult
-    {
-        if (BallRequest.isNone(requested))
-            return Request.F_ILLEGAL_ARGUMENT
-
-        return if (isEmpty()) Request.F_IS_EMPTY
-        else requestSearch(requested)
-    }
-    private fun requestSearch(requested: BallRequest.Name): RequestResult
-    {
-        logM.logMd("starting request search: ${requested}, storage:", Debug.START)
-        logAllStorageData()
-
-        val result = Request.F_COLOR_NOT_PRESENT
-        var alreadyFoundPseudoMatch = false
-
-        var    curSlotId = StorageSlot.BOTTOM
-        while (curSlotId < STORAGE_SLOT_COUNT)
-        {
-            val chosenSlotId = Request.SEARCH_ORDER[curSlotId]
-
-            if (_storageCells[chosenSlotId].isTrueMatch(requested))
-                return RequestResult.fromStorageSlot(chosenSlotId)
-            else if (!alreadyFoundPseudoMatch &&
-                _storageCells[chosenSlotId].isPseudoMatch(requested))
-            {
-                result.setFromStorageSlot(chosenSlotId)
-                alreadyFoundPseudoMatch = true
-            }
-            curSlotId++
-        }
-
-        return result
-    }
-
-
     private fun predictSortSearchLogic(
         requested: Array<BallRequest>,
         trimmedRequestSize: Int): PredictSortResult
     {
         var globalMaximum  = SORTING.PREDICT.START_WEIGHT
-        var doRotations    = NOTHING
-        var startRequestId = NOTHING
+        var doRotations    = 0
+        var startRequestId = 0
 
         while (startRequestId < trimmedRequestSize)
         {
@@ -184,7 +143,8 @@ class Cells
                     logM.logMd("Found optimal state, ending search in advance", Debug.LOGIC)
                     return PredictSortResult(
                         doRotations,
-                        globalMaximum)
+                        globalMaximum,
+                        MAX_BALL_COUNT)
                 }
             }
 
@@ -192,15 +152,17 @@ class Cells
         }
 
         logM.logMd("Done searching, max: $globalMaximum, rotations: $doRotations", Debug.END)
-        return PredictSortResult(doRotations, globalMaximum)
+        return PredictSortResult(
+            doRotations,
+            globalMaximum,
+            floor(globalMaximum / PSEUDO_MATCH_WEIGHT).toInt())
     }
     fun predictSortSearch(requested: Array<BallRequest.Name>): PredictSortResult
     {
         val trimmedRequestSize = min(requested.size, MAX_BALL_COUNT)
-        if (trimmedRequestSize == NOTHING)
-            return PredictSortResult(
-                0,
-                0.0)
+        if (trimmedRequestSize == 0)
+            return PredictSortResult(0,
+                0.0, 0)
 
         val requestedFullData  = Array(requested.size) { BallRequest(requested[it]) }
         return predictSortSearchLogic(requestedFullData, trimmedRequestSize)
@@ -209,10 +171,9 @@ class Cells
         requested: Array<BallRequest.Name>): PredictSortResult
     {
         val trimmedRequestSize = min(requested.size, MAX_BALL_COUNT)
-        if (trimmedRequestSize == NOTHING)
-            return PredictSortResult(
-                0,
-                0.0)
+        if (trimmedRequestSize == 0)
+            return PredictSortResult(0,
+                0.0, 0)
 
         hwReAdjustStorage()
 
@@ -245,7 +206,7 @@ class Cells
 
         logAllStorageData()
     }
-    fun updateAfterIntake(inputBall: Ball.Name)
+    fun handleIntake(inputBall: Ball.Name)
     {
         logM.logMd("before intake:", Debug.GENERIC)
         logAllStorageData()
@@ -269,13 +230,12 @@ class Cells
             rotationTime,
             curSlot == StorageSlot.TURRET)
     }
-    fun updateAfterRequest()
+    fun updateAfterShot()
     {
         _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
         _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
-        _storageCells[StorageSlot.BOTTOM].empty()
-
-        logAllStorageData()
+        _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
+        _storageCells[StorageSlot.MOBILE].empty()
     }
 
 
@@ -301,15 +261,11 @@ class Cells
 
     private fun swReAdjustStorage(): Boolean
     {
-        logM.logMd("SwReadjust start", Debug.START)
+        logM.logMd("SwReadjust round", Debug.LOGIC)
         if (_storageCells[StorageSlot.TURRET].isEmpty()
             && isNotEmpty())
         {
-            _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
-            _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
-            _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
-            _storageCells[StorageSlot.MOBILE].empty()
-
+            updateAfterShot()
             return true
         }
         else if (_storageCells[StorageSlot.CENTER].isEmpty()
@@ -318,7 +274,6 @@ class Cells
             _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
             _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
             _storageCells[StorageSlot.MOBILE].empty()
-
             return true
         }
         else if (_storageCells[StorageSlot.BOTTOM].isEmpty()
@@ -326,18 +281,15 @@ class Cells
         {
             _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
             _storageCells[StorageSlot.MOBILE].empty()
-
             return true
         }
-        else
-        {
-            logM.logMd("finished readjusting", Debug.END)
-            return false
-        }
+
+        logM.logMd("finished readjusting", Debug.END)
+        return false
     }
     fun hwReAdjustStorage()
     {
-        _cms.canTriggerIntake.set(false)
+        _cms.canTriggerIntake = false
 
         while (swReAdjustStorage())
             hwSortingM.forwardBeltsTime(Delay.MS.PUSH.FULL)
@@ -362,7 +314,7 @@ class Cells
 
     fun anyBallCount(): Int
     {
-        var count = NOTHING
+        var count = 0
         var curSlotId = StorageSlot.BOTTOM
 
         while (curSlotId < STORAGE_SLOT_COUNT)
@@ -376,7 +328,6 @@ class Cells
 
     fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT
     fun notFullYet()  = anyBallCount() <  MAX_BALL_COUNT
-    fun onlyOneBallLeft() = anyBallCount() == 1
 
     fun isEmpty(): Boolean
     {
@@ -396,7 +347,7 @@ class Cells
 
     fun ballCountPGA(): CountPGA
     {
-        val intPG     = intArrayOf(NOTHING, NOTHING, NOTHING)
+        val intPG     = intArrayOf(0, 0, 0)
         var curSlotId = StorageSlot.BOTTOM
 
         while (curSlotId < STORAGE_SLOT_COUNT)
@@ -411,7 +362,7 @@ class Cells
                    includeAbstractAny: Boolean = true) : CountPGA
     {
         val abstractAny = if (includeAbstractAny)
-            array[Ball.UNKNOWN_COLOR] else NOTHING
+            array[Ball.UNKNOWN_COLOR] else 0
 
         return CountPGA(
             array[Ball.PURPLE],

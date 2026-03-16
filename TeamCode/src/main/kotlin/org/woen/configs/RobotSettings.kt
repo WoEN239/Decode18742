@@ -13,7 +13,7 @@ object RobotSettings
     internal object ROBOT
     {
         @JvmField
-        var INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = Shooting.StockPattern.Sequence.Storage.EMPTY
+        var INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = Shooting.StockPattern.Storage.EMPTY
 
 
         @JvmField
@@ -75,26 +75,13 @@ object RobotSettings
         internal object PREDICT
         {
             @JvmField
-            var ALWAYS_TRY_IN_ADVANCE = true
-            //  IN_ADVANCE = Before shooting
-
-            @JvmField
-            var FURTHER_TRY_IN_ACTION = true
-            //  IN_ACTION -> Whilest mid Sorting DrumRequest
-
-
-            @JvmField
             var START_WEIGHT = 0.0
 
             @JvmField
             var TRUE_MATCH_WEIGHT = 1.0
 
             @JvmField
-            var PSEUDO_MATCH_WEIGHT = 0.75
-
-
-            @JvmField
-            var MIN_SEQUENCE_SCORE = 0.75
+            var PSEUDO_MATCH_WEIGHT = 0.9
         }
 
 
