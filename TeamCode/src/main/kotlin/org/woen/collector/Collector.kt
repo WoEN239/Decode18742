@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.modules.Battery
 import org.woen.modules.Telemetry
+import org.woen.modules.attachDriveTrain
 import org.woen.modules.attachGamepad
 import org.woen.modules.attachOdometry
 import org.woen.utils.events.EventBus
@@ -34,5 +35,6 @@ class Collector {
         battery = Battery(this)
         attachOdometry(this)
         attachGamepad(this)
+        attachDriveTrain(this)
     }
 }
