@@ -248,6 +248,8 @@ fun attachTurret(collector: Collector) {
             TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING
         ) / TURRET_CONFIG.HEADING_SERVO_RATIO
 
+        headingServo.update()
+
         collector.telemetry.addData("target pulleyVelocity", pulleyVelocity)
         collector.telemetry.addData(
             "current pulley velocity",
