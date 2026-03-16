@@ -1,6 +1,7 @@
 package org.woen.utils.drivers
 
 import com.acmerobotics.dashboard.config.Config
+import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlin.math.abs
@@ -9,7 +10,7 @@ import kotlin.math.sign
 import kotlin.math.sqrt
 
 @Config
-internal object ODOMETRY_CONFIG {
+internal object SOFT_SERVO_CONFIG {
     @JvmField
     var SERVO_E = 15.0
 
@@ -18,11 +19,14 @@ internal object ODOMETRY_CONFIG {
 }
 
 class SoftServo(
-    val servo: Servo,
+    servoName: String,
+    hardwareMap: HardwareMap,
     private val _startPosition: Double = 0.0,
-    var E: Double = ODOMETRY_CONFIG.SERVO_E,
-    var WMax: Double = ODOMETRY_CONFIG.SERVO_W_MAX
+    var E: Double = SOFT_SERVO_CONFIG.SERVO_E,
+    var WMax: Double = SOFT_SERVO_CONFIG.SERVO_W_MAX
 ) {
+    private val _servo = hardwareMap.get(servoName) as Servo
+
     private val _servoTime = ElapsedTime()
 
     private var t2 = 0.0
@@ -34,7 +38,7 @@ class SoftServo(
     private var t2Pow = 0.0
     private var y0 = 0.0
 
-    var targetPosition: Double = -1.0
+    var targetPosition: Double = _startPosition
         set(value) {
             if (value < 0)
                 return
@@ -65,9 +69,9 @@ class SoftServo(
         }
 
     var currentPosition
-        get() = servo.position
+        get() = _servo.position
         private set(value) {
-            servo.position = value
+            _servo.position = value
         }
 
     fun start() {
