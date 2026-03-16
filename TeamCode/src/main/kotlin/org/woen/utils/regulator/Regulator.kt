@@ -29,7 +29,7 @@ class Regulator(val parameters: RegulatorParameters) {
         _deltaTime.reset()
     }
 
-    fun update(err: Double, target: Double): Double {
+    fun update(err: Double, target: Double, battery: Double): Double {
         val uP = err * parameters.kP
 
         val uD = (err - _errOld) / _deltaTime.seconds() * parameters.kD
@@ -51,11 +51,9 @@ class Regulator(val parameters: RegulatorParameters) {
 
         val limitU = parameters.limitU
 
-        val volts = 0.0
-
         if (
             (limitU > 0.0 && u < limitU && u > -limitU) ||
-            (limitU < 0.0 && u < volts && u > -volts) ||
+            (limitU < 0.0 && u < battery && u > -battery) ||
             (err * u < 0.0f)
         )
             _integral += err * _deltaTime.seconds()
@@ -78,5 +76,5 @@ class Regulator(val parameters: RegulatorParameters) {
         _integral = 0.0
     }
 
-    fun update(err: Double) = update(err, 0.0)
+    fun update(err: Double) = update(err, 0.0, 12.0)
 }

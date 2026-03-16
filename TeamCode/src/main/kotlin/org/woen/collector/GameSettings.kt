@@ -30,6 +30,9 @@ internal object GAME_CONFIGS {
 
     @JvmField
     var BLUE_PARKING_ORIENTATION = Orientation(Vec2(0.0, 0.0), Angle.ofDeg(0.0))
+
+    @JvmField
+    var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
 }
 
 enum class GameColor {

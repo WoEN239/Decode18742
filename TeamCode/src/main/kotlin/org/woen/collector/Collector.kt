@@ -7,6 +7,7 @@ import org.woen.modules.Telemetry
 import org.woen.modules.attachDriveTrain
 import org.woen.modules.attachGamepad
 import org.woen.modules.attachOdometry
+import org.woen.modules.attachTurret
 import org.woen.utils.events.EventBus
 import org.woen.utils.events.SimpleEmptyEvent
 
@@ -36,5 +37,6 @@ class Collector {
         attachOdometry(this)
         attachGamepad(this)
         attachDriveTrain(this)
+        attachTurret(this)
     }
 }

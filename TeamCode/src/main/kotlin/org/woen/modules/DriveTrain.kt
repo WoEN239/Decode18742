@@ -135,7 +135,7 @@ fun attachDriveTrain(collector: Collector) {
     var targetLinearVelocity = Vec2.ZERO
     var targetHeadingVelocity = 0.0
 
-    collector.eventBus.subscribe(SetDriveVelocityEvent::class){
+    collector.eventBus.subscribe(SetDriveVelocityEvent::class) {
         targetLinearVelocity = it.linearVelocity
         targetHeadingVelocity = it.headingVelocity
     }
@@ -147,17 +147,29 @@ fun attachDriveTrain(collector: Collector) {
     }
 
     collector.updateEvent += {
-        if(driveMode == DriveMode.REGULATOR){
+        if (driveMode == DriveMode.REGULATOR) {
             val odometry = collector.eventBus.invoke(GetRobotOdometry())
 
             val velocityErr = targetLinearVelocity - odometry.linearVelocity
 
             val direction = Vec2(
-                forwardRegulator.update(velocityErr.x, targetLinearVelocity.x),
-                sideRegulator.update(velocityErr.y, targetLinearVelocity.y)
+                forwardRegulator.update(
+                    velocityErr.x,
+                    targetLinearVelocity.x,
+                    collector.battery.currentVoltage
+                ),
+                sideRegulator.update(
+                    velocityErr.y,
+                    targetLinearVelocity.y,
+                    collector.battery.currentVoltage
+                )
             )
 
-            val rotate = rotateRegulator.update(targetHeadingVelocity - odometry.headingVelocity)
+            val rotate = rotateRegulator.update(
+                targetHeadingVelocity - odometry.headingVelocity,
+                targetHeadingVelocity,
+                collector.battery.currentVoltage
+            )
 
             setPowers(
                 battery.voltageToPower(direction.x - direction.y - rotate),
