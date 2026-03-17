@@ -11,7 +11,9 @@ import org.woen.collector.GameSettings
 import org.woen.collector.RunMode
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Color
+import org.woen.utils.units.Line
 import org.woen.utils.units.Orientation
+import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
 
 @Config
@@ -24,6 +26,12 @@ internal object ODOMETRY_CONFIG {
 
     @JvmField
     var ROBOT_SIZE = Vec2(0.38, 0.38)
+
+    @JvmField
+    var SHOOT_SHORT_TRIANGLE = Triangle(Vec2(-1.83, 1.83), Vec2(0.0, 0.0), Vec2(-1.83, -1.83))
+
+    @JvmField
+    var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 }
 
 class GetRobotOdometry(
@@ -31,6 +39,10 @@ class GetRobotOdometry(
     var linearVelocity: Vec2 = Vec2.ZERO,
     var headingVelocity: Double = 0.0
 )
+
+class GetLocateInShootingAreaEvent(var locate: Boolean = false)
+class RobotEnterShootingAreaEvent()
+class RobotExitShootingAreaEvent()
 
 fun attachOdometry(collector: Collector) {
     val pinpoint = collector.hardwareMap.get("odometry") as GoBildaPinpointDriver
@@ -56,10 +68,17 @@ fun attachOdometry(collector: Collector) {
     var linearVelocity = Vec2.ZERO
     var headingVelocity = 0.0
 
+    var locateInShootingArea = false
+    var oldLocateInShootingArea = false
+
     collector.eventBus.subscribe(GetRobotOdometry::class) {
         it.orientation = orientation
         it.linearVelocity = linearVelocity
         it.headingVelocity = headingVelocity
+    }
+
+    collector.eventBus.subscribe(GetLocateInShootingAreaEvent::class) {
+        it.locate = locateInShootingArea
     }
 
     collector.updateEvent += {
@@ -90,5 +109,60 @@ fun attachOdometry(collector: Collector) {
         collector.telemetry.addData("x vel", linearVelocity.x)
         collector.telemetry.addData("y vel", linearVelocity.y)
         collector.telemetry.addData("h vel", headingVelocity)
+
+        fun checkToLocate(triangle: Triangle): Boolean {
+            val halfSize = ODOMETRY_CONFIG.ROBOT_SIZE / 2.0
+
+            val cornerLeftForward =
+                orientation.pos + Vec2(-halfSize.x, halfSize.y)
+                    .turn(orientation.angle)
+            val cornerRightForward =
+                orientation.pos + Vec2(halfSize.x, halfSize.y)
+                    .turn(orientation.angle)
+            val cornerRightBack = orientation.pos + Vec2(halfSize.x, -halfSize.y)
+                .turn(orientation.angle)
+            val cornerLeftBack = orientation.pos + Vec2(-halfSize.x, -halfSize.y)
+                .turn(orientation.angle)
+
+            val robotPoints = arrayOf(
+                cornerLeftBack, cornerRightBack,
+                cornerRightForward, cornerLeftForward
+            )
+
+            val robotLines = arrayOf(
+                Line(cornerLeftForward, cornerRightForward),
+                Line(cornerRightBack, cornerRightForward),
+                Line(cornerRightBack, cornerLeftBack),
+                Line(cornerLeftForward, cornerLeftBack)
+            )
+
+            for (shootLine in triangle.lines) {
+                for (l in robotLines) {
+                    if (!l.isIntersects(shootLine))
+                        continue
+
+                    val intersects = l.getIntersects(shootLine)
+
+                    if (l.isPointOnLine(intersects) && shootLine.isPointOnLine(intersects))
+                        return true
+                }
+
+                for (robotPoint in robotPoints)
+                    if (triangle.isPointLocated(robotPoint))
+                        return true
+            }
+
+            return false
+        }
+
+        val shortLocate = checkToLocate(ODOMETRY_CONFIG.SHOOT_SHORT_TRIANGLE)
+        val longLocate = checkToLocate(ODOMETRY_CONFIG.SHOOT_LONG_TRIANGLE)
+
+        locateInShootingArea = shortLocate || longLocate
+
+        if (locateInShootingArea != oldLocateInShootingArea)
+            collector.eventBus.invoke(if (locateInShootingArea) RobotEnterShootingAreaEvent() else RobotExitShootingAreaEvent())
+
+        oldLocateInShootingArea = locateInShootingArea
     }
 }
