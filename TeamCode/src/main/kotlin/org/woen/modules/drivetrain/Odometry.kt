@@ -1,4 +1,4 @@
-package org.woen.modules
+package org.woen.modules.drivetrain
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver

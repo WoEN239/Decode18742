@@ -4,9 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.modules.Battery
 import org.woen.modules.Telemetry
-import org.woen.modules.attachDriveTrain
+import org.woen.modules.drivetrain.attachDriveTrain
 import org.woen.modules.attachGamepad
-import org.woen.modules.attachOdometry
+import org.woen.modules.drivetrain.attachOdometry
 import org.woen.modules.attachTurret
 import org.woen.utils.events.EventBus
 import org.woen.utils.events.SimpleEmptyEvent

@@ -1,4 +1,4 @@
-package org.woen.modules
+package org.woen.modules.drivetrain
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotor
@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.Gamepad
 import org.woen.collector.Collector
 import org.woen.collector.GameState
 import org.woen.collector.RunMode
+import org.woen.modules.AddGamepadListenerEvent
+import org.woen.modules.IGamepadListener
 import org.woen.utils.motor.MotorOnly
 import org.woen.utils.regulator.Regulator
 import org.woen.utils.regulator.RegulatorParameters
