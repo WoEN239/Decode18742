@@ -126,7 +126,7 @@ object Hardware
             internal object POWER
             {
                 @JvmField
-                var SHOOT = 11.0
+                var SHOOT = 12.0
 
                 @JvmField
                 var LAZY  = 10.0

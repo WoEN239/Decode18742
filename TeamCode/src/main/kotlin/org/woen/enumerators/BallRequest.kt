@@ -40,24 +40,6 @@ class BallRequest
     val name get() = _name
 
 
-    fun isNone() = _id == NONE
-    fun isAny()  = _id == ANY_CLOSEST
-    fun isAbstractAny() = _id > GREEN && _id < NONE
-
-
-    fun toBall(): Ball.Name
-    {
-        return when (_id)
-        {
-            PURPLE, PREFER_PURPLE -> Ball.Name.PURPLE
-            GREEN,  PREFER_GREEN  -> Ball.Name.GREEN
-
-            ANY_CLOSEST -> Ball.Name.UNKNOWN_COLOR
-            else        -> Ball.Name.NONE
-        }
-    }
-
-
 
     companion object
     {
@@ -73,10 +55,6 @@ class BallRequest
 
         fun isAbstractAny(id:   Int)  = id > GREEN && id < NONE
         fun isAbstractAny(name: Name) = isAbstractAny(toInt(name))
-
-
-        fun isNone(id:   Int)  = id   == NONE
-        fun isNone(name: Name) = name == Name.NONE
 
 
         fun toName(id:  Int): Name
@@ -108,17 +86,6 @@ class BallRequest
             }
         }
 
-        fun toBall(id: Int): Ball.Name
-        {
-            return when (id)
-            {
-                PURPLE, PREFER_PURPLE -> Ball.Name.PURPLE
-                GREEN,  PREFER_GREEN  -> Ball.Name.GREEN
-
-                ANY_CLOSEST -> Ball.Name.UNKNOWN_COLOR
-                else        -> Ball.Name.NONE
-            }
-        }
         fun toBall(name: Name): Ball.Name
         {
             return when (name)
@@ -128,46 +95,6 @@ class BallRequest
 
                 Name.ANY_CLOSEST -> Ball.Name.UNKNOWN_COLOR
                 Name.NONE        -> Ball.Name.NONE
-            }
-        }
-
-        fun toInverse(name: Name): Name
-        {
-            return when(name)
-            {
-                Name.NONE, Name.ANY_CLOSEST -> name
-
-                Name.GREEN,  Name.PREFER_GREEN  -> Name.PREFER_PURPLE
-                Name.PURPLE, Name.PREFER_PURPLE -> Name.PREFER_GREEN
-            }
-        }
-        fun toAbstract(name: Name): Name
-        {
-            return when (name)
-            {
-                Name.PURPLE -> Name.PREFER_PURPLE
-                Name.GREEN  -> Name.PREFER_GREEN
-
-                Name.PREFER_PURPLE,
-                Name.PREFER_GREEN,
-                Name.ANY_CLOSEST -> name
-
-                Name.NONE        -> Name.NONE
-            }
-        }
-
-        fun toAbstractBallId(name: Name): Int
-        {
-            return when (name)
-            {
-                Name.PURPLE -> Ball.PURPLE
-                Name.GREEN  -> Ball.GREEN
-
-                Name.PREFER_PURPLE,
-                Name.PREFER_GREEN,
-                Name.ANY_CLOSEST -> Ball.UNKNOWN_COLOR
-
-                Name.NONE        -> Ball.NONE
             }
         }
     }

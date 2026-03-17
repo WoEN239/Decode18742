@@ -1,19 +1,12 @@
 package org.woen.configs
 
 import com.acmerobotics.dashboard.config.Config
-//import org.woen.utils.process.RunStatus
 
 
 
 @Config
 object ProcessId
 {
-//    @JvmField
-//    var PRIORITY_SETTING_FOR_SSM = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
-//    @JvmField
-//    var PRIORITY_SETTING_FOR_SMC = RunStatus.Priority.PRIORITIZE_HIGH_PROCESS_ID
-
-
     @JvmField
     var IDLE = 0
     @JvmField

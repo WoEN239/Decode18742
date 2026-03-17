@@ -15,7 +15,7 @@ import org.woen.configs.DebugSettings
 import org.woen.utils.debug.Debug
 import org.woen.configs.Delay
 import org.woen.configs.ProcessId
-import org.woen.configs.RobotSettings.SHOOTING
+import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.scoringSystem.ConnectorModuleStatus
 import org.woen.scoringSystem.misc.DynamicPattern
 
@@ -155,7 +155,7 @@ class Storage
     fun streamDrumRequest(ballCount: Int = 0): RequestResult.Name
     {
         val shotCount = if (ballCount != 0) ballCount
-                   else if (SHOOTING.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
+                   else if (CONTROLS.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
                    else cells.anyBallCount()
         
         logM.logMd("Starting stream shooting, count: $ballCount", Debug.START)

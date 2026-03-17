@@ -2,6 +2,7 @@ package org.woen.scoringSystem.storage
 
 
 import kotlin.math.min
+import kotlin.math.floor
 
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
@@ -13,10 +14,10 @@ import org.woen.utils.debug.LogManager
 
 import org.woen.scoringSystem.storage.hardware.HwSortingManager
 
-import org.woen.configs.Alias.Intake
 import org.woen.configs.Alias.Request
 import org.woen.configs.Alias.MAX_BALL_COUNT
 import org.woen.configs.Alias.STORAGE_SLOT_COUNT
+import org.woen.configs.Alias.INTAKE_INPUT_ORDER
 import org.woen.configs.DebugSettings
 
 import org.woen.configs.Delay
@@ -25,7 +26,6 @@ import org.woen.configs.RobotSettings.SORTING
 import org.woen.configs.RobotSettings.SORTING.PREDICT.TRUE_MATCH_WEIGHT
 import org.woen.configs.RobotSettings.SORTING.PREDICT.PSEUDO_MATCH_WEIGHT
 import org.woen.scoringSystem.ConnectorModuleStatus
-import kotlin.math.floor
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -51,7 +51,6 @@ import kotlin.math.floor
 
 
 
-class CountPGA(var purple: Int, var green: Int, var any: Int = 0)
 class PredictSortResult(
     var totalRotations: Int,
     var maxSequenceScore: Double,
@@ -199,7 +198,7 @@ class Cells
         var    curSlot  = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.TURRET)
         {
-            _storageCells[Intake.INPUT_ORDER[curSlot]].set(
+            _storageCells[INTAKE_INPUT_ORDER[curSlot]].set(
                 inputFromTurretSlotToBottom[curSlot])
             curSlot++
         }
@@ -222,7 +221,7 @@ class Cells
 
         if (curSlot >= StorageSlot.BOTTOM) _storageCells[curSlot].set(inputBall)
 
-        logM.logMd("software storage processing finished", Debug.END)
+        logM.logMd("SW storage processing finished", Debug.END)
         logM.logMd("new storage: ", Debug.GENERIC)
         logAllStorageData()
 
@@ -343,47 +342,4 @@ class Cells
                 || _storageCells[StorageSlot.TURRET].isFilled()
                 || _storageCells[StorageSlot.MOBILE].isFilled()
     }
-
-
-    fun ballCountPGA(): CountPGA
-    {
-        val intPG     = intArrayOf(0, 0, 0)
-        var curSlotId = StorageSlot.BOTTOM
-
-        while (curSlotId < STORAGE_SLOT_COUNT)
-        {
-            intPG[_storageCells[curSlotId].id]++
-            curSlotId++
-        }
-
-        return toCountPGA(intPG)
-    }
-    fun toCountPGA(array: IntArray,
-                   includeAbstractAny: Boolean = true) : CountPGA
-    {
-        val abstractAny = if (includeAbstractAny)
-            array[Ball.UNKNOWN_COLOR] else 0
-
-        return CountPGA(
-            array[Ball.PURPLE],
-            array[Ball.GREEN],
-            abstractAny)
-    }
-
-
-//    fun handleIdenticalColorRequest(): StorageHandleIdenticalColorsEvent
-//    {
-//        val curStorage  = ballCountPGA()
-//        val purpleCount = curStorage.purple
-//        val greenCount  = curStorage.green
-//
-//        return if (greenCount > purpleCount)
-//            StorageHandleIdenticalColorsEvent(
-//                greenCount,
-//                Ball.Name.GREEN)
-//
-//        else StorageHandleIdenticalColorsEvent(
-//            purpleCount,
-//            Ball.Name.PURPLE)
-//    }
 }

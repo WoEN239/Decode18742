@@ -12,8 +12,11 @@ class LogManager
         var debugSetting:    DebugSetting = DebugSetting.SHOW_SELECTED_LEVELS,
         var warningSetting:  DebugSetting = DebugSetting.SHOW_EXCEPT_SELECTED_LEVELS,
         var debugLevels:   ArrayList<Int> = arrayListOf(
-            2, 3, 4, 5, 5, 7, 8, 9, 11, 12, 13, 14),
-        var warningLevels: ArrayList<Int> = arrayListOf(0),
+            Debug.HW, Debug.HW_HIGH, Debug.GAMEPAD, Debug.EVENTS,
+            Debug.TRYING, Debug.START, Debug.END, Debug.GENERIC,
+            Debug.STATUS, Debug.LOGIC, Debug.PROCESS_NAME),
+        var warningLevels: ArrayList<Int> = arrayListOf(
+            Debug.HW_LOW, Debug.HW, Debug.HW_HIGH),
         var moduleName: String = "")
 
 
@@ -34,8 +37,6 @@ class LogManager
 
 
 
-
-
     private var _debugLevels:   Array<Int> = arrayOf()
     private var _warningLevels: Array<Int> = arrayOf()
 
@@ -52,60 +53,18 @@ class LogManager
         _telemetryM = collector.telemetry
         relink(config)
     }
-    constructor(telemetry: Telemetry,
-                debugSetting:    DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
-                warningSetting:  DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
-                debugLevels:   ArrayList<Int> = arrayListOf(0),
-                warningLevels: ArrayList<Int> = arrayListOf(0),
-                moduleName: String = "")
-    {
-        _telemetryM = telemetry
-        relink(debugSetting,
-               warningSetting,
-               debugLevels,
-               warningLevels,
-               moduleName)
-    }
     fun relink(config: Config, telemetry: Telemetry? = null)
-        = relink(config.debugSetting,
-            config.warningSetting,
-            config.debugLevels,
-            config.warningLevels,
-            config.moduleName,
-            telemetry)
-
-    fun relink(debugSetting:   DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
-               warningSetting: DebugSetting = DebugSetting.SHOW_ABOVE_SELECTED_INCLUSIVE,
-               debugLevels:   ArrayList<Int> = arrayListOf(0),
-               warningLevels: ArrayList<Int> = arrayListOf(0),
-               moduleName: String = "",
-               telemetry: Telemetry? = null)
     {
-        updateDebugSetting  (debugSetting)
-        updateWarningSetting(warningSetting)
+        updateDebugSetting  (config.debugSetting)
+        updateWarningSetting(config.warningSetting)
 
-        setShowedDebugLevels  (debugLevels.toTypedArray())
-        setShowedWarningLevels(warningLevels.toTypedArray())
+        setShowedDebugLevels  (config.debugLevels.toTypedArray())
+        setShowedWarningLevels(config.warningLevels.toTypedArray())
 
-        setModuleName(moduleName)
+        setModuleName(config.moduleName)
 
         if (telemetry != null) _telemetryM = telemetry
     }
-
-
-
-    companion object
-    {
-        fun log(collector: Collector, s: String)
-            = collector.telemetry.log(s)
-        fun log(collector: Collector, vararg s: String)
-            = collector.telemetry.log(*s)
-
-        fun logTag(collector: Collector, s: String, tag: String)
-            = collector.telemetry.logWithTag(s, tag)
-    }
-
-
 
 
 
@@ -205,14 +164,12 @@ class LogManager
     private fun customSelected(debugLevel: Int, show: Array<Int>): Boolean
         = show.contains(debugLevel)
 
-
     private fun aboveInclusive(debugLevel: Int, show: Array<Int>): Boolean
         = if (show.isEmpty()) false
           else debugLevel >= show[0]
     private fun aboveExclusive(debugLevel: Int, show: Array<Int>): Boolean
         = if (show.isEmpty()) false
           else debugLevel >  show[0]
-
 
     private fun belowInclusive(debugLevel: Int, show: Array<Int>): Boolean
         = if (show.isEmpty()) false

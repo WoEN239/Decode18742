@@ -2,20 +2,15 @@ package org.woen.scoringSystem
 
 
 import com.qualcomm.robotcore.util.ElapsedTime
-import org.woen.collector.Collector
-import org.woen.configs.DebugSettings
-import org.woen.configs.RobotSettings.CONTROLS
-
-import org.woen.enumerators.BallRequest
-
-import org.woen.enumerators.Shooting
 
 import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
 
-import org.woen.configs.RobotSettings.TELEOP
+import org.woen.collector.Collector
 import org.woen.scoringSystem.storage.Storage
-import java.util.concurrent.atomic.AtomicBoolean
+
+import org.woen.configs.DebugSettings
+import org.woen.configs.RobotSettings.CONTROLS
 
 
 
@@ -46,12 +41,6 @@ class ScoringModulesConnector
 
         collector.startEvent += {
 
-            _storage.relink()
-            _storage.cells.relink()
-            _storage.cells.hwSortingM.relink()
-
-            logM.relink(DebugSettings.SMC)
-            _gameTimer.reset()
         }
     }
 
@@ -133,6 +122,16 @@ class ScoringModulesConnector
 
     }
 
+
+    fun relink()
+    {
+        _storage.relink()
+        _storage.cells.relink()
+        _storage.cells.hwSortingM.relink()
+
+        logM.relink(DebugSettings.SMC)
+        _gameTimer.reset()
+    }
 
 
 }

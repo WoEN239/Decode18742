@@ -28,7 +28,6 @@ class Ball
 
 
     fun empty() = set(NONE, Name.NONE)
-    fun setUnknown() = set(UNKNOWN_COLOR, Name.UNKNOWN_COLOR)
 
     fun set(name: Name,  id: Int  = toInt(name)) = set(id, name)
     fun set(id:   Int, name: Name = toName(id))
@@ -117,18 +116,6 @@ class Ball
 
                 Name.UNKNOWN_COLOR -> UNKNOWN_COLOR
                 Name.NONE          -> NONE
-            }
-        }
-
-        fun toBallRequestName(name: Name): BallRequest.Name
-        {
-            return when (name)
-            {
-                Name.PURPLE -> BallRequest.Name.PURPLE
-                Name.GREEN  -> BallRequest.Name.GREEN
-
-                Name.UNKNOWN_COLOR -> BallRequest.Name.ANY_CLOSEST
-                Name.NONE          -> BallRequest.Name.NONE
             }
         }
     }
