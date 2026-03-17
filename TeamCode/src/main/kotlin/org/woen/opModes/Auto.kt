@@ -7,16 +7,13 @@ import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.collector.Collector
 import org.woen.collector.GameSettings
-import org.woen.collector.GameState
 import org.woen.collector.RunMode
 import org.woen.collector.StartOrientation
 
 @Autonomous
 class Auto : LinearOpMode() {
     override fun runOpMode() {
-        GameState.runMode = RunMode.AUTO
-
-        val collector = Collector(this)
+        val collector = Collector(this, RunMode.AUTO)
 
         var selectedOrientationIndex =
             StartOrientation.entries.indexOf(GameSettings.startOrientation)

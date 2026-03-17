@@ -1,21 +1,17 @@
 package org.woen.opModes
 
-import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.woen.collector.Collector
-import org.woen.collector.GameState
 import org.woen.collector.RunMode
 import kotlin.math.abs
 
 @TeleOp
 class TeleOp: LinearOpMode() {
     override fun runOpMode() {
-        GameState.runMode = RunMode.MANUAL
-
-        val collector = Collector(this)
+        val collector = Collector(this, RunMode.MANUAL)
 
         while (!isStarted()) {
             if (abs(gamepad1.left_stick_x) > 0.01 || abs(gamepad1.left_stick_y) > 0.01 ||

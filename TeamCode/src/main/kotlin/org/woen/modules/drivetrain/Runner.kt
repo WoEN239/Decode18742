@@ -58,9 +58,9 @@ interface ITrajectorySegment {
     fun duration(): Double
 }
 
-class TurnSegment(angle: Double, private val _startAngle: Angle) : ITrajectorySegment {
+class TurnSegment(angle: Angle, startAngle: Angle) : ITrajectorySegment {
     private val _turn = TimeTurn(
-        Pose2d(0.0, 0.0, _startAngle.angle), angle,
+        Pose2d(0.0, 0.0, startAngle.angle), angle.angle,
         TurnConstraints(
             RUNNER_CONFIG.HEADING_VELOCITY,
             -RUNNER_CONFIG.HEADING_VELOCITY,
@@ -115,8 +115,9 @@ class GetTrajectoryBuilderEvent(
     var startOrientation: Orientation? = null,
     var builder: TrajectoryBuilder? = null
 )
-
 class RunSegmentsEvent(val segments: Array<ITrajectorySegment>)
+class GetRunnerIsFinishedEvent(var finished: Boolean = true)
+class GetEndTrajectoryEvent(var orientation: Orientation = Orientation.ZERO)
 
 fun attachRunner(collector: Collector) {
     val segmentsQueue = ArrayDeque<ITrajectorySegment>()
@@ -130,36 +131,40 @@ fun attachRunner(collector: Collector) {
         segmentsQueue.addAll(it.segments)
     }
 
-    collector.eventBus.subscribe(GetTrajectoryBuilderEvent::class) {
-        val startOrientation =
-            if (it.startOrientation == null) {
-                if (segmentsQueue.isEmpty())
-                    targetOrientation
-                else {
-                    val lastSegment = segmentsQueue.last()
+    fun getEndTrajectory(): Orientation {
+        if (segmentsQueue.isEmpty())
+            return targetOrientation
+        else {
+            val lastSegment = segmentsQueue.last()
 
-                    fun getLastCorrectPosition(): Vec2 {
-                        for (i in segmentsQueue.reversed()) {
-                            val pos = i.targetPosition(i.duration())
+            fun getLastCorrectPosition(): Vec2 {
+                for (i in segmentsQueue.reversed()) {
+                    val pos = i.targetPosition(i.duration())
 
-                            if (pos != null)
-                                return pos
-                        }
-
-                        return targetOrientation.pos
-                    }
-
-                    Orientation(
-                        getLastCorrectPosition(),
-                        lastSegment.targetHeading(lastSegment.duration())
-                    )
+                    if (pos != null)
+                        return pos
                 }
-            } else
-                it.startOrientation
+
+                return targetOrientation.pos
+            }
+
+            return Orientation(
+                getLastCorrectPosition(),
+                lastSegment.targetHeading(lastSegment.duration())
+            )
+        }
+    }
+
+    collector.eventBus.subscribe(GetEndTrajectoryEvent::class){
+        it.orientation = getEndTrajectory()
+    }
+
+    collector.eventBus.subscribe(GetTrajectoryBuilderEvent::class) {
+        val startOrientation = getEndTrajectory()
 
         it.builder = TrajectoryBuilder(
             TrajectoryBuilderParams(1e-6, ProfileParams(0.1, 0.1, 0.01)),
-            Pose2d(startOrientation!!.x, startOrientation.y, startOrientation.angl.angle), 0.0,
+            Pose2d(startOrientation.x, startOrientation.y, startOrientation.angl.angle), 0.0,
             MinVelConstraint(
                 listOf(
                     TranslationalVelConstraint(RUNNER_CONFIG.LINER_VELOCITY),
@@ -168,6 +173,10 @@ fun attachRunner(collector: Collector) {
             ),
             ProfileAccelConstraint(-RUNNER_CONFIG.LINEAR_ACCEL, RUNNER_CONFIG.LINEAR_ACCEL)
         )
+    }
+
+    collector.eventBus.subscribe(GetRunnerIsFinishedEvent::class){
+        it.finished = segmentsQueue.isEmpty()
     }
 
     collector.startEvent += {

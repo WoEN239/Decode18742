@@ -71,12 +71,3 @@ enum class StartOrientation(
 object GameSettings {
     var startOrientation = StartOrientation.RED_CLOSE
 }
-
-enum class RunMode {
-    AUTO,
-    MANUAL
-}
-
-object GameState {
-    var runMode = RunMode.AUTO
-}

@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Gamepad
 import org.woen.collector.Collector
-import org.woen.collector.GameState
 import org.woen.collector.RunMode
 import org.woen.modules.AddGamepadListenerEvent
 import org.woen.modules.IGamepadListener
@@ -97,7 +96,7 @@ fun attachDriveTrain(collector: Collector) {
     }
 
     val driveMode =
-        if (GameState.runMode == RunMode.MANUAL) DriveMode.POWER else DriveMode.REGULATOR
+        if (collector.runMode == RunMode.MANUAL) DriveMode.POWER else DriveMode.REGULATOR
 
     collector.eventBus.invoke(AddGamepadListenerEvent(object : IGamepadListener {
         override fun update(gamepadData: Gamepad) {

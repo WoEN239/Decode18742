@@ -4,12 +4,19 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.modules.Battery
 import org.woen.modules.Telemetry
+import org.woen.modules.attachActionRunner
 import org.woen.modules.drivetrain.attachDriveTrain
 import org.woen.modules.attachGamepad
 import org.woen.modules.drivetrain.attachOdometry
 import org.woen.modules.attachTurret
+import org.woen.modules.drivetrain.attachRunner
 import org.woen.utils.events.EventBus
 import org.woen.utils.events.SimpleEmptyEvent
+
+enum class RunMode {
+    AUTO,
+    MANUAL
+}
 
 class Collector {
     val startEvent = SimpleEmptyEvent()
@@ -24,7 +31,10 @@ class Collector {
     val battery: Battery
     val hardwareMap: HardwareMap
 
-    constructor(opMode: LinearOpMode) {
+    val runMode: RunMode
+
+    constructor(opMode: LinearOpMode, runMode: RunMode) {
+        this.runMode = runMode
         this.opMode = opMode
         this.hardwareMap = opMode.hardwareMap
 
@@ -38,5 +48,10 @@ class Collector {
         attachGamepad(this)
         attachDriveTrain(this)
         attachTurret(this)
+
+        if(runMode == RunMode.AUTO){
+            attachRunner(this)
+            attachActionRunner(this)
+        }
     }
 }

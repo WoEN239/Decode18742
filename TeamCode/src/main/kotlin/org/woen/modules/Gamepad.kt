@@ -2,7 +2,6 @@ package org.woen.modules
 
 import com.qualcomm.robotcore.hardware.Gamepad
 import org.woen.collector.Collector
-import org.woen.collector.GameState
 import org.woen.collector.RunMode
 
 interface IGamepadListener {
@@ -57,7 +56,7 @@ fun attachGamepad(collector: Collector) {
         gamepadListeners.add(it.gamepadListener)
     }
 
-    if (GameState.runMode == RunMode.MANUAL)
+    if (collector.runMode == RunMode.MANUAL)
         collector.updateEvent += {
             for (i in gamepadListeners)
                 i.update(gamepad)

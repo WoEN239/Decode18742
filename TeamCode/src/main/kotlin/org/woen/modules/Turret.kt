@@ -119,8 +119,8 @@ enum class TurretState {
 
 data class SetTurretStateEvent(val state: TurretState)
 data class GetTurretStateEvent(var state: TurretState = TurretState.TO_BASKET)
-data class GetTurretHeadingEvent(var heading: Angle)
-data class GetTurretRotateAtTargetEvent(var atTarget: Boolean)
+data class GetTurretHeadingEvent(var heading: Angle = Angle.ZERO)
+data class GetTurretRotateAtTargetEvent(var atTarget: Boolean = true)
 
 fun attachTurret(collector: Collector) {
     val angleServo = collector.hardwareMap.get("turretAngleServo") as Servo
