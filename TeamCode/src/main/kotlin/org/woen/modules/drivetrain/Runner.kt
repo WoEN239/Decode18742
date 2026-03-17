@@ -4,14 +4,21 @@ import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.AngularVelConstraint
 import com.acmerobotics.roadrunner.MinVelConstraint
 import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.Pose2dDual
 import com.acmerobotics.roadrunner.ProfileAccelConstraint
 import com.acmerobotics.roadrunner.ProfileParams
+import com.acmerobotics.roadrunner.Time
+import com.acmerobotics.roadrunner.TimeTrajectory
+import com.acmerobotics.roadrunner.TimeTurn
+import com.acmerobotics.roadrunner.Trajectory
 import com.acmerobotics.roadrunner.TrajectoryBuilder
 import com.acmerobotics.roadrunner.TrajectoryBuilderParams
 import com.acmerobotics.roadrunner.TranslationalVelConstraint
+import com.acmerobotics.roadrunner.TurnConstraints
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
 import org.woen.collector.GameSettings
+import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 
@@ -25,6 +32,9 @@ internal object RUNNER_CONFIG {
 
     @JvmField
     var LINEAR_ACCEL = 1.0
+
+    @JvmField
+    var HEADING_ACCEL = 1.0
 
     @JvmField
     var POSITION_P_X = 0.0
@@ -42,9 +52,63 @@ interface ITrajectorySegment {
     fun linearVelocity(time: Double): Vec2
     fun headingVelocity(time: Double): Double
 
-    fun targetOrientation(time: Double): Orientation
+    fun targetPosition(time: Double): Vec2?
+    fun targetHeading(time: Double): Angle
 
     fun duration(): Double
+}
+
+class TurnSegment(angle: Double, private val _startAngle: Angle) : ITrajectorySegment {
+    private val _turn = TimeTurn(
+        Pose2d(0.0, 0.0, _startAngle.angle), angle,
+        TurnConstraints(
+            RUNNER_CONFIG.HEADING_VELOCITY,
+            -RUNNER_CONFIG.HEADING_VELOCITY,
+            RUNNER_CONFIG.HEADING_ACCEL
+        )
+    )
+
+    override fun isEnd(time: Double) = time > duration()
+
+    override fun linearVelocity(time: Double) = Vec2.ZERO
+
+    override fun headingVelocity(time: Double) = _turn[time].velocity().angVel.value()
+
+    override fun targetPosition(time: Double) = null
+
+    override fun targetHeading(time: Double) = Angle(_turn[time].value().heading.toDouble())
+
+    override fun duration() = _turn.duration
+}
+
+class DriveSegment(rawBuildedTrajectory: List<Trajectory>) : ITrajectorySegment {
+    private val _trajectory =
+        Array(rawBuildedTrajectory.size) { TimeTrajectory(rawBuildedTrajectory[it]) }
+
+    private fun getPoseTime(time: Double): Pose2dDual<Time> {
+        var sumDuration = 0.0
+
+        for (i in _trajectory) {
+            if (i.duration + sumDuration > time)
+                return i[time - sumDuration]
+
+            sumDuration += i.duration
+        }
+
+        return _trajectory.last()[time]
+    }
+
+    override fun isEnd(time: Double) = duration() < time
+
+    override fun linearVelocity(time: Double) = Vec2(getPoseTime(time).velocity().linearVel.value())
+
+    override fun headingVelocity(time: Double) = getPoseTime(time).velocity().angVel.value()
+
+    override fun targetPosition(time: Double) = Vec2(getPoseTime(time).position.value())
+
+    override fun targetHeading(time: Double) = Angle(getPoseTime(time).heading.value().toDouble())
+
+    override fun duration() = _trajectory.sumOf { it.duration }
 }
 
 class GetTrajectoryBuilderEvent(
@@ -72,9 +136,23 @@ fun attachRunner(collector: Collector) {
                 if (segmentsQueue.isEmpty())
                     targetOrientation
                 else {
-                    val lastSegment = segmentsQueue.first()
+                    val lastSegment = segmentsQueue.last()
 
-                    lastSegment.targetOrientation(lastSegment.duration())
+                    fun getLastCorrectPosition(): Vec2 {
+                        for (i in segmentsQueue.reversed()) {
+                            val pos = i.targetPosition(i.duration())
+
+                            if (pos != null)
+                                return pos
+                        }
+
+                        return targetOrientation.pos
+                    }
+
+                    Orientation(
+                        getLastCorrectPosition(),
+                        lastSegment.targetHeading(lastSegment.duration())
+                    )
                 }
             } else
                 it.startOrientation
@@ -93,7 +171,7 @@ fun attachRunner(collector: Collector) {
     }
 
     collector.startEvent += {
-        if(segmentsQueue.isNotEmpty())
+        if (segmentsQueue.isNotEmpty())
             segmentTimer.reset()
     }
 
@@ -105,11 +183,16 @@ fun attachRunner(collector: Collector) {
         if (segmentsQueue.isNotEmpty()) {
             val currentSegment = segmentsQueue.first()
 
-            if (time > currentSegment.duration()) {
+            if (currentSegment.isEnd(time)) {
                 segmentsQueue.removeFirst()
                 segmentTimer.reset()
             } else {
-                targetOrientation = currentSegment.targetOrientation(time)
+                val segmentDuration = currentSegment.duration()
+
+                targetOrientation = Orientation(
+                    currentSegment.targetPosition(segmentDuration) ?: targetOrientation.pos,
+                    currentSegment.targetHeading(segmentDuration)
+                )
                 collector.eventBus.invoke(
                     SetDriveVelocityEvent(
                         currentSegment.linearVelocity(time).turn(-odometry.orientation.angle) +
