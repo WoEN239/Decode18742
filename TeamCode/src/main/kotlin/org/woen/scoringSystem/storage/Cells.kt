@@ -74,7 +74,7 @@ class Cells
 
         hwSortingM = HwSortingManager(_cms)
 
-        logM = LogManager(_cms.collector, DebugSettings.CELLS)
+        logM = LogManager(_cms.collector.telemetry, DebugSettings.CELLS)
     }
 
 
@@ -84,14 +84,6 @@ class Cells
         if (notFullYet()) _cms.canTriggerIntake = true
 
         logM.relink(DebugSettings.CELLS)
-    }
-
-    fun fullEmptyStorageCells()
-    {
-        _storageCells[StorageSlot.BOTTOM].empty()
-        _storageCells[StorageSlot.CENTER].empty()
-        _storageCells[StorageSlot.TURRET].empty()
-        _storageCells[StorageSlot.MOBILE].empty()
     }
 
     private fun predictSortSearchLogic(
@@ -207,8 +199,7 @@ class Cells
     }
     fun handleIntake(inputBall: Ball.Name)
     {
-        logM.logMd("before intake:", Debug.GENERIC)
-        logAllStorageData()
+        if (alreadyFull()) return
 
         var curSlot = StorageSlot.BOTTOM
         var rotationTime = Delay.MS.PUSH.PART
@@ -221,13 +212,10 @@ class Cells
 
         if (curSlot >= StorageSlot.BOTTOM) _storageCells[curSlot].set(inputBall)
 
-        logM.logMd("SW storage processing finished", Debug.END)
-        logM.logMd("new storage: ", Debug.GENERIC)
+        logM.logMd("Storage after intake: ", Debug.GENERIC)
         logAllStorageData()
 
-        hwSortingM.reinstantiableForwardBeltsTime(
-            rotationTime,
-            curSlot == StorageSlot.TURRET)
+        hwSortingM.reinstantiableForwardBeltsTime(rotationTime)
     }
     fun updateAfterShot()
     {
@@ -290,8 +278,8 @@ class Cells
     {
         _cms.canTriggerIntake = false
 
-        while (swReAdjustStorage())
-            hwSortingM.forwardBeltsTime(Delay.MS.PUSH.FULL)
+//        while (swReAdjustStorage())
+//            hwSortingM.reinstantiableForwardBeltsTime(Delay.MS.PUSH.FULL)
     }
 
 

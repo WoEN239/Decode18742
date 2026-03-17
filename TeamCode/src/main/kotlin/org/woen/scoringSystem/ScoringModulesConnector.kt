@@ -16,10 +16,10 @@ import org.woen.configs.RobotSettings.CONTROLS
 
 class ScoringModulesConnector
 {
-    private val _collector: Collector
     private val _cms: ConnectorModuleStatus
-    private val _storage: Storage
-    val logM: LogManager
+
+    private var _storage: Storage
+    var logM: LogManager
 
     private val _gameTimer = ElapsedTime()
 
@@ -27,41 +27,21 @@ class ScoringModulesConnector
 
     constructor(collector: Collector)
     {
-        _collector = collector
         _cms = ConnectorModuleStatus(collector)
 
         _storage = Storage(_cms)
 
-        logM = LogManager(_collector, DebugSettings.SMC)
+        logM = LogManager(collector.telemetry, DebugSettings.SMC)
 
-//        subscribeToEvents()
-//        subscribeToGamepad()
-//        subscribeToGamepadTests()
-//        subscribeToSecondDriverPatternRecalibration
 
-        collector.startEvent += {
+
+        collector.startEvent  += {
 
         }
+        collector.updateEvent += {
+            update()
+        }
     }
-
-
-//    private fun subscribeToGamepadTests()
-//    {
-//        GamepadLI.addGamepad1Listener(
-//            createClickDownListener(
-//                { it.touchpadWasPressed() }, {
-//
-//                    logM.logMd("SSM: Touchpad start 100 rotation test", Debug.START)
-//                    _runStatus.addProcessToQueue(ProcessId.SORTING_TESTING)
-//
-//                    SmartCoroutineLI.launch {
-//                        _storage.unsafeTestSorting()
-//                    }
-//
-//                    _runStatus.removeProcessFromQueue(ProcessId.SORTING_TESTING)
-//                }
-//        )   )
-//    }
 
 
     private fun subscribeToSecondDriverPatternRecalibration()
@@ -116,22 +96,8 @@ class ScoringModulesConnector
     }
 
 
-
     fun update()
     {
 
     }
-
-
-    fun relink()
-    {
-        _storage.relink()
-        _storage.cells.relink()
-        _storage.cells.hwSortingM.relink()
-
-        logM.relink(DebugSettings.SMC)
-        _gameTimer.reset()
-    }
-
-
 }

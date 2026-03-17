@@ -2,7 +2,6 @@ package org.woen.utils.debug
 
 
 import org.woen.modules.Telemetry
-import org.woen.collector.Collector
 
 
 
@@ -48,9 +47,9 @@ class LogManager
 
 
 
-    constructor(collector: Collector, config: Config)
+    constructor(telemetry: Telemetry, config: Config)
     {
-        _telemetryM = collector.telemetry
+        _telemetryM = telemetry
         relink(config)
     }
     fun relink(config: Config, telemetry: Telemetry? = null)

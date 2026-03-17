@@ -35,17 +35,8 @@ class Storage
 
         cells = Cells(_cms)
         
-        logM  = LogManager(_cms.collector, DebugSettings.SSM)
+        logM  = LogManager(_cms.collector.telemetry, DebugSettings.SSM)
     }
-
-
-
-    fun relink()
-    {
-        _cms.dynamicMemoryPattern.fullReset()
-        logM.relink(DebugSettings.SSM)
-    }
-
 
 
 
@@ -96,9 +87,7 @@ class Storage
                         true)
             }
 
-        resumeLogicAfterRequest(
-            ProcessId.DRUM_REQUEST,
-            cells.isNotEmpty())
+        resumeLogicAfterRequest()
         return requestResult
     }
     fun shootEntireDrumRequest(
@@ -144,9 +133,7 @@ class Storage
                         true)
             }
 
-        resumeLogicAfterRequest(
-            ProcessId.DRUM_REQUEST,
-            cells.isNotEmpty())
+        resumeLogicAfterRequest()
         return requestResult
     }
 
@@ -171,9 +158,9 @@ class Storage
 
 
 //        cells.hwSortingM.stopBelts()
-//        cells.hwSortingM.openTurretGate()
+        cells.hwSortingM.openTurretGate()
 
-//        cells.hwSortingM.forwardBeltsTime(beltPushTime)
+        cells.hwSortingM.extendableForwardBeltsTime(beltPushTime)
 
         repeat(shotCount)
         { cells.updateAfterShot() }
@@ -207,29 +194,19 @@ class Storage
 
 
 
-    fun resumeLogicAfterRequest(
-        processId: Int,
-        doAutoCalibration: Boolean = true)
+    fun resumeLogicAfterRequest()
     {
-        logM.logMd("RESUME AFTER REQUEST, process: $processId", Debug.PROCESS_NAME)
-
-        if (doAutoCalibration)
+        if (cells.isNotEmpty())
         {
-            logM.logMd("Reversing belts for calibration", Debug.START)
-            cells.hwSortingM.reverseBeltsTime(Delay.MS.PUSH.HALF)
-            logM.logMd("Finished reversing", Debug.END)
-
-            logM.logMd("Starting calibration", Debug.START)
-            cells.hwSortingM.forwardBeltsTime(Delay.MS.PUSH.HALF)
+            cells.hwSortingM.reverseBelts()
+//            delay(Delay.MS.PUSH.FULL)
             cells.hwSortingM.fullCalibrate()
+            cells.hwSortingM.startBelts()
+//            delay(Delay.MS.PUSH.HALF)
         }
-        else cells.hwSortingM.fullCalibrate()
-
-
-        logM.logMd("Phase 2 - RESUME AFTER REQUEST, process: $processId", Debug.LOGIC)
+        cells.hwSortingM.fullCalibrate()
 
         _cms.canTriggerIntake = true
-
         logM.logMd("FINISHED resume logic", Debug.END)
     }
 }
