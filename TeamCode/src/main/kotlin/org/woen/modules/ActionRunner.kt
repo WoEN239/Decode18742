@@ -89,6 +89,45 @@ class ParallelActions(
     }
 }
 
+class ShootAction(private val _eventBus: EventBus) : IAction {
+    override fun start() {
+        _eventBus.invoke(ShootEvent())
+    }
+
+    override fun isEnd() =
+        _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+}
+
+class StartEatAction(private val _eventBus: EventBus) : IAction {
+    override fun start() {
+        _eventBus.invoke(StartEatEvent())
+    }
+}
+
+class StopEatAction(private val _eventBus: EventBus) : IAction {
+    override fun start() {
+        _eventBus.invoke(StopEatEvent())
+    }
+}
+
+class SortingEvent(
+    private val _eventBus: EventBus,
+    private val _bal1: BallColor,
+    private val _bal2: BallColor,
+    private val _bal3: BallColor
+) : IAction {
+    override fun start() {
+        _eventBus.invoke(StartSortingEvent(_bal1, _bal2, _bal3))
+    }
+
+    override fun isEnd() = _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+}
+
+class TurretStateSwapAction(private val _eventBus: EventBus, private val _state: TurretState): IAction{
+    override fun start() {
+        _eventBus.invoke(SetTurretStateEvent(_state))
+    }
+}
 
 class RunActionsEvent(val actions: List<IAction>)
 class GetIsActionsFinishedEvent(var finished: Boolean = true)

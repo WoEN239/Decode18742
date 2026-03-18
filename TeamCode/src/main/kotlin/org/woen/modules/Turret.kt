@@ -123,13 +123,12 @@ enum class TurretState {
 data class SetTurretStateEvent(val state: TurretState)
 data class GetTurretStateEvent(var state: TurretState = TurretState.TO_BASKET)
 data class GetTurretHeadingEvent(var heading: Angle = Angle.ZERO)
-data class GetTurretRotateAtTargetEvent(var atTarget: Boolean = true)
+data class GetTurretHeadingIsNormalEvent(var normal: Boolean = false)
 
 fun attachTurret(collector: Collector) {
     val angleServo = collector.hardwareMap.get("turretAngleServo") as Servo
     val pulleyMotor = collector.hardwareMap.get("pulleyMotor") as DcMotorEx
     val headingServo = collector.hardwareMap.get("turretRotateServo") as ServoImplEx
-        //InfinityAxon("turretRotateServo", "turretRotateEncoder", collector.hardwareMap)
 
     pulleyMotor.direction = DcMotorSimple.Direction.REVERSE
     angleServo.direction = Servo.Direction.REVERSE
@@ -142,16 +141,11 @@ fun attachTurret(collector: Collector) {
     headingServo.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
     headingServo.direction = Servo.Direction.REVERSE
 
-    var turretHeadingAtTarget = false
+    var turretHeading = 0.0
     val turretHeadingTargetTimer = ElapsedTime()
 
     collector.startEvent += {
-//        headingServo.start()
         turretHeadingTargetTimer.reset()
-    }
-
-    collector.eventBus.subscribe(GetTurretRotateAtTargetEvent::class) {
-        it.atTarget = turretHeadingAtTarget
     }
 
     collector.eventBus.subscribe(GetTurretStateEvent::class) {
@@ -163,8 +157,11 @@ fun attachTurret(collector: Collector) {
     }
 
     collector.eventBus.subscribe(GetTurretHeadingEvent::class) {
-        it.heading =
-            Angle(headingServo.position * TURRET_CONFIG.HEADING_SERVO_RATIO) - TURRET_CONFIG.ZERO_HEADING_POS
+        it.heading = Angle(clamp(turretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING))
+    }
+
+    collector.eventBus.subscribe(GetTurretHeadingIsNormalEvent::class){
+        it.normal = turretHeading in TURRET_CONFIG.MIN_HEADING..TURRET_CONFIG.MAX_HEADING
     }
 
     collector.updateEvent += {
@@ -229,27 +226,17 @@ fun attachTurret(collector: Collector) {
         pulleyMotor.velocity =
             pulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION
 
-//        if (headingServo.atTarget)
-//            turretHeadingAtTarget =
-//                turretHeadingTargetTimer.seconds() > TURRET_CONFIG.HEADING_TARGET_TIMER
-//        else {
-//            turretHeadingAtTarget = false
-//            turretHeadingTargetTimer.reset()
-//        }
+        turretHeading = (when (state) {
+            TurretState.TO_OBELISK -> Angle(
+                (GAME_CONFIGS.OBELISK_POSITION - (odometry.orientation.pos +
+                        TURRET_CONFIG.TURRET_CENTER_POS.turn(odometry.orientation.angle))).rot()
+            )
+            TurretState.TO_BASKET -> Angle(basketErr.rot() + PI)
+        } - odometry.orientation.angl).angle
 
         headingServo.position = (clamp(
-            (when (state) {
-                TurretState.TO_OBELISK -> Angle(
-                    (GAME_CONFIGS.OBELISK_POSITION - (odometry.orientation.pos +
-                            TURRET_CONFIG.TURRET_CENTER_POS.turn(odometry.orientation.angle))).rot()
-                )
-
-                TurretState.TO_BASKET -> Angle(basketErr.rot() + PI)
-            } - odometry.orientation.angl).angle,
-            TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING
+            turretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING
         ) + TURRET_CONFIG.ZERO_HEADING_POS.angle) / TURRET_CONFIG.HEADING_SERVO_RATIO / TURRET_CONFIG.HEADING_SERVO_MAX_ANGLE
-
-//        headingServo.update()
 
         collector.telemetry.addData("target pulleyVelocity", pulleyVelocity)
         collector.telemetry.addData(
