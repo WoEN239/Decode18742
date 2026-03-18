@@ -14,7 +14,6 @@ import org.woen.configs.DebugSettings
 
 import org.woen.utils.debug.Debug
 import org.woen.configs.Delay
-import org.woen.configs.ProcessId
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.scoringSystem.ConnectorModuleStatus
 import org.woen.scoringSystem.misc.DynamicPattern
@@ -57,7 +56,7 @@ class Storage
 
 
 
-    fun shootEntireDrumRequest(
+    fun customisableDrumRequest(
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,
         autoCorrectPattern: Boolean = true): RequestResult.Name
@@ -90,7 +89,7 @@ class Storage
         resumeLogicAfterRequest()
         return requestResult
     }
-    fun shootEntireDrumRequest(
+    fun customisableDrumRequest(
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>? = requestOrder,
@@ -101,7 +100,7 @@ class Storage
 
         if (failsafeOrder == null || failsafeOrder.isEmpty() ||
             failsafeOrder.contentEquals(requestOrder))
-            return shootEntireDrumRequest(shootingMode, requestOrder, autoCorrectRequestPattern)
+            return customisableDrumRequest(shootingMode, requestOrder, autoCorrectRequestPattern)
 
         val  standardPatternOrder = if (!autoCorrectRequestPattern) requestOrder
         else DynamicPattern.trimPattern(
@@ -158,7 +157,7 @@ class Storage
 
 
 //        cells.hwSortingM.stopBelts()
-        cells.hwSortingM.openTurretGate()
+//        cells.hwSortingM.openTurretGate()
 
         cells.hwSortingM.extendableForwardBeltsTime(beltPushTime)
 
@@ -198,10 +197,10 @@ class Storage
     {
         if (cells.isNotEmpty())
         {
-            cells.hwSortingM.reverseBelts()
+//            cells.hwSortingM.reverseBelts()
 //            delay(Delay.MS.PUSH.FULL)
             cells.hwSortingM.fullCalibrate()
-            cells.hwSortingM.startBelts()
+//            cells.hwSortingM.startBelts()
 //            delay(Delay.MS.PUSH.HALF)
         }
         cells.hwSortingM.fullCalibrate()

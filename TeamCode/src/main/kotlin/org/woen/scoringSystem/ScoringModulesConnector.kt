@@ -36,7 +36,7 @@ class ScoringModulesConnector
 
 
         collector.startEvent  += {
-
+            _gameTimer.reset()
         }
         collector.updateEvent += {
             update()
