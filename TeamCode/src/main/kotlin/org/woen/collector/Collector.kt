@@ -7,6 +7,7 @@ import org.woen.modules.Telemetry
 import org.woen.modules.attachActionRunner
 import org.woen.modules.drivetrain.attachDriveTrain
 import org.woen.modules.attachGamepad
+import org.woen.modules.attachSimpleStorage
 import org.woen.modules.drivetrain.attachOdometry
 import org.woen.modules.attachTurret
 import org.woen.modules.drivetrain.attachRunner
@@ -48,6 +49,7 @@ class Collector {
         attachGamepad(this)
         attachDriveTrain(this)
         attachTurret(this)
+        attachSimpleStorage(this)
 
         if(runMode == RunMode.AUTO){
             attachRunner(this)

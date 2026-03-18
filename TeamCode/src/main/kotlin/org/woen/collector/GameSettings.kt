@@ -8,22 +8,22 @@ import org.woen.utils.units.Vec2
 @Config
 internal object GAME_CONFIGS {
     @JvmField
-    var START_RED_CLOSE_ORIENTATION = Orientation(Vec2(0.0, 0.0), Angle.ofDeg(0.0))
+    var START_RED_CLOSE_ORIENTATION = Orientation(Vec2(-1.208 - 0.01 - 0.38 / 2.0, 0.87 + 0.38 / 2.0 + 0.01), Angle.ofDeg(180.0))
 
     @JvmField
-    var START_RED_FAR_ORIENTATION = Orientation(Vec2(0.0, 0.0), Angle.ofDeg(0.0))
+    var START_RED_FAR_ORIENTATION = Orientation(Vec2(1.631, 0.39), Angle.ofDeg(180.0))
 
     @JvmField
-    var START_BLUE_CLOSE_ORIENTATION = Orientation(Vec2(0.0, 0.0), Angle.ofDeg(0.0))
+    var START_BLUE_CLOSE_ORIENTATION = Orientation(Vec2(-1.208 - 0.01 - 0.38 / 2.0, -0.87 - 0.38 / 2.0 - 0.01), Angle.ofDeg(180.0))
 
     @JvmField
-    var START_BLUE_FAR_ORIENTATION = Orientation(Vec2(0.0, 0.0), Angle.ofDeg(0.0))
+    var START_BLUE_FAR_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle.ofDeg(180.0))
 
     @JvmField
-    var BLUE_BASKET_POSITION = Vec2(0.0, 0.0)
+    var BLUE_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, -3.66 / 2.0 + 0.2)
 
     @JvmField
-    var RED_BASKET_POSITION = Vec2(0.0, 0.0)
+    var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.2, 3.66 / 2.0 - 0.2)
 
     @JvmField
     var RED_PARKING_ORIENTATION = Orientation(Vec2(0.0, 0.0), Angle.ofDeg(0.0))

@@ -1,23 +1,20 @@
 package org.woen.modules
 
-import android.content.Context
 import androidx.core.math.MathUtils.clamp
-import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.dashboard.config.ValueProvider
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.PIDFCoefficients
+import com.qualcomm.robotcore.hardware.PwmControl
 import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.hardware.ServoImplEx
 import com.qualcomm.robotcore.util.ElapsedTime
-import org.firstinspires.ftc.ftccommon.external.OnCreate
 import org.woen.collector.Collector
 import org.woen.collector.GAME_CONFIGS
 import org.woen.collector.GameSettings
 import org.woen.modules.drivetrain.GetRobotOdometry
 import org.woen.utils.drivers.InfinityAxon
-import org.woen.utils.events.SimpleEmptyEvent
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Vec2
 import java.lang.Math.toRadians
@@ -32,10 +29,10 @@ import kotlin.math.tan
 @Config
 internal object TURRET_CONFIG {
     @JvmField
-    var MAX_ANGLE_SERVO = 1.0 - 0.44
+    var MAX_ANGLE_SERVO = 1.0 - 0.33
 
     @JvmField
-    var MIN_ANGLE_SERVO = 1.0 - 0.58
+    var MIN_ANGLE_SERVO = 1.0 - 0.48
 
     @JvmField
     var MAX_ANGLE = PI / 2.0 - toRadians(25.0)
@@ -49,14 +46,17 @@ internal object TURRET_CONFIG {
     @JvmField
     var MIN_HEADING = toRadians(-90.0)
 
+//    @JvmField
+//    var HEADING_TARGET_TIMER = 0.1
+
     @JvmField
-    var HEADING_TARGET_TIMER = 0.1
+    var HEADING_SERVO_MAX_ANGLE = PI * 1.5
 
     @JvmField
     var TURRET_CENTER_POS = Vec2(0.0, -0.035)
 
     @JvmField
-    var ZERO_HEADING_POS = Angle.ofDeg(85.69090909090909)
+    var ZERO_HEADING_POS = Angle.ofDeg(270.0 / 2.0 / 2.0)
 
     @JvmField
     var HEADING_SERVO_RATIO = 0.5
@@ -66,6 +66,9 @@ internal object TURRET_CONFIG {
 
     @JvmField
     var PULLEY_TICKS_REVOLUTION = 28.0
+
+    @JvmField
+    var PULLEY_REGULATOR = PIDFCoefficients(100.0, 5.0, 0.0, 15.5)
 
     @JvmField
     var GRAVITY_G = 9.80665
@@ -80,37 +83,37 @@ internal object TURRET_CONFIG {
     var SCORE_ANGLE = toRadians(-20.0)
 
     @JvmField
-    var PULLEY_U = 0.34
+    var PULLEY_U = 0.365
 }
-
-object PulleyRegulatorConfig {
-    var pulleyRegulator = PIDFCoefficients()
-    val changed = SimpleEmptyEvent()
-
-    @OnCreate
-    @JvmStatic
-    fun start(context: Context?) {
-        FtcDashboard.start(context)
-
-        val dashboard = FtcDashboard.getInstance()
-
-        dashboard.withConfigRoot {
-            dashboard.addConfigVariable(
-                TURRET_CONFIG::class.simpleName,
-                "PULLEY_REGULATOR",
-                object : ValueProvider<PIDFCoefficients> {
-                    override fun get() = pulleyRegulator
-
-                    override fun set(value: PIDFCoefficients?) {
-                        if (value != null) {
-                            pulleyRegulator = value
-                            changed.invoke()
-                        }
-                    }
-                })
-        }
-    }
-}
+//
+//object PulleyRegulatorConfig {
+//    var pulleyRegulator = PIDFCoefficients()
+//    val changed = SimpleEmptyEvent()
+//
+//    @OnCreate
+//    @JvmStatic
+//    fun start(context: Context?) {
+//        FtcDashboard.start(context)
+//
+//        val dashboard = FtcDashboard.getInstance()
+//
+//        dashboard.withConfigRoot {
+//            dashboard.addConfigVariable(
+//                TURRET_CONFIG::class.simpleName,
+//                "PULLEY_REGULATOR",
+//                object : ValueProvider<PIDFCoefficients> {
+//                    override fun get() = pulleyRegulator
+//
+//                    override fun set(value: PIDFCoefficients?) {
+//                        if (value != null) {
+//                            pulleyRegulator = value
+//                            changed.invoke()
+//                        }
+//                    }
+//                })
+//        }
+//    }
+//}
 
 enum class TurretState {
     TO_OBELISK,
@@ -125,8 +128,8 @@ data class GetTurretRotateAtTargetEvent(var atTarget: Boolean = true)
 fun attachTurret(collector: Collector) {
     val angleServo = collector.hardwareMap.get("turretAngleServo") as Servo
     val pulleyMotor = collector.hardwareMap.get("pulleyMotor") as DcMotorEx
-    val headingServo =
-        InfinityAxon("turretRotateServo", "turretRotateEncoder", collector.hardwareMap)
+    val headingServo = collector.hardwareMap.get("turretRotateServo") as ServoImplEx
+        //InfinityAxon("turretRotateServo", "turretRotateEncoder", collector.hardwareMap)
 
     pulleyMotor.direction = DcMotorSimple.Direction.REVERSE
     angleServo.direction = Servo.Direction.REVERSE
@@ -136,26 +139,14 @@ fun attachTurret(collector: Collector) {
 
     var state = TurretState.TO_BASKET
 
+    headingServo.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
+    headingServo.direction = Servo.Direction.REVERSE
+
     var turretHeadingAtTarget = false
     val turretHeadingTargetTimer = ElapsedTime()
 
-    fun pulleyRegulatorChanged() {
-        pulleyMotor.setPIDFCoefficients(
-            DcMotor.RunMode.RUN_USING_ENCODER,
-            PulleyRegulatorConfig.pulleyRegulator
-        )
-    }
-
-    pulleyRegulatorChanged()
-
-    PulleyRegulatorConfig.changed += ::pulleyRegulatorChanged
-
-    collector.stopEvent += {
-        PulleyRegulatorConfig.changed -= ::pulleyRegulatorChanged
-    }
-
     collector.startEvent += {
-        headingServo.start()
+//        headingServo.start()
         turretHeadingTargetTimer.reset()
     }
 
@@ -177,6 +168,11 @@ fun attachTurret(collector: Collector) {
     }
 
     collector.updateEvent += {
+        pulleyMotor.setPIDFCoefficients(
+            DcMotor.RunMode.RUN_USING_ENCODER,
+            TURRET_CONFIG.PULLEY_REGULATOR
+        )
+
         val odometry = collector.eventBus.invoke(GetRobotOdometry())
 
         val basketErr =
@@ -221,35 +217,39 @@ fun attachTurret(collector: Collector) {
         if (pulleyVelocity.isNaN() || pulleyVelocity == Double.POSITIVE_INFINITY || pulleyVelocity == Double.NEGATIVE_INFINITY)
             pulleyVelocity = 17.0
 
-        angleServo.position = (angle - TURRET_CONFIG.MIN_ANGLE) /
-                (TURRET_CONFIG.MAX_ANGLE - TURRET_CONFIG.MIN_ANGLE) *
-                (TURRET_CONFIG.MAX_ANGLE_SERVO - TURRET_CONFIG.MIN_ANGLE_SERVO) +
-                TURRET_CONFIG.MIN_ANGLE_SERVO
+        angleServo.position = clamp(
+            (angle - TURRET_CONFIG.MIN_ANGLE) /
+                    (TURRET_CONFIG.MAX_ANGLE - TURRET_CONFIG.MIN_ANGLE) *
+                    (TURRET_CONFIG.MAX_ANGLE_SERVO - TURRET_CONFIG.MIN_ANGLE_SERVO) +
+                    TURRET_CONFIG.MIN_ANGLE_SERVO,
+            TURRET_CONFIG.MIN_ANGLE_SERVO,
+            TURRET_CONFIG.MAX_ANGLE_SERVO
+        )
 
         pulleyMotor.velocity =
             pulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION
 
-        if (headingServo.atTarget)
-            turretHeadingAtTarget =
-                turretHeadingTargetTimer.seconds() > TURRET_CONFIG.HEADING_TARGET_TIMER
-        else {
-            turretHeadingAtTarget = false
-            turretHeadingTargetTimer.reset()
-        }
+//        if (headingServo.atTarget)
+//            turretHeadingAtTarget =
+//                turretHeadingTargetTimer.seconds() > TURRET_CONFIG.HEADING_TARGET_TIMER
+//        else {
+//            turretHeadingAtTarget = false
+//            turretHeadingTargetTimer.reset()
+//        }
 
-        headingServo.targetPosition = clamp(
+        headingServo.position = (clamp(
             (when (state) {
                 TurretState.TO_OBELISK -> Angle(
                     (GAME_CONFIGS.OBELISK_POSITION - (odometry.orientation.pos +
                             TURRET_CONFIG.TURRET_CENTER_POS.turn(odometry.orientation.angle))).rot()
                 )
 
-                TurretState.TO_BASKET -> Angle(basketErr.rot())
-            } - odometry.orientation.angl + TURRET_CONFIG.ZERO_HEADING_POS).angle,
+                TurretState.TO_BASKET -> Angle(basketErr.rot() + PI)
+            } - odometry.orientation.angl).angle,
             TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING
-        ) / TURRET_CONFIG.HEADING_SERVO_RATIO
+        ) + TURRET_CONFIG.ZERO_HEADING_POS.angle) / TURRET_CONFIG.HEADING_SERVO_RATIO / TURRET_CONFIG.HEADING_SERVO_MAX_ANGLE
 
-        headingServo.update()
+//        headingServo.update()
 
         collector.telemetry.addData("target pulleyVelocity", pulleyVelocity)
         collector.telemetry.addData(
