@@ -159,7 +159,7 @@ class Storage
 //        cells.hwSortingM.stopBelts()
 //        cells.hwSortingM.openTurretGate()
 
-        cells.hwSortingM.extendableForwardBeltsTime(beltPushTime)
+        cells.hwSortingM.extendableForward(beltPushTime)
 
         repeat(shotCount)
         { cells.updateAfterShot() }
@@ -199,11 +199,8 @@ class Storage
         {
 //            cells.hwSortingM.reverseBelts()
 //            delay(Delay.MS.PUSH.FULL)
-            cells.hwSortingM.fullCalibrate()
-//            cells.hwSortingM.startBelts()
-//            delay(Delay.MS.PUSH.HALF)
         }
-        cells.hwSortingM.fullCalibrate()
+        cells.hwSortingM.startCalibration()
 
         _cms.canTriggerIntake = true
         logM.logMd("FINISHED resume logic", Debug.END)

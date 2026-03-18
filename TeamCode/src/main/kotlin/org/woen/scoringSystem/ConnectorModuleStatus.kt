@@ -2,9 +2,10 @@ package org.woen.scoringSystem
 
 
 import org.woen.collector.Collector
+import org.woen.enumerators.MotorStatus
+import org.woen.enumerators.ServoStatus
 import org.woen.scoringSystem.misc.DynamicPattern
-import org.woen.scoringSystem.storage.hardware.MotorStatus
-import org.woen.scoringSystem.storage.hardware.ServoStatus
+
 
 
 class ConnectorModuleStatus(var collector: Collector)
@@ -14,12 +15,12 @@ class ConnectorModuleStatus(var collector: Collector)
     var canTriggerIntake = false
 
 
+    var lazyIntakeIsActive = false
 
-    var prevBeltsStatus = MotorStatus.IDLE
+
     var beltsStatus = MotorStatus.IDLE
-    var brushStatus = MotorStatus.IDLE
 
-    var gateStatus  = ServoStatus.CLOSING
-    var pushStatus  = ServoStatus.CLOSING
-    var turretGate  = ServoStatus.CLOSING
+    var gateStatus = ServoStatus()
+    var pushStatus = ServoStatus()
+    var turretGateStatus = ServoStatus()
 }

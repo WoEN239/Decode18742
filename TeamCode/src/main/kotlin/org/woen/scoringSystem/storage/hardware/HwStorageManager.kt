@@ -3,35 +3,16 @@ package org.woen.scoringSystem.storage.hardware
 
 import kotlin.math.max
 import com.qualcomm.robotcore.util.ElapsedTime
+
 import org.woen.collector.RunMode
-
-import org.woen.utils.debug.Debug
-import org.woen.configs.DebugSettings
-import org.woen.configs.RobotSettings.TELEOP
-import org.woen.configs.RobotSettings.AUTONOMOUS
-import org.woen.enumerators.Ball
-import org.woen.utils.debug.LogManager
-
 import org.woen.scoringSystem.ConnectorModuleStatus
 
+import org.woen.configs.RobotSettings.TELEOP
+import org.woen.configs.RobotSettings.AUTONOMOUS
 
-
-enum class MotorStatus
-{
-    IDLE,
-    FORWARD,
-    REVERSE,
-    LAZY_FORWARD,
-    LAZY_REVERSE
-}
-enum class ServoStatus
-{
-    CLOSED,
-    CLOSING,
-
-    OPENED,
-    OPENING,
-}
+import org.woen.utils.debug.Debug
+import org.woen.enumerators.Ball
+import org.woen.enumerators.MotorStatus
 
 
 
@@ -57,81 +38,80 @@ class HwSortingManager
 
     fun update()
     {
+        hwMotors.updateServos()
+
         if ((_cms.beltsStatus == MotorStatus.FORWARD ||
              _cms.beltsStatus == MotorStatus.REVERSE) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
             hwMotors.stopBelts()
-
-//        if (_cms.gateStatus ==)
     }
 
     fun updateColors(): Ball.Name
-    {
-        return if  (_cms.canTriggerIntake && (
-                        (_cms.collector.runMode == RunMode.AUTO
-                        && !AUTONOMOUS.IGNORE_COLOR_SENSORS)
-                    ) || (
-                        _cms.collector.runMode == RunMode.MANUAL
-                        && !TELEOP.IGNORE_COLOR_SENSORS))
+        = if (_cms.canTriggerIntake && (
+                _cms.collector.runMode == RunMode.AUTO
+                && !AUTONOMOUS.IGNORE_COLOR_SENSORS
+            ) || (
+                _cms.collector.runMode == RunMode.MANUAL
+                && !TELEOP.IGNORE_COLOR_SENSORS))
             _hwSensors.update()
         else Ball.Name.NONE
-    }
 
 
 
-    fun fullCalibrate()
+    fun startCalibration()
     {
         hwMotors.closeTurretGate()
         hwMotors.closeGateWithPush()
+        hwMotors.stopBelts()
     }
+    val isCalibrationFinished get()
+        =   _cms.beltsStatus == MotorStatus.IDLE &&
+            _cms.gateStatus.isFinished() &&
+            _cms.pushStatus.isFinished() &&
+            _cms.turretGateStatus.isFinished()
 
 
-    fun reinstantiableForwardBeltsTime(timeMs: Long)
+
+    fun extendableForward    (timeMs: Long) = extendable    (true, timeMs)
+    fun reinstantiableForward(timeMs: Long) = reinstantiable(true, timeMs)
+
+    fun extendableReverse    (timeMs: Long) = extendable    (false, timeMs)
+    fun reinstantiableReverse(timeMs: Long) = reinstantiable(false, timeMs)
+
+
+    private fun extendable    (forward: Boolean, timeMs: Long)
+            = startBeltsTime(forward, if (_cms.beltsStatus != MotorStatus.FORWARD) timeMs
+    else timeMs + targetPushTime - rotatingBeltsTimer.milliseconds().toLong())
+    private fun reinstantiable(forward: Boolean, timeMs: Long)
+        = startBeltsTime(forward, if (_cms.beltsStatus != MotorStatus.FORWARD) timeMs
+                else max(timeMs, targetPushTime
+                    - rotatingBeltsTimer.milliseconds().toLong()))
+    private fun startBeltsTime(forward: Boolean, timeMs: Long)
     {
-        val pushTime: Long =
-            if (_cms.beltsStatus != MotorStatus.FORWARD) timeMs
-            else max(timeMs,
-                    targetPushTime
-                        - rotatingBeltsTimer
-                            .milliseconds().toLong())
-
-        hwMotors.logM.logMd("Rotate belts period: $pushTime", Debug.HW)
-        targetPushTime = pushTime
+        hwMotors.logM.logMd("Rotate belts period: $timeMs", Debug.HW)
+        targetPushTime = timeMs
         rotatingBeltsTimer.reset()
-
-        hwMotors.startBelts()
-    }
-    fun extendableForwardBeltsTime(timeMs: Long)
-    {
-        val pushTime: Long =
-            if (_cms.beltsStatus != MotorStatus.FORWARD) timeMs
-            else timeMs + targetPushTime
-                 - rotatingBeltsTimer
-                    .milliseconds().toLong()
-
-        hwMotors.logM.logMd("Rotate belts period: $pushTime", Debug.HW)
-        targetPushTime = pushTime
-        rotatingBeltsTimer.reset()
-        hwMotors.startBelts()
+        if (forward) hwMotors.forwardBelts()
+        else hwMotors.reverseBelts()
     }
 
 
-    fun rotateMobileSlot()
-    {
-        hwMotors.logM.logMd("ROTATING MOBILE SLOT", Debug.HW_HIGH)
-
-        hwMotors.closeTurretGate()
-
+//    fun rotateMobileSlot()
+//    {
+//        hwMotors.logM.logMd("ROTATING MOBILE SLOT", Debug.HW_HIGH)
+//
+//        hwMotors.closeTurretGate()
+//
 //        slowStartBelts()
 //        delay(Delay.MS.REALIGNMENT.SORTING_FORWARD)
 //        reverseBeltsTime(Delay.MS.REALIGNMENT.SORTING_REVERSE)
-
-        hwMotors.openGate()
-        hwMotors.openPush()
-
+//
+//        hwMotors.openGate()
+//        hwMotors.openPush()
+//
 //        forwardBeltsTime(Delay.MS.HW_REQUEST_FREQUENCY * 8)
-
+//
 //        closeGateWithPush
 //        forwardBeltsTime(Delay.MS.REALIGNMENT.SORTING_FORWARD)
-    }
+//    }
 }

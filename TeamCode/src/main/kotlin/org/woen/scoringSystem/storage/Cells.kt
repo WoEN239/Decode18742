@@ -215,7 +215,7 @@ class Cells
         logM.logMd("Storage after intake: ", Debug.GENERIC)
         logAllStorageData()
 
-        hwSortingM.reinstantiableForwardBeltsTime(rotationTime)
+        hwSortingM.reinstantiableForward(rotationTime)
     }
     fun updateAfterShot()
     {
@@ -234,7 +234,7 @@ class Cells
 
         hwReAdjustStorage()
 
-        hwSortingM.rotateMobileSlot()
+//        hwSortingM.rotateMobileSlot()
 
         _storageCells[StorageSlot.MOBILE].set(_storageCells[StorageSlot.TURRET])
         _storageCells[StorageSlot.TURRET].empty()

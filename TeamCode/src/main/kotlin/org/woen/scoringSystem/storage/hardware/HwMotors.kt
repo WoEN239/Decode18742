@@ -3,9 +3,14 @@ package org.woen.scoringSystem.storage.hardware
 
 import com.qualcomm.robotcore.hardware.DcMotorEx
 
-import org.woen.scoringSystem.ConnectorModuleStatus
 import org.woen.utils.motor.MotorOnly
 import org.woen.utils.debug.LogManager
+import org.woen.utils.drivers.SoftServo
+import org.woen.scoringSystem.ConnectorModuleStatus
+
+import org.woen.enumerators.MotorStatus
+import org.woen.enumerators.ServoStatus
+
 import org.woen.configs.Hardware
 import org.woen.configs.DebugSettings
 
@@ -14,15 +19,22 @@ import org.woen.configs.DebugSettings
 class HwMotors
 {
     private val _cms: ConnectorModuleStatus
+    val logM: LogManager
+
     private val _beltMotor  : MotorOnly
     private val _brushMotor : MotorOnly
 
-    val logM: LogManager
+    private val _gateServo : SoftServo
+    private val _pushServo : SoftServo
+    private val _turretGateServo : SoftServo
+
 
 
     constructor(cms: ConnectorModuleStatus)
     {
         _cms = cms
+        logM = LogManager(_cms.collector.telemetry, DebugSettings.HSM)
+
 
         _beltMotor = MotorOnly(
             _cms.collector.hardwareMap.get(
@@ -33,51 +45,85 @@ class HwMotors
                 Hardware.DEVICE_NAMES.BRUSH_MOTOR)
                     as DcMotorEx)
 
-        logM = LogManager(_cms.collector.telemetry, DebugSettings.HSM)
+
+        _gateServo = SoftServo(
+            Hardware.DEVICE_NAMES.GATE_SERVO,
+            _cms.collector.hardwareMap,
+            Hardware.SERVO.GATE_CLOSE)
+
+        _pushServo = SoftServo(
+            Hardware.DEVICE_NAMES.PUSH_SERVO,
+            _cms.collector.hardwareMap,
+            Hardware.SERVO.PUSH_CLOSE)
+
+
+        _turretGateServo = SoftServo(
+            Hardware.DEVICE_NAMES.TURRET_GATE_SERVO,
+            _cms.collector.hardwareMap,
+            Hardware.SERVO.TURRET_GATE_CLOSE)
+
+        _gateServo.start()
+        _pushServo.start()
+        _turretGateServo.start()
     }
 
 
+    fun updateServos()
+    {
+        _gateServo.update()
+        _pushServo.update()
+        _turretGateServo.update()
+
+        _cms.gateStatus.tryUpdate(_gateServo.atTarget)
+        _cms.pushStatus.tryUpdate(_pushServo.atTarget)
+        _cms.turretGateStatus.tryUpdate(_turretGateServo.atTarget)
+    }
 
 
 
     fun openGate()
     {
-//        _hwSorting.openGate()
+        _gateServo.targetPosition = Hardware.SERVO.GATE_OPEN
+        _cms.gateStatus.set(ServoStatus.Name.OPENING)
     }
     fun openPush()
     {
-//        _hwSorting.openPush()
-//
-//        while (!_hwSorting.pushServo.atTargetAngle)
-//            delay(Delay.MS.HW_REQUEST_FREQUENCY)
+        _pushServo.targetPosition = Hardware.SERVO.PUSH_OPEN
+        _cms.pushStatus.set(ServoStatus.Name.OPENING)
     }
     fun closeGateWithPush()
     {
-//        _hwSorting.closeGate()
-//        _hwSorting.closePush()
-//
-//        while (!_hwSorting.gateServo.atTargetAngle
-//            && !_hwSorting.pushServo.atTargetAngle)
-//            delay(Delay.MS.HW_REQUEST_FREQUENCY)
+        _gateServo.targetPosition = Hardware.SERVO.GATE_CLOSE
+        _pushServo.targetPosition = Hardware.SERVO.PUSH_CLOSE
+        _cms.gateStatus.set(ServoStatus.Name.CLOSING)
+        _cms.pushStatus.set(ServoStatus.Name.CLOSING)
     }
-
 
     fun openTurretGate()
     {
-//        _hwSorting.openTurretGate()
-//
-//        while (!_hwSorting.turretGateServo.atTargetAngle)
-//            delay(Delay.MS.HW_REQUEST_FREQUENCY)
+        _turretGateServo.targetPosition = Hardware.SERVO.TURRET_GATE_OPEN
+        _cms.turretGateStatus.set(ServoStatus.Name.OPENING)
     }
     fun closeTurretGate()
     {
-//        _hwSorting.closeTurretGate()
-//
-//        while (!_hwSorting.turretGateServo.atTargetAngle)
-//            delay(Delay.MS.HW_REQUEST_FREQUENCY)
+        _turretGateServo.targetPosition = Hardware.SERVO.TURRET_GATE_CLOSE
+        _cms.turretGateStatus.set(ServoStatus.Name.CLOSING)
     }
 
-    fun startBelts()
+
+    fun lazyForwardBelts()
+    {
+        _cms.beltsStatus = MotorStatus.LAZY_FORWARD
+        _beltMotor.power = _cms.collector.battery.voltageToPower(
+            Hardware.MOTOR.BELTS_FORWARD)
+    }
+    fun lazyReverseBelts()
+    {
+        _cms.beltsStatus = MotorStatus.LAZY_REVERSE
+        _beltMotor.power = _cms.collector.battery.voltageToPower(
+            Hardware.MOTOR.BELTS_FORWARD)
+    }
+    fun forwardBelts()
     {
         _cms.beltsStatus = MotorStatus.FORWARD
         _beltMotor.power = _cms.collector.battery.voltageToPower(
@@ -96,15 +142,13 @@ class HwMotors
     }
 
 
-    fun startBrush()
+    fun forwardBrush()
     {
-        _cms.brushStatus = MotorStatus.FORWARD
         _brushMotor.power = _cms.collector.battery.voltageToPower(
             Hardware.MOTOR.BRUSH_FORWARD)
     }
     fun reverseBrush()
     {
-        _cms.beltsStatus = MotorStatus.REVERSE
         _brushMotor.power = _cms.collector.battery.voltageToPower(
             Hardware.MOTOR.BRUSH_REVERSE)
     }
