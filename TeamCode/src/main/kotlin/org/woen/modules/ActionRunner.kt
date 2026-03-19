@@ -11,7 +11,9 @@ import org.woen.modules.drivetrain.DriveSegment
 import org.woen.modules.drivetrain.GetEndTrajectoryEvent
 import org.woen.modules.drivetrain.GetRunnerIsFinishedEvent
 import org.woen.modules.drivetrain.GetTrajectoryBuilderEvent
+import org.woen.modules.drivetrain.ITrajectorySegment
 import org.woen.modules.drivetrain.RUNNER_CONFIG
+import org.woen.modules.drivetrain.RegisterSegmentEvent
 import org.woen.modules.drivetrain.RunSegmentsEvent
 import org.woen.modules.drivetrain.TurnSegment
 import org.woen.utils.events.EventBus
@@ -27,7 +29,7 @@ interface IAction {
 }
 
 class TrajectoryAction(private val _eventBus: EventBus, trajectory: List<Trajectory>) : IAction {
-    private val _segment = DriveSegment(trajectory)
+    private val _segment = _eventBus.invoke(RegisterSegmentEvent(DriveSegment(trajectory))).segment
 
     override fun start() {
         _eventBus.invoke(RunSegmentsEvent(arrayOf(_segment)))
@@ -42,11 +44,18 @@ class TurnAction : IAction {
 
         val startOrientation = _eventBus.invoke(GetEndTrajectoryEvent()).orientation
 
-        _segment = TurnSegment(endAngle - startOrientation.angl, startOrientation.angl)
+        _segment = _eventBus.invoke(
+            RegisterSegmentEvent(
+                TurnSegment(
+                    endAngle - startOrientation.angl,
+                    startOrientation.angl
+                )
+            )
+        ).segment
     }
 
     private val _eventBus: EventBus
-    private val _segment: TurnSegment
+    private val _segment: ITrajectorySegment
 
     override fun start() {
         _eventBus.invoke(RunSegmentsEvent(arrayOf(_segment)))

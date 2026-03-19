@@ -121,11 +121,21 @@ class GetTrajectoryBuilderEvent(
 class RunSegmentsEvent(val segments: Array<ITrajectorySegment>)
 class GetRunnerIsFinishedEvent(var finished: Boolean = true)
 class GetEndTrajectoryEvent(var orientation: Orientation = Orientation.ZERO)
+class RegisterSegmentEvent(val segment: ITrajectorySegment)
 
 fun attachRunner(collector: Collector) {
     val segmentsQueue = ArrayDeque<ITrajectorySegment>()
     var targetOrientation = GameSettings.startOrientation.startOrientation
     val segmentTimer = ElapsedTime()
+
+    var lastOrientation = targetOrientation
+
+    collector.eventBus.subscribe(RegisterSegmentEvent::class){
+        val duration = it.segment.duration()
+
+        lastOrientation = Orientation(it.segment.targetPosition(duration) ?: lastOrientation.pos,
+            it.segment.targetHeading(duration))
+    }
 
     collector.eventBus.subscribe(RunSegmentsEvent::class) {
         if (segmentsQueue.isEmpty())
@@ -134,36 +144,12 @@ fun attachRunner(collector: Collector) {
         segmentsQueue.addAll(it.segments)
     }
 
-    fun getEndTrajectory(): Orientation {
-        if (segmentsQueue.isEmpty())
-            return targetOrientation
-        else {
-            val lastSegment = segmentsQueue.last()
-
-            fun getLastCorrectPosition(): Vec2 {
-                for (i in segmentsQueue.reversed()) {
-                    val pos = i.targetPosition(i.duration())
-
-                    if (pos != null)
-                        return pos
-                }
-
-                return targetOrientation.pos
-            }
-
-            return Orientation(
-                getLastCorrectPosition(),
-                lastSegment.targetHeading(lastSegment.duration())
-            )
-        }
-    }
-
     collector.eventBus.subscribe(GetEndTrajectoryEvent::class){
-        it.orientation = getEndTrajectory()
+        it.orientation = lastOrientation
     }
 
     collector.eventBus.subscribe(GetTrajectoryBuilderEvent::class) {
-        val startOrientation = getEndTrajectory()
+        val startOrientation = lastOrientation
 
         it.builder = TrajectoryBuilder(
             TrajectoryBuilderParams(1e-6, ProfileParams(0.1, 0.1, 0.01)),
