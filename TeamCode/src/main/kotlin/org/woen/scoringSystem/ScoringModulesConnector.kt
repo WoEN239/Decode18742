@@ -34,7 +34,6 @@ class ScoringModulesConnector
         logM = LogManager(collector.telemetry, DebugSettings.SMC)
 
 
-
         collector.startEvent  += {
             _gameTimer.reset()
         }
@@ -98,6 +97,9 @@ class ScoringModulesConnector
 
     fun update()
     {
+        _storage.cells.hwSortingM.update()
+
+        _storage.cells.tryHandleIntake()
 
     }
 }

@@ -1,6 +1,7 @@
 package org.woen.scoringSystem.storage
 
 
+import org.woen.collector.RunMode
 import kotlin.math.min
 import kotlin.math.floor
 
@@ -12,6 +13,7 @@ import org.woen.enumerators.StorageSlot
 import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
 
+import org.woen.scoringSystem.ConnectorModuleStatus
 import org.woen.scoringSystem.storage.hardware.HwSortingManager
 
 import org.woen.configs.Alias.Request
@@ -25,7 +27,7 @@ import org.woen.configs.RobotSettings.ROBOT
 import org.woen.configs.RobotSettings.SORTING
 import org.woen.configs.RobotSettings.SORTING.PREDICT.TRUE_MATCH_WEIGHT
 import org.woen.configs.RobotSettings.SORTING.PREDICT.PSEUDO_MATCH_WEIGHT
-import org.woen.scoringSystem.ConnectorModuleStatus
+
 
 
 /*   IMPORTANT NOTE ON HOW THE STORAGE IS CONFIGURED:
@@ -60,7 +62,7 @@ class PredictSortResult(
 
 class Cells
 {
-    private val _storageCells = ROBOT.INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
+    private val _storageCells: Array<Ball>
     private val _cms: ConnectorModuleStatus
     val hwSortingM: HwSortingManager
 
@@ -72,19 +74,15 @@ class Cells
     {
         _cms = cms
 
+        _storageCells = if (_cms.collector.runMode == RunMode.AUTO)
+             ROBOT.AUTONOMOUS_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
+        else ROBOT.TELEOP_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
+
         hwSortingM = HwSortingManager(_cms)
 
         logM = LogManager(_cms.collector.telemetry, DebugSettings.CELLS)
     }
 
-
-
-    fun relink()
-    {
-        if (notFullYet()) _cms.canTriggerIntake = true
-
-        logM.relink(DebugSettings.CELLS)
-    }
 
     private fun predictSortSearchLogic(
         requested: Array<BallRequest>,
@@ -197,10 +195,15 @@ class Cells
 
         logAllStorageData()
     }
-    fun handleIntake(inputBall: Ball.Name)
+    fun tryHandleIntake()
     {
-        if (alreadyFull()) return
+        if (_cms.sortingPhase.isSorting() || !_cms.lazyIntakeIsActive
+            || !_cms.canTriggerIntake || alreadyFull()) return
 
+        val inputBall = hwSortingM.updateColors()
+        if (inputBall == Ball.Name.NONE) return
+
+        logM.logMd("Color sensors triggered intake: $inputBall", Debug.START)
         var curSlot = StorageSlot.BOTTOM
         var rotationTime = Delay.MS.PUSH.PART
         while (curSlot < StorageSlot.MOBILE && _storageCells[curSlot].isEmpty())
