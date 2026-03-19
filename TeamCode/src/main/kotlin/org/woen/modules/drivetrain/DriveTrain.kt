@@ -29,13 +29,13 @@ internal object DRIVE_TRAIN_CONFIG {
     var H_DEATH_ZONE = 0.05
 
     @JvmField
-    var VELOCITY_FORWARD_REGULATOR = RegulatorParameters()
+    var VELOCITY_FORWARD_REGULATOR = RegulatorParameters(kF = 10.0, kP = 8.0)
 
     @JvmField
-    var VELOCITY_SIDE_REGULATOR = RegulatorParameters()
+    var VELOCITY_SIDE_REGULATOR = RegulatorParameters(kF = 8.0, kP = 8.0)
 
     @JvmField
-    var VELOCITY_ROTATE_REGULATOR = RegulatorParameters()
+    var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 2.0, kP = 1.2)
 }
 
 enum class DriveMode {
@@ -178,6 +178,10 @@ fun attachDriveTrain(collector: Collector) {
                 battery.voltageToPower(direction.x + direction.y - rotate),
                 battery.voltageToPower(direction.x + direction.y + rotate)
             )
+
+            collector.telemetry.addData("target x vel", targetLinearVelocity.x)
+            collector.telemetry.addData("target y vel", targetLinearVelocity.y)
+            collector.telemetry.addData("target h vel", targetHeadingVelocity)
         }
     }
 }

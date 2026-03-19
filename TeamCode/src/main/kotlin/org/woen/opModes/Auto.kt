@@ -13,8 +13,6 @@ import org.woen.collector.StartOrientation
 @Autonomous
 class Auto : LinearOpMode() {
     override fun runOpMode() {
-        val collector = Collector(this, RunMode.AUTO)
-
         var selectedOrientationIndex =
             StartOrientation.entries.indexOf(GameSettings.startOrientation)
         val orientations = StartOrientation.entries.toTypedArray()
@@ -24,9 +22,9 @@ class Auto : LinearOpMode() {
         var _oldLeftBumperState = false
         var _oldRightBumperState = false
 
-        while (!isStarted()) {
-            collector.initUpdateEvent.invoke()
+        val dashboardTelemetry = FtcDashboard.getInstance().telemetry
 
+        while (!isStarted() && !gamepad1.touchpad) {
             val leftBumper = gamepad1.left_bumper
             val rightBumper = gamepad1.right_bumper
 
@@ -45,8 +43,6 @@ class Auto : LinearOpMode() {
             _oldLeftBumperState = leftBumper
             _oldRightBumperState = rightBumper
 
-            val dashboardTelemetry = FtcDashboard.getInstance().telemetry
-
             telemetry.addLine("selected orientation ${orientations[selectedOrientationIndex].name}")
             dashboardTelemetry.addLine("selected orientation ${orientations[selectedOrientationIndex].name}")
 
@@ -55,6 +51,20 @@ class Auto : LinearOpMode() {
         }
 
         GameSettings.startOrientation = orientations[selectedOrientationIndex]
+
+        val collector = Collector(this, RunMode.AUTO)
+
+        do {
+            collector.initUpdateEvent.invoke()
+
+            telemetry.addLine("selected orientation ${orientations[selectedOrientationIndex].name}")
+            telemetry.addLine("selected!")
+            dashboardTelemetry.addLine("selected orientation ${orientations[selectedOrientationIndex].name}")
+            dashboardTelemetry.addLine("selected!")
+
+            telemetry.update()
+            dashboardTelemetry.update()
+        } while (!isStarted())
 
         resetRuntime()
 

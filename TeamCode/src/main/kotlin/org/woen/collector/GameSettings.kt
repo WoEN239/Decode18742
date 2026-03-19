@@ -8,13 +8,13 @@ import org.woen.utils.units.Vec2
 @Config
 internal object GAME_CONFIGS {
     @JvmField
-    var START_RED_CLOSE_ORIENTATION = Orientation(Vec2(-1.208 - 0.01 - 0.38 / 2.0, 0.87 + 0.38 / 2.0 + 0.01), Angle.ofDeg(180.0))
+    var START_RED_CLOSE_ORIENTATION = Orientation(Vec2(-1.205 - 0.01 - 0.38 / 2.0, 0.965 + 0.38 / 2.0 + 0.01), Angle.ofDeg(0.0))
 
     @JvmField
     var START_RED_FAR_ORIENTATION = Orientation(Vec2(1.631, 0.39), Angle.ofDeg(180.0))
 
     @JvmField
-    var START_BLUE_CLOSE_ORIENTATION = Orientation(Vec2(-1.208 - 0.01 - 0.38 / 2.0, -0.87 - 0.38 / 2.0 - 0.01), Angle.ofDeg(180.0))
+    var START_BLUE_CLOSE_ORIENTATION = Orientation(Vec2(-1.205 - 0.01 - 0.38 / 2.0, -0.965 - 0.38 / 2.0 - 0.01), Angle.ofDeg(0.0))
 
     @JvmField
     var START_BLUE_FAR_ORIENTATION = Orientation(Vec2(1.631, -0.39), Angle.ofDeg(180.0))

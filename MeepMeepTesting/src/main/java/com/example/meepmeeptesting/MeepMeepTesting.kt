@@ -42,16 +42,24 @@ object MeepMeepTesting {
             myBot.drive.actionBuilder(
                 Pose2d(
                     -(1.215 + 0.38 / 2.0) / 0.0254,
-                    (-0.91 - 0.38 / 2.0) / 0.0254,
-                    -PI / 2.0
+                    (-0.91 - 0.38 / 2.0) / 0.0254, 0.0
                 )
             )
-                .meterStrafeTo(Vector2d(-0.314, -1.4))
+                .meterStrafeToConstantHeading(Vector2d(-0.683, -0.642))
+                .setTangent(0.0)
+                .meterSplineTo(
+                    Vector2d(
+                        -0.290,
+                        -0.819
+                    ), -PI / 2.0
+                )
                 .waitSeconds(5.0)
-                .setReversed(true)
-                .meterStrafeTo(Vector2d(0.0, -1.4))
-                .waitSeconds(50.0)
-                .meterStrafeTo(Vector2d(-0.314, -1.4))
+                .meterStrafeToConstantHeading(Vector2d(-0.290, -0.919))
+//                .waitSeconds(5.0)
+//                .setReversed(true)
+//                .meterStrafeTo(Vector2d(0.0, -1.4))
+//                .waitSeconds(50.0)
+//                .meterStrafeTo(Vector2d(-0.314, -1.4))
 //                .meterStrafeToLinearHeading(
 //                    Vector2d(-0.776, -0.656),
 //                    -PI * 0.75

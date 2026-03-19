@@ -1,14 +1,22 @@
 package org.woen.modules
 
+import com.acmerobotics.roadrunner.AngularVelConstraint
+import com.acmerobotics.roadrunner.MinVelConstraint
 import com.acmerobotics.roadrunner.Trajectory
+import com.acmerobotics.roadrunner.TranslationalVelConstraint
+import com.acmerobotics.roadrunner.Vector2d
+import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
 import org.woen.modules.drivetrain.DriveSegment
 import org.woen.modules.drivetrain.GetEndTrajectoryEvent
 import org.woen.modules.drivetrain.GetRunnerIsFinishedEvent
+import org.woen.modules.drivetrain.GetTrajectoryBuilderEvent
+import org.woen.modules.drivetrain.RUNNER_CONFIG
 import org.woen.modules.drivetrain.RunSegmentsEvent
 import org.woen.modules.drivetrain.TurnSegment
 import org.woen.utils.events.EventBus
 import org.woen.utils.units.Angle
+import kotlin.math.PI
 
 interface IAction {
     fun start() {}
@@ -18,7 +26,7 @@ interface IAction {
     fun isEnd(): Boolean = true
 }
 
-class FollowRRTrajectory(private val _eventBus: EventBus, trajectory: List<Trajectory>) : IAction {
+class TrajectoryAction(private val _eventBus: EventBus, trajectory: List<Trajectory>) : IAction {
     private val _segment = DriveSegment(trajectory)
 
     override fun start() {
@@ -45,6 +53,16 @@ class TurnAction : IAction {
     }
 
     override fun isEnd() = _eventBus.invoke(GetRunnerIsFinishedEvent()).finished
+}
+
+class WaitAction(val time: Double) : IAction {
+    val timer = ElapsedTime()
+
+    override fun start() {
+        timer.reset()
+    }
+
+    override fun isEnd() = timer.seconds() > time
 }
 
 class ParallelActions(
@@ -110,7 +128,7 @@ class StopEatAction(private val _eventBus: EventBus) : IAction {
     }
 }
 
-class SortingEvent(
+class SortingAction(
     private val _eventBus: EventBus,
     private val _bal1: BallColor,
     private val _bal2: BallColor,
@@ -120,10 +138,12 @@ class SortingEvent(
         _eventBus.invoke(StartSortingEvent(_bal1, _bal2, _bal3))
     }
 
-    override fun isEnd() = _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+    override fun isEnd() =
+        _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
 }
 
-class TurretStateSwapAction(private val _eventBus: EventBus, private val _state: TurretState): IAction{
+class TurretStateSwapAction(private val _eventBus: EventBus, private val _state: TurretState) :
+    IAction {
     override fun start() {
         _eventBus.invoke(SetTurretStateEvent(_state))
     }
@@ -137,7 +157,63 @@ fun attachActionRunner(collector: Collector) {
 
     var isOpModeStarted = false
 
-    collector.eventBus.subscribe(RunActionsEvent::class) {
+    val eventBus = collector.eventBus
+
+    actions.addAll(
+        arrayOf(
+            TrajectoryAction(
+                eventBus,
+                eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToConstantHeading(
+                    Vector2d(-0.683, -0.642)
+                ).build()
+            ),
+            ShootAction(eventBus),
+            StartEatAction(eventBus),
+            TrajectoryAction(
+                eventBus,
+                eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!
+                    .strafeToLinearHeading(
+                        Vector2d(
+                            -0.484,
+                            -0.719
+                        ), -PI / 2.0
+                    )
+                    .strafeTo(Vector2d(-0.484, -1.154)).build()
+            ),
+            StopEatAction(eventBus),
+            ParallelActions(
+                arrayOf(
+//                    arrayListOf(
+//                        SortingAction(
+//                            eventBus,
+//                            BallColor.PURPLE,
+//                            BallColor.PURPLE,
+//                            BallColor.GREEN
+//                        )
+//                    ),
+                    arrayListOf(
+                        TrajectoryAction(
+                            eventBus, eventBus.invoke(
+                                GetTrajectoryBuilderEvent()
+                            ).builder!!.strafeToConstantHeading(
+                                Vector2d(-0.026, -1.370)
+                            ).build()
+                        ),
+                        WaitAction(0.5),
+                        TrajectoryAction(
+                            eventBus,
+                            eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToLinearHeading(
+                                Vector2d(-0.683, -0.642), Math.toRadians(-135.0 / 2.0 + 10.0)
+                            ).build()
+                        )
+                    ),
+                ), ParallelActions.ExitType.AND
+            ),
+            ShootAction(eventBus)
+        )
+    )
+
+    eventBus.subscribe(RunActionsEvent::class) {
         val actionsEmpty = actions.isEmpty()
 
         actions.addAll(it.actions)

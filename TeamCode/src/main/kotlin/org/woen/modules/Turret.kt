@@ -68,7 +68,10 @@ internal object TURRET_CONFIG {
     var PULLEY_TICKS_REVOLUTION = 28.0
 
     @JvmField
-    var PULLEY_REGULATOR = PIDFCoefficients(100.0, 5.0, 0.0, 15.5)
+    var PULLEY_REGULATOR = PIDFCoefficients(100.0, 1.5, 0.0, 15.5)
+
+    @JvmField
+    var PULLEY_RATION = 35.0 / 34.0
 
     @JvmField
     var GRAVITY_G = 9.80665
@@ -83,7 +86,7 @@ internal object TURRET_CONFIG {
     var SCORE_ANGLE = toRadians(-20.0)
 
     @JvmField
-    var PULLEY_U = 0.365
+    var PULLEY_U = 0.38
 }
 //
 //object PulleyRegulatorConfig {
@@ -224,7 +227,7 @@ fun attachTurret(collector: Collector) {
         )
 
         pulleyMotor.velocity =
-            pulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION
+            pulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION / TURRET_CONFIG.PULLEY_RATION
 
         turretHeading = (when (state) {
             TurretState.TO_OBELISK -> Angle(

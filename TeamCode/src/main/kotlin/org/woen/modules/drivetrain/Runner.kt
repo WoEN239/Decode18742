@@ -25,25 +25,28 @@ import org.woen.utils.units.Vec2
 @Config
 internal object RUNNER_CONFIG {
     @JvmField
-    var LINER_VELOCITY = 2.0
+    var LINER_VELOCITY = 1.9
 
     @JvmField
-    var HEADING_VELOCITY = 2.0
+    var HEADING_VELOCITY = 6.0
 
     @JvmField
-    var LINEAR_ACCEL = 1.0
+    var LINEAR_ACCEL = 10.0
 
     @JvmField
-    var HEADING_ACCEL = 1.0
+    var HEADING_ACCEL = 14.0
 
     @JvmField
-    var POSITION_P_X = 0.0
+    var POSITION_P_X = 2.0
 
     @JvmField
-    var POSITION_P_Y = 0.0
+    var POSITION_P_Y = 2.0
 
     @JvmField
-    var HEADING_P_H = 0.0
+    var HEADING_P_H = 2.0
+
+    @JvmField
+    var POSITION_SENS = 0.3
 }
 
 interface ITrajectorySegment {
@@ -176,7 +179,9 @@ fun attachRunner(collector: Collector) {
     }
 
     collector.eventBus.subscribe(GetRunnerIsFinishedEvent::class){
-        it.finished = segmentsQueue.isEmpty()
+        val odometry = collector.eventBus.invoke(GetRobotOdometry())
+
+        it.finished = segmentsQueue.isEmpty() && (targetOrientation.pos - odometry.orientation.pos).length() < RUNNER_CONFIG.POSITION_SENS
     }
 
     collector.startEvent += {

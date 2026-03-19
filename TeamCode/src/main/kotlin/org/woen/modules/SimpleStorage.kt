@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
 import org.woen.modules.drivetrain.GetLocateInShootingAreaEvent
+import org.woen.utils.drivers.SOFT_SERVO_CONFIG
 import org.woen.utils.drivers.SoftServo
 
 @Config
@@ -19,7 +20,7 @@ internal object SIMPLE_STORAGE_CONFIG {
     var BRUSH_REVERS_TIME = 0.3
 
     @JvmField
-    var SHOOTING_TIME = 0.4
+    var SHOOTING_TIME = 0.6
 
     @JvmField
     var SHOOTING_REVERSE_TIME = 0.1
@@ -47,6 +48,9 @@ internal object SIMPLE_STORAGE_CONFIG {
 
     @JvmField
     var SORTING_REVERSE_TIME = 0.1
+
+    @JvmField
+    var SINGLE_SHOOT_PUSH_TIME = 0.05
 }
 
 enum class StorageState {
@@ -56,14 +60,17 @@ enum class StorageState {
     STOP_EATING,
     SORTING,
     START_SHOOTING,
-    STOP_SHOOTING
+    STOP_SHOOTING,
+    START_SINGLE_SHOOTING,
+    SINGLE_SHOOTING
 }
 
 enum class SortingState {
     PUSH_OPEN,
     PUSH_CLOSE,
     GATE_OPEN,
-    WAIT_PUSH
+    WAIT_PUSH,
+    WAIT_FALL
 }
 
 enum class BallColor {
@@ -90,7 +97,7 @@ fun attachSimpleStorage(collector: Collector) {
     val leftColor = collector.hardwareMap.get("leftColor") as RevColorSensorV3
     val rightColor = collector.hardwareMap.get("rightColor") as RevColorSensorV3
 
-    val pushServo = SoftServo("pushServo", collector.hardwareMap, SIMPLE_STORAGE_CONFIG.PUSH_CLOSE)
+    val pushServo = SoftServo("pushServo", collector.hardwareMap, SIMPLE_STORAGE_CONFIG.PUSH_CLOSE, SOFT_SERVO_CONFIG.SERVO_E * 2.0)
     val gateServo = SoftServo("gateServo", collector.hardwareMap, SIMPLE_STORAGE_CONFIG.GATE_CLOSE)
 
     val turretGateServo = SoftServo(
@@ -158,6 +165,18 @@ fun attachSimpleStorage(collector: Collector) {
 
                 stateTimer.reset()
             }
+
+            StorageState.START_SINGLE_SHOOTING -> {
+                turretGateServo.targetPosition = SIMPLE_STORAGE_CONFIG.TURRET_GATE_SERVO_OPEN
+
+                brushMotor.power = 0.0
+                beltMotor.power = 0.0
+            }
+
+            StorageState.SINGLE_SHOOTING -> {
+                beltMotor.power = 1.0
+                stateTimer.reset()
+            }
         }
     }
 
@@ -178,6 +197,8 @@ fun attachSimpleStorage(collector: Collector) {
             StorageState.SORTING -> StorageState.SORTING
             StorageState.START_SHOOTING -> StorageState.SHOOTING
             StorageState.STOP_SHOOTING -> StorageState.SHOOTING
+            StorageState.START_SINGLE_SHOOTING -> StorageState.SHOOTING
+            StorageState.SINGLE_SHOOTING -> StorageState.SHOOTING
         }
     }
 
@@ -232,6 +253,7 @@ fun attachSimpleStorage(collector: Collector) {
     collector.updateEvent += {
         pushServo.update()
         gateServo.update()
+        turretGateServo.update()
 
         val left = leftColor.normalizedColors
         val right = rightColor.normalizedColors
@@ -264,7 +286,7 @@ fun attachSimpleStorage(collector: Collector) {
         when (currentState) {
             StorageState.SHOOTING -> {
                 if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SHOOTING_TIME)
-                    switchState(StorageState.STOP)
+                    switchState(StorageState.STOP_SHOOTING)
             }
 
             StorageState.EATING, StorageState.STOP -> {}
@@ -308,16 +330,27 @@ fun attachSimpleStorage(collector: Collector) {
                         if (pushServo.atTarget) {
                             sortingState = SortingState.WAIT_PUSH
 
-                            pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_CLOSE
                             gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
                         }
                     }
 
                     SortingState.WAIT_PUSH -> {
-                        if (pushServo.atTarget) {
-                            sortingTimer.reset()
+                        if (gateServo.atTarget) {
+//                            sortingTimer.reset()
+//                            gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_OPEN
 
+                            pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_CLOSE
+                            sortingState = SortingState.WAIT_FALL
+                        }
+                    }
+
+                    SortingState.WAIT_FALL -> {
+                        if(pushServo.atTarget )//&&sortingTimer.seconds() > SIMPLE_STORAGE_CONFIG.SORING_FALL_WAIT_TIME){
+                        {
                             beltMotor.power = 1.0
+                            sortingState = SortingState.PUSH_CLOSE
+//                            gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
+                            sortingTimer.reset()
                         }
                     }
 
@@ -333,6 +366,18 @@ fun attachSimpleStorage(collector: Collector) {
                                 switchState(StorageState.STOP)
                         }
                     }
+                }
+            }
+
+            StorageState.START_SINGLE_SHOOTING -> {
+                if (turretGateServo.atTarget)
+                    switchState(StorageState.SINGLE_SHOOTING)
+            }
+
+            StorageState.SINGLE_SHOOTING -> {
+                if(stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SINGLE_SHOOT_PUSH_TIME) {
+                    switchState(StorageState.STOP_SHOOTING)
+                    stateTimer.reset()
                 }
             }
         }
