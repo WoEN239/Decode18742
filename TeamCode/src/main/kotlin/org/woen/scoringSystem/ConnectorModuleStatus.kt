@@ -12,11 +12,13 @@ import org.woen.scoringSystem.misc.DynamicPattern
 class ConnectorModuleStatus(var collector: Collector)
 {
     var dynamicMemoryPattern = DynamicPattern()
+    var awaitingPatternFromCamera = true
 
     var canTriggerIntake = false
 
 
     var lazyIntakeIsActive = false
+    var shootingIsActive = false
 
 
     var beltsStatus = MotorStatus.IDLE

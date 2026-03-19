@@ -30,8 +30,8 @@ class HwSortingManager
     constructor(cms: ConnectorModuleStatus)
     {
         _cms = cms
+        hwMotors   = HwMotors(cms)
         _hwSensors = HwSensors(cms)
-        hwMotors = HwMotors(cms)
     }
 
 

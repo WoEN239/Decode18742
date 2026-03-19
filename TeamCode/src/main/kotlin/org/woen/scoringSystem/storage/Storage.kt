@@ -168,7 +168,7 @@ class Storage
     }
 
 
-    fun choosePatternForShot(
+    private fun choosePatternForShot(
         requested: Array<BallRequest.Name>,
         failsafe:  Array<BallRequest.Name>,
         shootOnlyValid: Boolean
@@ -181,13 +181,13 @@ class Storage
             if (req1 > req2) requested
             else failsafe, shootOnlyValid)
     }
-    fun shootFinalPhase(
+    private fun shootFinalPhase(
         requested: Array<BallRequest.Name>,
         shootOnlyValid: Boolean
     ): RequestResult.Name
     {
         val afterSorting = cells.initiatePredictSort(requested)
-        return streamDrumRequest( if (shootOnlyValid)
+        return streamDrumRequest(if (shootOnlyValid)
             afterSorting.totalMatches else 0)
     }
 
@@ -197,8 +197,8 @@ class Storage
     {
         if (cells.isNotEmpty())
         {
-//            cells.hwSortingM.reverseBelts()
-//            delay(Delay.MS.PUSH.FULL)
+            cells.hwSortingM.extendableReverse(Delay.MS.PUSH.FULL)
+            // эээээ ну хз
         }
         cells.hwSortingM.startCalibration()
 

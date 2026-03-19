@@ -218,7 +218,9 @@ class Cells
         logM.logMd("Storage after intake: ", Debug.GENERIC)
         logAllStorageData()
 
-        hwSortingM.reinstantiableForward(rotationTime)
+        if (_cms.shootingIsActive)
+             hwSortingM.extendableForward(rotationTime)
+        else hwSortingM.reinstantiableForward(rotationTime)
     }
     fun updateAfterShot()
     {

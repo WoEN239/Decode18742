@@ -138,6 +138,7 @@ class HwMotors
     fun stopBelts()
     {
         _cms.beltsStatus = MotorStatus.IDLE
+        _cms.shootingIsActive = false
         _beltMotor.power = 0.0
     }
 
