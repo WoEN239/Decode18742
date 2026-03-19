@@ -3,11 +3,10 @@ import numpy as np
 import json
 
 class SoSAT:
-    green_thresh_lower = np.array([60,60,135])
-    green_thresh_upper = np.array([100,255,230])
-    purple_thresh_lower = np.array([130,20,100])
-    purple_thresh_upper = np.array([160,255,235])
-
+    green_thresh_lower = np.array([74,50,90])
+    green_thresh_upper = np.array([88,255,249])
+    purple_thresh_lower = np.array([119,25,60])
+    purple_thresh_upper = np.array([142,251,255])
     contours_list = []
 
     def __init__(self,contours_path="contours_data.json"):
@@ -28,12 +27,13 @@ class SoSAT:
             purple_thresh_lower_rt[2]-=step
             mask_green = cv2.inRange(frame_hsv,green_thresh_lower_rt,self.green_thresh_upper)
             mask_purple = cv2.inRange(frame_hsv,purple_thresh_lower_rt,self.purple_thresh_upper)
+
             mask_combined = cv2.bitwise_or(mask_green,mask_purple)
 
             kernel = np.ones((3,3),np.uint8)
-            mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_OPEN, kernel, iterations=1)
+            mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_OPEN, kernel, iterations=5)
             mask_combined = cv2.erode(mask_combined, kernel, iterations=2)
-            mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_CLOSE, kernel, iterations=3)
+            mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_CLOSE, kernel, iterations=7)
             
 
             masks.append(mask_combined)

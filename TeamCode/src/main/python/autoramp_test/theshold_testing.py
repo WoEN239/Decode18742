@@ -1,19 +1,22 @@
 import cv2
+from sosat import SoSAT
 import numpy as np
 
 def nothing(x):
     pass
 
+sosat = SoSAT()
+
 cv2.namedWindow("Set thresholds",cv2.WINDOW_NORMAL)
 
-cv2.createTrackbar("H Min", "Set thresholds", 0, 179, nothing)
-cv2.createTrackbar("H Max", "Set thresholds", 179, 179, nothing)
+cv2.createTrackbar("H Min", "Set thresholds", 0, 255, nothing)
+cv2.createTrackbar("H Max", "Set thresholds", 255, 255, nothing)
 cv2.createTrackbar("S Min", "Set thresholds", 0, 255, nothing)
 cv2.createTrackbar("S Max", "Set thresholds", 255, 255, nothing)
 cv2.createTrackbar("V Min", "Set thresholds", 0, 255, nothing)
 cv2.createTrackbar("V Max", "Set thresholds", 255, 255, nothing)
 
-frame = cv2.imread("test.jpg")
+frame = cv2.imread("test_actual.png")
 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
 while True:
@@ -27,13 +30,16 @@ while True:
     lower = np.array([h_min, s_min, v_min])
     upper = np.array([h_max, s_max, v_max])
 
-    mask = cv2.inRange(hsv, lower, upper)
+    mask_combined = cv2.inRange(hsv, lower, upper)
+    kernel = np.ones((3,3),np.uint8)
+    mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_OPEN, kernel, iterations=)
+    mask_combined = cv2.erode(mask_combined, kernel, iterations=2)
+    mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_CLOSE, kernel, iterations=5)
 
-    cv2.putText(mask,f"min: ({h_min}, {s_min}, {v_min}) ; max: ({h_max}, {s_max}, {v_max})",(10,30),cv2.FONT_HERSHEY_SIMPLEX,0.7,(255,255,255),2)
-    
-    cv2.imshow("Set thresholds", mask)
+    cv2.imshow("Set thresholds", mask_combined)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        print(f"{lower}, {upper}")
         break
 
 cv2.destroyAllWindows()

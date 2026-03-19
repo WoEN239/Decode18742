@@ -3,7 +3,7 @@ from sosat import SoSAT
 import time
 
 sosat = SoSAT()
-frame = cv2.imread("test.jpg")
+frame = cv2.imread("test_actual.png")
 
 start = time.time()
 artefacts = sosat.detect_artefacts(frame,1,75)
@@ -12,7 +12,7 @@ end = time.time()
 processing_time = end-start
 print(processing_time)
 
-result_frame = frame.copy()
+result_frame = sosat.color_masks(frame)[3]
 for artefact in artefacts:
     x,y,w,h = artefact["x"],artefact["y"],artefact["w"],artefact["h"]
     cv2.rectangle(result_frame,(x,y),(x+w,y+h),(0,255,0),2)

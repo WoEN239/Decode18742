@@ -43,7 +43,7 @@ def mouse_callback(event,x,y,flags,param):
 cv2.namedWindow("Set contour",cv2.WINDOW_NORMAL)
 cv2.setMouseCallback("Set contour",mouse_callback)
 
-frame = cv2.imread("test.jpg")
+frame = cv2.imread("test_actual.png")
 display_frame = None
 
 contours_list = []
@@ -58,7 +58,7 @@ while True:
             display_frame = frame[start_coords[1]:end_coords[1],start_coords[0]:end_coords[0]]
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             for contour in contours:
-                if cv2.contourArea(contour) > 500:
+                if cv2.contourArea(contour) > 100:
                     contours_list.append(contour.tolist())
         print(f"CONTOURS ADDED: {len(contours_list)}")
         is_selected = False
