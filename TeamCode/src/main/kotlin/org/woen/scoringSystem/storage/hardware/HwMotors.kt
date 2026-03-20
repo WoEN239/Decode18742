@@ -24,8 +24,9 @@ class HwMotors
     private val _beltMotor  : MotorOnly
     private val _brushMotor : MotorOnly
 
-    private val _gateServo : SoftServo
-    private val _pushServo : SoftServo
+    private val _gateServo   : SoftServo
+    private val _pushServo   : SoftServo
+    private val _launchServo : SoftServo
     private val _turretGateServo : SoftServo
 
 
@@ -56,6 +57,10 @@ class HwMotors
             _cms.collector.hardwareMap,
             Hardware.SERVO.PUSH_CLOSE)
 
+        _launchServo = SoftServo(
+            Hardware.DEVICE_NAMES.LAUNCH_SERVO,
+            _cms.collector.hardwareMap,
+            Hardware.SERVO.LAUNCH_CLOSE)
 
         _turretGateServo = SoftServo(
             Hardware.DEVICE_NAMES.TURRET_GATE_SERVO,
@@ -64,6 +69,7 @@ class HwMotors
 
         _gateServo.start()
         _pushServo.start()
+        _launchServo.start()
         _turretGateServo.start()
     }
 
@@ -72,10 +78,12 @@ class HwMotors
     {
         _gateServo.update()
         _pushServo.update()
+        _launchServo.update()
         _turretGateServo.update()
 
         _cms.gateStatus.tryUpdate(_gateServo.atTarget)
         _cms.pushStatus.tryUpdate(_pushServo.atTarget)
+        _cms.launchStatus.tryUpdate(_launchServo.atTarget)
         _cms.turretGateStatus.tryUpdate(_turretGateServo.atTarget)
     }
 
@@ -97,6 +105,18 @@ class HwMotors
         _pushServo.targetPosition = Hardware.SERVO.PUSH_CLOSE
         _cms.gateStatus.set(ServoStatus.Name.CLOSING)
         _cms.pushStatus.set(ServoStatus.Name.CLOSING)
+    }
+
+
+    fun openLaunch()
+    {
+        _launchServo.targetPosition = Hardware.SERVO.LAUNCH_OPEN
+        _cms.launchStatus.set(ServoStatus.Name.OPENING)
+    }
+    fun closeLaunch()
+    {
+        _launchServo.targetPosition = Hardware.SERVO.LAUNCH_CLOSE
+        _cms.launchStatus.set(ServoStatus.Name.CLOSING)
     }
 
     fun openTurretGate()
@@ -138,7 +158,6 @@ class HwMotors
     fun stopBelts()
     {
         _cms.beltsStatus = MotorStatus.IDLE
-        _cms.shootingIsActive = false
         _beltMotor.power = 0.0
     }
 

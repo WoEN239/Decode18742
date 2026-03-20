@@ -44,6 +44,11 @@ object RobotSettings
         @JvmField
         var DISABLE_AUTO_SHOOTING_IN_END_GAME = true
 
+
+        @JvmField
+        var USE_LAUNCHER_FOR_LAST_BALL = false
+
+
         @JvmField
         var STOP_LAZY_INTAKE_ON_SECOND_BUTTON_PRESSED = true
 

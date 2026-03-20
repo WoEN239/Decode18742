@@ -63,20 +63,22 @@ object Hardware
 
 
         @JvmField
-        var TURRET_GATE_SERVO = "turretGateServo"
-
-
-        @JvmField
         var STORAGE_BELT_MOTOR = "beltMotor"
         @JvmField
         var BRUSH_MOTOR = "brushMotor"
 
 
         @JvmField
-        var GATE_SERVO = "gateServo"
+        var GATE_SERVO   = "gateServo"
 
         @JvmField
-        var PUSH_SERVO = "pushServo"
+        var PUSH_SERVO   = "pushServo"
+
+        @JvmField
+        var LAUNCH_SERVO = "launchServo"
+
+        @JvmField
+        var TURRET_GATE_SERVO = "turretGateServo"
     }
 
     @Config
@@ -92,6 +94,12 @@ object Hardware
         var PUSH_OPEN = 0.025
         @JvmField
         var PUSH_CLOSE = 0.275
+
+
+        @JvmField
+        var LAUNCH_OPEN = 0.58
+        @JvmField
+        var LAUNCH_CLOSE = 0.96
 
 
         @JvmField
