@@ -1,50 +1,71 @@
 package org.woen.modules
 
 import com.qualcomm.hardware.limelightvision.LLResult
+import com.qualcomm.hardware.limelightvision.LLResultTypes
 import com.qualcomm.hardware.limelightvision.Limelight3A
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import org.firstinspires.ftc.robotcore.external.navigation.Position
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles
 import org.woen.collector.Collector
+import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
+import org.woen.utils.units.Vec2
 
 class OnCameraUpdateEvent(val orientation: Orientation)
 
 fun attachLimelight(collector: Collector) {
-    val telem = collector.telemetry
+    val telemetry = collector.telemetry
     var odometry: GetRobotOdometry
-
-
     val ll = collector.hardwareMap.get(Limelight3A::class.java, "limelight")
-    ll.start()
-    val ll_to_arr: DoubleArray = DoubleArray(8)
-    var orient_by_ll: ll.Position
 
+    ll.start()
+
+    var posByLL: Position
+    var orientByLL: YawPitchRollAngles
     var results: LLResult
+    var tagIds: List<Int>
+    var isPatternScanned: Boolean = false
+
+    var obeliskTagId: Int
 
     collector.updateEvent += {
         odometry = collector.eventBus.invoke(GetRobotOdometry())
 
         ll.pipelineSwitch(0)
-        results = ll.latestResult
-        orient_by_ll = results.botpose.position
 
-        collector.eventBus.invoke(OnCameraUpdateEvent(orient_by_ll))
+        results = ll.latestResult
+        tagIds = results.fiducialResults.map { it.fiducialId }
+
+        if (!isPatternScanned) {
+            tagIds = results.fiducialResults.map { it.fiducialId }
+            for (id in tagIds) {
+                if (id in 21..23) {
+                    isPatternScanned = true
+                    obeliskTagId = id
+                    telemetry.addData("obeliski", id)
+                    break
+                }
+            }
+        }
+
+        posByLL = results.botpose.position
+        orientByLL = results.botpose.orientation
+
+        collector.eventBus.invoke(
+            OnCameraUpdateEvent(
+                Orientation(
+                    Vec2(posByLL.x, posByLL.y), Angle(
+                        orientByLL.getYaw(
+                            AngleUnit.RADIANS
+                        )
+                    )
+                )
+            )
+        )
+
+
 
         ll.pipelineSwitch(1)
-
-        ll_to_arr.set(0,odometry.orientation.x)
-        ll_to_arr.set(1,odometry.orientation.y)
-        ll_to_arr.set(2,odometry.orientation.angle)
-
-        ll.updatePythonInputs(ll_to_arr)
-
-        results = ll.latestResult
-        var x = results.pythonOutput[0]
-        var y = results.pythonOutput[1]
-        var angl = results.pythonOutput[2]
-
-
-        telem.addData("x",x)
-        telem.addData("y",y)
-        telem.addData("angl",angl)
     }
 }
 
