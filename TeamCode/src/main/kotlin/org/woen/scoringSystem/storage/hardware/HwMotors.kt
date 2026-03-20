@@ -8,8 +8,8 @@ import org.woen.utils.debug.LogManager
 import org.woen.utils.drivers.SoftServo
 import org.woen.scoringSystem.ConnectorModuleStatus
 
-import org.woen.enumerators.MotorStatus
-import org.woen.enumerators.ServoStatus
+import org.woen.enumerators.phases.MotorStatus
+import org.woen.enumerators.phases.ServoStatus
 
 import org.woen.configs.Hardware
 import org.woen.configs.DebugSettings

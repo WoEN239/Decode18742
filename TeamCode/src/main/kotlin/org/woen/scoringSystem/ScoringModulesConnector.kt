@@ -12,14 +12,14 @@ import org.woen.scoringSystem.storage.Storage
 
 import org.woen.enumerators.Shooting
 import org.woen.enumerators.RequestResult
-import org.woen.enumerators.ShootingPhase
+import org.woen.enumerators.phases.ShootingPhase
 
 import org.woen.configs.Delay
 import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-import org.woen.enumerators.MotorStatus
+import org.woen.enumerators.phases.MotorStatus
 
 
 class ScoringModulesConnector
@@ -30,7 +30,7 @@ class ScoringModulesConnector
     var logM: LogManager
 
     private val _gameTimer = ElapsedTime()
-    private val _enteredShootingZoneTimeStamp: Long = 0
+    private var _enteredShootingZoneTimeStamp: Double = 0.0
     private val _inShootingZone = false
 
 
@@ -43,7 +43,10 @@ class ScoringModulesConnector
         logM = LogManager(collector.telemetry, DebugSettings.SMC)
 
 
+        subscribeToOdometry()
+        subscribeToCameraPattern()
         subscribeToSecondDriverPatternRecalibration()
+
 
         collector.startEvent  += {
             _gameTimer.reset()
@@ -122,6 +125,16 @@ class ScoringModulesConnector
     {
 //        _cms.collector.eventBus.subscribe()
     }
+    private fun subscribeToOdometry()
+    {
+//        _cms.collector.eventBus.subscribe()
+//        _inShootingZone = true
+//        _enteredShootingZoneTimeStamp = _gameTimer.milliseconds()
+
+
+//        _cms.collector.eventBus.subscribe()
+//        _inShootingZone = false
+    }
 
 
 
@@ -173,11 +186,20 @@ class ScoringModulesConnector
         {
             if (_storage.cells.isNotEmpty())
                 _storage.cells.hwSortingM.calibrationPhase3()
-            else _cms.calibrationPhase.setInactive()
+            else
+            {
+                _cms.calibrationPhase.setInactive()
+                if (_storage.cells.notFullYet())
+                    _storage.cells.hwSortingM.hwMotors.forwardBrush()
+            }
         }
         if (_cms.calibrationPhase.isCalibrationPhase3() &&
             _cms.beltsStatus == MotorStatus.IDLE)
+        {
             _cms.calibrationPhase.setInactive()
+            if (_storage.cells.notFullYet())
+                _storage.cells.hwSortingM.hwMotors.forwardBrush()
+        }
 
         if (_cms.calibrationPhase.isInactive() &&
             _cms.shootingPhase.isShootingPhase4())

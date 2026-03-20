@@ -4,11 +4,11 @@ package org.woen.scoringSystem
 import org.woen.collector.Collector
 import org.woen.scoringSystem.misc.DynamicPattern
 
-import org.woen.enumerators.MotorStatus
-import org.woen.enumerators.ServoStatus
-import org.woen.enumerators.SortingPhase
-import org.woen.enumerators.ShootingPhase
-import org.woen.enumerators.CalibrationPhase
+import org.woen.enumerators.phases.MotorStatus
+import org.woen.enumerators.phases.ServoStatus
+import org.woen.enumerators.phases.SortingPhase
+import org.woen.enumerators.phases.ShootingPhase
+import org.woen.enumerators.phases.CalibrationPhase
 
 
 

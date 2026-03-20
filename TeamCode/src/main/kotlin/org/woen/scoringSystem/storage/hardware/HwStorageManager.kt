@@ -14,7 +14,7 @@ import org.woen.configs.RobotSettings.AUTONOMOUS
 
 import org.woen.utils.debug.Debug
 import org.woen.enumerators.Ball
-import org.woen.enumerators.MotorStatus
+import org.woen.enumerators.phases.MotorStatus
 
 
 
