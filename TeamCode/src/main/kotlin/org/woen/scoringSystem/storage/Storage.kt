@@ -171,24 +171,25 @@ class Storage
     private fun choosePatternForShot(
         requested: Array<BallRequest.Name>,
         failsafe:  Array<BallRequest.Name>,
-        shootOnlyValid: Boolean
+        onlyInSequence: Boolean
     ): RequestResult.Name
     {
-        val req1 = cells.predictSortSearch(requested).maxSequenceScore
-        val req2 = cells.predictSortSearch(failsafe).maxSequenceScore
+        val req1 = cells.predictSortSearch(requested, onlyInSequence).maxSequenceScore
+        val req2 = cells.predictSortSearch(
+            failsafe, onlyInSequence).maxSequenceScore
 
         return shootFinalPhase(
             if (req1 > req2) requested
-            else failsafe, shootOnlyValid)
+            else failsafe, onlyInSequence)
     }
     private fun shootFinalPhase(
         requested: Array<BallRequest.Name>,
-        shootOnlyValid: Boolean
+        onlyInSequence: Boolean
     ): RequestResult.Name
     {
-        val afterSorting = cells.initiatePredictSort(requested)
-        return streamDrumRequest(if (shootOnlyValid)
-            afterSorting.totalMatches else 0)
+        val afterSorting = cells.initiatePredictSort(requested, onlyInSequence)
+        return streamDrumRequest(if (onlyInSequence)
+            afterSorting.totalMatches else 0)  // 0 is auto option
     }
 
 

@@ -86,7 +86,8 @@ class Cells
 
     private fun predictSortSearchLogic(
         requested: Array<BallRequest>,
-        trimmedRequestSize: Int): PredictSortResult
+        trimmedRequestSize: Int,
+        onlyInSequence: Boolean): PredictSortResult
     {
         var globalMaximum  = SORTING.PREDICT.START_WEIGHT
         var doRotations    = 0
@@ -110,7 +111,8 @@ class Cells
                     localMaximum += TRUE_MATCH_WEIGHT
                 else if (storageBall.isPseudoMatch(curRequest.name))
                     localMaximum += PSEUDO_MATCH_WEIGHT
-                else   requestId += trimmedRequestSize
+                else if (onlyInSequence)
+                    requestId += trimmedRequestSize
 
                 logM.logMd("[=] RequestId: ${requestId % MAX_BALL_COUNT}, " +
                         "did match: ${requestId < trimmedRequestSize + startRequestId}"
@@ -146,18 +148,25 @@ class Cells
             globalMaximum,
             floor(globalMaximum / PSEUDO_MATCH_WEIGHT).toInt())
     }
-    fun predictSortSearch(requested: Array<BallRequest.Name>): PredictSortResult
+    fun predictSortSearch(
+        requested: Array<BallRequest.Name>,
+        onlyInSequence: Boolean): PredictSortResult
     {
         val trimmedRequestSize = min(requested.size, MAX_BALL_COUNT)
         if (trimmedRequestSize == 0)
             return PredictSortResult(0,
                 0.0, 0)
 
-        val requestedFullData  = Array(requested.size) { BallRequest(requested[it]) }
-        return predictSortSearchLogic(requestedFullData, trimmedRequestSize)
+        val requestedFullData  = Array(requested.size)
+            { BallRequest(requested[it]) }
+
+        return predictSortSearchLogic(
+            requestedFullData,
+            trimmedRequestSize, onlyInSequence)
     }
     fun initiatePredictSort(
-        requested: Array<BallRequest.Name>): PredictSortResult
+        requested: Array<BallRequest.Name>,
+        onlyInSequence: Boolean): PredictSortResult
     {
         val trimmedRequestSize = min(requested.size, MAX_BALL_COUNT)
         if (trimmedRequestSize == 0)
@@ -167,8 +176,12 @@ class Cells
         hwReAdjustStorage()
 
         logM.logMd("Start predict sort search", Debug.START)
-        val requestedFullData  = Array(requested.size) { BallRequest(requested[it]) }
-        val searchResult = predictSortSearchLogic(requestedFullData, trimmedRequestSize)
+        val requestedFullData  = Array(requested.size)
+            { BallRequest(requested[it]) }
+
+        val searchResult = predictSortSearchLogic(
+            requestedFullData,
+            trimmedRequestSize, onlyInSequence)
 
         logM.logMd("Best score: ${searchResult.maxSequenceScore}", Debug.GENERIC)
 
