@@ -4,6 +4,7 @@ package org.woen.enumerators
 class ShootingPhase
 {
     private var _name : Name
+    var ballCountForPhase1 : Int = 0
 
     constructor(name: Name = Name.NOT_ACTIVE) { _name = name }
 
@@ -18,13 +19,22 @@ class ShootingPhase
         P4_CALIBRATING
     }
 
+
     val name get() = _name
-    fun set (name: Name)
+
+
+    fun setInactive()
     {
-        _name = name
+        _name = Name.NOT_ACTIVE
     }
-
-
+    fun startPhase1()
+    {
+        _name = Name.P1_OPENING_TURRET_GATE
+    }
+    fun startPhase4()
+    {
+        _name = Name.P4_CALIBRATING
+    }
     fun switchToNextPhase()
     {
         _name = when (_name)
@@ -38,6 +48,10 @@ class ShootingPhase
     }
 
 
-    fun isNotShooting() = _name == Name.NOT_ACTIVE
-    fun isShooting() = !isNotShooting()
+    fun isNotActive()  = _name == Name.NOT_ACTIVE
+    fun isActive()     = !isNotActive()
+
+    fun isShootingPhase2() = _name == Name.P2_SHOOTING
+    fun isShootingPhase3() = _name == Name.P3_OPENING_LAUNCHER
+    fun isShootingPhase4() = _name == Name.P4_CALIBRATING
 }

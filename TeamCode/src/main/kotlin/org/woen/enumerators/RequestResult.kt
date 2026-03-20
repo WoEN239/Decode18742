@@ -21,9 +21,11 @@ class RequestResult
 
         FAIL_UNKNOWN,
         FAIL_IS_EMPTY,
-        FAIL_ILLEGAL_ARGUMENT,
 
+        FAIL_ILLEGAL_ARGUMENT,
         FAIL_COLORS_NOT_PRESENT,
+
+        FAIL_IGNORE_DUPLICATE_COMMAND,
         FAIL_COULD_NOT_DETECT_PATTERN
     }
 
@@ -49,10 +51,12 @@ class RequestResult
 
         const val FAIL_UNKNOWN:  Int = 2
         const val FAIL_IS_EMPTY: Int = 3
-        const val FAIL_ILLEGAL_ARGUMENT: Int = 4
 
+        const val FAIL_ILLEGAL_ARGUMENT: Int = 4
         const val FAIL_COLORS_NOT_PRESENT: Int = 5
-        const val FAIL_COULD_NOT_DETECT_PATTERN: Int = 9
+
+        const val FAIL_IGNORE_DUPLICATE_COMMAND: Int = 6
+        const val FAIL_COULD_NOT_DETECT_PATTERN: Int = 7
 
 
         fun didFail(id:   Int)  = id > FINISHED_IS_NOW_EMPTY
@@ -71,9 +75,11 @@ class RequestResult
 
                 FAIL_UNKNOWN  -> Name.FAIL_UNKNOWN
                 FAIL_IS_EMPTY -> Name.FAIL_IS_EMPTY
-                FAIL_ILLEGAL_ARGUMENT -> Name.FAIL_ILLEGAL_ARGUMENT
 
+                FAIL_ILLEGAL_ARGUMENT   -> Name.FAIL_ILLEGAL_ARGUMENT
                 FAIL_COLORS_NOT_PRESENT -> Name.FAIL_COLORS_NOT_PRESENT
+
+                FAIL_IGNORE_DUPLICATE_COMMAND -> Name.FAIL_IGNORE_DUPLICATE_COMMAND
                 else -> Name.FAIL_COULD_NOT_DETECT_PATTERN
             }
         }
@@ -86,9 +92,11 @@ class RequestResult
 
                 Name.FAIL_UNKNOWN  -> FAIL_UNKNOWN
                 Name.FAIL_IS_EMPTY -> FAIL_IS_EMPTY
-                Name.FAIL_ILLEGAL_ARGUMENT -> FAIL_ILLEGAL_ARGUMENT
 
+                Name.FAIL_ILLEGAL_ARGUMENT   -> FAIL_ILLEGAL_ARGUMENT
                 Name.FAIL_COLORS_NOT_PRESENT -> FAIL_COLORS_NOT_PRESENT
+
+                Name.FAIL_IGNORE_DUPLICATE_COMMAND -> FAIL_IGNORE_DUPLICATE_COMMAND
                 Name.FAIL_COULD_NOT_DETECT_PATTERN -> FAIL_COULD_NOT_DETECT_PATTERN
             }
         }

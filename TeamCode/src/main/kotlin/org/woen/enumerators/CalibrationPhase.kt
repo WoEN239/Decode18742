@@ -36,6 +36,6 @@ class CalibrationPhase
     }
 
 
-    fun isNotCalibrating() = _name == Name.NOT_ACTIVE
-    fun isCalibrating() = !isNotCalibrating()
+    fun isNotActive() = _name == Name.NOT_ACTIVE
+    fun isActive()    = !isNotActive()
 }

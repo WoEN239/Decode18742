@@ -12,10 +12,14 @@ object Alias
         val FINISHED_NOW_EMPTY   = RequestResult.Name.FINISHED_IS_NOW_EMPTY
         val ROGER_STARTING_SHOOTING = RequestResult.Name.ROGER_STARTING_SHOOTING
 
+
         val FAIL_UNKNOWN  = RequestResult.Name.FAIL_UNKNOWN
         val FAIL_IS_EMPTY = RequestResult.Name.FAIL_IS_EMPTY
+
         val ILLEGAL_ARGUMENT  = RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
         val COLORS_NOT_PRESENT = RequestResult.Name.FAIL_COLORS_NOT_PRESENT
+
+        val IGNORED_DUPLICATE_COMMAND = RequestResult.Name.FAIL_IGNORE_DUPLICATE_COMMAND
         val COULD_NOT_DETECT_PATTERN = RequestResult.Name.FAIL_COULD_NOT_DETECT_PATTERN
 
 

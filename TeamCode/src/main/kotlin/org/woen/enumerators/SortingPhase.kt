@@ -49,6 +49,6 @@ class SortingPhase
     }
 
 
-    fun isNotSorting() = _name == Name.NOT_ACTIVE
-    fun isSorting() = !isNotSorting()
+    fun isNotActive() = _name == Name.NOT_ACTIVE
+    fun isActive()    = !isNotActive()
 }
