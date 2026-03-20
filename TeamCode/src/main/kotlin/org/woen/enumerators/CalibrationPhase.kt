@@ -24,6 +24,22 @@ class CalibrationPhase
     }
 
 
+    fun setInactive()
+    {
+        _name = Name.NOT_ACTIVE
+    }
+    fun startPhase1()
+    {
+        _name = Name.P1_REVERSING_BELTS
+    }
+    fun startPhase2()
+    {
+        _name = Name.P2_CLOSING_ALL_SERVOS
+    }
+    fun startPhase3()
+    {
+        _name = Name.P3_REALIGNING_FORWARDS
+    }
     fun switchToNextPhase()
     {
         _name = when (_name)
@@ -38,4 +54,8 @@ class CalibrationPhase
 
     fun isInactive() = _name == Name.NOT_ACTIVE
     fun isActive()   = !isInactive()
+
+    fun isCalibrationPhase1() = _name == Name.P1_REVERSING_BELTS
+    fun isCalibrationPhase2() = _name == Name.P2_CLOSING_ALL_SERVOS
+    fun isCalibrationPhase3() = _name == Name.P3_REALIGNING_FORWARDS
 }

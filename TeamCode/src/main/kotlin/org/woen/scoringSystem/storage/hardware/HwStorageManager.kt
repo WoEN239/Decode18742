@@ -50,6 +50,9 @@ class HwSortingManager
             if (isReadyForShootingPhase4())
                 _cms.shootingPhase.startPhase4()
             else hwMotors.stopBelts()
+
+            if (_cms.calibrationPhase.isCalibrationPhase1())
+                calibrationPhase2()
         }
     }
 
@@ -63,12 +66,11 @@ class HwSortingManager
             _hwSensors.update()
         else Ball.Name.NONE
 
+
+
     fun wasShotFired()
-        =   rotatingBeltsTimer.milliseconds() - timeSinceLastShotUpdateMs >
+            =   rotatingBeltsTimer.milliseconds() - timeSinceLastShotUpdateMs >
             Delay.MS.SHOOTING.CONSIDER_SHOT_FIRED
-
-
-
     fun isReadyForShootingPhase3()
         =   _cms.beltsStatus == MotorStatus.FORWARD &&
             CONTROLS.USE_LAUNCHER_FOR_LAST_BALL &&
@@ -99,7 +101,20 @@ class HwSortingManager
         hwMotors.closeLaunch()
         hwMotors.closeTurretGate()
         hwMotors.closeGateWithPush()
+
+        _cms.calibrationPhase.startPhase2()
     }
+    fun calibrationPhase3()
+    {
+        extendableForward(Delay.MS.PUSH.HALF)
+        _cms.calibrationPhase.startPhase3()
+    }
+
+    fun closedAllServos()
+        =   _cms.gateStatus.isClosed() &&
+            _cms.pushStatus.isClosed() &&
+            _cms.launchStatus.isClosed() &&
+            _cms.turretGateStatus.isClosed()
     fun isHardwareIdle()
         =   _cms.beltsStatus == MotorStatus.IDLE &&
             _cms.gateStatus.isFinished() &&

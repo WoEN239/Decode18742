@@ -10,17 +10,16 @@ import org.woen.collector.Collector
 import org.woen.collector.RunMode
 import org.woen.scoringSystem.storage.Storage
 
+import org.woen.enumerators.Shooting
+import org.woen.enumerators.RequestResult
 import org.woen.enumerators.ShootingPhase
 
 import org.woen.configs.Delay
 import org.woen.configs.DebugSettings
-import org.woen.configs.RobotSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-import org.woen.enumerators.CalibrationPhase
-import org.woen.enumerators.RequestResult
-import org.woen.enumerators.Shooting
+import org.woen.enumerators.MotorStatus
 
 
 class ScoringModulesConnector
@@ -133,6 +132,7 @@ class ScoringModulesConnector
         _storage.cells.tryHandleIntake()
 
         updateShooting()
+        updateCalibrationPhase()
     }
 
 
@@ -165,6 +165,23 @@ class ScoringModulesConnector
                 if (canStartCalibrationAfterShooting())
                     _storage.streamDrumPhase4()
         }
+    }
+    fun updateCalibrationPhase()
+    {
+        if (_cms.calibrationPhase.isCalibrationPhase2() &&
+            _storage.cells.hwSortingM.closedAllServos())
+        {
+            if (_storage.cells.isNotEmpty())
+                _storage.cells.hwSortingM.calibrationPhase3()
+            else _cms.calibrationPhase.setInactive()
+        }
+        if (_cms.calibrationPhase.isCalibrationPhase3() &&
+            _cms.beltsStatus == MotorStatus.IDLE)
+            _cms.calibrationPhase.setInactive()
+
+        if (_cms.calibrationPhase.isInactive() &&
+            _cms.shootingPhase.isShootingPhase4())
+            _cms.shootingPhase.setInactive()
     }
 
 
