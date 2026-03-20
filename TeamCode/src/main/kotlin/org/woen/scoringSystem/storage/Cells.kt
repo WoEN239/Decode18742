@@ -240,6 +240,8 @@ class Cells
     }
     fun updateAfterShot()
     {
+        hwSortingM.timeSinceLastShotUpdateMs = hwSortingM.rotatingBeltsTimer.milliseconds()
+
         _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
         _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
         _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])

@@ -48,8 +48,8 @@ class ShootingPhase
     }
 
 
-    fun isInactive()  = _name == Name.NOT_ACTIVE
-    fun isActive()     = !isInactive()
+    fun isInactive() = _name == Name.NOT_ACTIVE
+    fun isActive()   = !isInactive()
 
 
     fun isShootingPhase1() = _name == Name.P1_OPENING_TURRET_GATE

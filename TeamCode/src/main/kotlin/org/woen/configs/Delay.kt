@@ -27,7 +27,7 @@ object Delay
             var FIRE_3: Long = 500
 
             @JvmField
-            var FIRE_2: Long = 400
+            var FIRE_2: Long = 350
 
             @JvmField
             var FIRE_1: Long = 200
@@ -38,6 +38,9 @@ object Delay
 
             @JvmField
             var BEFORE_AUTOSHOT: Long = 50
+
+            @JvmField
+            var CONSIDER_SHOT_FIRED: Long = 150
         }
 
 

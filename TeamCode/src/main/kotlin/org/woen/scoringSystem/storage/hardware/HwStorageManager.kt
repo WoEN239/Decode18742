@@ -25,6 +25,7 @@ class HwSortingManager
     private val _cms: ConnectorModuleStatus
 
     var targetPushTime: Long = 0
+    var timeSinceLastShotUpdateMs: Double = 0.0
     val rotatingBeltsTimer = ElapsedTime()
 
 
@@ -46,7 +47,7 @@ class HwSortingManager
              _cms.beltsStatus == MotorStatus.REVERSE) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
         {
-            if (isReadyForCalibrationShootingPhase4())
+            if (isReadyForShootingPhase4())
                 _cms.shootingPhase.startPhase4()
             else hwMotors.stopBelts()
         }
@@ -62,6 +63,10 @@ class HwSortingManager
             _hwSensors.update()
         else Ball.Name.NONE
 
+    fun wasShotFired()
+        =   rotatingBeltsTimer.milliseconds() - timeSinceLastShotUpdateMs >
+            Delay.MS.SHOOTING.CONSIDER_SHOT_FIRED
+
 
 
     fun isReadyForShootingPhase3()
@@ -76,25 +81,34 @@ class HwSortingManager
         hwMotors.openLaunch()
         _cms.shootingPhase.switchToNextPhase()
     }
-    fun isReadyForCalibrationShootingPhase4()
+    fun isReadyForShootingPhase4()
         =   _cms.shootingPhase.isShootingPhase2() ||
             _cms.shootingPhase.isShootingPhase3() &&
             _cms.launchStatus.isFinished()
 
 
-    fun startCalibration()
+
+    fun calibrationPhase1()
+    {
+        extendableReverse(Delay.MS.PUSH.HALF)
+        _cms.calibrationPhase.startPhase1()
+    }
+    fun calibrationPhase2()
     {
         hwMotors.stopBelts()
         hwMotors.closeLaunch()
         hwMotors.closeTurretGate()
         hwMotors.closeGateWithPush()
     }
-    val isCalibrationFinished get()
+    fun isHardwareIdle()
         =   _cms.beltsStatus == MotorStatus.IDLE &&
             _cms.gateStatus.isFinished() &&
             _cms.pushStatus.isFinished() &&
             _cms.launchStatus.isFinished() &&
             _cms.turretGateStatus.isFinished()
+
+
+
 
 
 

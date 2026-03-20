@@ -18,6 +18,7 @@ import org.woen.configs.RobotSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
+import org.woen.enumerators.CalibrationPhase
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.Shooting
 
@@ -150,12 +151,22 @@ class ScoringModulesConnector
                     _storage.streamDrumPhase2()
 
             ShootingPhase.Name.P2_SHOOTING ->
+            {
+                if (_storage.cells.hwSortingM.wasShotFired())
+                    _storage.cells.updateAfterShot()
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase3())
                     _storage.cells.hwSortingM.streamDrumPhase3()
+            }
 
-            else -> { }
+            ShootingPhase.Name.P3_OPENING_LAUNCHER -> { }
+            // Phase 3 is handled directly in HwStorageManager
+
+            ShootingPhase.Name.P4_CALIBRATING ->
+                if (canStartCalibrationAfterShooting())
+                    _storage.streamDrumPhase4()
         }
     }
+
 
 
     fun canStartAutoShooting() = _inShootingZone &&
@@ -184,6 +195,11 @@ class ScoringModulesConnector
                 TELEOP.AUTOCORRECT_REQUEST_PATTERN,
                 TELEOP.AUTOCORRECT_FAILSAFE_PATTERN)
     }
+
+    fun canStartCalibrationAfterShooting()
+        =   _cms.calibrationPhase.isInactive() &&
+            _cms.sortingPhase.isInactive() &&
+            _storage.cells.hwSortingM.isHardwareIdle()
 
 
 

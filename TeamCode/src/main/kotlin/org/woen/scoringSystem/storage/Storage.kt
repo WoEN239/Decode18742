@@ -7,17 +7,17 @@ import org.woen.enumerators.BallRequest
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.Shooting
 
+import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
+
+import org.woen.scoringSystem.misc.DynamicPattern
+import org.woen.scoringSystem.ConnectorModuleStatus
 
 import org.woen.configs.Alias.Request
 import org.woen.configs.DebugSettings
 
-import org.woen.utils.debug.Debug
 import org.woen.configs.Delay
 import org.woen.configs.RobotSettings.CONTROLS
-import org.woen.enumerators.CalibrationPhase
-import org.woen.scoringSystem.ConnectorModuleStatus
-import org.woen.scoringSystem.misc.DynamicPattern
 
 
 
@@ -165,13 +165,19 @@ class Storage
         }
 
         logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
+
         cells.hwSortingM.extendableForward(beltPushTime)
+        cells.hwSortingM.timeSinceLastShotUpdateMs =
+            cells.hwSortingM.rotatingBeltsTimer.milliseconds()
+
         if (shotCount == -1) cells.hwSortingM.hwMotors.openLaunch()
     }
     fun streamDrumPhase4()
     {
-
+        if (cells.isNotEmpty()) cells.hwSortingM.calibrationPhase1()
+        else cells.hwSortingM.calibrationPhase2()
     }
+
 
 
     private fun choosePatternForShot(
@@ -198,25 +204,5 @@ class Storage
 
         return streamDrumPhase1(if (onlyInSequence)
             afterSorting.totalMatches else 0)  // 0 is auto option
-    }
-
-
-
-    fun resumeAfterRequestPhase1()
-    {
-        if (cells.isNotEmpty())
-        {
-            _cms.calibrationPhase.set(CalibrationPhase.Name.P1_REVERSING_BELTS)
-            cells.hwSortingM.extendableReverse(Delay.MS.PUSH.FULL)
-        }
-        else resumeAfterRequestPhase2()
-    }
-    fun resumeAfterRequestPhase2()
-    {
-        _cms.calibrationPhase.set(CalibrationPhase.Name.P2_CLOSING_ALL_SERVOS)
-        cells.hwSortingM.startCalibration()
-
-        _cms.canTriggerIntake = true
-        logM.logMd("FINISHED resume logic", Debug.END)
     }
 }
