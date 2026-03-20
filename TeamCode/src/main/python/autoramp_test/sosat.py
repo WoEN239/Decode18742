@@ -3,79 +3,84 @@ import numpy as np
 import json
 
 class SoSAT:
-    green_thresh_lower = np.array([74,50,90])
-    green_thresh_upper = np.array([88,255,249])
-    purple_thresh_lower = np.array([119,25,60])
-    purple_thresh_upper = np.array([142,251,255])
-    contours_list = []
+    greenThreshLower = np.array([74,50,90])
+    greenThreshUpper = np.array([88,255,249])
+    purpleThreshLower = np.array([119,25,60])
+    purpleThreshUpper = np.array([142,251,255])
 
-    def __init__(self,contours_path="contours_data.json"):
-        with open(contours_path, "r") as f:
+    morphOpenVal = 2
+    morphErodeVal = 2
+
+    contoursList = []
+
+    def __init__(self,contoursPath="contours_data.json"):
+        with open(contoursPath, "r") as f:
             loaded = json.load(f)
-            self.contours_list = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
+            self.contoursList = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
 
 
-    def color_masks(self,frame,step=25,iterations=4):
+    def colorMasks(self,frame,step=25,iterations=4):
         masks = []
         frame_hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
-        green_thresh_lower_rt = self.green_thresh_lower
-        purple_thresh_lower_rt = self.purple_thresh_lower
+        greenThreshLowerRT = self.greenThreshLower
+        purpleThreshLowerRT = self.purpleThreshLower
 
-        for thresh_iter in range(iterations):
-            green_thresh_lower_rt[2]-=step
-            purple_thresh_lower_rt[2]-=step
-            mask_green = cv2.inRange(frame_hsv,green_thresh_lower_rt,self.green_thresh_upper)
-            mask_purple = cv2.inRange(frame_hsv,purple_thresh_lower_rt,self.purple_thresh_upper)
+        for threshIter in range(iterations):
+            greenThreshLowerRT[2]-=step
+            purpleThreshLowerRT[2]-=step
+            maskGreen = cv2.inRange(frame_hsv,greenThreshLowerRT,self.greenThreshUpper)
+            maskPurple = cv2.inRange(frame_hsv,purpleThreshLowerRT,self.purpleThreshUpper)
 
-            mask_combined = cv2.bitwise_or(mask_green,mask_purple)
+            maskCombined = cv2.bitwise_or(maskGreen,maskPurple)
 
             kernel = np.ones((3,3),np.uint8)
-            mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_OPEN, kernel, iterations=5)
-            mask_combined = cv2.erode(mask_combined, kernel, iterations=2)
-            mask_combined = cv2.morphologyEx(mask_combined, cv2.MORPH_CLOSE, kernel, iterations=7)
+            maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_OPEN, kernel, iterations=self.morphOpenVal)
+            maskCombined = cv2.erode(maskCombined, kernel, iterations=self.morphErodeVal)
             
 
-            masks.append(mask_combined)
+            masks.append(maskCombined)
 
         return masks
 
-    def __match_contours(self,contour):
-        best_match = float('inf')
-        for stored_contour in self.contours_list:
-            match = cv2.matchShapes(contour, stored_contour,1,0.0)
-            if match < best_match:
-                best_match = match
-        return best_match
+    def __matchContours(self,contour):
+        bestMatch = float('inf')
+        for storedContour in self.contoursList:
+            match = cv2.matchShapes(contour, storedContour,1,0.0)
+            if match < bestMatch:
+                bestMatch = match
+        return bestMatch
 
-    def __is_pos_overlaps(self,existing_artefacts,new_artefact):
-        for artefact in existing_artefacts:
-            new_mid = (new_artefact["x"] + new_artefact["w"]/2, new_artefact["y"] + new_artefact["h"]/2)
-            old_mid = (artefact["x"] + artefact["w"]/2, artefact["y"] + artefact["h"]/2)
+    def __isPosOverlaps(self,existingArtefacts,newArtefact):
 
-            if abs(new_mid[0]-old_mid[0]) < (new_artefact["w"]/2 + artefact["w"]/2) and abs(new_mid[1]-old_mid[1]) < (new_artefact["h"]/2 + artefact["h"]/2):
+        for artefact in existingArtefacts:
+            newMid = (newArtefact["x"] + newArtefact["w"]/2, newArtefact["y"] + newArtefact["h"]/2)
+            oldMid = (artefact["x"] + artefact["w"]/2, artefact["y"] + artefact["h"]/2)
+
+            if abs(newMid[0]-oldMid[0]) < (newArtefact["w"]/2 + artefact["w"]/2) and abs(newMid[1]-oldMid[1]) < (newArtefact["h"]/2 + artefact["h"]/2):
                 return True
 
         return False
 
-    def detect_artefacts(self,frame,match_threshold=5,min_area=0,mask_thresh_step=25,mask_iterations=4):
-        masks = self.color_masks(frame,step=mask_thresh_step,iterations=mask_iterations)
-        detected_artefacts = []
+    def detectArtefacts(self,frame,matchThreshold=5,minArea=0,maskThreshStep=25,maskIterations=4):
+        masks = self.colorMasks(frame,step=maskThreshStep,iterations=maskIterations)
+
+        detectedArtefacts = []
         for mask in masks:
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             for contour in contours:
-                if cv2.contourArea(contour) > min_area:
-                    match_score = self.__match_contours(contour)
-                    if match_score < float(match_threshold):
+                if cv2.contourArea(contour) > minArea:
+                    matchScore = self.__matchContours(contour)
+                    if matchScore < float(matchThreshold):
                         x,y,w,h = cv2.boundingRect(contour)
-                        artefact_info = {
+                        artefactInfo = {
                             "x": x,
                             "y": y,
                             "w": w,
                             "h": h,
-                            "match_score": match_score
+                            "matchScore": matchScore
                         }
-                        if not(self.__is_pos_overlaps(detected_artefacts,artefact_info)):
-                            detected_artefacts.append(artefact_info)
+                        if not(self.__isPosOverlaps(detectedArtefacts,artefactInfo)):
+                            detectedArtefacts.append(artefactInfo)
 
-        return detected_artefacts
+        return detectedArtefacts

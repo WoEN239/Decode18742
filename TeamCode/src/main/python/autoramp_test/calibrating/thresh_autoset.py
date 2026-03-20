@@ -1,58 +1,99 @@
 import cv2
-from sosat import SoSAT
 import numpy as np
+import matplotlib.pyplot as plt
 
-def nothing(x):
-    pass
+import os
+import sys
+import re
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
+sys.path.append(parent_dir)
+from sosat import SoSAT
+
+pathToTestImages = "test_images/only_in_ramp/"
+
+hueStep = 15
+satStep = 50
+valStep = 50
+morphStep = 2
 
 sosat = SoSAT()
+goodResults = []
 
-h_min = 0
-h_max = 0
-s_min = 0
-s_max = 0
-v_min = 0
-v_max = 0
-open_val = 0
-erode_val =0
+os.chdir(pathToTestImages)
+imagesNames = os.listdir(".")
 
-results = np.zeros((25, 25, 25, 25, 25, 25, 5, 5), dtype=np.uint8)
-real_num_of_artefacts = 3
+for hGreenMin in range(50,70,hueStep):
+    for hGreenMax in range(90,100,hueStep):
+        for sGreenMin in range(0,1,satStep):
+            for sGreenMax in range(254,255,satStep):
+                for vGreenMin in range(0,250,valStep):
+                    for vGreenMax in range(1,250,valStep):
+                        for hPurpleMin in range(110,130,hueStep):
+                            for hPurpleMax in range(150,160,hueStep):
+                                for sPurpleMin in range(0,1,satStep):
+                                    for sPurpleMax in range(254,255,satStep):
+                                        for vPurpleMin in range(0,250,valStep):
+                                            for vPurpleMax in range(1,250,valStep):
+                                                for openVal in range(0,4,morphStep):
+                                                    for erodeVal in range(0,4,morphStep):
 
-frame = cv2.imread("test_actual.png")
-hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+                                                        if hGreenMin >= hGreenMax or sGreenMin >= sGreenMax or vGreenMin >= vGreenMax or hPurpleMin >= hPurpleMax or sPurpleMin >= sPurpleMax or vPurpleMin >= vPurpleMax:
+                                                           continue
+                                                        
+                                                        sosat.greenThreshLower = np.array([hGreenMin, sGreenMin, vGreenMin])
+                                                        sosat.greenThreshUpper = np.array([hGreenMax, sGreenMax, vGreenMax])
+                                                        sosat.purpleThreshLower = np.array([hPurpleMin, sPurpleMin, vPurpleMin])
+                                                        sosat.purpleThreshUpper = np.array([hPurpleMax, sPurpleMax, vPurpleMax])
+                                                        sosat.morphOpenVal = openVal
+                                                        sosat.morphErodeVal = erodeVal
 
-good_results = []
+                                                        print(f"Tried: GREEN:[{hGreenMin},{sGreenMin},{vGreenMin}] to [{hGreenMax},{sGreenMax},{vGreenMax}]\nPURPLE: [{hPurpleMin},{sPurpleMin},{vPurpleMin}] to [{hPurpleMax},{sPurpleMax},{vPurpleMax}]\nOPEN Value: {openVal}, ERODE Value: {erodeVal}")
 
-for h_min in range(110,130,10):
-    for h_max in range(130,150,10):
-        for s_min in range(0,250,25):
-            for s_max in range(0,250,25):
-                for v_min in range(0,250,5):
-                    for v_max in range(0,250,5):
-                        for open_val in range(0,5):
-                            for erode_val in range(0,5):
-                                if h_min >= h_max or s_min >= s_max or v_min >= v_max or h_max-h_min > 30:
-                                    continue
-                                lower = np.array([h_min, s_min, v_min])
-                                upper = np.array([h_max, s_max, v_max])
+                                                        isMatch = True
 
-                                mask = cv2.inRange(hsv, lower, upper)
-                                kernel = np.ones((3,3),np.uint8)
-                                mask = cv2.erode(mask, kernel, iterations=erode_val)
-                                mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=open_val)
+                                                        for imageName in imagesNames:
+                                                            frame = cv2.imread(imageName)
+                                                            artefactsDetected = sosat.detectArtefacts(frame,1,1000)
 
+                                                            nameMatch = re.search(r'_(\d+)', imageName)
+                                                            if nameMatch:
+                                                                reallyInRamp = int(nameMatch.group(1))
+                                                            else:
+                                                                print(f"Filename {imageName} does not match expected pattern. Skipping.")
+                                                                continue
 
-                                artefacts = sosat.detect_artefacts_on_mask(mask,1,100)
+                                                            if reallyInRamp != len(artefactsDetected):
+                                                                isMatch = False
+                                                                break
+                                                        
+                                                        
+                                                        print(f"DETECTED ARTEFACTS: {len(artefactsDetected)}: ", end="")
 
-                                if artefacts and len(artefacts) == real_num_of_artefacts:
-                                    good_results.append((h_min, h_max, s_min, s_max, v_min, v_max, open_val, erode_val))
-
-                                print(f"Checked: H({h_min}-{h_max}), S({s_min}-{s_max}), V({v_min}-{v_max}), OPEN({open_val}), ERODE({erode_val}) - Detected artefacts: {len(artefacts)}")
-
-
-print("Good results (h_min, h_max, s_min, s_max, v_min, v_max, open_val, erode_val):")
-for result in good_results:
+                                                        if isMatch:
+                                                            print(f"SUCCESS\n")
+                                                            goodResults.append({
+                                                                "hGreenMin": hGreenMin,
+                                                                "hGreenMax": hGreenMax,
+                                                                "sGreenMin": sGreenMin,
+                                                                "sGreenMax": sGreenMax,
+                                                                "vGreenMin": vGreenMin,
+                                                                "vGreenMax": vGreenMax,
+                                                                "hPurpleMin": hPurpleMin,
+                                                                "hPurpleMax": hPurpleMax,
+                                                                "sPurpleMin": sPurpleMin,
+                                                                "sPurpleMax": sPurpleMax,
+                                                                "vPurpleMin": vPurpleMin,
+                                                                "vPurpleMax": vPurpleMax,
+                                                                "openVal": openVal,
+                                                                "erodeVal": erodeVal
+                                                            })
+                                                        else:
+                                                            print(f"failed\n")
+                                                            
+    print(f"GOOD RESULTS: {len(goodResults)}")                                                      
+for result in goodResults:
     print(result)
 
 cv2.destroyAllWindows()
