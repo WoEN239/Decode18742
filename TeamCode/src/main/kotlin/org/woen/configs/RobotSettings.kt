@@ -78,12 +78,18 @@ object RobotSettings
     internal object AUTONOMOUS
     {
         @JvmField
+        var AUTOCORRECT_REQUEST_PATTERN = true
+        @JvmField
+        var AUTOCORRECT_FAILSAFE_PATTERN = false
+
+        @JvmField
         var PATTERN_SHOOTING_MODE = Shooting.Mode.FIRE_PATTERN_CAN_SKIP
 
         @JvmField
         var FAILSAFE_SHOOTING_MODE = Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
         @JvmField
         var FAILSAFE_PATTERN = Shooting.StockPattern.Request.STREAM
+
 
         @JvmField
         var IGNORE_COLOR_SENSORS = true
@@ -94,7 +100,7 @@ object RobotSettings
     internal object TELEOP
     {
         @JvmField
-        var AUTOCORRECT_REQUEST_PATTERN  = false
+        var AUTOCORRECT_REQUEST_PATTERN  = true
         @JvmField
         var AUTOCORRECT_FAILSAFE_PATTERN = false
 

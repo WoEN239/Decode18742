@@ -48,9 +48,11 @@ class ShootingPhase
     }
 
 
-    fun isNotActive()  = _name == Name.NOT_ACTIVE
-    fun isActive()     = !isNotActive()
+    fun isInactive()  = _name == Name.NOT_ACTIVE
+    fun isActive()     = !isInactive()
 
+
+    fun isShootingPhase1() = _name == Name.P1_OPENING_TURRET_GATE
     fun isShootingPhase2() = _name == Name.P2_SHOOTING
     fun isShootingPhase3() = _name == Name.P3_OPENING_LAUNCHER
     fun isShootingPhase4() = _name == Name.P4_CALIBRATING

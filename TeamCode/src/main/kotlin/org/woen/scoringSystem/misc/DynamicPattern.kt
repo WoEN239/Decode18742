@@ -50,7 +50,8 @@ class DynamicPattern
 
 
     fun lastUnfinished() = ArrayList(_temporaryPattern)
-    fun permanent()      = _permanentPattern
+    fun permanent()      = _permanentPattern.toTypedArray()
+    fun permanentWasDetected() = _permanentPattern.isNotEmpty()
 
 
 

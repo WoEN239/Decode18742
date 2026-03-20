@@ -7,15 +7,19 @@ import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
 
 import org.woen.collector.Collector
+import org.woen.collector.RunMode
 import org.woen.scoringSystem.storage.Storage
 
-import org.woen.modules.ClickGamepadListener
-import org.woen.modules.AddGamepadListenerEvent
+import org.woen.enumerators.ShootingPhase
 
-import org.woen.enumerators.Shooting
+import org.woen.configs.Delay
 import org.woen.configs.DebugSettings
+import org.woen.configs.RobotSettings
 import org.woen.configs.RobotSettings.CONTROLS
-
+import org.woen.configs.RobotSettings.TELEOP
+import org.woen.configs.RobotSettings.AUTONOMOUS
+import org.woen.enumerators.RequestResult
+import org.woen.enumerators.Shooting
 
 
 class ScoringModulesConnector
@@ -26,6 +30,8 @@ class ScoringModulesConnector
     var logM: LogManager
 
     private val _gameTimer = ElapsedTime()
+    private val _enteredShootingZoneTimeStamp: Long = 0
+    private val _inShootingZone = false
 
 
 
@@ -125,5 +131,61 @@ class ScoringModulesConnector
 
         _storage.cells.tryHandleIntake()
 
+        updateShooting()
     }
+
+
+    fun updateShooting()
+    {
+        when (_cms.shootingPhase.name)
+        {
+            ShootingPhase.Name.NOT_ACTIVE ->
+                if (canStartAutoShooting())
+                    if (!isEndGame) _storage.streamDrumPhase1()
+                    else autoShootCustomisablePattern(
+                        _cms.collector.runMode == RunMode.AUTO)
+
+            ShootingPhase.Name.P1_OPENING_TURRET_GATE ->
+                if (_cms.turretGateStatus.isFinished())
+                    _storage.streamDrumPhase2()
+
+            ShootingPhase.Name.P2_SHOOTING ->
+                if (_storage.cells.hwSortingM.isReadyForShootingPhase3())
+                    _storage.cells.hwSortingM.streamDrumPhase3()
+
+            else -> { }
+        }
+    }
+
+
+    fun canStartAutoShooting() = _inShootingZone &&
+            _gameTimer.milliseconds() - _enteredShootingZoneTimeStamp >
+                Delay.MS.SHOOTING.BEFORE_AUTOSHOT &&
+            _cms.sortingPhase.isInactive() &&
+            _cms.calibrationPhase.isInactive()
+    fun autoShootCustomisablePattern(isAuto: Boolean): RequestResult.Name
+    {
+        return if (isAuto)
+        {
+            if (_cms.dynamicMemoryPattern.permanentWasDetected())
+                _storage.startCustomisableDrumRequest(
+                    AUTONOMOUS.PATTERN_SHOOTING_MODE,
+                    _cms.dynamicMemoryPattern.permanent(),
+                    AUTONOMOUS.AUTOCORRECT_REQUEST_PATTERN)
+            else _storage.startCustomisableDrumRequest(
+                AUTONOMOUS.FAILSAFE_SHOOTING_MODE,
+                AUTONOMOUS.FAILSAFE_PATTERN,
+                AUTONOMOUS.AUTOCORRECT_FAILSAFE_PATTERN)
+        }
+        else _storage.startCustomisableDrumRequest(
+                TELEOP.PATTERN_SHOOTING_MODE,
+                _cms.dynamicMemoryPattern.permanent(),
+                Shooting.StockPattern.Request.STREAM,
+                TELEOP.AUTOCORRECT_REQUEST_PATTERN,
+                TELEOP.AUTOCORRECT_FAILSAFE_PATTERN)
+    }
+
+
+
+    val isEndGame get() = _gameTimer.seconds() > 90.0
 }

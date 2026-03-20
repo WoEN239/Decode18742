@@ -15,7 +15,7 @@ import org.woen.configs.DebugSettings
 import org.woen.utils.debug.Debug
 import org.woen.configs.Delay
 import org.woen.configs.RobotSettings.CONTROLS
-import org.woen.configs.RobotSettings.SORTING
+import org.woen.enumerators.CalibrationPhase
 import org.woen.scoringSystem.ConnectorModuleStatus
 import org.woen.scoringSystem.misc.DynamicPattern
 
@@ -57,7 +57,7 @@ class Storage
 
 
 
-    fun customisableDrumRequest(
+    fun startCustomisableDrumRequest(
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,
         autoCorrectPattern: Boolean = true): RequestResult.Name
@@ -70,27 +70,23 @@ class Storage
              _cms.dynamicMemoryPattern.lastUnfinished(),
              requestOrder)
 
-        val requestResult =
-            when (shootingMode)
-            {
-                Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
-                    -> streamDrumRequest()
+        return when (shootingMode)
+        {
+            Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
+                -> streamDrumPhase1()
 
-                Shooting.Mode.FIRE_PATTERN_CAN_SKIP
-                    -> shootFinalPhase(
+            Shooting.Mode.FIRE_PATTERN_CAN_SKIP
+                -> shootFinalPhase(
+                standardPatternOrder,
+                false)
+
+            Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
+                -> shootFinalPhase(
                     standardPatternOrder,
-                    false)
-
-                Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
-                    -> shootFinalPhase(
-                        standardPatternOrder,
-                        true)
-            }
-
-        resumeLogicAfterRequest()
-        return requestResult
+                    true)
+        }
     }
-    fun customisableDrumRequest(
+    fun startCustomisableDrumRequest(
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,
         failsafeOrder: Array<BallRequest.Name>? = requestOrder,
@@ -101,7 +97,7 @@ class Storage
 
         if (failsafeOrder == null || failsafeOrder.isEmpty() ||
             failsafeOrder.contentEquals(requestOrder))
-            return customisableDrumRequest(shootingMode, requestOrder, autoCorrectRequestPattern)
+            return startCustomisableDrumRequest(shootingMode, requestOrder, autoCorrectRequestPattern)
 
         val  standardPatternOrder = if (!autoCorrectRequestPattern) requestOrder
         else DynamicPattern.trimPattern(
@@ -114,57 +110,67 @@ class Storage
             requestOrder)
 
 
-        val requestResult =
-            when (shootingMode)
-            {
-                Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
-                    -> streamDrumRequest()
+        return when (shootingMode)
+        {
+            Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
+                -> streamDrumPhase1()
 
-                Shooting.Mode.FIRE_PATTERN_CAN_SKIP
-                    -> choosePatternForShot(
+            Shooting.Mode.FIRE_PATTERN_CAN_SKIP
+                -> choosePatternForShot(
+                standardPatternOrder,
+                failsafePatternOrder,
+                    false)
+
+            Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
+                -> choosePatternForShot(
                     standardPatternOrder,
                     failsafePatternOrder,
-                        false)
-
-                Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
-                    -> choosePatternForShot(
-                        standardPatternOrder,
-                        failsafePatternOrder,
-                        true)
-            }
-
-        resumeLogicAfterRequest()
-        return requestResult
+                    true)
+        }
     }
 
 
 
-    fun streamDrumRequest(ballCount: Int = 0): RequestResult.Name
+    fun streamDrumPhase1(ballCount: Int = 0): RequestResult.Name
     {
-        val shotCount = if (ballCount != 0) ballCount
-                   else if (CONTROLS.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
-                   else cells.anyBallCount()
-        
-        logM.logMd("Starting stream shooting, count: $ballCount", Debug.START)
+        if (_cms.shootingPhase.isActive())
+            return Request.IGNORED_DUPLICATE_COMMAND
+
+        _cms.shootingPhase.startPhase1()
+        _cms.shootingPhase.ballCountForPhase1 =
+            if (ballCount == 1 && cells.isLastBall()
+                && CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
+            -1 else ballCount
+
+        logM.logMd("StreamDrum phase 1, debug ballCount: $ballCount", Debug.LOGIC)
+        cells.hwSortingM.hwMotors.openTurretGate()
+
+        return Request.ROGER_STARTING_SHOOTING
+    }
+    fun streamDrumPhase2()
+    {
+        val shotCount = if (_cms.shootingPhase.ballCountForPhase1 != 0)
+            _cms.shootingPhase.ballCountForPhase1
+        else if (CONTROLS.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
+        else cells.anyBallCount()
+
+        logM.logMd("StreamDrum phase 2, shot count: $shotCount", Debug.LOGIC)
 
         val beltPushTime = when (shotCount)
         {
             3    -> Delay.MS.SHOOTING.FIRE_3
             2    -> Delay.MS.SHOOTING.FIRE_2
-            else -> Delay.MS.SHOOTING.FIRE_1
+            1    -> Delay.MS.SHOOTING.FIRE_1
+            else -> Delay.MS.SHOOTING.FIRE_LAST_WITH_LAUNCHER
         }
 
         logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
+        cells.hwSortingM.extendableForward(beltPushTime)
+        if (shotCount == -1) cells.hwSortingM.hwMotors.openLaunch()
+    }
+    fun streamDrumPhase4()
+    {
 
-
-        cells.hwSortingM.hwMotors.openTurretGate()
-
-//        cells.hwSortingM.extendableForward(beltPushTime)
-
-//        repeat(shotCount)
-//        { cells.updateAfterShot() }
-
-        return Request.ROGER_STARTING_SHOOTING
     }
 
 
@@ -190,19 +196,24 @@ class Storage
         val afterSorting = cells.initiatePredictSort(requested, onlyInSequence)
         if (afterSorting.totalMatches == 0) return Request.COLORS_NOT_PRESENT
 
-        return streamDrumRequest(if (onlyInSequence)
+        return streamDrumPhase1(if (onlyInSequence)
             afterSorting.totalMatches else 0)  // 0 is auto option
     }
 
 
 
-    fun resumeLogicAfterRequest()
+    fun resumeAfterRequestPhase1()
     {
         if (cells.isNotEmpty())
         {
+            _cms.calibrationPhase.set(CalibrationPhase.Name.P1_REVERSING_BELTS)
             cells.hwSortingM.extendableReverse(Delay.MS.PUSH.FULL)
-            // эээээ ну хз
         }
+        else resumeAfterRequestPhase2()
+    }
+    fun resumeAfterRequestPhase2()
+    {
+        _cms.calibrationPhase.set(CalibrationPhase.Name.P2_CLOSING_ALL_SERVOS)
         cells.hwSortingM.startCalibration()
 
         _cms.canTriggerIntake = true

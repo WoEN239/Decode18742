@@ -5,8 +5,10 @@ import kotlin.math.max
 import com.qualcomm.robotcore.util.ElapsedTime
 
 import org.woen.collector.RunMode
+import org.woen.configs.Delay
 import org.woen.scoringSystem.ConnectorModuleStatus
 
+import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
 
@@ -43,7 +45,11 @@ class HwSortingManager
         if ((_cms.beltsStatus == MotorStatus.FORWARD ||
              _cms.beltsStatus == MotorStatus.REVERSE) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
-            hwMotors.stopBelts()
+        {
+            if (isReadyForCalibrationShootingPhase4())
+                _cms.shootingPhase.startPhase4()
+            else hwMotors.stopBelts()
+        }
     }
 
     fun updateColors(): Ball.Name
@@ -58,16 +64,36 @@ class HwSortingManager
 
 
 
+    fun isReadyForShootingPhase3()
+        =   _cms.beltsStatus == MotorStatus.FORWARD &&
+            CONTROLS.USE_LAUNCHER_FOR_LAST_BALL &&
+            _cms.launchStatus.isClosingOrClosed() &&
+            rotatingBeltsTimer.milliseconds() >
+            targetPushTime - Delay.MS.SHOOTING.FIRE_LAST_WITH_LAUNCHER
+    fun streamDrumPhase3()
+    {
+        hwMotors.reverseBrush()
+        hwMotors.openLaunch()
+        _cms.shootingPhase.switchToNextPhase()
+    }
+    fun isReadyForCalibrationShootingPhase4()
+        =   _cms.shootingPhase.isShootingPhase2() ||
+            _cms.shootingPhase.isShootingPhase3() &&
+            _cms.launchStatus.isFinished()
+
+
     fun startCalibration()
     {
+        hwMotors.stopBelts()
+        hwMotors.closeLaunch()
         hwMotors.closeTurretGate()
         hwMotors.closeGateWithPush()
-        hwMotors.stopBelts()
     }
     val isCalibrationFinished get()
         =   _cms.beltsStatus == MotorStatus.IDLE &&
             _cms.gateStatus.isFinished() &&
             _cms.pushStatus.isFinished() &&
+            _cms.launchStatus.isFinished() &&
             _cms.turretGateStatus.isFinished()
 
 

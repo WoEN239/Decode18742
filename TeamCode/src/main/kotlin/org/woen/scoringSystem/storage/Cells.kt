@@ -210,8 +210,11 @@ class Cells
     }
     fun tryHandleIntake()
     {
-        if (_cms.sortingPhase.isSorting() || !_cms.lazyIntakeIsActive
-            || !_cms.canTriggerIntake || alreadyFull()) return
+        if (_cms.sortingPhase.isActive() ||
+            _cms.shootingPhase.isShootingPhase3() ||
+            _cms.shootingPhase.isShootingPhase4() ||
+            _cms.lazyIntakeIsActive || !_cms.canTriggerIntake
+            || alreadyFull()) return
 
         val inputBall = hwSortingM.updateColors()
         if (inputBall == Ball.Name.NONE) return
@@ -231,7 +234,7 @@ class Cells
         logM.logMd("Storage after intake: ", Debug.GENERIC)
         logAllStorageData()
 
-        if (_cms.shootingPhase.isShooting())
+        if (_cms.shootingPhase.isActive())
              hwSortingM.extendableForward(rotationTime)
         else hwSortingM.reinstantiableForward(rotationTime)
     }
@@ -330,6 +333,7 @@ class Cells
 
         return count
     }
+    fun isLastBall() = anyBallCount() == 1
 
     fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT
     fun notFullYet()  = anyBallCount() <  MAX_BALL_COUNT
