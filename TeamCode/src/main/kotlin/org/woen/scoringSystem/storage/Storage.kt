@@ -15,6 +15,7 @@ import org.woen.configs.DebugSettings
 import org.woen.utils.debug.Debug
 import org.woen.configs.Delay
 import org.woen.configs.RobotSettings.CONTROLS
+import org.woen.configs.RobotSettings.SORTING
 import org.woen.scoringSystem.ConnectorModuleStatus
 import org.woen.scoringSystem.misc.DynamicPattern
 
@@ -156,15 +157,14 @@ class Storage
         logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
 
 
-//        cells.hwSortingM.stopBelts()
-//        cells.hwSortingM.openTurretGate()
+        cells.hwSortingM.hwMotors.openTurretGate()
 
-        cells.hwSortingM.extendableForward(beltPushTime)
+//        cells.hwSortingM.extendableForward(beltPushTime)
 
-        repeat(shotCount)
-        { cells.updateAfterShot() }
+//        repeat(shotCount)
+//        { cells.updateAfterShot() }
 
-        return if (cells.isEmpty()) Request.SUCCESS_NOW_EMPTY else Request.SUCCESS
+        return Request.ROGER_STARTING_SHOOTING
     }
 
 
@@ -188,6 +188,8 @@ class Storage
     ): RequestResult.Name
     {
         val afterSorting = cells.initiatePredictSort(requested, onlyInSequence)
+        if (afterSorting.totalMatches == 0) return Request.COLORS_NOT_PRESENT
+
         return streamDrumRequest(if (onlyInSequence)
             afterSorting.totalMatches else 0)  // 0 is auto option
     }

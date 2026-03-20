@@ -9,14 +9,13 @@ object Alias
 {
     object Request
     {
-        val SUCCESS_NOW_EMPTY = RequestResult.Name.SUCCESS_IS_NOW_EMPTY
-        val SUCCESS = RequestResult.Name.SUCCESS
+        val FINISHED_NOW_EMPTY   = RequestResult.Name.FINISHED_IS_NOW_EMPTY
+        val ROGER_STARTING_SHOOTING = RequestResult.Name.ROGER_STARTING_SHOOTING
 
         val FAIL_UNKNOWN  = RequestResult.Name.FAIL_UNKNOWN
         val FAIL_IS_EMPTY = RequestResult.Name.FAIL_IS_EMPTY
         val ILLEGAL_ARGUMENT  = RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
-        val COLOR_NOT_PRESENT = RequestResult.Name.FAIL_COLOR_NOT_PRESENT
-        val NOT_ENOUGH_COLORS = RequestResult.Name.FAIL_NOT_ENOUGH_COLORS
+        val COLORS_NOT_PRESENT = RequestResult.Name.FAIL_COLORS_NOT_PRESENT
         val COULD_NOT_DETECT_PATTERN = RequestResult.Name.FAIL_COULD_NOT_DETECT_PATTERN
 
 

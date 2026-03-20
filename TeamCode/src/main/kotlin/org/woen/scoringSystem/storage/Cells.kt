@@ -231,7 +231,7 @@ class Cells
         logM.logMd("Storage after intake: ", Debug.GENERIC)
         logAllStorageData()
 
-        if (_cms.shootingIsActive)
+        if (_cms.shootingPhase.isShooting())
              hwSortingM.extendableForward(rotationTime)
         else hwSortingM.reinstantiableForward(rotationTime)
     }
