@@ -131,27 +131,34 @@ class HwSortingManager
 
 
 
-    fun extendableForward    (timeMs: Long) = extendable    (true, timeMs)
-    fun reinstantiableForward(timeMs: Long) = reinstantiable(true, timeMs)
+    fun extendableForward    (timeMs: Long, voltage: Double = 12.0)
+        = extendable    (true, timeMs, voltage)
+    fun reinstantiableForward(timeMs: Long, voltage: Double = 12.0)
+        = reinstantiable(true, timeMs, voltage)
 
-    fun extendableReverse    (timeMs: Long) = extendable    (false, timeMs)
-    fun reinstantiableReverse(timeMs: Long) = reinstantiable(false, timeMs)
+    fun extendableReverse    (timeMs: Long, voltage: Double = 12.0)
+        = extendable    (false, timeMs, voltage)
+    fun reinstantiableReverse(timeMs: Long, voltage: Double = 12.0)
+        = reinstantiable(false, timeMs, voltage)
 
 
-    private fun extendable    (forward: Boolean, timeMs: Long)
-            = startBeltsTime(forward, if (_cms.beltsStatus != MotorStatus.FORWARD) timeMs
-    else timeMs + targetPushTime - rotatingBeltsTimer.milliseconds().toLong())
-    private fun reinstantiable(forward: Boolean, timeMs: Long)
-        = startBeltsTime(forward, if (_cms.beltsStatus != MotorStatus.FORWARD) timeMs
+    private fun extendable    (forward: Boolean, timeMs: Long, voltage: Double = 12.0)
+            = startBeltsTime(forward,
+                if (_cms.beltsStatus != MotorStatus.FORWARD) timeMs
+                else timeMs + targetPushTime
+                    - rotatingBeltsTimer.milliseconds().toLong(), voltage)
+    private fun reinstantiable(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
+        = startBeltsTime(forward,
+                if (_cms.beltsStatus != MotorStatus.FORWARD) timeMs
                 else max(timeMs, targetPushTime
-                    - rotatingBeltsTimer.milliseconds().toLong()))
-    private fun startBeltsTime(forward: Boolean, timeMs: Long)
+                    - rotatingBeltsTimer.milliseconds().toLong()), voltage)
+    private fun startBeltsTime(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
     {
         hwMotors.logM.logMd("Rotate belts period: $timeMs", Debug.HW)
         targetPushTime = timeMs
         rotatingBeltsTimer.reset()
-        if (forward) hwMotors.forwardBelts()
-        else hwMotors.reverseBelts()
+        if (forward) hwMotors.forwardBelts(voltage)
+        else hwMotors.reverseBelts(voltage)
     }
 
 

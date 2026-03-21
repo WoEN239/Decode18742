@@ -20,16 +20,16 @@ object RobotSettings
 
         @JvmField
         var PREFERRED_INTAKE_SLOT_SEARCHING_ORDER = arrayOf(
-            StorageSlot.Companion.TURRET,
-            StorageSlot.Companion.CENTER,
-            StorageSlot.Companion.BOTTOM)
+            StorageSlot.TURRET,
+            StorageSlot.CENTER,
+            StorageSlot.BOTTOM)
 
         @JvmField
         var PREFERRED_REQUEST_SLOT_SEARCHING_ORDER = arrayOf(
-            StorageSlot.Companion.TURRET,
-            StorageSlot.Companion.CENTER,
-            StorageSlot.Companion.BOTTOM,
-            StorageSlot.Companion.MOBILE)
+            StorageSlot.TURRET,
+            StorageSlot.CENTER,
+            StorageSlot.BOTTOM,
+            StorageSlot.MOBILE)
     }
 
 
@@ -47,10 +47,6 @@ object RobotSettings
 
         @JvmField
         var USE_LAUNCHER_FOR_LAST_BALL = false
-
-
-        @JvmField
-        var STOP_LAZY_INTAKE_ON_SECOND_BUTTON_PRESSED = true
 
         @JvmField
         var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = false

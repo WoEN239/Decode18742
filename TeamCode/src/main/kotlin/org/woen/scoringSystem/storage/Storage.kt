@@ -17,6 +17,7 @@ import org.woen.configs.Alias.Request
 import org.woen.configs.DebugSettings
 
 import org.woen.configs.Delay
+import org.woen.configs.Hardware
 import org.woen.configs.RobotSettings.CONTROLS
 
 
@@ -184,7 +185,9 @@ class Storage
 
         logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
 
-        cells.hwSortingM.extendableForward(beltPushTime)
+        cells.hwSortingM.extendableForward(beltPushTime,
+            _cms.shootingPhase.shotBeltsVoltage)
+
         cells.hwSortingM.timeSinceLastShotUpdateMs =
             cells.hwSortingM.rotatingBeltsTimer.milliseconds()
 
@@ -192,6 +195,8 @@ class Storage
     }
     fun streamDrumPhase4()
     {
+        _cms.shootingPhase.shotBeltsVoltage = Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING
+
         if (cells.isNotEmpty()) cells.hwSortingM.calibrationPhase1()
         else cells.hwSortingM.calibrationPhase2()
     }
@@ -233,6 +238,7 @@ class Storage
     fun sortingPhaseRealignment()
     {
         _cms.sortingPhase.switchToNextPhase()
+        cells.hwSortingM.hwMotors.stopBelts()
         cells.hwReAdjustStorage()
     }
     fun sortingPhase3()
@@ -261,9 +267,19 @@ class Storage
         _cms.sortingPhase.switchToNextPhase()
         cells.hwSortingM.hwMotors.openPush()
     }
-    fun sortingPhase7()
+    fun sortingPhase7(waitTimeStampMs: Double)
     {
         _cms.sortingPhase.switchToNextPhase()
+
+        if (Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0)
+            return sortingPhase8()
+
+        cells.hwSortingM.timeSinceLastShotUpdateMs = waitTimeStampMs
+    }
+    fun sortingPhase8()
+    {
+        _cms.sortingPhase.switchToNextPhase()
+        cells.hwSortingM.hwMotors.reverseBelts()
         cells.hwSortingM.hwMotors.closeGateWithPush()
     }
 }

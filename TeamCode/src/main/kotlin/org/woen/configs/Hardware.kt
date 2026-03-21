@@ -121,6 +121,12 @@ object Hardware
 
 
         @JvmField
+        var BELTS_FOR_FAST_SHOOTING = 12.0
+        @JvmField
+        var BELTS_FOR_SORT_SHOOTING = 10.0
+
+
+        @JvmField
         var BRUSH_FORWARD = 12.0
         @JvmField
         var BRUSH_REVERSE = 9.0

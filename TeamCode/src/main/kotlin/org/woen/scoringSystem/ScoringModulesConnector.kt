@@ -26,6 +26,7 @@ import org.woen.modules.drivetrain.RobotEnterShootingAreaEvent
 
 import org.woen.configs.Delay
 import org.woen.configs.DebugSettings
+import org.woen.configs.Hardware
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
@@ -220,7 +221,8 @@ class ScoringModulesConnector
             ShootingPhase.Name.NOT_ACTIVE ->
                 if (canStartAutoShooting())
                 {
-                    if (!isEndGame) logM.logMd(
+                    if (!(CONTROLS.DISABLE_AUTO_SHOOTING_IN_END_GAME
+                        && isEndGame)) logM.logMd(
                         _storage.streamDrumPhase1()
                             .toString(), Debug.START)
                     else logM.logMd(
@@ -280,14 +282,21 @@ class ScoringModulesConnector
 
             SortingPhase.Name.P6_OPENING_PUSH ->
                 if (_cms.pushStatus.isOpened())
-                    _storage.sortingPhase7()
+                    _storage.sortingPhase7(
+                        _gameTimer.milliseconds())
 
-            SortingPhase.Name.P7_CLOSING_GATE_AND_PUSH ->
+            SortingPhase.Name.P7_WAIT_SOME_TIME ->
+                if (_gameTimer.milliseconds() -
+                    Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 >
+                    _storage.cells.hwSortingM.timeSinceLastShotUpdateMs)
+                    _storage.sortingPhase8()
+
+            SortingPhase.Name.P8_CLOSING_GATE_AND_PUSH ->
                 if (_cms.gateStatus.isClosed() &&
                     _cms.pushStatus.isClosed())
                     _storage.sortingPhaseRealignment()
 
-            SortingPhase.Name.P8_REALIGN_STORAGE ->
+            SortingPhase.Name.P9_REALIGN_STORAGE ->
                 if (_cms.beltsStatus == MotorStatus.IDLE)
                 {
                     _cms.sortingPhase.remainingRotations--
@@ -326,12 +335,15 @@ class ScoringModulesConnector
 
 
     fun canStartAutoShooting() = _inShootingZone &&
+            CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE &&
             _gameTimer.milliseconds() - _enteredShootingZoneTimeStamp >
                 Delay.MS.SHOOTING.BEFORE_AUTOSHOT &&
             _cms.sortingPhase.isInactive() &&
             _cms.calibrationPhase.isInactive()
     fun autoShootCustomisablePattern(isAuto: Boolean): RequestResult.Name
     {
+        _cms.shootingPhase.shotBeltsVoltage = Hardware.MOTOR.BELTS_FOR_SORT_SHOOTING
+
         return if (isAuto)
         {
             if (_cms.dynamicMemoryPattern.permanentWasDetected())

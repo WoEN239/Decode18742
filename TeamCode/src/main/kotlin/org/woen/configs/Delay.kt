@@ -52,20 +52,25 @@ object Delay
 
             @JvmField
             var SORTING_REVERSE: Long = 85
-        }
 
+
+            @JvmField
+            var WAITING_IN_SORTING_PASE_7: Long = 80
+
+
+        }
 
         @JvmField
         var BRUSH_REVERSE: Long = 1500
 
         @JvmField
-        var HW_REQUEST_FREQUENCY: Long = 5
+        var GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL = 500
     }
 
     @Config
     internal object SEC
     {
         @JvmField
-        var GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL = 0.6
+        var GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL = 0.5
     }
 }

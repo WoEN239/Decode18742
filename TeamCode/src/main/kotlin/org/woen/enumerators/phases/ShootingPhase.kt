@@ -1,10 +1,14 @@
 package org.woen.enumerators.phases
 
+import org.woen.configs.Hardware
+
 
 class ShootingPhase
 {
     private var _name : Name
     var ballCountForPhase1 : Int = 0
+    var shotBeltsVoltage: Double = Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING
+
 
     constructor(name: Name = Name.NOT_ACTIVE) { _name = name }
 

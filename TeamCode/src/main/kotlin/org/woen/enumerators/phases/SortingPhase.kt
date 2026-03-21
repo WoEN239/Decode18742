@@ -22,9 +22,10 @@ class SortingPhase
 
         P5_OPENING_GATE,
         P6_OPENING_PUSH,
+        P7_WAIT_SOME_TIME,
 
-        P7_CLOSING_GATE_AND_PUSH,
-        P8_REALIGN_STORAGE,
+        P8_CLOSING_GATE_AND_PUSH,
+        P9_REALIGN_STORAGE,
     }
 
     val name get() = _name
@@ -48,9 +49,10 @@ class SortingPhase
             Name.P3_REALIGNING_UPWARDS    -> Name.P4_REALIGNING_DOWNWARDS
             Name.P4_REALIGNING_DOWNWARDS  -> Name.P5_OPENING_GATE
             Name.P5_OPENING_GATE          -> Name.P6_OPENING_PUSH
-            Name.P6_OPENING_PUSH          -> Name.P7_CLOSING_GATE_AND_PUSH
-            Name.P7_CLOSING_GATE_AND_PUSH -> Name.P8_REALIGN_STORAGE
-            Name.P8_REALIGN_STORAGE       -> Name.NOT_ACTIVE
+            Name.P6_OPENING_PUSH          -> Name.P7_WAIT_SOME_TIME
+            Name.P7_WAIT_SOME_TIME        -> Name.P8_CLOSING_GATE_AND_PUSH
+            Name.P8_CLOSING_GATE_AND_PUSH -> Name.P9_REALIGN_STORAGE
+            Name.P9_REALIGN_STORAGE       -> Name.NOT_ACTIVE
         }
     }
 

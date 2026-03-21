@@ -189,7 +189,8 @@ class Cells
             _cms.shootingPhase.isShootingPhase3() ||
             _cms.shootingPhase.isShootingPhase4() ||
             _cms.lazyIntakeIsActive || !_cms.canTriggerIntake
-            || alreadyFull()) return
+            || alreadyFull()) return _cms.collector.opMode.gamepad1.rumble(
+                Delay.MS.GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL)
 
         val inputBall = hwSortingM.updateColors()
         if (inputBall == Ball.Name.NONE) return

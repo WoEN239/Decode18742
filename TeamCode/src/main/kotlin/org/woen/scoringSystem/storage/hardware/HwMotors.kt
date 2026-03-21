@@ -131,29 +131,25 @@ class HwMotors
     }
 
 
-    fun lazyForwardBelts()
+    fun lazyForwardBelts(voltage: Double = 10.0)
     {
         _cms.beltsStatus = MotorStatus.LAZY_FORWARD
-        _beltMotor.power = _cms.collector.battery.voltageToPower(
-            Hardware.MOTOR.BELTS_FORWARD)
+        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
     }
-    fun lazyReverseBelts()
+    fun lazyReverseBelts(voltage: Double = 10.0)
     {
         _cms.beltsStatus = MotorStatus.LAZY_REVERSE
-        _beltMotor.power = _cms.collector.battery.voltageToPower(
-            Hardware.MOTOR.BELTS_FORWARD)
+        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
     }
-    fun forwardBelts()
+    fun forwardBelts(voltage: Double = 12.0)
     {
         _cms.beltsStatus = MotorStatus.FORWARD
-        _beltMotor.power = _cms.collector.battery.voltageToPower(
-            Hardware.MOTOR.BELTS_FORWARD)
+        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
     }
-    fun reverseBelts()
+    fun reverseBelts(voltage: Double = 12.0)
     {
         _cms.beltsStatus = MotorStatus.REVERSE
-        _beltMotor.power = _cms.collector.battery.voltageToPower(
-            Hardware.MOTOR.BELTS_REVERSE)
+        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
     }
     fun stopBelts()
     {
