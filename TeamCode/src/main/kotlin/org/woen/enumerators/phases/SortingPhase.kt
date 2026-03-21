@@ -5,6 +5,8 @@ package org.woen.enumerators.phases
 class SortingPhase
 {
     private var _name : Name
+    var remainingRotations: Int = 0
+
 
     constructor(name: Name = Name.NOT_ACTIVE) { _name = name }
 
@@ -26,12 +28,40 @@ class SortingPhase
     }
 
     val name get() = _name
-    fun set (name: Name)
+
+
+    fun setInactive()
     {
-        _name = name
+        _name = Name.NOT_ACTIVE
     }
-
-
+    fun startPhase1()
+    {
+        _name = Name.P1_CLOSING_TURRET_GATE
+    }
+    fun startPhase3()
+    {
+        _name = Name.P3_REALIGNING_UPWARDS
+    }
+    fun startPhase4()
+    {
+        _name = Name.P4_REALIGNING_DOWNWARDS
+    }
+    fun startPhase5()
+    {
+        _name = Name.P5_OPENING_GATE
+    }
+    fun startPhase6()
+    {
+        _name = Name.P6_OPENING_PUSH
+    }
+    fun startPhase7()
+    {
+        _name = Name.P7_CLOSING_GATE_AND_PUSH
+    }
+    fun startPhase8()
+    {
+        _name = Name.P8_REALIGN_STORAGE
+    }
     fun switchToNextPhase()
     {
         _name = when (_name)

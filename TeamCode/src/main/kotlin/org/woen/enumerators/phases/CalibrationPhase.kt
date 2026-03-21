@@ -18,10 +18,6 @@ class CalibrationPhase
     }
 
     val name get() = _name
-    fun set (name: Name)
-    {
-        _name = name
-    }
 
 
     fun setInactive()

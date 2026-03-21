@@ -179,6 +179,10 @@ class ScoringModulesConnector
                     _storage.streamDrumPhase4()
         }
     }
+    fun updateSorting()
+    {
+
+    }
     fun updateCalibrationPhase()
     {
         if (_cms.calibrationPhase.isCalibrationPhase2() &&
@@ -186,20 +190,12 @@ class ScoringModulesConnector
         {
             if (_storage.cells.isNotEmpty())
                 _storage.cells.hwSortingM.calibrationPhase3()
-            else
-            {
-                _cms.calibrationPhase.setInactive()
-                if (_storage.cells.notFullYet())
-                    _storage.cells.hwSortingM.hwMotors.forwardBrush()
-            }
+            else _storage.finishCalibration()
         }
         if (_cms.calibrationPhase.isCalibrationPhase3() &&
             _cms.beltsStatus == MotorStatus.IDLE)
-        {
-            _cms.calibrationPhase.setInactive()
-            if (_storage.cells.notFullYet())
-                _storage.cells.hwSortingM.hwMotors.forwardBrush()
-        }
+            _storage.finishCalibration()
+
 
         if (_cms.calibrationPhase.isInactive() &&
             _cms.shootingPhase.isShootingPhase4())

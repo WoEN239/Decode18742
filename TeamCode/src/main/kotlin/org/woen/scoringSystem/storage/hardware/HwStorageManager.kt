@@ -79,9 +79,11 @@ class HwSortingManager
             targetPushTime - Delay.MS.SHOOTING.FIRE_LAST_WITH_LAUNCHER
     fun streamDrumPhase3()
     {
+        _cms.canTriggerIntake = false
+        _cms.shootingPhase.switchToNextPhase()
+
         hwMotors.reverseBrush()
         hwMotors.openLaunch()
-        _cms.shootingPhase.switchToNextPhase()
     }
     fun isReadyForShootingPhase4()
         =   _cms.shootingPhase.isShootingPhase2() ||
@@ -92,22 +94,25 @@ class HwSortingManager
 
     fun calibrationPhase1()
     {
-        extendableReverse(Delay.MS.PUSH.HALF)
+        _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase1()
+        extendableReverse(Delay.MS.PUSH.HALF)
     }
     fun calibrationPhase2()
     {
+        _cms.canTriggerIntake = false
+        _cms.calibrationPhase.startPhase2()
+
         hwMotors.stopBelts()
         hwMotors.closeLaunch()
         hwMotors.closeTurretGate()
         hwMotors.closeGateWithPush()
-
-        _cms.calibrationPhase.startPhase2()
     }
     fun calibrationPhase3()
     {
-        extendableForward(Delay.MS.PUSH.HALF)
+        _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase3()
+        extendableForward(Delay.MS.PUSH.FULL)
     }
 
     fun closedAllServos()
