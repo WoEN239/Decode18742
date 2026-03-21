@@ -10,6 +10,7 @@ object Alias
     object Request
     {
         val FINISHED_NOW_EMPTY   = RequestResult.Name.FINISHED_IS_NOW_EMPTY
+        val ROGER_STARTING_SORTING = RequestResult.Name.ROGER_STARTING_SORTING
         val ROGER_STARTING_SHOOTING = RequestResult.Name.ROGER_STARTING_SHOOTING
 
 

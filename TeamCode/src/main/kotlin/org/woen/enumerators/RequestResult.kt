@@ -16,6 +16,7 @@ class RequestResult
 
     enum class Name
     {
+        ROGER_STARTING_SORTING,
         ROGER_STARTING_SHOOTING,
         FINISHED_IS_NOW_EMPTY,
 
@@ -46,17 +47,18 @@ class RequestResult
 
     companion object
     {
-        const val ROGER_STARTING_SHOOTING: Int = 0
-        const val FINISHED_IS_NOW_EMPTY: Int = 1
+        const val ROGER_STARTING_SORTING:  Int = 0
+        const val ROGER_STARTING_SHOOTING: Int = 1
+        const val FINISHED_IS_NOW_EMPTY:   Int = 2
 
-        const val FAIL_UNKNOWN:  Int = 2
-        const val FAIL_IS_EMPTY: Int = 3
+        const val FAIL_UNKNOWN:  Int = 3
+        const val FAIL_IS_EMPTY: Int = 4
 
-        const val FAIL_ILLEGAL_ARGUMENT: Int = 4
-        const val FAIL_COLORS_NOT_PRESENT: Int = 5
+        const val FAIL_ILLEGAL_ARGUMENT:   Int = 5
+        const val FAIL_COLORS_NOT_PRESENT: Int = 6
 
-        const val FAIL_IGNORE_DUPLICATE_COMMAND: Int = 6
-        const val FAIL_COULD_NOT_DETECT_PATTERN: Int = 7
+        const val FAIL_IGNORE_DUPLICATE_COMMAND: Int = 7
+        const val FAIL_COULD_NOT_DETECT_PATTERN: Int = 8
 
 
         fun didFail(id:   Int)  = id > FINISHED_IS_NOW_EMPTY
@@ -70,6 +72,7 @@ class RequestResult
         {
             return when (id)
             {
+                ROGER_STARTING_SORTING  -> Name.ROGER_STARTING_SORTING
                 ROGER_STARTING_SHOOTING -> Name.ROGER_STARTING_SHOOTING
                 FINISHED_IS_NOW_EMPTY   -> Name.FINISHED_IS_NOW_EMPTY
 
@@ -80,13 +83,16 @@ class RequestResult
                 FAIL_COLORS_NOT_PRESENT -> Name.FAIL_COLORS_NOT_PRESENT
 
                 FAIL_IGNORE_DUPLICATE_COMMAND -> Name.FAIL_IGNORE_DUPLICATE_COMMAND
-                else -> Name.FAIL_COULD_NOT_DETECT_PATTERN
+                FAIL_COULD_NOT_DETECT_PATTERN -> Name.FAIL_COULD_NOT_DETECT_PATTERN
+
+                else -> Name.FAIL_UNKNOWN
             }
         }
         fun toInt(name: Name): Int
         {
             return when (name)
             {
+                Name.ROGER_STARTING_SORTING  -> ROGER_STARTING_SORTING
                 Name.ROGER_STARTING_SHOOTING -> ROGER_STARTING_SHOOTING
                 Name.FINISHED_IS_NOW_EMPTY   -> FINISHED_IS_NOW_EMPTY
 

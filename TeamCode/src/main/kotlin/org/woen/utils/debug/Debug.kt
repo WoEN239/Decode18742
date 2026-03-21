@@ -59,4 +59,7 @@ object Debug
 
     const val PROCESS_NAME = 13
     const val TERMINATION  = 14
+
+    const val ERROR = 15
+    const val ERROR_INFO = 15
 }

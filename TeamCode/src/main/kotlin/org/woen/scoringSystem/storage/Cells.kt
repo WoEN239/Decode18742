@@ -84,6 +84,7 @@ class Cells
     }
 
 
+
     private fun predictSortSearchLogic(
         requested: Array<BallRequest>,
         trimmedRequestSize: Int,
@@ -160,36 +161,10 @@ class Cells
         val requestedFullData  = Array(requested.size)
             { BallRequest(requested[it]) }
 
+        logM.logMd("Start predict sort search", Debug.START)
         return predictSortSearchLogic(
             requestedFullData,
             trimmedRequestSize, onlyInSequence)
-    }
-    fun initiatePredictSort(
-        requested: Array<BallRequest.Name>,
-        onlyInSequence: Boolean): PredictSortResult
-    {
-        val trimmedRequestSize = min(requested.size, MAX_BALL_COUNT)
-        if (trimmedRequestSize == 0)
-            return PredictSortResult(0,
-                0.0, 0)
-
-        hwReAdjustStorage()
-
-        logM.logMd("Start predict sort search", Debug.START)
-        val requestedFullData  = Array(requested.size)
-            { BallRequest(requested[it]) }
-
-        val searchResult = predictSortSearchLogic(
-            requestedFullData,
-            trimmedRequestSize, onlyInSequence)
-
-        logM.logMd("Best score: ${searchResult.maxSequenceScore}", Debug.GENERIC)
-
-        if (searchResult.maxSequenceScore >= PSEUDO_MATCH_WEIGHT)
-            repeat (searchResult.totalRotations)
-            { fullRotate() }
-
-        return searchResult
     }
 
 
@@ -250,25 +225,6 @@ class Cells
 
 
 
-    fun fullRotate()
-    {
-        logM.logMd("storage before full rotation:", Debug.GENERIC)
-        logAllStorageData()
-
-        hwReAdjustStorage()
-
-//        hwSortingM.rotateMobileSlot()
-
-        _storageCells[StorageSlot.MOBILE].set(_storageCells[StorageSlot.TURRET])
-        _storageCells[StorageSlot.TURRET].empty()
-
-        hwReAdjustStorage()
-
-        logM.logMd("finished full rotation, new storage:", Debug.END)
-        logAllStorageData()
-    }
-
-
     private fun swReAdjustStorage(): Boolean
     {
         logM.logMd("SwReadjust round", Debug.LOGIC)
@@ -299,10 +255,16 @@ class Cells
     }
     fun hwReAdjustStorage()
     {
+        if (_cms.calibrationPhase.isActive())
+            return logM.logMd("-!- Failed to perform storage ReAdjustment", Debug.ERROR)
+
         _cms.canTriggerIntake = false
 
-//        while (swReAdjustStorage())
-//            hwSortingM.reinstantiableForwardBeltsTime(Delay.MS.PUSH.FULL)
+        var beltPushTime: Long = 0
+        while (swReAdjustStorage())
+            beltPushTime += Delay.MS.PUSH.FULL
+
+        hwSortingM.reinstantiableForward(beltPushTime)
     }
 
 
