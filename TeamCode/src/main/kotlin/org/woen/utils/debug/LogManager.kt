@@ -13,7 +13,7 @@ class LogManager
         var debugLevels:   ArrayList<Int> = arrayListOf(
             Debug.HW, Debug.HW_HIGH, Debug.GAMEPAD, Debug.EVENTS,
             Debug.TRYING, Debug.START, Debug.END, Debug.GENERIC,
-            Debug.STATUS, Debug.LOGIC, Debug.PROCESS_NAME),
+            Debug.STATUS, Debug.LOGIC, Debug.PROCESS_NAME, Debug.ERROR),
         var warningLevels: ArrayList<Int> = arrayListOf(
             Debug.HW_LOW, Debug.HW, Debug.HW_HIGH),
         var moduleName: String = "")

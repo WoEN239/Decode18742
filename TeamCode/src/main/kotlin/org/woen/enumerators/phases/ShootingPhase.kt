@@ -41,6 +41,10 @@ class ShootingPhase
     {
         _name = Name.P1_OPENING_TURRET_GATE
     }
+    fun startPhase4()
+    {
+        _name = Name.P4_CALIBRATING
+    }
     fun switchToNextPhase()
     {
         _name = when (_name)

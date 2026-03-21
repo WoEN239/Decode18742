@@ -168,6 +168,8 @@ class Storage
     }
     fun streamDrumPhase2()
     {
+        _cms.shootingPhase.switchToNextPhase()
+
         val shotCount = if (_cms.shootingPhase.ballCountForPhase1 != 0)
             _cms.shootingPhase.ballCountForPhase1
         else if (CONTROLS.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
@@ -195,6 +197,7 @@ class Storage
     }
     fun streamDrumPhase4()
     {
+        logM.logMd("StreamDrum phase 4, starting calibration", Debug.LOGIC)
         _cms.shootingPhase.shotBeltsVoltage = Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING
 
         if (cells.isNotEmpty()) cells.hwSortingM.calibrationPhase1()
@@ -203,6 +206,8 @@ class Storage
 
     fun finishCalibration()
     {
+        logM.logMd("Finishing calibration", Debug.LOGIC)
+
         _cms.calibrationPhase.setInactive()
         if (cells.notFullYet() && _cms.sortingPhase.isInactive())
         {

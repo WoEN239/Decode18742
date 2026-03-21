@@ -77,6 +77,7 @@ class HwSortingManager
             targetPushTime - Delay.MS.SHOOTING.FIRE_LAST_WITH_LAUNCHER
     fun streamDrumPhase3()
     {
+        hwMotors.logM.logMd("StreamDrum phase 3, opening launch", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.shootingPhase.switchToNextPhase()
 
@@ -93,12 +94,14 @@ class HwSortingManager
 
     fun calibrationPhase1()
     {
+        hwMotors.logM.logMd("Calibration phase 1, reversing belts", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase1()
         extendableReverse(Delay.MS.PUSH.HALF)
     }
     fun calibrationPhase2()
     {
+        hwMotors.logM.logMd("Calibration phase 1, closing servos", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase2()
 

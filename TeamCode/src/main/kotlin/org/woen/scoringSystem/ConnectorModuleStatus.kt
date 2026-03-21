@@ -17,11 +17,10 @@ class ConnectorModuleStatus(var collector: Collector)
     var dynamicMemoryPattern = DynamicPattern()
     var awaitingPatternFromCamera = true
 
-    var canTriggerIntake = false
+    var canTriggerIntake = true
 
 
     var lazyIntakeIsActive  = false
-    var storageIsRealigning = false
 
 
     var sortingPhase     = SortingPhase()

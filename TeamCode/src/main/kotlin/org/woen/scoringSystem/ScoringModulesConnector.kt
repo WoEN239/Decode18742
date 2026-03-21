@@ -95,7 +95,7 @@ class ScoringModulesConnector
                     { it.right_bumper },
                     {
                         if (_cms.shootingPhase.isInactive()
-                            && canStartAutoShooting())
+                            && canStartManualShooting())
                             logM.logMd(_storage.streamDrumPhase1()
                                 .toString(), Debug.START)
                         else
@@ -119,7 +119,11 @@ class ScoringModulesConnector
                         {
                             if (_cms.lazyIntakeIsActive)
                                  _storage.cells.hwSortingM.hwMotors.stopBelts()
-                            else _storage.cells.hwSortingM.hwMotors.lazyForwardBelts()
+                            else
+                            {
+                                _storage.cells.hwSortingM.hwMotors.lazyForwardBelts()
+                                _storage.cells.hwSortingM.hwMotors.forwardBrush()
+                            }
 
                             _cms.lazyIntakeIsActive = !_cms.lazyIntakeIsActive
                         }
@@ -243,8 +247,12 @@ class ScoringModulesConnector
             {
                 if (_storage.cells.hwSortingM.wasShotFired())
                     _storage.cells.updateAfterShot()
+
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase3())
                     _storage.cells.hwSortingM.streamDrumPhase3()
+
+                if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
+                    _cms.shootingPhase.startPhase4()
             }
 
             ShootingPhase.Name.P3_OPENING_LAUNCHER ->
@@ -338,7 +346,9 @@ class ScoringModulesConnector
             CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE &&
             _gameTimer.milliseconds() - _enteredShootingZoneTimeStamp >
                 Delay.MS.SHOOTING.BEFORE_AUTOSHOT &&
-            _cms.sortingPhase.isInactive() &&
+            canStartManualShooting()
+    fun canStartManualShooting()
+        =   _cms.sortingPhase.isInactive() &&
             _cms.calibrationPhase.isInactive()
     fun autoShootCustomisablePattern(isAuto: Boolean): RequestResult.Name
     {
