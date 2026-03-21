@@ -29,7 +29,7 @@ import kotlin.math.tan
 @Config
 internal object TURRET_CONFIG {
     @JvmField
-    var MAX_ANGLE_SERVO = 1.0 - 0.33
+    var MAX_ANGLE_SERVO = 1.0 - 0.32
 
     @JvmField
     var MIN_ANGLE_SERVO = 1.0 - 0.48
@@ -71,7 +71,7 @@ internal object TURRET_CONFIG {
     var PULLEY_REGULATOR = PIDFCoefficients(100.0, 1.5, 0.0, 15.5)
 
     @JvmField
-    var PULLEY_RATION = 35.0 / 34.0
+    var PULLEY_RATION = 37.0 / 33.0
 
     @JvmField
     var GRAVITY_G = 9.80665
@@ -232,7 +232,7 @@ fun attachTurret(collector: Collector) {
         turretHeading = (when (state) {
             TurretState.TO_OBELISK -> Angle(
                 (GAME_CONFIGS.OBELISK_POSITION - (odometry.orientation.pos +
-                        TURRET_CONFIG.TURRET_CENTER_POS.turn(odometry.orientation.angle))).rot()
+                        TURRET_CONFIG.TURRET_CENTER_POS.turn(odometry.orientation.angle))).rot() + PI
             )
             TurretState.TO_BASKET -> Angle(basketErr.rot() + PI)
         } - odometry.orientation.angl).angle

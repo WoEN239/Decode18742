@@ -18,7 +18,7 @@ object MeepMeepTesting {
 
         val myBot =
             DefaultBotBuilder(meepMeep) // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
-                .setConstraints(1.9 / 0.0254, 4.0 / 0.0254 * 2.5, 7.0, 14.0, (0.38) / 0.0254)
+                .setConstraints(1.9 / 0.0254, 4.0 / 0.0254 * 2.5, 7.0, 16.0, (0.38) / 0.0254)
                 .build()
 
         val eatVelConstraint = MinVelConstraint(
@@ -45,16 +45,26 @@ object MeepMeepTesting {
                     (-0.91 - 0.38 / 2.0) / 0.0254, 0.0
                 )
             )
-                .meterStrafeToConstantHeading(Vector2d(-0.683, -0.642))
-                .setTangent(0.0)
-                .meterSplineTo(
-                    Vector2d(
-                        -0.290,
-                        -0.819
-                    ), -PI / 2.0
-                )
-                .waitSeconds(5.0)
-                .meterStrafeToConstantHeading(Vector2d(-0.290, -0.919))
+//                .meterStrafeToConstantHeading(Vector2d(-0.683, -0.642))
+//                .setTangent(0.0)
+//                .meterSplineTo(
+//                    Vector2d(
+//                        -0.314,
+//                        -0.769
+//                    ), -PI / 2.0
+//                )
+//                .meterStrafeToConstantHeading(Vector2d(-0.314, -1.33))
+//                .setTangent(0.0)
+//                .splineToConstantHeading(Vector2d(0.0, -1.370 / 0.0254), -PI / 2.0)
+                .meterStrafeToLinearHeading(
+                Vector2d(-0.683, -0.642), Math.toRadians(-135.0 / 2.0 + 40.0))
+                .meterStrafeToLinearHeading(Vector2d(0.9, -0.769), -PI / 2.0)
+                .meterStrafeToConstantHeading(Vector2d(0.9, -1.5))
+//                .setReversed(true)
+//                .meterStrafeToConstantHeading(Vector2d(0.3, -1.0))
+//                .setReversed(false)
+                .meterStrafeToLinearHeading(
+                    Vector2d(-0.683, -0.642), Math.toRadians(-135.0 / 2.0 + 40.0))
 //                .waitSeconds(5.0)
 //                .setReversed(true)
 //                .meterStrafeTo(Vector2d(0.0, -1.4))

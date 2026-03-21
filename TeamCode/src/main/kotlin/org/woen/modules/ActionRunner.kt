@@ -1,9 +1,6 @@
 package org.woen.modules
 
-import com.acmerobotics.roadrunner.AngularVelConstraint
-import com.acmerobotics.roadrunner.MinVelConstraint
 import com.acmerobotics.roadrunner.Trajectory
-import com.acmerobotics.roadrunner.TranslationalVelConstraint
 import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
@@ -12,7 +9,6 @@ import org.woen.modules.drivetrain.GetEndTrajectoryEvent
 import org.woen.modules.drivetrain.GetRunnerIsFinishedEvent
 import org.woen.modules.drivetrain.GetTrajectoryBuilderEvent
 import org.woen.modules.drivetrain.ITrajectorySegment
-import org.woen.modules.drivetrain.RUNNER_CONFIG
 import org.woen.modules.drivetrain.RegisterSegmentEvent
 import org.woen.modules.drivetrain.RunSegmentsEvent
 import org.woen.modules.drivetrain.TurnSegment
@@ -177,48 +173,138 @@ fun attachActionRunner(collector: Collector) {
                 ).build()
             ),
             ShootAction(eventBus),
+            TurretStateSwapAction(eventBus, TurretState.TO_OBELISK),
             StartEatAction(eventBus),
             TrajectoryAction(
                 eventBus,
                 eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!
-                    .strafeToLinearHeading(
+                    .splineTo(
                         Vector2d(
-                            -0.484,
-                            -0.719
+                            -0.314,
+                            -0.769
                         ), -PI / 2.0
                     )
-                    .strafeTo(Vector2d(-0.484, -1.154)).build()
+                    .strafeToConstantHeading(Vector2d(-0.314, -1.33)).build()
             ),
+            WaitAction(0.3),
             StopEatAction(eventBus),
+            TurretStateSwapAction(eventBus, TurretState.TO_BASKET),
             ParallelActions(
                 arrayOf(
-//                    arrayListOf(
-//                        SortingAction(
-//                            eventBus,
-//                            BallColor.PURPLE,
-//                            BallColor.PURPLE,
-//                            BallColor.GREEN
-//                        )
-//                    ),
+                    arrayListOf(
+                        SortingAction(
+                            eventBus,
+                            BallColor.PURPLE,
+                            BallColor.PURPLE,
+                            BallColor.GREEN
+                        )
+                    ),
                     arrayListOf(
                         TrajectoryAction(
                             eventBus, eventBus.invoke(
                                 GetTrajectoryBuilderEvent()
-                            ).builder!!.strafeToConstantHeading(
-                                Vector2d(-0.026, -1.370)
-                            ).build()
+                            ).builder!!
+                                .setReversed(true)
+                                .strafeToConstantHeading(Vector2d(-0.314, -0.8))
+                                .setTangent(0.0)
+                                .splineToConstantHeading(Vector2d(0.0, -1.372), PI / 2.0).build()
                         ),
-                        WaitAction(0.5),
+                        WaitAction(0.85),
                         TrajectoryAction(
                             eventBus,
                             eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToLinearHeading(
-                                Vector2d(-0.683, -0.642), Math.toRadians(-135.0 / 2.0 + 10.0)
+                                Vector2d(-0.683, -0.642), Math.toRadians(-135.0 / 2.0 + 40.0)
                             ).build()
                         )
                     ),
                 ), ParallelActions.ExitType.AND
             ),
-            ShootAction(eventBus)
+            ShootAction(eventBus),
+            TrajectoryAction(
+                eventBus,
+                eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToLinearHeading(
+                    Vector2d(0.3, -0.729),
+                    -PI / 2.0
+                )
+                    .build()
+            ),
+            StartEatAction(eventBus),
+            TrajectoryAction(
+                eventBus,
+                eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToConstantHeading(
+                    Vector2d(0.3, -1.5)
+                )
+                    .build()
+            ),
+            WaitAction(0.3),
+            StopEatAction(eventBus),
+            ParallelActions(
+                arrayOf(
+                    arrayListOf(
+                        TrajectoryAction(
+                            eventBus,
+                            eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!
+                                .setReversed(true)
+                                .strafeToConstantHeading(Vector2d(0.3, -1.0))
+                                .setReversed(false)
+                                .strafeToLinearHeading(
+                                    Vector2d(-0.683, -0.642), Math.toRadians(-135.0 / 2.0 + 40.0)
+                                )
+                                .build()
+                        )
+                    ),
+                    arrayListOf(
+                        SortingAction(
+                            eventBus,
+                            BallColor.PURPLE,
+                            BallColor.GREEN,
+                            BallColor.PURPLE
+                        )
+                    )
+                ), ParallelActions.ExitType.AND
+            ),
+            ShootAction(eventBus),
+            TrajectoryAction(
+                eventBus,
+                eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToLinearHeading(
+                    Vector2d(0.9, -0.649),
+                    -PI / 2.0
+                )
+                    .build()
+            ),
+            StartEatAction(eventBus),
+            TrajectoryAction(
+                eventBus,
+                eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToConstantHeading(
+                    Vector2d(0.9, -1.5)
+                )
+                    .build()
+            ),
+            WaitAction(0.5),
+            StopEatAction(eventBus),
+            ParallelActions(
+                arrayOf(
+                    arrayListOf(
+                        TrajectoryAction(
+                            eventBus,
+                            eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!
+                                .strafeToLinearHeading(
+                                    Vector2d(-0.683, -0.642), Math.toRadians(-135.0 / 2.0 + 40.0)
+                                )
+                                .build()
+                        )
+                    ),
+                    arrayListOf(
+                        SortingAction(
+                            eventBus,
+                            BallColor.GREEN,
+                            BallColor.PURPLE,
+                            BallColor.PURPLE
+                        )
+                    )
+                ), ParallelActions.ExitType.AND
+            ),
+            ShootAction(eventBus),
         )
     )
 

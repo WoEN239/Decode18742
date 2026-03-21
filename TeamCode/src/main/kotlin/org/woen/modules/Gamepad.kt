@@ -46,19 +46,30 @@ class AnalogGamepadListener(
     }
 }
 
-class AddGamepadListenerEvent(val gamepadListener: IGamepadListener)
+class AddGamepad1ListenerEvent(val gamepadListener: IGamepadListener)
+class AddGamepad2ListenerEvent(val gamepadListener: IGamepadListener)
 
 fun attachGamepad(collector: Collector) {
-    val gamepad = collector.opMode.gamepad1
-    val gamepadListeners = mutableSetOf<IGamepadListener>()
+    val gamepad1 = collector.opMode.gamepad1
+    val gamepad2 = collector.opMode.gamepad2
 
-    collector.eventBus.subscribe(AddGamepadListenerEvent::class) {
-        gamepadListeners.add(it.gamepadListener)
+    val gamepad1Listeners = mutableSetOf<IGamepadListener>()
+    val gamepad2Listeners = mutableSetOf<IGamepadListener>()
+
+    collector.eventBus.subscribe(AddGamepad1ListenerEvent::class) {
+        gamepad1Listeners.add(it.gamepadListener)
+    }
+
+    collector.eventBus.subscribe(AddGamepad2ListenerEvent::class) {
+        gamepad2Listeners.add(it.gamepadListener)
     }
 
     if (collector.runMode == RunMode.MANUAL)
         collector.updateEvent += {
-            for (i in gamepadListeners)
-                i.update(gamepad)
+            for (i in gamepad1Listeners)
+                i.update(gamepad1)
+
+            for(i in gamepad2Listeners)
+                i.update(gamepad2)
         }
 }

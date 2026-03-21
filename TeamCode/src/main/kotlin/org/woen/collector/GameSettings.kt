@@ -69,5 +69,5 @@ enum class StartOrientation(
 }
 
 object GameSettings {
-    var startOrientation = StartOrientation.RED_CLOSE
+    var startOrientation = StartOrientation.BLUE_CLOSE
 }

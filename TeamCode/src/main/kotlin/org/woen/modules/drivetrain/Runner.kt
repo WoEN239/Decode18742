@@ -34,16 +34,16 @@ internal object RUNNER_CONFIG {
     var LINEAR_ACCEL = 10.0
 
     @JvmField
-    var HEADING_ACCEL = 14.0
+    var HEADING_ACCEL = 18.0
 
     @JvmField
-    var POSITION_P_X = 2.0
+    var POSITION_P_X = 3.0
 
     @JvmField
-    var POSITION_P_Y = 2.0
+    var POSITION_P_Y = 3.0
 
     @JvmField
-    var HEADING_P_H = 2.0
+    var HEADING_P_H = 4.0
 
     @JvmField
     var POSITION_SENS = 0.3

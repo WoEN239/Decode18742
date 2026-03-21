@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Gamepad
 import org.woen.collector.Collector
 import org.woen.collector.RunMode
-import org.woen.modules.AddGamepadListenerEvent
+import org.woen.modules.AddGamepad1ListenerEvent
 import org.woen.modules.IGamepadListener
 import org.woen.utils.motor.MotorOnly
 import org.woen.utils.regulator.Regulator
@@ -29,10 +29,10 @@ internal object DRIVE_TRAIN_CONFIG {
     var H_DEATH_ZONE = 0.05
 
     @JvmField
-    var VELOCITY_FORWARD_REGULATOR = RegulatorParameters(kF = 10.0, kP = 8.0)
+    var VELOCITY_FORWARD_REGULATOR = RegulatorParameters(kF = 10.0, kP = 11.0)
 
     @JvmField
-    var VELOCITY_SIDE_REGULATOR = RegulatorParameters(kF = 8.0, kP = 8.0)
+    var VELOCITY_SIDE_REGULATOR = RegulatorParameters(kF = 8.0, kP = 10.0)
 
     @JvmField
     var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 2.0, kP = 1.2)
@@ -98,7 +98,7 @@ fun attachDriveTrain(collector: Collector) {
     val driveMode =
         if (collector.runMode == RunMode.MANUAL) DriveMode.POWER else DriveMode.REGULATOR
 
-    collector.eventBus.invoke(AddGamepadListenerEvent(object : IGamepadListener {
+    collector.eventBus.invoke(AddGamepad1ListenerEvent(object : IGamepadListener {
         override fun update(gamepadData: Gamepad) {
             if (driveMode == DriveMode.POWER) {
                 var ly = -gamepadData.left_stick_y.toDouble()
