@@ -12,15 +12,24 @@ import org.woen.scoringSystem.storage.Storage
 
 import org.woen.enumerators.Shooting
 import org.woen.enumerators.RequestResult
+import org.woen.enumerators.phases.MotorStatus
+import org.woen.enumerators.phases.SortingPhase
 import org.woen.enumerators.phases.ShootingPhase
+
+import org.woen.modules.ClickGamepadListener
+import org.woen.modules.AddGamepad1ListenerEvent
+import org.woen.modules.AddGamepad2ListenerEvent
+
+import org.woen.modules.OnPatternDetected
+import org.woen.modules.drivetrain.RobotExitShootingAreaEvent
+import org.woen.modules.drivetrain.RobotEnterShootingAreaEvent
 
 import org.woen.configs.Delay
 import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-import org.woen.enumerators.phases.MotorStatus
-import org.woen.enumerators.phases.SortingPhase
+
 
 
 class ScoringModulesConnector
@@ -32,7 +41,7 @@ class ScoringModulesConnector
 
     private val _gameTimer = ElapsedTime()
     private var _enteredShootingZoneTimeStamp: Double = 0.0
-    private val _inShootingZone = false
+    private var _inShootingZone = false
 
 
 
@@ -46,7 +55,8 @@ class ScoringModulesConnector
 
         subscribeToOdometry()
         subscribeToCameraPattern()
-        subscribeToSecondDriverPatternRecalibration()
+        subscribeToDriverGamepad1()
+        subscribeToHelperGamepad2PatternRecalibration()
 
 
         collector.startEvent  += {
@@ -57,84 +67,136 @@ class ScoringModulesConnector
         }
     }
 
-    private fun subscribeToSecondDriverPatternRecalibration()
+
+    private fun subscribeToOdometry()
+    {
+        _cms.collector.eventBus.subscribe(RobotEnterShootingAreaEvent::class) {
+            _inShootingZone = true
+            _enteredShootingZoneTimeStamp = _gameTimer.milliseconds()
+        }
+
+        _cms.collector.eventBus.subscribe(RobotExitShootingAreaEvent::class) {
+            _inShootingZone = false
+        }
+    }
+    private fun subscribeToCameraPattern()
+    {
+        _cms.collector.eventBus.subscribe(OnPatternDetected::class)
+        {
+            _cms.dynamicMemoryPattern.setPermanent(it.pattern)
+        }
+    }
+    private fun subscribeToDriverGamepad1()
+    {
+        _cms.collector.eventBus.invoke(
+            AddGamepad1ListenerEvent(
+                ClickGamepadListener(
+                    { it.right_bumper },
+                    {
+                        if (_cms.shootingPhase.isInactive()
+                            && canStartAutoShooting())
+                            logM.logMd(_storage.streamDrumPhase1()
+                                .toString(), Debug.START)
+                        else
+                        {
+                            logM.logMd("Unable to start shooting, " +
+                                    "another process is unfinished", Debug.ERROR)
+                            logM.logMd("Shooting: ${_cms.shootingPhase.name}, " +
+                                    "Sorting: ${_cms.sortingPhase.name}, " +
+                                    "Calibration: ${_cms.calibrationPhase.name}", Debug.GENERIC)
+                    }   }
+        )   )   )
+
+        _cms.collector.eventBus.invoke(
+            AddGamepad1ListenerEvent(
+                ClickGamepadListener(
+                    { it.right_trigger > 0.5 },
+                    {
+                        if (_cms.sortingPhase.isInactive() &&
+                            _cms.shootingPhase.isInactive() &&
+                            _cms.calibrationPhase.isInactive())
+                        {
+                            if (_cms.lazyIntakeIsActive)
+                                 _storage.cells.hwSortingM.hwMotors.stopBelts()
+                            else _storage.cells.hwSortingM.hwMotors.lazyForwardBelts()
+
+                            _cms.lazyIntakeIsActive = !_cms.lazyIntakeIsActive
+                        }
+                        else
+                        {
+                            logM.logMd("Unable to start LazyIntake, " +
+                                    "another process is unfinished", Debug.ERROR)
+                            logM.logMd("Shooting: ${_cms.shootingPhase.name}, " +
+                                    "Sorting: ${_cms.sortingPhase.name}, " +
+                                    "Calibration: ${_cms.calibrationPhase.name}", Debug.GENERIC)
+                    }   }
+        )   )   )
+    }
+    private fun subscribeToHelperGamepad2PatternRecalibration()
     {
         if (CONTROLS.USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION)
         {
-//            _cms.collector.eventBus.invoke(
-//                AddGamepad2ListenerEvent(
-//                    ClickGamepadListener(
-//                        { it.ps },
-//                        {
-//                            _cms.dynamicMemoryPattern.resetTemporary()
-//                        }
-//            )   )   )
-//            _cms.collector.eventBus.invoke(
-//                AddGamepad2ListenerEvent(
-//                    ClickGamepadListener(
-//                        { it.left_bumper },
-//                        {
-//                            _cms.dynamicMemoryPattern.addToTemporary()
-//                        }
-//            )   )   )
-//            _cms.collector.eventBus.invoke(
-//                AddGamepad2ListenerEvent(
-//                    ClickGamepadListener(
-//                        { it.right_bumper },
-//                        {
-//                            _cms.dynamicMemoryPattern.removeFromTemporary()
-//                        }
-//            )   )   )
-//
-//
-//            _cms.collector.eventBus.invoke(
-//                AddGamepad2ListenerEvent(
-//                    ClickGamepadListener(
-//                        { it.dpad_left },
-//                        {
-//                            _cms.dynamicMemoryPattern.setPermanent(
-//                                Shooting.StockPattern.Request.GPP)
-//                            _cms.awaitingPatternFromCamera = false
-//                        }
-//            )   )   )
-//            _cms.collector.eventBus.invoke(
-//                AddGamepad2ListenerEvent(
-//                    ClickGamepadListener(
-//                        { it.dpad_up },
-//                        {
-//                            _cms.dynamicMemoryPattern.setPermanent(
-//                                Shooting.StockPattern.Request.PGP)
-//                            _cms.awaitingPatternFromCamera = false
-//                        }
-//            )   )   )
-//            _cms.collector.eventBus.invoke(
-//                AddGamepad2ListenerEvent(
-//                    ClickGamepadListener(
-//                        { it.dpad_right },
-//                        {
-//                            _cms.dynamicMemoryPattern.setPermanent(
-//                                Shooting.StockPattern.Request.PPG)
-//                            _cms.awaitingPatternFromCamera = false
-//                        }
-//            )   )   )
+            _cms.collector.eventBus.invoke(
+                AddGamepad2ListenerEvent(
+                    ClickGamepadListener(
+                        { it.ps },
+                        {
+                            _cms.dynamicMemoryPattern.resetTemporary()
+                        }
+                    )   )   )
+            _cms.collector.eventBus.invoke(
+                AddGamepad2ListenerEvent(
+                    ClickGamepadListener(
+                        { it.left_bumper },
+                        {
+                            _cms.dynamicMemoryPattern.addToTemporary()
+                        }
+                    )   )   )
+            _cms.collector.eventBus.invoke(
+                AddGamepad2ListenerEvent(
+                    ClickGamepadListener(
+                        { it.right_bumper },
+                        {
+                            _cms.dynamicMemoryPattern.removeFromTemporary()
+                        }
+                    )   )   )
+
+
+            _cms.collector.eventBus.invoke(
+                AddGamepad2ListenerEvent(
+                    ClickGamepadListener(
+                        { it.dpad_left },
+                        {
+                            _cms.dynamicMemoryPattern.setPermanent(
+                                Shooting.StockPattern.Request.GPP)
+                            _cms.awaitingPatternFromCamera = false
+                        }
+                    )   )   )
+            _cms.collector.eventBus.invoke(
+                AddGamepad2ListenerEvent(
+                    ClickGamepadListener(
+                        { it.dpad_up },
+                        {
+                            _cms.dynamicMemoryPattern.setPermanent(
+                                Shooting.StockPattern.Request.PGP)
+                            _cms.awaitingPatternFromCamera = false
+                        }
+                    )   )   )
+            _cms.collector.eventBus.invoke(
+                AddGamepad2ListenerEvent(
+                    ClickGamepadListener(
+                        { it.dpad_right },
+                        {
+                            _cms.dynamicMemoryPattern.setPermanent(
+                                Shooting.StockPattern.Request.PPG
+                            )
+                            _cms.awaitingPatternFromCamera = false
+                        }
+                    )))
 
             logM.logMd("Init settings: USE SECOND DRIVER", Debug.GAMEPAD)
         }
         else logM.logMd("Init settings: DON'T use second driver", Debug.GAMEPAD)
-    }
-    private fun subscribeToCameraPattern()
-    {
-//        _cms.collector.eventBus.subscribe()
-    }
-    private fun subscribeToOdometry()
-    {
-//        _cms.collector.eventBus.subscribe()
-//        _inShootingZone = true
-//        _enteredShootingZoneTimeStamp = _gameTimer.milliseconds()
-
-
-//        _cms.collector.eventBus.subscribe()
-//        _inShootingZone = false
     }
 
 

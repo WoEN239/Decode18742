@@ -158,6 +158,8 @@ class Storage
                 && CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
                 -1 else ballCount
 
+        if (_cms.lazyIntakeIsActive) cells.hwSortingM.hwMotors.stopBelts()
+
         logM.logMd("StreamDrum phase 1, debug ballCount: $ballCount", Debug.LOGIC)
         cells.hwSortingM.hwMotors.openTurretGate()
 
@@ -201,6 +203,8 @@ class Storage
         {
             _cms.canTriggerIntake = true
             cells.hwSortingM.hwMotors.forwardBrush()
+
+            if (_cms.lazyIntakeIsActive) cells.hwSortingM.hwMotors.lazyForwardBelts()
         }
     }
 
@@ -223,6 +227,7 @@ class Storage
         _cms.sortingPhase.startPhase1()
         _cms.sortingPhase.remainingRotations = totalRotations
 
+        if (_cms.lazyIntakeIsActive) cells.hwSortingM.hwMotors.stopBelts()
         cells.hwSortingM.hwMotors.closeTurretGate()
     }
     fun sortingPhaseRealignment()
