@@ -17,7 +17,8 @@ object Alias
         val FAIL_UNKNOWN  = RequestResult.Name.FAIL_UNKNOWN
         val FAIL_IS_EMPTY = RequestResult.Name.FAIL_IS_EMPTY
 
-        val ILLEGAL_ARGUMENT  = RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
+        val AWAITING_SORTING   = RequestResult.Name.FAIL_AWAITING_SORTING
+        val ILLEGAL_ARGUMENT   = RequestResult.Name.FAIL_ILLEGAL_ARGUMENT
         val COLORS_NOT_PRESENT = RequestResult.Name.FAIL_COLORS_NOT_PRESENT
 
         val IGNORED_DUPLICATE_COMMAND = RequestResult.Name.FAIL_IGNORE_DUPLICATE_COMMAND

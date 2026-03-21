@@ -137,15 +137,18 @@ class Storage
         val targetSorting = cells.predictSortSearch(requested, onlyInSequence)
         if (targetSorting.totalMatches == 0) return Request.COLORS_NOT_PRESENT
 
+        _cms.shootingPhase.startPhase0()
         sortingPhase1(targetSorting.totalRotations)
         return Request.ROGER_STARTING_SORTING
     }
 
 
 
-
     fun streamDrumPhase1(ballCount: Int = 0): RequestResult.Name
     {
+        if (_cms.sortingPhase.isActive() ||
+            _cms.shootingPhase.isShootingPhase0())
+            return Request.AWAITING_SORTING
         if (_cms.shootingPhase.isActive())
             return Request.IGNORED_DUPLICATE_COMMAND
 
@@ -222,9 +225,40 @@ class Storage
 
         cells.hwSortingM.hwMotors.closeTurretGate()
     }
-    fun sortingPhase2()
+    fun sortingPhaseRealignment()
     {
         _cms.sortingPhase.switchToNextPhase()
         cells.hwReAdjustStorage()
+    }
+    fun sortingPhase3()
+    {
+        _cms.sortingPhase.switchToNextPhase()
+        val timeMs = Delay.MS.REALIGNMENT.SORTING_FORWARD
+
+        if (timeMs <= 0) _cms.sortingPhase.switchToNextPhase()
+        else cells.hwSortingM.reinstantiableForward(timeMs)
+    }
+    fun sortingPhase4()
+    {
+        _cms.sortingPhase.switchToNextPhase()
+        val timeMs = Delay.MS.REALIGNMENT.SORTING_REVERSE
+
+        if (timeMs <= 0) _cms.sortingPhase.switchToNextPhase()
+        else cells.hwSortingM.reinstantiableReverse(timeMs)
+    }
+    fun sortingPhase5()
+    {
+        _cms.sortingPhase.switchToNextPhase()
+        cells.hwSortingM.hwMotors.openGate()
+    }
+    fun sortingPhase6()
+    {
+        _cms.sortingPhase.switchToNextPhase()
+        cells.hwSortingM.hwMotors.openPush()
+    }
+    fun sortingPhase7()
+    {
+        _cms.sortingPhase.switchToNextPhase()
+        cells.hwSortingM.hwMotors.closeGateWithPush()
     }
 }

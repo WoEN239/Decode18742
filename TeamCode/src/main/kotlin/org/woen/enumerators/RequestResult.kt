@@ -23,6 +23,7 @@ class RequestResult
         FAIL_UNKNOWN,
         FAIL_IS_EMPTY,
 
+        FAIL_AWAITING_SORTING,
         FAIL_ILLEGAL_ARGUMENT,
         FAIL_COLORS_NOT_PRESENT,
 
@@ -54,11 +55,12 @@ class RequestResult
         const val FAIL_UNKNOWN:  Int = 3
         const val FAIL_IS_EMPTY: Int = 4
 
-        const val FAIL_ILLEGAL_ARGUMENT:   Int = 5
-        const val FAIL_COLORS_NOT_PRESENT: Int = 6
+        const val FAIL_AWAITING_SORTING:   Int = 5
+        const val FAIL_ILLEGAL_ARGUMENT:   Int = 6
+        const val FAIL_COLORS_NOT_PRESENT: Int = 7
 
-        const val FAIL_IGNORE_DUPLICATE_COMMAND: Int = 7
-        const val FAIL_COULD_NOT_DETECT_PATTERN: Int = 8
+        const val FAIL_IGNORE_DUPLICATE_COMMAND: Int = 8
+        const val FAIL_COULD_NOT_DETECT_PATTERN: Int = 9
 
 
         fun didFail(id:   Int)  = id > FINISHED_IS_NOW_EMPTY
@@ -79,6 +81,7 @@ class RequestResult
                 FAIL_UNKNOWN  -> Name.FAIL_UNKNOWN
                 FAIL_IS_EMPTY -> Name.FAIL_IS_EMPTY
 
+                FAIL_AWAITING_SORTING   -> Name.FAIL_AWAITING_SORTING
                 FAIL_ILLEGAL_ARGUMENT   -> Name.FAIL_ILLEGAL_ARGUMENT
                 FAIL_COLORS_NOT_PRESENT -> Name.FAIL_COLORS_NOT_PRESENT
 
@@ -99,6 +102,7 @@ class RequestResult
                 Name.FAIL_UNKNOWN  -> FAIL_UNKNOWN
                 Name.FAIL_IS_EMPTY -> FAIL_IS_EMPTY
 
+                Name.FAIL_AWAITING_SORTING   -> FAIL_AWAITING_SORTING
                 Name.FAIL_ILLEGAL_ARGUMENT   -> FAIL_ILLEGAL_ARGUMENT
                 Name.FAIL_COLORS_NOT_PRESENT -> FAIL_COLORS_NOT_PRESENT
 

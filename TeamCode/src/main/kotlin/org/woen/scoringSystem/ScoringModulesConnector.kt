@@ -145,6 +145,7 @@ class ScoringModulesConnector
 
         _storage.cells.tryHandleIntake()
 
+        updateSorting()
         updateShooting()
         updateCalibrationPhase()
     }
@@ -156,9 +157,19 @@ class ScoringModulesConnector
         {
             ShootingPhase.Name.NOT_ACTIVE ->
                 if (canStartAutoShooting())
-                    if (!isEndGame) _storage.streamDrumPhase1()
-                    else autoShootCustomisablePattern(
+                {
+                    if (!isEndGame) logM.logMd(
+                        _storage.streamDrumPhase1()
+                            .toString(), Debug.START)
+                    else logM.logMd(
+                        autoShootCustomisablePattern(
                         _cms.collector.runMode == RunMode.AUTO)
+                            .toString(), Debug.START)
+                }
+
+            ShootingPhase.Name.P0_AWAITING_SORTING ->
+                if (canStartAutoShooting())
+                    _cms.shootingPhase.switchToNextPhase()
 
             ShootingPhase.Name.P1_OPENING_TURRET_GATE ->
                 if (_cms.turretGateStatus.isFinished())
@@ -187,11 +198,48 @@ class ScoringModulesConnector
         {
             SortingPhase.Name.P1_CLOSING_TURRET_GATE ->
                if (_cms.turretGateStatus.isClosed())
-                   _storage.sortingPhase2()
+                   _storage.sortingPhaseRealignment()
 
-            SortingPhase.Name.P2_REALIGN_STORAGE -> { }
+            SortingPhase.Name.P2_REALIGN_STORAGE ->
+                if (_cms.beltsStatus == MotorStatus.IDLE)
+                    _storage.sortingPhase3()
 
-            else -> {}
+            SortingPhase.Name.P3_REALIGNING_UPWARDS ->
+                if (_cms.beltsStatus == MotorStatus.IDLE)
+                    _storage.sortingPhase4()
+
+            SortingPhase.Name.P4_REALIGNING_DOWNWARDS ->
+                if (_cms.beltsStatus == MotorStatus.IDLE)
+                    _storage.sortingPhase5()
+
+            SortingPhase.Name.P5_OPENING_GATE ->
+                if (_cms.gateStatus.isOpened())
+                    _storage.sortingPhase6()
+
+            SortingPhase.Name.P6_OPENING_PUSH ->
+                if (_cms.pushStatus.isOpened())
+                    _storage.sortingPhase7()
+
+            SortingPhase.Name.P7_CLOSING_GATE_AND_PUSH ->
+                if (_cms.gateStatus.isClosed() &&
+                    _cms.pushStatus.isClosed())
+                    _storage.sortingPhaseRealignment()
+
+            SortingPhase.Name.P8_REALIGN_STORAGE ->
+                if (_cms.beltsStatus == MotorStatus.IDLE)
+                {
+                    _cms.sortingPhase.remainingRotations--
+                    if  (_cms.sortingPhase.remainingRotations > 0)
+                         _cms.sortingPhase.startPhase1()
+                    else
+                    {
+                        _cms.sortingPhase.setInactive()
+                        if (canStartAutoShooting())
+                            _cms.shootingPhase.switchToNextPhase()
+                    }
+                }
+
+            SortingPhase.Name.NOT_ACTIVE -> { }
         }
     }
     fun updateCalibrationPhase()

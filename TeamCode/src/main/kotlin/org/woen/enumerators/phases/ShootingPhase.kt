@@ -13,6 +13,8 @@ class ShootingPhase
     {
         NOT_ACTIVE,
 
+        P0_AWAITING_SORTING,
+
         P1_OPENING_TURRET_GATE,
         P2_SHOOTING,
         P3_OPENING_LAUNCHER,
@@ -27,19 +29,20 @@ class ShootingPhase
     {
         _name = Name.NOT_ACTIVE
     }
+    fun startPhase0()
+    {
+        _name = Name.P0_AWAITING_SORTING
+    }
     fun startPhase1()
     {
         _name = Name.P1_OPENING_TURRET_GATE
-    }
-    fun startPhase4()
-    {
-        _name = Name.P4_CALIBRATING
     }
     fun switchToNextPhase()
     {
         _name = when (_name)
         {
-            Name.NOT_ACTIVE             -> Name.P1_OPENING_TURRET_GATE
+            Name.NOT_ACTIVE             -> Name.P0_AWAITING_SORTING
+            Name.P0_AWAITING_SORTING    -> Name.P1_OPENING_TURRET_GATE
             Name.P1_OPENING_TURRET_GATE -> Name.P2_SHOOTING
             Name.P2_SHOOTING            -> Name.P3_OPENING_LAUNCHER
             Name.P3_OPENING_LAUNCHER    -> Name.P4_CALIBRATING
@@ -52,7 +55,7 @@ class ShootingPhase
     fun isActive()   = !isInactive()
 
 
-    fun isShootingPhase1() = _name == Name.P1_OPENING_TURRET_GATE
+    fun isShootingPhase0() = _name == Name.P0_AWAITING_SORTING
     fun isShootingPhase2() = _name == Name.P2_SHOOTING
     fun isShootingPhase3() = _name == Name.P3_OPENING_LAUNCHER
     fun isShootingPhase4() = _name == Name.P4_CALIBRATING
