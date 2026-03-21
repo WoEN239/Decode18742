@@ -2,10 +2,10 @@ package org.woen.modules
 
 import android.annotation.SuppressLint
 import com.acmerobotics.dashboard.config.Config
-import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.util.ElapsedTime
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.collector.Collector
 import org.woen.collector.RunMode
 import org.woen.modules.drivetrain.GetLocateInShootingAreaEvent
@@ -39,7 +39,7 @@ internal object SIMPLE_STORAGE_CONFIG {
     var PUSH_OPEN = 0.025
 
     @JvmField
-    var GATE_CLOSE = 0.15
+    var GATE_CLOSE = 0.2
 
     @JvmField
     var GATE_OPEN = 0.76
@@ -51,10 +51,10 @@ internal object SIMPLE_STORAGE_CONFIG {
     var SORTING_REVERSE_TIME = 0.1
 
     @JvmField
-    var SINGLE_SHOOT_PUSH_TIME = 0.05
+    var SLOW_SHOOTING_POWER = 9.0
 
     @JvmField
-    var SINGLE_SHOOTING_COLLABORATE_TIME = 0.5
+    var SLOW_SHOOTING_TIMER = 0.9
 }
 
 enum class StorageState {
@@ -65,9 +65,8 @@ enum class StorageState {
     SORTING,
     START_SHOOTING,
     STOP_SHOOTING,
-    CALIBRATE_SINGLE_SHOOTING,
-    START_SINGLE_SHOOTING,
-    SINGLE_SHOOTING
+    START_SLOW_SHUTTING,
+    SLOW_SHUTTING,
 }
 
 enum class SortingState {
@@ -99,8 +98,8 @@ fun attachSimpleStorage(collector: Collector) {
     brushMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
     brushMotor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
-    val leftColor = collector.hardwareMap.get("leftColor") as RevColorSensorV3
-    val rightColor = collector.hardwareMap.get("rightColor") as RevColorSensorV3
+//    val leftColor = collector.hardwareMap.get("leftColor") as RevColorSensorV3
+//    val rightColor = collector.hardwareMap.get("rightColor") as RevColorSensorV3
 
     val pushServo = SoftServo(
         "pushServo",
@@ -121,6 +120,8 @@ fun attachSimpleStorage(collector: Collector) {
     val stateTimer = ElapsedTime()
     val sortingTimer = ElapsedTime()
     var requiredSwaps = 3
+    var sortingIterations = 2
+    val pushTimer = ElapsedTime()
 
     fun switchState(state: StorageState) {
         currentState = state
@@ -139,6 +140,8 @@ fun attachSimpleStorage(collector: Collector) {
             StorageState.SHOOTING -> {
                 beltMotor.power = 1.0
                 brushMotor.power = 1.0
+
+                stateTimer.reset()
             }
 
             StorageState.EATING -> {
@@ -160,6 +163,8 @@ fun attachSimpleStorage(collector: Collector) {
 
                 beltMotor.power = -1.0
                 brushMotor.power = 0.0
+
+                sortingIterations = 2
             }
 
             StorageState.START_SHOOTING -> {
@@ -176,20 +181,14 @@ fun attachSimpleStorage(collector: Collector) {
                 stateTimer.reset()
             }
 
-            StorageState.CALIBRATE_SINGLE_SHOOTING -> {
-                brushMotor.power = 0.0
-                beltMotor.power = 1.0
-
-                stateTimer.reset()
-            }
-
-            StorageState.START_SINGLE_SHOOTING -> {
+            StorageState.START_SLOW_SHUTTING -> {
                 turretGateServo.targetPosition = SIMPLE_STORAGE_CONFIG.TURRET_GATE_SERVO_OPEN
+
+                brushMotor.power = 0.0
                 beltMotor.power = 0.0
             }
 
-            StorageState.SINGLE_SHOOTING -> {
-                beltMotor.power = 1.0
+            StorageState.SLOW_SHUTTING -> {
                 stateTimer.reset()
             }
         }
@@ -224,14 +223,13 @@ fun attachSimpleStorage(collector: Collector) {
             StorageState.SORTING -> StorageState.SORTING
             StorageState.START_SHOOTING -> StorageState.SHOOTING
             StorageState.STOP_SHOOTING -> StorageState.SHOOTING
-            StorageState.START_SINGLE_SHOOTING -> StorageState.SHOOTING
-            StorageState.SINGLE_SHOOTING -> StorageState.SHOOTING
-            StorageState.CALIBRATE_SINGLE_SHOOTING -> StorageState.SHOOTING
+            StorageState.SLOW_SHUTTING -> StorageState.SHOOTING
+            StorageState.START_SLOW_SHUTTING -> StorageState.SHOOTING
         }
     }
 
     collector.eventBus.subscribe(StartEatEvent::class) {
-        if (currentState == StorageState.STOP)
+        if (currentState == StorageState.STOP || currentState == StorageState.STOP_EATING)
             switchState(StorageState.EATING)
     }
 
@@ -254,6 +252,8 @@ fun attachSimpleStorage(collector: Collector) {
                     collector.eventBus.invoke(GetTurretHeadingIsNormalEvent()).normal) || collector.runMode == RunMode.AUTO)
         )
             switchState(StorageState.START_SHOOTING)
+        else
+            collector.opMode.gamepad1.rumble(200)
     }
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
@@ -278,38 +278,53 @@ fun attachSimpleStorage(collector: Collector) {
         switchState(StorageState.STOP)
     }
 
+    val currentTimer = ElapsedTime()
+    val triggerTimer = ElapsedTime()
+
     collector.updateEvent += {
         pushServo.update()
         gateServo.update()
         turretGateServo.update()
 
-        val left = leftColor.normalizedColors
-        val right = rightColor.normalizedColors
+        if(currentState == StorageState.EATING) {
+            if(currentTimer.seconds() > 0.15) {
+                if (brushMotor.getCurrent(CurrentUnit.AMPS) > 2.0) {
+                    if (triggerTimer.seconds() > 0.15)
+                        collector.opMode.gamepad1.rumble(200)
+                } else
+                    triggerTimer.reset()
+            }
+        }
+        else
+            currentTimer.reset()
 
-        val leftR = left.red * 10240.0
-        val leftG = left.green * 10240.0
-        val leftB = left.blue * 10240.0
-
-        val rightR = right.red * 10240.0
-        val rightG = right.green * 10240.0
-        val rightB = right.blue * 10240.0
-
-        collector.telemetry.addLine(
-            "left = ${String.format("%.1f", leftR)} ${
-                String.format(
-                    "%.1f",
-                    leftG
-                )
-            } ${String.format("%.1f", leftB)}"
-        )
-        collector.telemetry.addLine(
-            "right = ${
-                String.format(
-                    "%.1f",
-                    rightR
-                )
-            } ${String.format("%.1f", rightG)} ${String.format("%.1f", rightB)}"
-        )
+//        val left = leftColor.normalizedColors
+//        val right = rightColor.normalizedColors
+//
+//        val leftR = left.red * 10240.0
+//        val leftG = left.green * 10240.0
+//        val leftB = left.blue * 10240.0
+//
+//        val rightR = right.red * 10240.0
+//        val rightG = right.green * 10240.0
+//        val rightB = right.blue * 10240.0
+//
+//        collector.telemetry.addLine(
+//            "left = ${String.format("%.1f", leftR)} ${
+//                String.format(
+//                    "%.1f",
+//                    leftG
+//                )
+//            } ${String.format("%.1f", leftB)}"
+//        )
+//        collector.telemetry.addLine(
+//            "right = ${
+//                String.format(
+//                    "%.1f",
+//                    rightR
+//                )
+//            } ${String.format("%.1f", rightG)} ${String.format("%.1f", rightB)}"
+//        )
 
         when (currentState) {
             StorageState.SHOOTING -> {
@@ -333,6 +348,19 @@ fun attachSimpleStorage(collector: Collector) {
             StorageState.START_SHOOTING -> {
                 if (turretGateServo.atTarget)
                     switchState(StorageState.SHOOTING)
+            }
+
+            StorageState.START_SLOW_SHUTTING -> {
+                if (turretGateServo.atTarget)
+                    switchState(StorageState.SLOW_SHUTTING)
+            }
+
+            StorageState.SLOW_SHUTTING -> {
+                if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SLOW_SHOOTING_TIMER)
+                    switchState(StorageState.STOP)
+                else
+                    beltMotor.power =
+                        collector.battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SLOW_SHOOTING_POWER)
             }
 
             StorageState.STOP_SHOOTING -> {
@@ -359,25 +387,28 @@ fun attachSimpleStorage(collector: Collector) {
                             sortingState = SortingState.WAIT_PUSH
 
                             gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
+
+                            pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_CLOSE
+
+                            beltMotor.power = 0.5
                         }
                     }
 
                     SortingState.WAIT_PUSH -> {
-                        if (gateServo.atTarget) {
-//                            sortingTimer.reset()
-//                            gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_OPEN
+                        if (pushServo.atTarget)
+                            beltMotor.power = 1.0
 
+                        if (gateServo.atTarget) {
+                            beltMotor.power = 0.0
                             pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_CLOSE
                             sortingState = SortingState.WAIT_FALL
                         }
                     }
 
                     SortingState.WAIT_FALL -> {
-                        if (pushServo.atTarget)//&&sortingTimer.seconds() > SIMPLE_STORAGE_CONFIG.SORING_FALL_WAIT_TIME){
-                        {
+                        if (pushServo.atTarget) {
                             beltMotor.power = 1.0
                             sortingState = SortingState.PUSH_CLOSE
-//                            gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
                             sortingTimer.reset()
                         }
                     }
@@ -394,24 +425,6 @@ fun attachSimpleStorage(collector: Collector) {
                                 switchState(StorageState.STOP)
                         }
                     }
-                }
-            }
-
-            StorageState.CALIBRATE_SINGLE_SHOOTING -> {
-                if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SINGLE_SHOOTING_COLLABORATE_TIME) {
-                    switchState(StorageState.START_SINGLE_SHOOTING)
-                }
-            }
-
-            StorageState.START_SINGLE_SHOOTING -> {
-                if (gateServo.atTarget)
-                    switchState(StorageState.SINGLE_SHOOTING)
-            }
-
-            StorageState.SINGLE_SHOOTING -> {
-                if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SINGLE_SHOOT_PUSH_TIME) {
-                    switchState(StorageState.STOP_SHOOTING)
-                    stateTimer.reset()
                 }
             }
         }

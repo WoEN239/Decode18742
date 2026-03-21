@@ -86,7 +86,7 @@ internal object TURRET_CONFIG {
     var SCORE_ANGLE = toRadians(-20.0)
 
     @JvmField
-    var PULLEY_U = 0.38
+    var PULLEY_U = 0.41
 }
 //
 //object PulleyRegulatorConfig {

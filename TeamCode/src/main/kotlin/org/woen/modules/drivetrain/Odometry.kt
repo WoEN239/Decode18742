@@ -58,10 +58,10 @@ fun attachOdometry(collector: Collector) {
         GoBildaPinpointDriver.EncoderDirection.FORWARD
     )
 
-    if (collector.runMode == RunMode.AUTO) {
+//    if (collector.runMode == RunMode.AUTO) {
         pinpoint.recalibrateIMU()
         pinpoint.resetPosAndIMU()
-    }
+//    }
 
     var orientation = Orientation()
 
