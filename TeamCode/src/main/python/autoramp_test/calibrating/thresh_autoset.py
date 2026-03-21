@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 
 import os
 import sys
@@ -13,10 +12,10 @@ from sosat import SoSAT
 
 pathToTestImages = "test_images/only_in_ramp/"
 
-hueStep = 15
+hueStep = 1
 satStep = 50
-valStep = 50
-morphStep = 2
+valStep = 25
+morphStep = 1
 
 sosat = SoSAT()
 goodResults = []
@@ -24,14 +23,14 @@ goodResults = []
 os.chdir(pathToTestImages)
 imagesNames = os.listdir(".")
 
-for hGreenMin in range(50,70,hueStep):
-    for hGreenMax in range(90,100,hueStep):
+for hGreenMin in range(50,51,hueStep):
+    for hGreenMax in range(90,91,hueStep):
         for sGreenMin in range(0,1,satStep):
             for sGreenMax in range(254,255,satStep):
                 for vGreenMin in range(0,250,valStep):
                     for vGreenMax in range(1,250,valStep):
-                        for hPurpleMin in range(110,130,hueStep):
-                            for hPurpleMax in range(150,160,hueStep):
+                        for hPurpleMin in range(120,121,hueStep):
+                            for hPurpleMax in range(150,151,hueStep):
                                 for sPurpleMin in range(0,1,satStep):
                                     for sPurpleMax in range(254,255,satStep):
                                         for vPurpleMin in range(0,250,valStep):
@@ -55,7 +54,7 @@ for hGreenMin in range(50,70,hueStep):
 
                                                         for imageName in imagesNames:
                                                             frame = cv2.imread(imageName)
-                                                            artefactsDetected = sosat.detectArtefacts(frame,1,1000)
+                                                            artefactsDetected = sosat.detectArtefactsGPU(frame,1,750,10,7)
 
                                                             nameMatch = re.search(r'_(\d+)', imageName)
                                                             if nameMatch:
