@@ -40,23 +40,6 @@ class Storage
 
 
 
-    fun unsafeTestSorting()
-    {
-        val fill = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
-        cells.lazySet(fill)
-
-        var iteration = 0
-        while (iteration < 100)
-        {
-            logM.logMd("\nIteration: $iteration", Debug.GENERIC)
-
-            cells.fullRotate()
-            iteration++
-        }
-    }
-
-
-
     fun startCustomisableDrumRequest(
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest.Name>,
@@ -95,9 +78,10 @@ class Storage
     {
         if (cells.isEmpty()) return Request.FAIL_IS_EMPTY
 
-        if (failsafeOrder == null || failsafeOrder.isEmpty() ||
+        if (failsafeOrder.isNullOrEmpty() ||
             failsafeOrder.contentEquals(requestOrder))
-            return startCustomisableDrumRequest(shootingMode, requestOrder, autoCorrectRequestPattern)
+            return startCustomisableDrumRequest(
+                shootingMode, requestOrder, autoCorrectRequestPattern)
 
         val  standardPatternOrder = if (!autoCorrectRequestPattern) requestOrder
         else DynamicPattern.trimPattern(
@@ -131,6 +115,35 @@ class Storage
 
 
 
+    private fun choosePatternForShot(
+        requested: Array<BallRequest.Name>,
+        failsafe:  Array<BallRequest.Name>,
+        onlyInSequence: Boolean
+    ): RequestResult.Name
+    {
+        val req1 = cells.predictSortSearch(requested, onlyInSequence).maxSequenceScore
+        val req2 = cells.predictSortSearch(
+            failsafe, onlyInSequence).maxSequenceScore
+
+        return shootFinalPhase(
+            if (req1 > req2) requested
+            else failsafe, onlyInSequence)
+    }
+    private fun shootFinalPhase(
+        requested: Array<BallRequest.Name>,
+        onlyInSequence: Boolean
+    ): RequestResult.Name
+    {
+        val targetSorting = cells.predictSortSearch(requested, onlyInSequence)
+        if (targetSorting.totalMatches == 0) return Request.COLORS_NOT_PRESENT
+
+        sortingPhase1(targetSorting.totalRotations)
+        return Request.ROGER_STARTING_SORTING
+    }
+
+
+
+
     fun streamDrumPhase1(ballCount: Int = 0): RequestResult.Name
     {
         if (_cms.shootingPhase.isActive())
@@ -140,7 +153,7 @@ class Storage
         _cms.shootingPhase.ballCountForPhase1 =
             if (ballCount == 1 && cells.isLastBall()
                 && CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
-            -1 else ballCount
+                -1 else ballCount
 
         logM.logMd("StreamDrum phase 1, debug ballCount: $ballCount", Debug.LOGIC)
         cells.hwSortingM.hwMotors.openTurretGate()
@@ -178,31 +191,40 @@ class Storage
         else cells.hwSortingM.calibrationPhase2()
     }
 
-
-
-    private fun choosePatternForShot(
-        requested: Array<BallRequest.Name>,
-        failsafe:  Array<BallRequest.Name>,
-        onlyInSequence: Boolean
-    ): RequestResult.Name
+    fun finishCalibration()
     {
-        val req1 = cells.predictSortSearch(requested, onlyInSequence).maxSequenceScore
-        val req2 = cells.predictSortSearch(
-            failsafe, onlyInSequence).maxSequenceScore
-
-        return shootFinalPhase(
-            if (req1 > req2) requested
-            else failsafe, onlyInSequence)
+        _cms.calibrationPhase.setInactive()
+        if (cells.notFullYet() && _cms.sortingPhase.isInactive())
+        {
+            _cms.canTriggerIntake = true
+            cells.hwSortingM.hwMotors.forwardBrush()
+        }
     }
-    private fun shootFinalPhase(
-        requested: Array<BallRequest.Name>,
-        onlyInSequence: Boolean
-    ): RequestResult.Name
-    {
-        val afterSorting = cells.initiatePredictSort(requested, onlyInSequence)
-        if (afterSorting.totalMatches == 0) return Request.COLORS_NOT_PRESENT
 
-        return streamDrumPhase1(if (onlyInSequence)
-            afterSorting.totalMatches else 0)  // 0 is auto option
+
+
+    fun unsafeTestSorting()
+    {
+        val fill = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
+        cells.lazySet(fill)
+
+        if (_cms.sortingPhase.isActive())
+            return logM.logMd("-!- Could not start SortingTest:" +
+                    " sorting is already active", Debug.ERROR)
+
+        sortingPhase1(100)
+    }
+
+    fun sortingPhase1(totalRotations: Int)
+    {
+        _cms.sortingPhase.startPhase1()
+        _cms.sortingPhase.remainingRotations = totalRotations
+
+        cells.hwSortingM.hwMotors.closeTurretGate()
+    }
+    fun sortingPhase2()
+    {
+        _cms.sortingPhase.switchToNextPhase()
+        cells.hwReAdjustStorage()
     }
 }

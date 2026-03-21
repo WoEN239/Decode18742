@@ -20,6 +20,7 @@ import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
 import org.woen.enumerators.phases.MotorStatus
+import org.woen.enumerators.phases.SortingPhase
 
 
 class ScoringModulesConnector
@@ -171,8 +172,9 @@ class ScoringModulesConnector
                     _storage.cells.hwSortingM.streamDrumPhase3()
             }
 
-            ShootingPhase.Name.P3_OPENING_LAUNCHER -> { }
-            // Phase 3 is handled directly in HwStorageManager
+            ShootingPhase.Name.P3_OPENING_LAUNCHER ->
+                if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
+                    _cms.shootingPhase.switchToNextPhase()
 
             ShootingPhase.Name.P4_CALIBRATING ->
                 if (canStartCalibrationAfterShooting())
@@ -181,7 +183,16 @@ class ScoringModulesConnector
     }
     fun updateSorting()
     {
+        when (_cms.sortingPhase.name)
+        {
+            SortingPhase.Name.P1_CLOSING_TURRET_GATE ->
+               if (_cms.turretGateStatus.isClosed())
+                   _storage.sortingPhase2()
 
+            SortingPhase.Name.P2_REALIGN_STORAGE -> { }
+
+            else -> {}
+        }
     }
     fun updateCalibrationPhase()
     {

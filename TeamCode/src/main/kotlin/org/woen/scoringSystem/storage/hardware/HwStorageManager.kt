@@ -47,9 +47,7 @@ class HwSortingManager
              _cms.beltsStatus == MotorStatus.REVERSE) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
         {
-            if (isReadyForShootingPhase4())
-                _cms.shootingPhase.startPhase4()
-            else hwMotors.stopBelts()
+            hwMotors.stopBelts()
 
             if (_cms.calibrationPhase.isCalibrationPhase1())
                 calibrationPhase2()
@@ -86,9 +84,10 @@ class HwSortingManager
         hwMotors.openLaunch()
     }
     fun isReadyForShootingPhase4()
-        =   _cms.shootingPhase.isShootingPhase2() ||
+        =  (_cms.shootingPhase.isShootingPhase2() ||
             _cms.shootingPhase.isShootingPhase3() &&
-            _cms.launchStatus.isFinished()
+            _cms.launchStatus.isFinished()) &&
+            _cms.beltsStatus == MotorStatus.IDLE
 
 
 
