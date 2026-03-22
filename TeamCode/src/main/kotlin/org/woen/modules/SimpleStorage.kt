@@ -55,6 +55,9 @@ internal object SIMPLE_STORAGE_CONFIG {
 
     @JvmField
     var SLOW_SHOOTING_TIMER = 0.9
+    
+    @JvmField
+    var SORTING_SLOW_BELTS_POWER = 7.0
 }
 
 enum class StorageState {
@@ -98,9 +101,6 @@ fun attachSimpleStorage(collector: Collector) {
     brushMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
     brushMotor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
-//    val leftColor = collector.hardwareMap.get("leftColor") as RevColorSensorV3
-//    val rightColor = collector.hardwareMap.get("rightColor") as RevColorSensorV3
-
     val pushServo = SoftServo(
         "pushServo",
         collector.hardwareMap,
@@ -120,8 +120,6 @@ fun attachSimpleStorage(collector: Collector) {
     val stateTimer = ElapsedTime()
     val sortingTimer = ElapsedTime()
     var requiredSwaps = 3
-    var sortingIterations = 2
-    val pushTimer = ElapsedTime()
 
     fun switchState(state: StorageState) {
         currentState = state
@@ -163,8 +161,6 @@ fun attachSimpleStorage(collector: Collector) {
 
                 beltMotor.power = -1.0
                 brushMotor.power = 0.0
-
-                sortingIterations = 2
             }
 
             StorageState.START_SHOOTING -> {
@@ -246,6 +242,15 @@ fun attachSimpleStorage(collector: Collector) {
         collector.eventBus.invoke(StopEatEvent())
     }, false)))
 
+    collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
+        collector.eventBus.invoke(ShootEvent())
+    })))
+
+    collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
+        if(currentState == StorageState.SHOOTING)
+            switchState(StorageState.STOP_SHOOTING)
+    }, false)))
+
     collector.eventBus.subscribe(ShootEvent::class) {
         if ((currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_EATING) &&
             ((collector.eventBus.invoke(GetLocateInShootingAreaEvent()).locate &&
@@ -255,10 +260,6 @@ fun attachSimpleStorage(collector: Collector) {
         else
             collector.opMode.gamepad1.rumble(200)
     }
-
-    collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
-        collector.eventBus.invoke(ShootEvent())
-    })))
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.touchpad }, {
         collector.eventBus.invoke(
@@ -298,37 +299,9 @@ fun attachSimpleStorage(collector: Collector) {
         else
             currentTimer.reset()
 
-//        val left = leftColor.normalizedColors
-//        val right = rightColor.normalizedColors
-//
-//        val leftR = left.red * 10240.0
-//        val leftG = left.green * 10240.0
-//        val leftB = left.blue * 10240.0
-//
-//        val rightR = right.red * 10240.0
-//        val rightG = right.green * 10240.0
-//        val rightB = right.blue * 10240.0
-//
-//        collector.telemetry.addLine(
-//            "left = ${String.format("%.1f", leftR)} ${
-//                String.format(
-//                    "%.1f",
-//                    leftG
-//                )
-//            } ${String.format("%.1f", leftB)}"
-//        )
-//        collector.telemetry.addLine(
-//            "right = ${
-//                String.format(
-//                    "%.1f",
-//                    rightR
-//                )
-//            } ${String.format("%.1f", rightG)} ${String.format("%.1f", rightB)}"
-//        )
-
         when (currentState) {
             StorageState.SHOOTING -> {
-                if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SHOOTING_TIME)
+                if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SHOOTING_TIME && collector.runMode == RunMode.AUTO)
                     switchState(StorageState.STOP_SHOOTING)
             }
 
@@ -389,14 +362,14 @@ fun attachSimpleStorage(collector: Collector) {
                             gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
 
                             pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_CLOSE
-
-                            beltMotor.power = 0.5
                         }
                     }
 
                     SortingState.WAIT_PUSH -> {
                         if (pushServo.atTarget)
                             beltMotor.power = 1.0
+                        else
+                            beltMotor.power = collector.battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_SLOW_BELTS_POWER)
 
                         if (gateServo.atTarget) {
                             beltMotor.power = 0.0
