@@ -12,9 +12,9 @@ from sosat import SoSAT
 
 pathToTestImages = "test_images/only_in_ramp/"
 
-hueStep = 1
-satStep = 50
-valStep = 25
+hueStep = 5
+satStep = 10
+valStep = 5
 morphStep = 1
 
 sosat = SoSAT()
@@ -23,20 +23,22 @@ goodResults = []
 os.chdir(pathToTestImages)
 imagesNames = os.listdir(".")
 
-for hGreenMin in range(50,51,hueStep):
-    for hGreenMax in range(90,91,hueStep):
-        for sGreenMin in range(0,1,satStep):
-            for sGreenMax in range(254,255,satStep):
-                for vGreenMin in range(0,250,valStep):
-                    for vGreenMax in range(1,250,valStep):
-                        for hPurpleMin in range(120,121,hueStep):
-                            for hPurpleMax in range(150,151,hueStep):
-                                for sPurpleMin in range(0,1,satStep):
-                                    for sPurpleMax in range(254,255,satStep):
-                                        for vPurpleMin in range(0,250,valStep):
-                                            for vPurpleMax in range(1,250,valStep):
+for hGreenMin in range(45,55,hueStep):
+    for hGreenMax in range(85,95,hueStep):
+        for sGreenMin in range(125,135,satStep):
+            for sGreenMax in range(245,255,satStep):
+                for vGreenMin in range(95,135,valStep):
+                    for vGreenMax in range(215,255,valStep):
+
+                        for hPurpleMin in range(115,125,hueStep):
+                            for hPurpleMax in range(145,155,hueStep):
+                                for sPurpleMin in range(45,55,satStep):
+                                    for sPurpleMax in range(165,175,satStep):
+                                        for vPurpleMin in range(50,90,valStep):
+                                            for vPurpleMax in range(215,255,valStep):
+
                                                 for openVal in range(0,4,morphStep):
-                                                    for erodeVal in range(0,4,morphStep):
+                                                    for closeVal in range(0,4,morphStep):
 
                                                         if hGreenMin >= hGreenMax or sGreenMin >= sGreenMax or vGreenMin >= vGreenMax or hPurpleMin >= hPurpleMax or sPurpleMin >= sPurpleMax or vPurpleMin >= vPurpleMax:
                                                            continue
@@ -46,15 +48,15 @@ for hGreenMin in range(50,51,hueStep):
                                                         sosat.purpleThreshLower = np.array([hPurpleMin, sPurpleMin, vPurpleMin])
                                                         sosat.purpleThreshUpper = np.array([hPurpleMax, sPurpleMax, vPurpleMax])
                                                         sosat.morphOpenVal = openVal
-                                                        sosat.morphErodeVal = erodeVal
+                                                        sosat.morphCloseVal = closeVal
 
-                                                        print(f"Tried: GREEN:[{hGreenMin},{sGreenMin},{vGreenMin}] to [{hGreenMax},{sGreenMax},{vGreenMax}]\nPURPLE: [{hPurpleMin},{sPurpleMin},{vPurpleMin}] to [{hPurpleMax},{sPurpleMax},{vPurpleMax}]\nOPEN Value: {openVal}, ERODE Value: {erodeVal}")
+                                                        print(f"Tried: GREEN:[{hGreenMin},{sGreenMin},{vGreenMin}] to [{hGreenMax},{sGreenMax},{vGreenMax}]\nPURPLE: [{hPurpleMin},{sPurpleMin},{vPurpleMin}] to [{hPurpleMax},{sPurpleMax},{vPurpleMax}]\nOPEN Value: {openVal}, CLOSE Value: {closeVal}")
 
                                                         isMatch = True
 
                                                         for imageName in imagesNames:
                                                             frame = cv2.imread(imageName)
-                                                            artefactsDetected = sosat.detectArtefactsGPU(frame,1,750,10,7)
+                                                            artefactsDetected = sosat.detectArtefacts(frame,1,750,25,4)
 
                                                             nameMatch = re.search(r'_(\d+)', imageName)
                                                             if nameMatch:
@@ -86,7 +88,7 @@ for hGreenMin in range(50,51,hueStep):
                                                                 "vPurpleMin": vPurpleMin,
                                                                 "vPurpleMax": vPurpleMax,
                                                                 "openVal": openVal,
-                                                                "erodeVal": erodeVal
+                                                                "erodeVal": closeVal
                                                             })
                                                         else:
                                                             print(f"failed\n")
