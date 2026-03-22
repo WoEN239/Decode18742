@@ -87,6 +87,12 @@ internal object TURRET_CONFIG {
 
     @JvmField
     var PULLEY_U = 0.41
+
+    @JvmField
+    var LONG_PULLEY_VELOCITY = 20.0
+
+    @JvmField
+    var LONG_ANGLE_POSITION = toRadians(52.0)
 }
 //
 //object PulleyRegulatorConfig {
@@ -160,10 +166,11 @@ fun attachTurret(collector: Collector) {
     }
 
     collector.eventBus.subscribe(GetTurretHeadingEvent::class) {
-        it.heading = Angle(clamp(turretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING))
+        it.heading =
+            Angle(clamp(turretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING))
     }
 
-    collector.eventBus.subscribe(GetTurretHeadingIsNormalEvent::class){
+    collector.eventBus.subscribe(GetTurretHeadingIsNormalEvent::class) {
         it.normal = turretHeading in TURRET_CONFIG.MIN_HEADING..TURRET_CONFIG.MAX_HEADING
     }
 
@@ -179,40 +186,48 @@ fun attachTurret(collector: Collector) {
             GameSettings.startOrientation.basketPosition - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
                 .turn(odometry.orientation.angle))
 
-        val y = TURRET_CONFIG.SCORE_HEIGHT - TURRET_CONFIG.TURRET_HEIGHT
-        val x = basketErr.length()
+        var pulleyVelocity: Double
+        var angle: Double
 
-        val alpha = atan((2 * y / x) - tan(TURRET_CONFIG.SCORE_ANGLE))
+        if (!odometry.locateInLongShootingArea) {
+            val y = TURRET_CONFIG.SCORE_HEIGHT - TURRET_CONFIG.TURRET_HEIGHT
+            val x = basketErr.length()
 
-        val v0 =
-            sqrt((TURRET_CONFIG.GRAVITY_G * x.pow(2)) / (2 * cos(alpha).pow(2) * (x * tan(alpha) - y)))
+            val alpha = atan((2 * y / x) - tan(TURRET_CONFIG.SCORE_ANGLE))
 
-        val t = x / (v0 * cos(alpha))
+            val v0 =
+                sqrt((TURRET_CONFIG.GRAVITY_G * x.pow(2)) / (2 * cos(alpha).pow(2) * (x * tan(alpha) - y)))
 
-        val robotGlobalVelocity =
-            odometry.linearVelocity.turn(odometry.orientation.angle)
+            val t = x / (v0 * cos(alpha))
 
-        val robotV = robotGlobalVelocity.length()
-        val difH = robotGlobalVelocity.rot() - basketErr.rot()
+            val robotGlobalVelocity =
+                odometry.linearVelocity.turn(odometry.orientation.angle)
 
-        val vR = -cos(difH) * robotV
-        val vT = sin(difH) * robotV
+            val robotV = robotGlobalVelocity.length()
+            val difH = robotGlobalVelocity.rot() - basketErr.rot()
 
-        val vxComp = x / t + vR
+            val vR = -cos(difH) * robotV
+            val vT = sin(difH) * robotV
 
-        val vXNew = sqrt(vxComp.pow(2) + vT.pow(2))
-        val vY = v0 * sin(alpha)
+            val vxComp = x / t + vR
 
-        val newX = vXNew * t
+            val vXNew = sqrt(vxComp.pow(2) + vT.pow(2))
+            val vY = v0 * sin(alpha)
 
-        val angle = clamp(atan(vY / vXNew), TURRET_CONFIG.MIN_ANGLE, TURRET_CONFIG.MAX_ANGLE)
+            val newX = vXNew * t
 
-        var pulleyVelocity =
-            sqrt(
-                (TURRET_CONFIG.GRAVITY_G * newX.pow(2)) / (2.0 * cos(angle)
-                    .pow(2)
-                        * (newX * tan(angle) - y))
-            ) / TURRET_CONFIG.PULLEY_U
+            angle = clamp(atan(vY / vXNew), TURRET_CONFIG.MIN_ANGLE, TURRET_CONFIG.MAX_ANGLE)
+
+            pulleyVelocity =
+                sqrt(
+                    (TURRET_CONFIG.GRAVITY_G * newX.pow(2)) / (2.0 * cos(angle)
+                        .pow(2)
+                            * (newX * tan(angle) - y))
+                ) / TURRET_CONFIG.PULLEY_U
+        } else {
+            pulleyVelocity = TURRET_CONFIG.LONG_PULLEY_VELOCITY
+            angle = TURRET_CONFIG.LONG_ANGLE_POSITION
+        }
 
         if (pulleyVelocity.isNaN() || pulleyVelocity == Double.POSITIVE_INFINITY || pulleyVelocity == Double.NEGATIVE_INFINITY)
             pulleyVelocity = 17.0
@@ -234,6 +249,7 @@ fun attachTurret(collector: Collector) {
                 (GAME_CONFIGS.OBELISK_POSITION - (odometry.orientation.pos +
                         TURRET_CONFIG.TURRET_CENTER_POS.turn(odometry.orientation.angle))).rot() + PI
             )
+
             TurretState.TO_BASKET -> Angle(basketErr.rot() + PI)
         } - odometry.orientation.angl).angle
 

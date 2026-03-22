@@ -37,10 +37,11 @@ internal object ODOMETRY_CONFIG {
 class GetRobotOdometry(
     var orientation: Orientation = Orientation.ZERO,
     var linearVelocity: Vec2 = Vec2.ZERO,
-    var headingVelocity: Double = 0.0
+    var headingVelocity: Double = 0.0,
+    var locateInShootingArea: Boolean = false,
+    var locateInLongShootingArea: Boolean = false
 )
 
-class GetLocateInShootingAreaEvent(var locate: Boolean = false)
 class RobotEnterShootingAreaEvent()
 class RobotExitShootingAreaEvent()
 
@@ -70,15 +71,14 @@ fun attachOdometry(collector: Collector) {
 
     var locateInShootingArea = false
     var oldLocateInShootingArea = false
+    var longLocate = false
 
     collector.eventBus.subscribe(GetRobotOdometry::class) {
         it.orientation = orientation
         it.linearVelocity = linearVelocity
         it.headingVelocity = headingVelocity
-    }
-
-    collector.eventBus.subscribe(GetLocateInShootingAreaEvent::class) {
-        it.locate = locateInShootingArea
+        it.locateInShootingArea = locateInShootingArea
+        it.locateInLongShootingArea = longLocate
     }
 
     collector.updateEvent += {
@@ -156,7 +156,7 @@ fun attachOdometry(collector: Collector) {
         }
 
         val shortLocate = checkToLocate(ODOMETRY_CONFIG.SHOOT_SHORT_TRIANGLE)
-        val longLocate = checkToLocate(ODOMETRY_CONFIG.SHOOT_LONG_TRIANGLE)
+        longLocate = checkToLocate(ODOMETRY_CONFIG.SHOOT_LONG_TRIANGLE)
 
         locateInShootingArea = shortLocate || longLocate
 

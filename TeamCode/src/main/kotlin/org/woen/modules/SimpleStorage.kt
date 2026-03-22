@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.collector.Collector
 import org.woen.collector.RunMode
-import org.woen.modules.drivetrain.GetLocateInShootingAreaEvent
 import org.woen.utils.drivers.SOFT_SERVO_CONFIG
 import org.woen.utils.drivers.SoftServo
 
@@ -253,8 +252,7 @@ fun attachSimpleStorage(collector: Collector) {
 
     collector.eventBus.subscribe(ShootEvent::class) {
         if ((currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_EATING) &&
-            ((collector.eventBus.invoke(GetLocateInShootingAreaEvent()).locate &&
-                    collector.eventBus.invoke(GetTurretHeadingIsNormalEvent()).normal) || collector.runMode == RunMode.AUTO)
+            ((collector.eventBus.invoke(GetTurretHeadingIsNormalEvent()).normal) || collector.runMode == RunMode.AUTO)
         )
             switchState(StorageState.START_SHOOTING)
         else
