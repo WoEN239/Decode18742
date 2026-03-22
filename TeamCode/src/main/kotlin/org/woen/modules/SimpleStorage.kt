@@ -190,8 +190,16 @@ fun attachSimpleStorage(collector: Collector) {
     }
 
     collector.eventBus.subscribe(StartSortingEvent::class) {
-        if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_EATING) {
-            val patternGreenPosition = 1
+        val pattern = collector.eventBus.invoke(GetCurrentPatternEvent()).pattern
+
+        if ((currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_EATING) && pattern != null) {
+            val patternGreenPosition = when (BallColor.GREEN) {
+                pattern[0] -> 1
+                pattern[1] -> 2
+                pattern[2] -> 3
+                else -> 0
+            }
+
             val storageGreenPosition = when (BallColor.GREEN) {
                 it.ball1 -> 1
                 it.ball2 -> 2
