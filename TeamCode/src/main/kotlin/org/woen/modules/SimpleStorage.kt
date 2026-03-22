@@ -57,6 +57,18 @@ internal object SIMPLE_STORAGE_CONFIG {
     
     @JvmField
     var SORTING_SLOW_BELTS_POWER = 7.0
+    
+    @JvmField
+    var SORTING_BELT_POWER = 11.0
+    
+    @JvmField
+    var EATING_TIME = 0.15
+    
+    @JvmField
+    var CURRENT_TRIGGER_TIME = 0.15
+    
+    @JvmField
+    var TRIGGER_CURRENT = 2.0
 }
 
 enum class StorageState {
@@ -73,10 +85,8 @@ enum class StorageState {
 
 enum class SortingState {
     PUSH_OPEN,
-    PUSH_CLOSE,
     GATE_OPEN,
-    WAIT_PUSH,
-    WAIT_FALL
+    WAIT_PUSH
 }
 
 enum class BallColor {
@@ -99,6 +109,8 @@ fun attachSimpleStorage(collector: Collector) {
     beltMotor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
     brushMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
     brushMotor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+    
+    val battery = collector.battery
 
     val pushServo = SoftServo(
         "pushServo",
@@ -119,6 +131,8 @@ fun attachSimpleStorage(collector: Collector) {
     val stateTimer = ElapsedTime()
     val sortingTimer = ElapsedTime()
     var requiredSwaps = 3
+    val eatingTimer = ElapsedTime()
+    val currentTriggerTimer = ElapsedTime()
 
     fun switchState(state: StorageState) {
         currentState = state
@@ -158,7 +172,6 @@ fun attachSimpleStorage(collector: Collector) {
 
                 sortingTimer.reset()
 
-                beltMotor.power = -1.0
                 brushMotor.power = 0.0
             }
 
@@ -285,25 +298,24 @@ fun attachSimpleStorage(collector: Collector) {
         switchState(StorageState.STOP)
     }
 
-    val currentTimer = ElapsedTime()
-    val triggerTimer = ElapsedTime()
-
     collector.updateEvent += {
         pushServo.update()
         gateServo.update()
         turretGateServo.update()
 
         if(currentState == StorageState.EATING) {
-            if(currentTimer.seconds() > 0.15) {
-                if (brushMotor.getCurrent(CurrentUnit.AMPS) > 2.0) {
-                    if (triggerTimer.seconds() > 0.15)
+            if(eatingTimer.seconds() > SIMPLE_STORAGE_CONFIG.EATING_TIME){
+                if (brushMotor.getCurrent(CurrentUnit.AMPS) > SIMPLE_STORAGE_CONFIG.TRIGGER_CURRENT) {
+                    if (currentTriggerTimer.seconds() > SIMPLE_STORAGE_CONFIG.CURRENT_TRIGGER_TIME)
                         collector.opMode.gamepad1.rumble(200)
                 } else
-                    triggerTimer.reset()
+                    currentTriggerTimer.reset()
             }
         }
-        else
-            currentTimer.reset()
+        else {
+            eatingTimer.reset()
+            currentTriggerTimer.reset()
+        }
 
         when (currentState) {
             StorageState.SHOOTING -> {
@@ -339,7 +351,7 @@ fun attachSimpleStorage(collector: Collector) {
                     switchState(StorageState.STOP)
                 else
                     beltMotor.power =
-                        collector.battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SLOW_SHOOTING_POWER)
+                        battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SLOW_SHOOTING_POWER)
             }
 
             StorageState.STOP_SHOOTING -> {
@@ -359,6 +371,8 @@ fun attachSimpleStorage(collector: Collector) {
                                 pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_OPEN
                             }
                         }
+                        else
+                            beltMotor.power = -battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_BELT_POWER)
                     }
 
                     SortingState.PUSH_OPEN -> {
@@ -366,43 +380,30 @@ fun attachSimpleStorage(collector: Collector) {
                             sortingState = SortingState.WAIT_PUSH
 
                             gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
-
                             pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_CLOSE
                         }
                     }
 
                     SortingState.WAIT_PUSH -> {
                         if (pushServo.atTarget)
-                            beltMotor.power = 1.0
+                            beltMotor.power = battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_BELT_POWER)
                         else
-                            beltMotor.power = collector.battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_SLOW_BELTS_POWER)
+                            beltMotor.power = battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_SLOW_BELTS_POWER)
 
-                        if (gateServo.atTarget) {
-                            beltMotor.power = 0.0
-                            pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_CLOSE
-                            sortingState = SortingState.WAIT_FALL
+                        if (gateServo.atTarget && pushServo.atTarget) {
+                            if (sortingTimer.seconds() > SIMPLE_STORAGE_CONFIG.SORTING_PUSH_TIME) {
+                                beltMotor.power = 0.0
+
+                                requiredSwaps--
+
+                                if (requiredSwaps > 0)
+                                    switchState(StorageState.SORTING)
+                                else
+                                    switchState(StorageState.STOP)
+                            }
                         }
-                    }
-
-                    SortingState.WAIT_FALL -> {
-                        if (pushServo.atTarget) {
-                            beltMotor.power = 1.0
-                            sortingState = SortingState.PUSH_CLOSE
+                        else
                             sortingTimer.reset()
-                        }
-                    }
-
-                    SortingState.PUSH_CLOSE -> {
-                        if (sortingTimer.seconds() > SIMPLE_STORAGE_CONFIG.SORTING_PUSH_TIME) {
-                            beltMotor.power = 0.0
-
-                            requiredSwaps--
-
-                            if (requiredSwaps > 0)
-                                switchState(StorageState.SORTING)
-                            else
-                                switchState(StorageState.STOP)
-                        }
                     }
                 }
             }
