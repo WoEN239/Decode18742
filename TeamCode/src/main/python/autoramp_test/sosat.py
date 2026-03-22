@@ -9,7 +9,7 @@ class SoSAT:
     purpleThreshUpper = np.array([142,251,255])
 
     morphOpenVal = 2
-    morphCloseVal = 2
+    morphErodeVal = 2
     morphCloseVal = 2
 
     contoursList = []
@@ -20,26 +20,32 @@ class SoSAT:
             self.contoursList = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
 
 
-    def colorMasks(self,frame,step=25,iterations=4):
+    def colorMasks(self,frame,maskStep=25,maskIterations=4,morphStep=1,morphIterations=1):
         masks = []
         frame_hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
         greenThreshLowerRT = self.greenThreshLower.copy()
         purpleThreshLowerRT = self.purpleThreshLower.copy()
 
-        for threshIter in range(iterations):
-            greenThreshLowerRT[2]-=step
-            purpleThreshLowerRT[2]-=step
-            maskGreen = cv2.inRange(frame_hsv,greenThreshLowerRT,self.greenThreshUpper)
-            maskPurple = cv2.inRange(frame_hsv,purpleThreshLowerRT,self.purpleThreshUpper)
+        for threshIter in range(maskIterations):
+            for openIter in range(morphIterations):
+                for erodeIter in range(morphIterations):
+                    for closeIter in range(morphIterations):
+                        greenThreshLowerRT[2]-=maskStep
+                        purpleThreshLowerRT[2]-=maskStep
+                        if greenThreshLowerRT[2] < 0 or purpleThreshLowerRT[2] < 0 or self.morphOpenVal-openIter*morphStep < 0 or self.morphErodeVal-erodeIter*morphStep < 0 or self.morphCloseVal-closeIter*morphStep < 0: continue
 
-            maskCombined = cv2.bitwise_or(maskGreen,maskPurple)
+                        maskGreen = cv2.inRange(frame_hsv,greenThreshLowerRT,self.greenThreshUpper)
+                        maskPurple = cv2.inRange(frame_hsv,purpleThreshLowerRT,self.purpleThreshUpper)
 
-            kernel = np.ones((3,3),np.uint8)
-            maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_OPEN, kernel, iterations=self.morphOpenVal)
-            maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_CLOSE, kernel, iterations=self.morphCloseVal)
+                        maskCombined = cv2.bitwise_or(maskGreen,maskPurple)
 
-            masks.append(maskCombined)
+                        kernel = np.ones((3,3),np.uint8)
+                        maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_OPEN, kernel, iterations=self.morphOpenVal-openIter*morphStep)
+                        maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_ERODE, kernel, iterations=self.morphErodeVal-erodeIter*morphStep)
+                        maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_CLOSE, kernel, iterations=self.morphCloseVal-closeIter*morphStep)
+
+                        masks.append(maskCombined)
 
         return masks
 
@@ -48,7 +54,7 @@ class SoSAT:
             morph_filter = cv2.cuda.createMorphologyFilter(op, cv2.CV_8UC1, kernel, iterations=iterations)
             return morph_filter.apply(mask_gpu)
 
-    def colorMasksGPU(self,frame,step=25,iterations=4):
+    def colorMasksGPU(self,frame,maskStep=25,maskIterations=4,morphStep=1,morphIterations=1):
         masks = []
         frame_gpu = cv2.cuda_GpuMat()
         frame_gpu.upload(frame)
@@ -57,27 +63,31 @@ class SoSAT:
         greenThreshLowerRT = self.greenThreshLower.copy()
         purpleThreshLowerRT = self.purpleThreshLower.copy()
 
-        for threshIter in range(iterations):
-            greenThreshLowerRT[2]-=step
-            purpleThreshLowerRT[2]-=step
+        for threshIter in range(maskIterations):
+            for openIter in range(morphIterations):
+                for erodeIter in range(morphIterations):
+                    for closeIter in range(morphIterations):
+                        greenThreshLowerRT[2]-=maskStep
+                        purpleThreshLowerRT[2]-=maskStep
+                        if greenThreshLowerRT[2] < 0 or purpleThreshLowerRT[2] < 0 or self.morphOpenVal-openIter*morphStep < 0 or self.morphErodeVal-erodeIter*morphStep < 0 or self.morphCloseVal-closeIter*morphStep < 0: continue
 
-            lowG = tuple(int(v) for v in greenThreshLowerRT)
-            highG = tuple(int(v) for v in self.greenThreshUpper)
-            lowP = tuple(int(v) for v in purpleThreshLowerRT)
-            highP = tuple(int(v) for v in self.purpleThreshUpper)
+                        lowG = tuple(int(v) for v in greenThreshLowerRT)
+                        highG = tuple(int(v) for v in self.greenThreshUpper)
+                        lowP = tuple(int(v) for v in purpleThreshLowerRT)
+                        highP = tuple(int(v) for v in self.purpleThreshUpper)
 
-            maskGreen_gpu = cv2.cuda.inRange(frame_hsv_gpu, lowG, highG)
-            maskPurple_gpu = cv2.cuda.inRange(frame_hsv_gpu, lowP, highP)
+                        maskGreen_gpu = cv2.cuda.inRange(frame_hsv_gpu, lowG, highG)
+                        maskPurple_gpu = cv2.cuda.inRange(frame_hsv_gpu, lowP, highP)
 
-            maskCombined_gpu = cv2.cuda.bitwise_or(maskGreen_gpu, maskPurple_gpu)
+                        maskCombined_gpu = cv2.cuda.bitwise_or(maskGreen_gpu, maskPurple_gpu)
 
-            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
-            maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_OPEN, kernel, iterations=self.morphOpenVal)
-            maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_ERODE, kernel, iterations=self.morphErodeVal)
-            maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_CLOSE, kernel, iterations=self.morphCloseVal)
+                        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+                        maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_OPEN, kernel, iterations=self.morphOpenVal-openIter*morphStep)
+                        maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_ERODE, kernel, iterations=self.morphErodeVal-erodeIter*morphStep)
+                        maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_CLOSE, kernel, iterations=self.morphCloseVal-closeIter*morphStep)
 
-            maskCombined = maskCombined_gpu.download()
-            masks.append(maskCombined)
+                        maskCombined = maskCombined_gpu.download()
+                        masks.append(maskCombined)
 
         return masks
 
@@ -100,8 +110,8 @@ class SoSAT:
 
         return False
 
-    def detectArtefacts(self,frame,matchThreshold=1,minArea=1000,maskThreshStep=25,maskIterations=4):
-        masks = self.colorMasks(frame,step=maskThreshStep,iterations=maskIterations)
+    def detectArtefacts(self,frame,matchThreshold=1,minArea=1000,maskThreshStep=25,maskIterations=4,morphStep=1,morphIterations=1):
+        masks = self.colorMasks(frame,maskStep=maskThreshStep,maskIterations=maskIterations,morphStep=morphStep,morphIterations=morphIterations)
 
         detectedArtefacts = []
         for mask in masks:
@@ -123,8 +133,8 @@ class SoSAT:
 
         return detectedArtefacts
 
-    def detectArtefactsGPU(self,frame,matchThreshold=5,minArea=0,maskThreshStep=25,maskIterations=4):
-        masks = self.colorMasksGPU(frame,step=maskThreshStep,iterations=maskIterations)
+    def detectArtefactsGPU(self,frame,matchThreshold=5,minArea=0,maskThreshStep=25,maskIterations=4,morphStep=1,morphIterations=1):
+        masks = self.colorMasksGPU(frame,maskStep=maskThreshStep,maskIterations=maskIterations,morphStep=morphStep,morphIterations=morphIterations)
 
         detectedArtefacts = []
         for mask in masks:
