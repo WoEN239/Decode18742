@@ -1,15 +1,4 @@
-package org.woen.enumerators.phases
-
-
-enum class MotorStatus
-{
-    IDLE,
-    FORWARD,
-    REVERSE,
-    LAZY_FORWARD,
-    LAZY_REVERSE
-}
-
+package org.woen.enumerators.status
 
 
 class ServoStatus

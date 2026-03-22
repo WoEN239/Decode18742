@@ -20,7 +20,11 @@ class ShootingPhase
         P0_AWAITING_SORTING,
 
         P1_OPENING_TURRET_GATE,
-        P2_SHOOTING,
+        P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD,
+
+        P2_SHOOT_BELTS_ON_TIME,
+        P2_SHOOT_BELTS_ON_GAMEPAD_HOLD,
+
         P3_OPENING_LAUNCHER,
         P4_CALIBRATING
     }
@@ -37,9 +41,10 @@ class ShootingPhase
     {
         _name = Name.P0_AWAITING_SORTING
     }
-    fun startPhase1()
+    fun startPhase1(laterGamepadHold: Boolean)
     {
-        _name = Name.P1_OPENING_TURRET_GATE
+        _name = if (!laterGamepadHold) Name.P1_OPENING_TURRET_GATE
+               else Name.P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD
     }
     fun startPhase4()
     {
@@ -51,10 +56,16 @@ class ShootingPhase
         {
             Name.NOT_ACTIVE             -> Name.P0_AWAITING_SORTING
             Name.P0_AWAITING_SORTING    -> Name.P1_OPENING_TURRET_GATE
-            Name.P1_OPENING_TURRET_GATE -> Name.P2_SHOOTING
-            Name.P2_SHOOTING            -> Name.P3_OPENING_LAUNCHER
-            Name.P3_OPENING_LAUNCHER    -> Name.P4_CALIBRATING
-            Name.P4_CALIBRATING         -> Name.NOT_ACTIVE
+
+            Name.P1_OPENING_TURRET_GATE -> Name.P2_SHOOT_BELTS_ON_TIME
+            Name.P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD
+                -> Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD
+
+            Name.P2_SHOOT_BELTS_ON_TIME         -> Name.P3_OPENING_LAUNCHER
+            Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD -> Name.P3_OPENING_LAUNCHER
+
+            Name.P3_OPENING_LAUNCHER -> Name.P4_CALIBRATING
+            Name.P4_CALIBRATING      -> Name.NOT_ACTIVE
         }
     }
 
@@ -62,9 +73,11 @@ class ShootingPhase
     fun isInactive() = _name == Name.NOT_ACTIVE
     fun isActive()   = !isInactive()
 
-
     fun isShootingPhase0() = _name == Name.P0_AWAITING_SORTING
-    fun isShootingPhase2() = _name == Name.P2_SHOOTING
+
+    fun isRegularPhase2()  = _name == Name.P2_SHOOT_BELTS_ON_TIME
+    fun isGamepadHoldPhase2() = _name == Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD
+    fun isAnyShootingPhase2() = isRegularPhase2() || isGamepadHoldPhase2()
     fun isShootingPhase3() = _name == Name.P3_OPENING_LAUNCHER
     fun isShootingPhase4() = _name == Name.P4_CALIBRATING
 }
