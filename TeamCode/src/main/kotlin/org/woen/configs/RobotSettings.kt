@@ -47,6 +47,16 @@ object RobotSettings
 
         @JvmField
         var USE_LAUNCHER_FOR_LAST_BALL = false
+        @JvmField
+        var USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT = false
+
+
+        @JvmField
+        var BYPASS_IN_ZONE_CHECK_FOR_MANUAL_SHOOTING = true
+
+        @JvmField
+        var HOLD_FOR_MANUAL_SHOOTING = true
+
 
         @JvmField
         var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = false

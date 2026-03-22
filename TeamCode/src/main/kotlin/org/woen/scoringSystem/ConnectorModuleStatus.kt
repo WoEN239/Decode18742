@@ -4,8 +4,8 @@ package org.woen.scoringSystem
 import org.woen.collector.Collector
 import org.woen.scoringSystem.misc.DynamicPattern
 
-import org.woen.enumerators.phases.MotorStatus
-import org.woen.enumerators.phases.ServoStatus
+import org.woen.enumerators.status.MotorStatus
+import org.woen.enumerators.status.ServoStatus
 import org.woen.enumerators.phases.SortingPhase
 import org.woen.enumerators.phases.ShootingPhase
 import org.woen.enumerators.phases.CalibrationPhase
@@ -29,7 +29,7 @@ class ConnectorModuleStatus(var collector: Collector)
 
 
 
-    var beltsStatus = MotorStatus.IDLE
+    var beltsStatus = MotorStatus()
 
     var gateStatus   = ServoStatus()
     var pushStatus   = ServoStatus()

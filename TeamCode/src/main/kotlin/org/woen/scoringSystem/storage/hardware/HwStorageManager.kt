@@ -14,7 +14,7 @@ import org.woen.configs.RobotSettings.AUTONOMOUS
 
 import org.woen.utils.debug.Debug
 import org.woen.enumerators.Ball
-import org.woen.enumerators.phases.MotorStatus
+import org.woen.enumerators.status.MotorStatus
 
 
 
@@ -26,6 +26,7 @@ class HwSortingManager
 
     var targetPushTime: Long = 0
     var timeSinceLastShotUpdateMs: Double = 0.0
+    var beltRotationIsInfinite = true
     val rotatingBeltsTimer = ElapsedTime()
 
 
@@ -43,8 +44,7 @@ class HwSortingManager
     {
         hwMotors.updateServos()
 
-        if ((_cms.beltsStatus == MotorStatus.FORWARD ||
-             _cms.beltsStatus == MotorStatus.REVERSE) &&
+        if ((_cms.beltsStatus.isOnTime()) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
         {
             hwMotors.stopBelts()
@@ -70,8 +70,7 @@ class HwSortingManager
             =   rotatingBeltsTimer.milliseconds() - timeSinceLastShotUpdateMs >
             Delay.MS.SHOOTING.CONSIDER_SHOT_FIRED
     fun isReadyForShootingPhase3()
-        =   _cms.beltsStatus == MotorStatus.FORWARD &&
-            CONTROLS.USE_LAUNCHER_FOR_LAST_BALL &&
+        =   _cms.beltsStatus.isForwardOnTime() &&
             _cms.launchStatus.isClosingOrClosed() &&
             rotatingBeltsTimer.milliseconds() >
             targetPushTime - Delay.MS.SHOOTING.FIRE_LAST_WITH_LAUNCHER
@@ -85,10 +84,11 @@ class HwSortingManager
         hwMotors.openLaunch()
     }
     fun isReadyForShootingPhase4()
-        =  (_cms.shootingPhase.isShootingPhase2() ||
+        =   (_cms.shootingPhase.isAnyShootingPhase2() &&
+             _cms.beltsStatus.isIdle()
+            ) || (
             _cms.shootingPhase.isShootingPhase3() &&
-            _cms.launchStatus.isFinished()) &&
-            _cms.beltsStatus == MotorStatus.IDLE
+            _cms.launchStatus.isFinished())
 
 
 
@@ -124,7 +124,7 @@ class HwSortingManager
             _cms.launchStatus.isClosed() &&
             _cms.turretGateStatus.isClosed()
     fun isHardwareIdle()
-        =   _cms.beltsStatus == MotorStatus.IDLE &&
+        =   _cms.beltsStatus.notOnTime() &&
             _cms.gateStatus.isFinished() &&
             _cms.pushStatus.isFinished() &&
             _cms.launchStatus.isFinished() &&
@@ -148,23 +148,24 @@ class HwSortingManager
 
     private fun extendable    (forward: Boolean, timeMs: Long, voltage: Double = 12.0)
             = startBeltsTime(forward,
-                if ((forward && _cms.beltsStatus != MotorStatus.FORWARD)
-                         || (!forward && _cms.beltsStatus != MotorStatus.REVERSE)) timeMs
+                if ((forward && _cms.beltsStatus.isForward())
+                         || (!forward && _cms.beltsStatus.isReverse())) timeMs
                 else timeMs + targetPushTime
                     - rotatingBeltsTimer.milliseconds().toLong(), voltage)
     private fun reinstantiable(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
         = startBeltsTime(forward,
-                if ((forward && _cms.beltsStatus != MotorStatus.FORWARD)
-                    || (!forward && _cms.beltsStatus != MotorStatus.REVERSE)) timeMs
+        if ((forward && _cms.beltsStatus.isForward())
+                 || (!forward && _cms.beltsStatus.isReverse())) timeMs
                 else max(timeMs, targetPushTime
                     - rotatingBeltsTimer.milliseconds().toLong()), voltage)
     private fun startBeltsTime(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
     {
+        beltRotationIsInfinite = false
         hwMotors.logM.logMd("Rotate belts period: $timeMs", Debug.HW)
         targetPushTime = timeMs
         rotatingBeltsTimer.reset()
-        if (forward) hwMotors.forwardBelts(voltage)
-        else hwMotors.reverseBelts(voltage)
+        if (forward) hwMotors.forwardBelts(onTime = true, voltage)
+        else hwMotors.reverseBelts(onTime = true, voltage)
     }
 
 

@@ -12,7 +12,6 @@ import org.woen.scoringSystem.storage.Storage
 
 import org.woen.enumerators.Shooting
 import org.woen.enumerators.RequestResult
-import org.woen.enumerators.phases.MotorStatus
 import org.woen.enumerators.phases.SortingPhase
 import org.woen.enumerators.phases.ShootingPhase
 
@@ -56,7 +55,8 @@ class ScoringModulesConnector
 
         subscribeToOdometry()
         subscribeToCameraPattern()
-        subscribeToDriverGamepad1()
+        subscribeToDriverShootingGamepad1()
+        subscribeToDriverMiscellaneousGamepad1()
         subscribeToHelperGamepad2PatternRecalibration()
 
 
@@ -87,27 +87,74 @@ class ScoringModulesConnector
             _cms.dynamicMemoryPattern.setPermanent(it.pattern)
         }
     }
-    private fun subscribeToDriverGamepad1()
+    private fun subscribeToDriverShootingGamepad1()
     {
-        _cms.collector.eventBus.invoke(
-            AddGamepad1ListenerEvent(
-                ClickGamepadListener(
-                    { it.right_bumper },
-                    {
-                        if (_cms.shootingPhase.isInactive()
-                            && canStartManualShooting())
-                            logM.logMd(_storage.streamDrumPhase1()
-                                .toString(), Debug.START)
-                        else
-                        {
-                            logM.logMd("Unable to start shooting, " +
-                                    "another process is unfinished", Debug.ERROR)
-                            logM.logMd("Shooting: ${_cms.shootingPhase.name}, " +
-                                    "Sorting: ${_cms.sortingPhase.name}, " +
-                                    "Calibration: ${_cms.calibrationPhase.name}", Debug.GENERIC)
-                    }   }
-        )   )   )
+        if (!CONTROLS.HOLD_FOR_MANUAL_SHOOTING)
+        {
+            _cms.collector.eventBus.invoke(
+                AddGamepad1ListenerEvent(
+                    ClickGamepadListener(
+                        buttonSuppler = { it.right_bumper },
+                        activationState = true,
+                        onTriggered = {
+                            if (_cms.shootingPhase.isInactive()
+                                && canStartManualShooting())
+                                logM.logMd(_storage.streamDrumPhase1()
+                                    .toString(), Debug.START)
+                            else
+                            {
+                                logM.logMd("Unable to start shooting, " +
+                                        "another process is unfinished", Debug.ERROR)
+                                logM.logMd("Shooting: ${_cms.shootingPhase.name}, " +
+                                        "Sorting: ${_cms.sortingPhase.name}, " +
+                                        "Calibration: ${_cms.calibrationPhase.name}",
+                                    Debug.GENERIC)
+                            }   }
+                    )   )   )
+        }
+        else
+        {
+            _cms.collector.eventBus.invoke(
+                AddGamepad1ListenerEvent(
+                    ClickGamepadListener(
+                        buttonSuppler = { it.right_bumper },
+                        activationState = true,
+                        onTriggered = {
+                            if (_cms.shootingPhase.isInactive()
+                                && canStartManualShooting())
+                                logM.logMd(
+                                    _storage.streamDrumPhase1(
+                                        laterGamepadHold = true)
+                                        .toString(), Debug.START)
+                            else
+                            {
+                                logM.logMd("Unable to start shooting, " +
+                                        "another process is unfinished", Debug.ERROR)
+                                logM.logMd("Shooting: ${_cms.shootingPhase.name}, " +
+                                        "Sorting: ${_cms.sortingPhase.name}, " +
+                                        "Calibration: ${_cms.calibrationPhase.name}",
+                                    Debug.GENERIC)
+                            }   }
+                )   )   )
 
+            _cms.collector.eventBus.invoke(
+                AddGamepad1ListenerEvent(
+                    ClickGamepadListener(
+                        buttonSuppler = { it.right_bumper },
+                        activationState = false,
+                        onTriggered = {
+                            if (_cms.sortingPhase.isInactive() &&
+                                _cms.shootingPhase.isGamepadHoldPhase2())
+                            {
+                                if (CONTROLS.USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT)
+                                    _storage.cells.hwSortingM.streamDrumPhase3()
+                                else _cms.shootingPhase.startPhase4()
+                        }   }
+            )   )   )
+        }
+    }
+    private fun subscribeToDriverMiscellaneousGamepad1()
+    {
         _cms.collector.eventBus.invoke(
             AddGamepad1ListenerEvent(
                 ClickGamepadListener(
@@ -118,10 +165,10 @@ class ScoringModulesConnector
                             _cms.calibrationPhase.isInactive())
                         {
                             if (_cms.lazyIntakeIsActive)
-                                 _storage.cells.hwSortingM.hwMotors.stopBelts()
+                                _storage.cells.hwSortingM.hwMotors.stopBelts()
                             else
                             {
-                                _storage.cells.hwSortingM.hwMotors.lazyForwardBelts()
+                                _storage.cells.hwSortingM.hwMotors.forwardBelts(false)
                                 _storage.cells.hwSortingM.hwMotors.forwardBrush()
                             }
 
@@ -239,16 +286,20 @@ class ScoringModulesConnector
                 if (canStartAutoShooting())
                     _cms.shootingPhase.switchToNextPhase()
 
-            ShootingPhase.Name.P1_OPENING_TURRET_GATE ->
+            ShootingPhase.Name.P1_OPENING_TURRET_GATE,
+            ShootingPhase.Name.P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD ->
                 if (_cms.turretGateStatus.isFinished())
                     _storage.streamDrumPhase2()
 
-            ShootingPhase.Name.P2_SHOOTING ->
+            ShootingPhase.Name.P2_SHOOT_BELTS_ON_TIME,
+                ShootingPhase.Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD ->
             {
                 if (_storage.cells.hwSortingM.wasShotFired())
                     _storage.cells.updateAfterShot()
 
-                if (_storage.cells.hwSortingM.isReadyForShootingPhase3())
+                if ((!_cms.shootingPhase.isRegularPhase2() &&
+                     CONTROLS.USE_LAUNCHER_FOR_LAST_BALL &&
+                    _storage.cells.hwSortingM.isReadyForShootingPhase3()))
                     _storage.cells.hwSortingM.streamDrumPhase3()
 
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
@@ -273,15 +324,15 @@ class ScoringModulesConnector
                    _storage.sortingPhaseRealignment()
 
             SortingPhase.Name.P2_REALIGN_STORAGE ->
-                if (_cms.beltsStatus == MotorStatus.IDLE)
+                if (_cms.beltsStatus.notOnTime())
                     _storage.sortingPhase3()
 
             SortingPhase.Name.P3_REALIGNING_UPWARDS ->
-                if (_cms.beltsStatus == MotorStatus.IDLE)
+                if (_cms.beltsStatus.notOnTime())
                     _storage.sortingPhase4()
 
             SortingPhase.Name.P4_REALIGNING_DOWNWARDS ->
-                if (_cms.beltsStatus == MotorStatus.IDLE)
+                if (_cms.beltsStatus.isIdle())
                     _storage.sortingPhase5()
 
             SortingPhase.Name.P5_OPENING_GATE ->
@@ -305,7 +356,7 @@ class ScoringModulesConnector
                     _storage.sortingPhaseRealignment()
 
             SortingPhase.Name.P9_REALIGN_STORAGE ->
-                if (_cms.beltsStatus == MotorStatus.IDLE)
+                if (_cms.beltsStatus.isIdle())
                 {
                     _cms.sortingPhase.remainingRotations--
                     if  (_cms.sortingPhase.remainingRotations > 0)
@@ -331,7 +382,7 @@ class ScoringModulesConnector
             else _storage.finishCalibration()
         }
         if (_cms.calibrationPhase.isCalibrationPhase3() &&
-            _cms.beltsStatus == MotorStatus.IDLE)
+            _cms.beltsStatus.notOnTime())
             _storage.finishCalibration()
 
 

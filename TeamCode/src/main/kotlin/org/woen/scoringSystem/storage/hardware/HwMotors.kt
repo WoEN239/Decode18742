@@ -8,8 +8,8 @@ import org.woen.utils.debug.LogManager
 import org.woen.utils.drivers.SoftServo
 import org.woen.scoringSystem.ConnectorModuleStatus
 
-import org.woen.enumerators.phases.MotorStatus
-import org.woen.enumerators.phases.ServoStatus
+import org.woen.enumerators.status.MotorStatus
+import org.woen.enumerators.status.ServoStatus
 
 import org.woen.configs.Hardware
 import org.woen.configs.DebugSettings
@@ -131,29 +131,19 @@ class HwMotors
     }
 
 
-    fun lazyForwardBelts(voltage: Double = 10.0)
+    fun forwardBelts(onTime: Boolean, voltage: Double = Hardware.MOTOR.BELTS_FORWARD)
     {
-        _cms.beltsStatus = MotorStatus.LAZY_FORWARD
+        _cms.beltsStatus.setForward(onTime)
         _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
     }
-    fun lazyReverseBelts(voltage: Double = 10.0)
+    fun reverseBelts(onTime: Boolean, voltage: Double = Hardware.MOTOR.BELTS_REVERSE)
     {
-        _cms.beltsStatus = MotorStatus.LAZY_REVERSE
-        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
-    }
-    fun forwardBelts(voltage: Double = 12.0)
-    {
-        _cms.beltsStatus = MotorStatus.FORWARD
-        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
-    }
-    fun reverseBelts(voltage: Double = 12.0)
-    {
-        _cms.beltsStatus = MotorStatus.REVERSE
+        _cms.beltsStatus.setReverse(onTime)
         _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
     }
     fun stopBelts()
     {
-        _cms.beltsStatus = MotorStatus.IDLE
+        _cms.beltsStatus.setIdle()
         _beltMotor.power = 0.0
     }
 

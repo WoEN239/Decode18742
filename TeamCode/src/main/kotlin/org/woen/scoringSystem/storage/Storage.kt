@@ -145,7 +145,9 @@ class Storage
 
 
 
-    fun streamDrumPhase1(ballCount: Int = 0): RequestResult.Name
+    fun streamDrumPhase1(
+        laterGamepadHold: Boolean = false,
+        ballCount: Int = 0): RequestResult.Name
     {
         if (_cms.sortingPhase.isActive() ||
             _cms.shootingPhase.isShootingPhase0())
@@ -153,7 +155,7 @@ class Storage
         if (_cms.shootingPhase.isActive())
             return Request.IGNORED_DUPLICATE_COMMAND
 
-        _cms.shootingPhase.startPhase1()
+        _cms.shootingPhase.startPhase1(laterGamepadHold)
         _cms.shootingPhase.ballCountForPhase1 =
             if (ballCount == 1 && cells.isLastBall()
                 && CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
@@ -187,8 +189,11 @@ class Storage
 
         logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
 
-        cells.hwSortingM.extendableForward(beltPushTime,
-            _cms.shootingPhase.shotBeltsVoltage)
+        if (_cms.shootingPhase.isGamepadHoldPhase2())
+            cells.hwSortingM.hwMotors.forwardBelts(
+                onTime = false, _cms.shootingPhase.shotBeltsVoltage)
+        else cells.hwSortingM.extendableForward(
+            beltPushTime, _cms.shootingPhase.shotBeltsVoltage)
 
         cells.hwSortingM.timeSinceLastShotUpdateMs =
             cells.hwSortingM.rotatingBeltsTimer.milliseconds()
@@ -214,7 +219,8 @@ class Storage
             _cms.canTriggerIntake = true
             cells.hwSortingM.hwMotors.forwardBrush()
 
-            if (_cms.lazyIntakeIsActive) cells.hwSortingM.hwMotors.lazyForwardBelts()
+            if (_cms.lazyIntakeIsActive)
+                cells.hwSortingM.hwMotors.forwardBelts(false)
         }
     }
 
@@ -292,7 +298,7 @@ class Storage
     {
         logM.logMd("Sorting phase 8, closing gate with push", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
-        cells.hwSortingM.hwMotors.reverseBelts()
+        cells.hwSortingM.hwMotors.reverseBelts(false)
         cells.hwSortingM.hwMotors.closeGateWithPush()
     }
 }
