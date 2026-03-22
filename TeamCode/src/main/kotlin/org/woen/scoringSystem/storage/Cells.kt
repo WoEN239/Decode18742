@@ -189,8 +189,7 @@ class Cells
             _cms.shootingPhase.isShootingPhase3() ||
             _cms.shootingPhase.isShootingPhase4() ||
             _cms.lazyIntakeIsActive || !_cms.canTriggerIntake
-            || alreadyFull()) return _cms.collector.opMode.gamepad1.rumble(
-                Delay.MS.GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL)
+            || alreadyFull()) return
 
         val inputBall = hwSortingM.updateColors()
         if (inputBall == Ball.Name.NONE) return
@@ -206,6 +205,8 @@ class Cells
         curSlot--
 
         if (curSlot >= StorageSlot.BOTTOM) _storageCells[curSlot].set(inputBall)
+        if (alreadyFull()) _cms.collector.opMode.gamepad1.rumble(
+            Delay.MS.GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL)
 
         logM.logMd("Storage after intake: ", Debug.GENERIC)
         logAllStorageData()

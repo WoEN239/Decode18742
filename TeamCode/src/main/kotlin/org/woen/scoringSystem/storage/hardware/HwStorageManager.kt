@@ -112,6 +112,7 @@ class HwSortingManager
     }
     fun calibrationPhase3()
     {
+        hwMotors.logM.logMd("Calibration phase 3, forward realignment", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase3()
         extendableForward(Delay.MS.PUSH.FULL)
@@ -147,12 +148,14 @@ class HwSortingManager
 
     private fun extendable    (forward: Boolean, timeMs: Long, voltage: Double = 12.0)
             = startBeltsTime(forward,
-                if (_cms.beltsStatus != MotorStatus.FORWARD) timeMs
+                if ((forward && _cms.beltsStatus != MotorStatus.FORWARD)
+                         || (!forward && _cms.beltsStatus != MotorStatus.REVERSE)) timeMs
                 else timeMs + targetPushTime
                     - rotatingBeltsTimer.milliseconds().toLong(), voltage)
     private fun reinstantiable(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
         = startBeltsTime(forward,
-                if (_cms.beltsStatus != MotorStatus.FORWARD) timeMs
+                if ((forward && _cms.beltsStatus != MotorStatus.FORWARD)
+                    || (!forward && _cms.beltsStatus != MotorStatus.REVERSE)) timeMs
                 else max(timeMs, targetPushTime
                     - rotatingBeltsTimer.milliseconds().toLong()), voltage)
     private fun startBeltsTime(forward: Boolean, timeMs: Long, voltage: Double = 12.0)

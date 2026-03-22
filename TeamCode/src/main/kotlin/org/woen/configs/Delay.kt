@@ -13,24 +13,24 @@ object Delay
         internal object PUSH
         {
             @JvmField
-            var FULL: Long = 444
+            var FULL: Long = 400
             val HALF get() = FULL / 2
 
             @JvmField
-            var PART: Long = 333
+            var PART: Long = 300
         }
 
         @Config
         internal object SHOOTING
         {
             @JvmField
-            var FIRE_3: Long = 500
+            var FIRE_3: Long = 400
 
             @JvmField
-            var FIRE_2: Long = 350
+            var FIRE_2: Long = 275
 
             @JvmField
-            var FIRE_1: Long = 200
+            var FIRE_1: Long = 150
 
             @JvmField
             var FIRE_LAST_WITH_LAUNCHER: Long = 150
@@ -40,7 +40,7 @@ object Delay
             var BEFORE_AUTOSHOT: Long = 50
 
             @JvmField
-            var CONSIDER_SHOT_FIRED: Long = 150
+            var CONSIDER_SHOT_FIRED: Long = 133
         }
 
 
@@ -48,7 +48,7 @@ object Delay
         internal object REALIGNMENT
         {
             @JvmField
-            var SORTING_FORWARD: Long = 444
+            var SORTING_FORWARD: Long = 222
 
             @JvmField
             var SORTING_REVERSE: Long = 85
@@ -56,8 +56,6 @@ object Delay
 
             @JvmField
             var WAITING_IN_SORTING_PASE_7: Long = 80
-
-
         }
 
         @JvmField

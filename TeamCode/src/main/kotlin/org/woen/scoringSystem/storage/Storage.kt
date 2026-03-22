@@ -234,6 +234,7 @@ class Storage
 
     fun sortingPhase1(totalRotations: Int)
     {
+        logM.logMd("Sorting phase 1, closing turretGate", Debug.LOGIC)
         _cms.sortingPhase.startPhase1()
         _cms.sortingPhase.remainingRotations = totalRotations
 
@@ -242,12 +243,14 @@ class Storage
     }
     fun sortingPhaseRealignment()
     {
+        logM.logMd("Sorting HW ReAdjustment (Phase 2 or 9)", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         cells.hwSortingM.hwMotors.stopBelts()
         cells.hwReAdjustStorage()
     }
     fun sortingPhase3()
     {
+        logM.logMd("Sorting phase 3, forwards realignment", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         val timeMs = Delay.MS.REALIGNMENT.SORTING_FORWARD
 
@@ -256,6 +259,7 @@ class Storage
     }
     fun sortingPhase4()
     {
+        logM.logMd("Sorting phase 4, reverse realignment", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         val timeMs = Delay.MS.REALIGNMENT.SORTING_REVERSE
 
@@ -264,16 +268,19 @@ class Storage
     }
     fun sortingPhase5()
     {
+        logM.logMd("Sorting phase 5, opening gate", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         cells.hwSortingM.hwMotors.openGate()
     }
     fun sortingPhase6()
     {
+        logM.logMd("Sorting phase 6, opening push", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         cells.hwSortingM.hwMotors.openPush()
     }
     fun sortingPhase7(waitTimeStampMs: Double)
     {
+        logM.logMd("Sorting phase 7, waiting for ball to fly in MOBILE position", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
 
         if (Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0)
@@ -283,6 +290,7 @@ class Storage
     }
     fun sortingPhase8()
     {
+        logM.logMd("Sorting phase 8, closing gate with push", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         cells.hwSortingM.hwMotors.reverseBelts()
         cells.hwSortingM.hwMotors.closeGateWithPush()
