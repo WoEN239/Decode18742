@@ -1,83 +1,66 @@
 package org.woen.modules
 
-import com.qualcomm.hardware.limelightvision.LLResult
-import com.qualcomm.hardware.limelightvision.LLResultTypes
 import com.qualcomm.hardware.limelightvision.Limelight3A
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
-import org.firstinspires.ftc.robotcore.external.navigation.Position
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles
 import org.woen.collector.Collector
-import org.woen.enumerators.BallRequest
-import org.woen.enumerators.Shooting
-import org.woen.modules.drivetrain.GetRobotOdometry
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
 
-class OnCameraUpdateEvent(val orientation: Orientation)
-class OnPatternDetected(val pattern: Array<BallRequest.Name>)
+class OnCameraUpdateEvent(val orientation: Orientation = Orientation.ZERO)
+class OnPatternDetected(val pattern: Array<BallColor>)
+class GetCurrentPatternEvent(var pattern: Array<BallColor>? = null)
 
 fun attachLimelight(collector: Collector) {
-    val telemetry = collector.telemetry
-    var odometry: GetRobotOdometry
     val ll = collector.hardwareMap.get(Limelight3A::class.java, "limelight")
 
     ll.start()
 
-    var posByLL: Position
-    var orientByLL: YawPitchRollAngles
-    var results: LLResult
-    var tagIds: List<Int>
-    var isPatternScanned: Boolean = false
-    var pattern: Array<BallRequest.Name> = arrayOf()
+    var isPatternDetected = false
+    var pattern: Array<BallColor> = arrayOf()
 
-    var obeliskTagId: Int
+    collector.eventBus.subscribe(GetCurrentPatternEvent::class){
+        if(isPatternDetected)
+            it.pattern = pattern
+    }
 
     collector.updateEvent += {
-        odometry = collector.eventBus.invoke(GetRobotOdometry())
-
         ll.pipelineSwitch(0)
 
-        results = ll.latestResult
-        tagIds = results.fiducialResults.map { it.fiducialId }
-        if (!isPatternScanned) {
-            tagIds = results.fiducialResults.map { it.fiducialId }
-            isPatternScanned = true
-            for (id in tagIds) {
-                when (id) {
-                    21 -> pattern = Shooting.StockPattern.Request.GPP
-                    22 -> pattern = Shooting.StockPattern.Request.PGP
-                    23 -> pattern = Shooting.StockPattern.Request.PPG
-                    else -> isPatternScanned = false
+        val result = ll.latestResult
+
+        if (result.isValid) {
+            if (!isPatternDetected) {
+                val tagIds = result.fiducialResults.map { it.fiducialId }
+
+                isPatternDetected = true
+
+                for (id in tagIds) {
+                    when (id) {
+                        21 -> pattern = arrayOf(BallColor.GREEN, BallColor.PURPLE, BallColor.PURPLE)
+                        22 -> pattern = arrayOf(BallColor.PURPLE, BallColor.GREEN, BallColor.PURPLE)
+                        23 -> pattern = arrayOf(BallColor.PURPLE, BallColor.PURPLE, BallColor.GREEN)
+                        else -> isPatternDetected = false
+                    }
                 }
+
+                if (isPatternDetected)
+                    collector.eventBus.invoke(OnPatternDetected(pattern))
             }
 
-            if (isPatternScanned) {
-                collector.eventBus.invoke(
-                    OnPatternDetected(
-                        pattern
-                    )
-                )
-            }
-
-        }
-
-        posByLL = results.botpose.position
-        orientByLL = results.botpose.orientation
-
-        collector.eventBus.invoke(
-            OnCameraUpdateEvent(
-                Orientation(
-                    Vec2(posByLL.x, posByLL.y), Angle(
-                        orientByLL.getYaw(
-                            AngleUnit.RADIANS
-                        )
-                    )
+            val position = result.botpose.position
+            val rotation = Angle(
+                result.botpose.orientation.getYaw(
+                    AngleUnit.RADIANS
                 )
             )
-        )
 
-
+            collector.eventBus.invoke(
+                OnCameraUpdateEvent(
+                    Orientation(Vec2(position.x, position.y), rotation)
+                )
+            )
+        }
 
         ll.pipelineSwitch(1)
     }

@@ -84,7 +84,7 @@ class ScoringModulesConnector
     {
         _cms.collector.eventBus.subscribe(OnPatternDetected::class)
         {
-            _cms.dynamicMemoryPattern.setPermanent(it.pattern)
+//            _cms.dynamicMemoryPattern.setPermanent(it.pattern)
         }
     }
     private fun subscribeToDriverShootingGamepad1()
