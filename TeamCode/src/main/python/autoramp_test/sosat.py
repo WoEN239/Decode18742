@@ -10,6 +10,7 @@ class SoSAT:
 
     morphOpenVal = 2
     morphCloseVal = 2
+    morphCloseVal = 2
 
     contoursList = []
 
@@ -23,16 +24,12 @@ class SoSAT:
         masks = []
         frame_hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
-        greenThreshLowerRT = self.greenThreshLower
-        purpleThreshLowerRT = self.purpleThreshLower
+        greenThreshLowerRT = self.greenThreshLower.copy()
+        purpleThreshLowerRT = self.purpleThreshLower.copy()
 
         for threshIter in range(iterations):
             greenThreshLowerRT[2]-=step
             purpleThreshLowerRT[2]-=step
-
-            if greenThreshLowerRT[2] < 0 or purpleThreshLowerRT[2] < 0:
-                continue
-
             maskGreen = cv2.inRange(frame_hsv,greenThreshLowerRT,self.greenThreshUpper)
             maskPurple = cv2.inRange(frame_hsv,purpleThreshLowerRT,self.purpleThreshUpper)
 
@@ -42,6 +39,44 @@ class SoSAT:
             maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_OPEN, kernel, iterations=self.morphOpenVal)
             maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_CLOSE, kernel, iterations=self.morphCloseVal)
 
+            masks.append(maskCombined)
+
+        return masks
+
+    def _cudaMorph(self, mask_gpu, op, kernel, iterations):
+        if hasattr(cv2.cuda, 'createMorphologyFilter'):
+            morph_filter = cv2.cuda.createMorphologyFilter(op, cv2.CV_8UC1, kernel, iterations=iterations)
+            return morph_filter.apply(mask_gpu)
+
+    def colorMasksGPU(self,frame,step=25,iterations=4):
+        masks = []
+        frame_gpu = cv2.cuda_GpuMat()
+        frame_gpu.upload(frame)
+        frame_hsv_gpu = cv2.cuda.cvtColor(frame_gpu, cv2.COLOR_BGR2HSV)
+
+        greenThreshLowerRT = self.greenThreshLower.copy()
+        purpleThreshLowerRT = self.purpleThreshLower.copy()
+
+        for threshIter in range(iterations):
+            greenThreshLowerRT[2]-=step
+            purpleThreshLowerRT[2]-=step
+
+            lowG = tuple(int(v) for v in greenThreshLowerRT)
+            highG = tuple(int(v) for v in self.greenThreshUpper)
+            lowP = tuple(int(v) for v in purpleThreshLowerRT)
+            highP = tuple(int(v) for v in self.purpleThreshUpper)
+
+            maskGreen_gpu = cv2.cuda.inRange(frame_hsv_gpu, lowG, highG)
+            maskPurple_gpu = cv2.cuda.inRange(frame_hsv_gpu, lowP, highP)
+
+            maskCombined_gpu = cv2.cuda.bitwise_or(maskGreen_gpu, maskPurple_gpu)
+
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+            maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_OPEN, kernel, iterations=self.morphOpenVal)
+            maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_ERODE, kernel, iterations=self.morphErodeVal)
+            maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_CLOSE, kernel, iterations=self.morphCloseVal)
+
+            maskCombined = maskCombined_gpu.download()
             masks.append(maskCombined)
 
         return masks
@@ -67,6 +102,29 @@ class SoSAT:
 
     def detectArtefacts(self,frame,matchThreshold=1,minArea=1000,maskThreshStep=25,maskIterations=4):
         masks = self.colorMasks(frame,step=maskThreshStep,iterations=maskIterations)
+
+        detectedArtefacts = []
+        for mask in masks:
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            for contour in contours:
+                if cv2.contourArea(contour) > minArea:
+                    matchScore = self.__matchContours(contour)
+                    if matchScore < float(matchThreshold):
+                        x,y,w,h = cv2.boundingRect(contour)
+                        artefactInfo = {
+                            "x": x,
+                            "y": y,
+                            "w": w,
+                            "h": h,
+                            "matchScore": matchScore
+                        }
+                        if not(self.__isPosOverlaps(detectedArtefacts,artefactInfo)):
+                            detectedArtefacts.append(artefactInfo)
+
+        return detectedArtefacts
+
+    def detectArtefactsGPU(self,frame,matchThreshold=5,minArea=0,maskThreshStep=25,maskIterations=4):
+        masks = self.colorMasksGPU(frame,step=maskThreshStep,iterations=maskIterations)
 
         detectedArtefacts = []
         for mask in masks:
