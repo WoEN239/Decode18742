@@ -1,9 +1,16 @@
 import cv2
 import numpy as np
-from sosat import SoSAT
 import json
+import sys
+import os
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(script_dir)
+sys.path.append(parent_dir)
+from sosat import SoSAT
 
 detector = SoSAT()
+os.chdir("test_images/only_in_ramp")
 
 isSelecting = False
 isSelected = False
@@ -43,44 +50,69 @@ def mouse_callback(event,x,y,flags,param):
         else:
             endCoords[1]=y
 
+
+def touches_edge(contour, width, height):
+    for point in contour:
+        x, y = point[0]
+        if x == 0 or x == width - 1 or y == 0 or y == height - 1:
+            return True
+    return False
+
 cv2.namedWindow("Set contour",cv2.WINDOW_NORMAL)
+
 cv2.setMouseCallback("Set contour",mouse_callback)
 
-frame = cv2.imread("test_actual.png")
+
+imageNames = os.listdir(".")
 displayFrame = None
+contoursList = []
+exiting = False
 
-contours_list = []
+for imageName in imageNames:
+    
+    frame = cv2.imread(imageName)
+    while True:
+        if isSelecting:
+            displayFrame = selectingFrame
 
-while True:
-    if isSelecting:
-        displayFrame = selectingFrame
+        elif isSelected and startCoords[0] is not None and endCoords[0] is not None:
+            displayFrame = frame[startCoords[1]:endCoords[1],startCoords[0]:endCoords[0]]
+            height, width = displayFrame.shape[:2]
+            masks = detector.colorMasks(displayFrame,25,4,10,2,2,4)
 
-    elif isSelected and startCoords[0] is not None and endCoords[0] is not None:
-        display_frame = frame[startCoords[1]:endCoords[1],startCoords[0]:endCoords[0]]
-        masks = detector.colorMasks(display_frame,step=5,iterations=20)
+            for mask in masks:
+                displayFrame = frame[startCoords[1]:endCoords[1],startCoords[0]:endCoords[0]]
+                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                
+                maxArea = 0
+                endContour = None
+                for contour in contours:
+                    area = cv2.contourArea(contour)
+                    if area > maxArea and area > 1000 and not touches_edge(contour,width,height):
+                        maxArea = area
+                        endContour = contour
 
-        for mask in masks:
-            display_frame = frame[startCoords[1]:endCoords[1],startCoords[0]:endCoords[0]]
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            for contour in contours:
-                if cv2.contourArea(contour) > 100:
-                    contours_list.append(contour.tolist())
+                if endContour is not None:
+                    contoursList.append(endContour.tolist())
 
-        print(f"CONTOURS ADDED: {len(contours_list)}")
-        isSelected = False
+            print(f"CONTOURS ADDED: {len(contoursList)}")
+            isSelected = False
 
-    else:
-        display_frame = frame.copy()
+        else:
+            displayFrame = frame.copy()
 
-    cv2.imshow("Set contour",display_frame)
+        cv2.imshow("Set contour",displayFrame)
 
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord('s'):
-        with open("contours_data.json","w") as f:
-            json.dump(contours_list,f,indent=4)
-            f.close()
-        print(f"TOTAL CONTOURS SAVED: {len(contours_list)}")
-        
-    if key == ord('q'):
-        print("EXITTING...")
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('s'):
+            with open("contours_data.json","w") as f:
+                json.dump(contoursList,f,indent=4)
+                f.close()
+            print(f"TOTAL CONTOURS SAVED: {len(contoursList)}")
+        elif key == ord('n'):
+            break
+        elif key == ord('q'):
+            exiting=True
+            break
+    if exiting:
         break
