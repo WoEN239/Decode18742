@@ -104,15 +104,8 @@ class ScoringModulesConnector
                                 && canStartManualShooting())
                                 logM.logMd(_storage.streamDrumPhase1()
                                     .toString(), Debug.START)
-                            else
-                            {
-                                logM.logMd("Unable to start shooting, " +
-                                        "another process is unfinished", Debug.ERROR)
-                                logM.logMd("Shooting: ${_cms.shootingPhase.name}, " +
-                                        "Sorting: ${_cms.sortingPhase.name}, " +
-                                        "Calibration: ${_cms.calibrationPhase.name}",
-                                    Debug.GENERIC)
-                        }   }
+                            else logStartingError("ManualShooting")
+                        }
             )   )   )
         }
         else
@@ -129,15 +122,8 @@ class ScoringModulesConnector
                                     _storage.streamDrumPhase1(
                                         laterGamepadHold = true)
                                         .toString(), Debug.START)
-                            else
-                            {
-                                logM.logMd("Unable to start shooting, " +
-                                        "another process is unfinished", Debug.ERROR)
-                                logM.logMd("Shooting: ${_cms.shootingPhase.name}, " +
-                                        "Sorting: ${_cms.sortingPhase.name}, " +
-                                        "Calibration: ${_cms.calibrationPhase.name}",
-                                    Debug.GENERIC)
-                        }   }
+                            else logStartingError("ManualShooting")
+                        }
             )   )   )
 
             _cms.collector.eventBus.invoke(
@@ -181,15 +167,26 @@ class ScoringModulesConnector
 
                             _cms.lazyIntakeIsActive = !_cms.lazyIntakeIsActive
                         }
-                        else
-                        {
-                            logM.logMd("Unable to start LazyIntake, " +
-                                    "another process is unfinished", Debug.ERROR)
-                            logM.logMd("Shooting: ${_cms.shootingPhase.name}, " +
-                                    "Sorting: ${_cms.sortingPhase.name}, " +
-                                    "Calibration: ${_cms.calibrationPhase.name}", Debug.GENERIC)
-                    }   }
+                        else logStartingError("LazyIntake")
+                    }
         )   )   )
+
+
+        if (CONTROLS.DO_SORTING_TEST_100_ON_TOUCHPAD_1_PRESSED)
+        {
+            _cms.collector.eventBus.invoke(
+                AddGamepad1ListenerEvent(
+                    ClickGamepadListener(
+                        { it.touchpadWasPressed() },
+                        {
+                            if (_cms.shootingPhase.isInactive() &&
+                                _cms.sortingPhase.isInactive() &&
+                                _cms.calibrationPhase.isInactive())
+                                _storage.unsafeSortingTest100()
+                            else logStartingError("SortingTest100")
+                        }
+            )   )   )
+        }
     }
     private fun subscribeToHelperGamepad2PatternRecalibration()
     {
@@ -438,6 +435,15 @@ class ScoringModulesConnector
             _storage.cells.hwSortingM.isHardwareIdle()
 
 
+
+    fun logStartingError(processName: String)
+    {
+        logM.logMd("Unable to start $processName, " +
+                "another process is unfinished", Debug.ERROR)
+        logM.logMd("Shooting: ${_cms.shootingPhase.name}, " +
+                "Sorting: ${_cms.sortingPhase.name}, " +
+                "Calibration: ${_cms.calibrationPhase.name}", Debug.GENERIC)
+    }
 
     val isEndGame get() = _gameTimer.seconds() > 90.0
 }

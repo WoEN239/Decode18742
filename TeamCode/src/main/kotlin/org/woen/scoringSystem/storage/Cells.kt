@@ -271,7 +271,7 @@ class Cells
 
 
 
-    private fun logAllStorageData()
+    fun logAllStorageData()
     {
         logM.log("--- Storage status report ---\n" +
                 "\n_______________________________________________         _________________" +

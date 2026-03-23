@@ -54,12 +54,10 @@ object RobotSettings
 
 
         @JvmField
-        var BYPASS_IN_ZONE_CHECK_FOR_MANUAL_SHOOTING = true
-
-        @JvmField
         var HOLD_FOR_MANUAL_SHOOTING = true
 
-
+        @JvmField
+        var DO_SORTING_TEST_100_ON_TOUCHPAD_1_PRESSED = false
         @JvmField
         var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = false
     }
