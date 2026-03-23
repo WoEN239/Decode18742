@@ -13,6 +13,7 @@ import org.woen.utils.motor.MotorOnly
 import org.woen.utils.regulator.Regulator
 import org.woen.utils.regulator.RegulatorParameters
 import org.woen.utils.units.Vec2
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
@@ -117,11 +118,15 @@ fun attachDriveTrain(collector: Collector) {
                 lx *= abs(lx)
                 rx *= abs(rx)
 
+                val odometry = collector.eventBus.invoke(GetRobotOdometry())
+
+                var direction = Vec2(ly, lx).turn(-odometry.orientation.angle - PI / 2.0)
+
                 setPowers(
-                    ly - lx - rx,
-                    ly - lx + rx,
-                    ly + lx - rx,
-                    ly + lx + rx
+                    direction.x - direction.y - rx,
+                    direction.x - direction.y + rx,
+                    direction.x + direction.y - rx,
+                    direction.x + direction.y + rx
                 )
             }
         }

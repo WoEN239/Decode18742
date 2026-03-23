@@ -14,6 +14,8 @@ import org.woen.modules.drivetrain.RunSegmentsEvent
 import org.woen.modules.drivetrain.TurnSegment
 import org.woen.utils.events.EventBus
 import org.woen.utils.units.Angle
+import org.woen.utils.units.Orientation
+import org.woen.utils.units.Vec2
 import kotlin.math.PI
 
 interface IAction {
@@ -164,12 +166,14 @@ fun attachActionRunner(collector: Collector) {
 
     val eventBus = collector.eventBus
 
+    val shootPosition = Vector2d(-0.974, -0.898)
+
     actions.addAll(
         arrayOf(
             TrajectoryAction(
                 eventBus,
                 eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToConstantHeading(
-                    Vector2d(-0.683, -0.642)
+                    shootPosition
                 ).build()
             ),
             ShootAction(eventBus),
@@ -178,14 +182,10 @@ fun attachActionRunner(collector: Collector) {
             TrajectoryAction(
                 eventBus,
                 eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!
-                    .splineTo(
-                        Vector2d(
-                            -0.314,
-                            -0.769
-                        ), -PI / 2.0
-                    )
-                    .strafeToConstantHeading(Vector2d(-0.314, -1.33)).build()
+                    .strafeToLinearHeading(Vector2d(-0.314, -0.5), -PI / 2.0).build()
             ),
+            TrajectoryAction(eventBus, eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.
+            strafeToConstantHeading(Vector2d(-0.314, -1.33)).build()),
             WaitAction(0.3),
             StopEatAction(eventBus),
             TurretStateSwapAction(eventBus, TurretState.TO_BASKET),
@@ -213,7 +213,7 @@ fun attachActionRunner(collector: Collector) {
                         TrajectoryAction(
                             eventBus,
                             eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToLinearHeading(
-                                Vector2d(-0.683, -0.642), Math.toRadians(-135.0 / 2.0 + 40.0)
+                                shootPosition, 0.0
                             ).build()
                         )
                     ),
@@ -248,7 +248,7 @@ fun attachActionRunner(collector: Collector) {
                                 .strafeToConstantHeading(Vector2d(0.3, -1.0))
                                 .setReversed(false)
                                 .strafeToLinearHeading(
-                                    Vector2d(-0.683, -0.642), Math.toRadians(-135.0 / 2.0 + 40.0)
+                                    shootPosition, 0.0
                                 )
                                 .build()
                         )
@@ -289,7 +289,7 @@ fun attachActionRunner(collector: Collector) {
                             eventBus,
                             eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!
                                 .strafeToLinearHeading(
-                                    Vector2d(-0.683, -0.642), Math.toRadians(-135.0 / 2.0 + 40.0)
+                                    shootPosition, 0.0
                                 )
                                 .build()
                         )

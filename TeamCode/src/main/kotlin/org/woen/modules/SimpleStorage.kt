@@ -4,10 +4,12 @@ import android.annotation.SuppressLint
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.woen.collector.Collector
 import org.woen.collector.RunMode
+import org.woen.modules.drivetrain.GetRobotOdometry
 import org.woen.utils.drivers.SOFT_SERVO_CONFIG
 import org.woen.utils.drivers.SoftServo
 
@@ -44,7 +46,7 @@ internal object SIMPLE_STORAGE_CONFIG {
     var GATE_OPEN = 0.76
 
     @JvmField
-    var SORTING_PUSH_TIME = 0.5
+    var SORTING_PUSH_TIME = 0.4
 
     @JvmField
     var SORTING_REVERSE_TIME = 0.1
@@ -54,19 +56,19 @@ internal object SIMPLE_STORAGE_CONFIG {
 
     @JvmField
     var SLOW_SHOOTING_TIMER = 0.9
-    
+
     @JvmField
-    var SORTING_SLOW_BELTS_POWER = 7.0
-    
+    var SORTING_SLOW_BELTS_POWER = 9.0
+
     @JvmField
     var SORTING_BELT_POWER = 11.0
-    
+
     @JvmField
     var EATING_TIME = 0.15
-    
+
     @JvmField
     var CURRENT_TRIGGER_TIME = 0.15
-    
+
     @JvmField
     var TRIGGER_CURRENT = 2.0
 }
@@ -86,7 +88,8 @@ enum class StorageState {
 enum class SortingState {
     PUSH_OPEN,
     GATE_OPEN,
-    WAIT_PUSH
+    WAIT_PUSH,
+    REVERSE_BELTS
 }
 
 enum class BallColor {
@@ -109,7 +112,7 @@ fun attachSimpleStorage(collector: Collector) {
     beltMotor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
     brushMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
     brushMotor.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-    
+
     val battery = collector.battery
 
     val pushServo = SoftServo(
@@ -118,7 +121,10 @@ fun attachSimpleStorage(collector: Collector) {
         SIMPLE_STORAGE_CONFIG.PUSH_CLOSE,
         SOFT_SERVO_CONFIG.SERVO_E * 2.0
     )
-    val gateServo = SoftServo("gateServo", collector.hardwareMap, SIMPLE_STORAGE_CONFIG.GATE_CLOSE)
+    val gateServo = SoftServo("gateServo", collector.hardwareMap, SIMPLE_STORAGE_CONFIG.GATE_CLOSE,
+        SOFT_SERVO_CONFIG.SERVO_E * 2.0)
+
+    val launchServo = collector.hardwareMap.get("launchServo") as Servo
 
     val turretGateServo = SoftServo(
         "turretGateServo",
@@ -149,7 +155,6 @@ fun attachSimpleStorage(collector: Collector) {
             }
 
             StorageState.SHOOTING -> {
-                beltMotor.power = 1.0
                 brushMotor.power = 1.0
 
                 stateTimer.reset()
@@ -267,13 +272,13 @@ fun attachSimpleStorage(collector: Collector) {
     })))
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
-        if(currentState == StorageState.SHOOTING)
+        if (currentState == StorageState.SHOOTING)
             switchState(StorageState.STOP_SHOOTING)
     }, false)))
 
     collector.eventBus.subscribe(ShootEvent::class) {
-        if ((currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_EATING) &&
-            ((collector.eventBus.invoke(GetTurretHeadingIsNormalEvent()).normal) || collector.runMode == RunMode.AUTO)
+        if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_EATING ||
+            currentState == StorageState.STOP_SHOOTING
         )
             switchState(StorageState.START_SHOOTING)
         else
@@ -295,6 +300,8 @@ fun attachSimpleStorage(collector: Collector) {
         gateServo.start()
         turretGateServo.start()
 
+        launchServo.position = 0.98
+
         switchState(StorageState.STOP)
     }
 
@@ -303,22 +310,28 @@ fun attachSimpleStorage(collector: Collector) {
         gateServo.update()
         turretGateServo.update()
 
-        if(currentState == StorageState.EATING) {
-            if(eatingTimer.seconds() > SIMPLE_STORAGE_CONFIG.EATING_TIME){
+        if (currentState == StorageState.EATING) {
+            if (eatingTimer.seconds() > SIMPLE_STORAGE_CONFIG.EATING_TIME) {
                 if (brushMotor.getCurrent(CurrentUnit.AMPS) > SIMPLE_STORAGE_CONFIG.TRIGGER_CURRENT) {
                     if (currentTriggerTimer.seconds() > SIMPLE_STORAGE_CONFIG.CURRENT_TRIGGER_TIME)
                         collector.opMode.gamepad1.rumble(200)
                 } else
                     currentTriggerTimer.reset()
             }
-        }
-        else {
+        } else {
             eatingTimer.reset()
             currentTriggerTimer.reset()
         }
 
+        val timer = ElapsedTime()
+
         when (currentState) {
             StorageState.SHOOTING -> {
+                if(collector.eventBus.invoke(GetRobotOdometry()).locateInLongShootingArea)
+                    beltMotor.power = battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SLOW_SHOOTING_POWER)
+                else
+                    beltMotor.power = 1.0
+
                 if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SHOOTING_TIME && collector.runMode == RunMode.AUTO)
                     switchState(StorageState.STOP_SHOOTING)
             }
@@ -326,6 +339,7 @@ fun attachSimpleStorage(collector: Collector) {
             StorageState.EATING, StorageState.STOP -> {}
 
             StorageState.STOP_EATING -> {
+                switchState(StorageState.STOP)
                 if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.STOP_EATING_TIME) {
                     if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.STOP_EATING_TIME + SIMPLE_STORAGE_CONFIG.BRUSH_REVERS_TIME)
                         switchState(StorageState.STOP)
@@ -337,7 +351,7 @@ fun attachSimpleStorage(collector: Collector) {
             }
 
             StorageState.START_SHOOTING -> {
-                if (turretGateServo.atTarget)
+//                if (turretGateServo.atTarget)
                     switchState(StorageState.SHOOTING)
             }
 
@@ -369,41 +383,59 @@ fun attachSimpleStorage(collector: Collector) {
                                 sortingState = SortingState.PUSH_OPEN
 
                                 pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_OPEN
+
+                                timer.reset()
                             }
-                        }
-                        else
-                            beltMotor.power = -battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_BELT_POWER)
+                        } else
+                            beltMotor.power =
+                                -battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_BELT_POWER)
                     }
 
                     SortingState.PUSH_OPEN -> {
                         if (pushServo.atTarget) {
                             sortingState = SortingState.WAIT_PUSH
 
-                            gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
                             pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_CLOSE
+//                            gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
                         }
                     }
 
                     SortingState.WAIT_PUSH -> {
-                        if (pushServo.atTarget)
-                            beltMotor.power = battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_BELT_POWER)
+                        if (pushServo.atTarget) {
+                            beltMotor.power =
+                                battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_BELT_POWER)
+
+                            if(requiredSwaps == 0)
+                                gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
+                        }
                         else
-                            beltMotor.power = battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_SLOW_BELTS_POWER)
+                            beltMotor.power =
+                                battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_SLOW_BELTS_POWER)
 
                         if (gateServo.atTarget && pushServo.atTarget) {
+
+//                            gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
                             if (sortingTimer.seconds() > SIMPLE_STORAGE_CONFIG.SORTING_PUSH_TIME) {
-                                beltMotor.power = 0.0
+//                                beltMotor.power = 0.0
 
                                 requiredSwaps--
 
                                 if (requiredSwaps > 0)
                                     switchState(StorageState.SORTING)
-                                else
-                                    switchState(StorageState.STOP)
+                                else {
+                                    sortingState = SortingState.REVERSE_BELTS
+                                    sortingTimer.reset()
+                                }
                             }
-                        }
-                        else
+                        } else
                             sortingTimer.reset()
+                    }
+
+                    SortingState.REVERSE_BELTS -> {
+                        if(sortingTimer.seconds() > SIMPLE_STORAGE_CONFIG.SORTING_REVERSE_TIME)
+                            switchState(StorageState.STOP)
+                        else
+                            beltMotor.power = -battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_BELT_POWER)
                     }
                 }
             }

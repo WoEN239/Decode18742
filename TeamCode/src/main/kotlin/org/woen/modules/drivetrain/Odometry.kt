@@ -4,17 +4,22 @@ import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import org.woen.collector.Collector
 import org.woen.collector.GameColor
 import org.woen.collector.GameSettings
-import org.woen.collector.RunMode
+import org.woen.modules.OnCameraUpdateEvent
+import org.woen.modules.SIMPLE_STORAGE_CONFIG
+import org.woen.modules.TURRET_CONFIG
+import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Color
 import org.woen.utils.units.Line
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
+import kotlin.math.PI
 
 @Config
 internal object ODOMETRY_CONFIG {
@@ -32,6 +37,18 @@ internal object ODOMETRY_CONFIG {
 
     @JvmField
     var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
+
+    @JvmField
+    var X_FILTER_K = 0.2
+
+    @JvmField
+    var Y_FILTER_K = 0.2
+
+    @JvmField
+    var CAMERA_POSITION = Vec2(0.155, 0.0)
+
+    @JvmField
+    var CALIBRATE_ORIENTATION = Orientation()
 }
 
 class GetRobotOdometry(
@@ -48,6 +65,9 @@ class RobotExitShootingAreaEvent()
 fun attachOdometry(collector: Collector) {
     val pinpoint = collector.hardwareMap.get("odometry") as GoBildaPinpointDriver
 
+    val xFilter = ExponentialFilter(ODOMETRY_CONFIG.X_FILTER_K)
+    val yFilter = ExponentialFilter(ODOMETRY_CONFIG.Y_FILTER_K)
+
     pinpoint.setOffsets(
         ODOMETRY_CONFIG.X_ODOMETER_POSITION, ODOMETRY_CONFIG.Y_ODOMETER_POSITION,
         DistanceUnit.METER
@@ -60,11 +80,12 @@ fun attachOdometry(collector: Collector) {
     )
 
 //    if (collector.runMode == RunMode.AUTO) {
-        pinpoint.recalibrateIMU()
-        pinpoint.resetPosAndIMU()
+    pinpoint.recalibrateIMU()
+    pinpoint.resetPosAndIMU()
 //    }
 
-    var orientation = Orientation()
+    var orientation = GameSettings.startOrientation.startOrientation
+    var oldPinpointOrientation = GameSettings.startOrientation.startOrientation
 
     var linearVelocity = Vec2.ZERO
     var headingVelocity = 0.0
@@ -72,6 +93,8 @@ fun attachOdometry(collector: Collector) {
     var locateInShootingArea = false
     var oldLocateInShootingArea = false
     var longLocate = false
+
+    var cameraOrientation = Vec2.ZERO
 
     collector.eventBus.subscribe(GetRobotOdometry::class) {
         it.orientation = orientation
@@ -81,8 +104,26 @@ fun attachOdometry(collector: Collector) {
         it.locateInLongShootingArea = longLocate
     }
 
+    collector.eventBus.subscribe(OnCameraUpdateEvent::class) {
+        val turretOrientation =
+            it.orientation.pos - ODOMETRY_CONFIG.CAMERA_POSITION.turn(PI)
+        cameraOrientation =
+            turretOrientation - TURRET_CONFIG.TURRET_CENTER_POS.turn(orientation.angle)
+    }
+
     collector.updateEvent += {
+        if(collector.opMode.gamepad1.dpad_down){
+            val orient =
+                ODOMETRY_CONFIG.CALIBRATE_ORIENTATION.pos.turn(-GameSettings.startOrientation.startOrientation.angle) - GameSettings.startOrientation.startOrientation.pos
+
+            pinpoint.position =
+                Pose2D(DistanceUnit.METER, orient.x, orient.y, AngleUnit.RADIANS, orientation.angle - GameSettings.startOrientation.startOrientation.angle)
+        }
+
         pinpoint.update()
+
+        xFilter.coef = ODOMETRY_CONFIG.X_FILTER_K
+        yFilter.coef = ODOMETRY_CONFIG.Y_FILTER_K
 
         val pinpointOrientation = pinpoint.position
 
@@ -103,6 +144,10 @@ fun attachOdometry(collector: Collector) {
         collector.telemetry.drawRect(
             orientation.pos, ODOMETRY_CONFIG.ROBOT_SIZE, orientation.angle,
             if (GameSettings.startOrientation.gameColor == GameColor.BLUE) Color.BLUE else Color.RED
+        )
+
+        collector.telemetry.drawRect(
+            cameraOrientation, ODOMETRY_CONFIG.ROBOT_SIZE, orientation.angle, Color.BLACK
         )
 
         collector.telemetry.addData("orientation", orientation)
