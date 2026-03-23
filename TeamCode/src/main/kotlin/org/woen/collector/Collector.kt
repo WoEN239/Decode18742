@@ -47,8 +47,8 @@ class Collector {
 
         telemetry = Telemetry(this)
         battery = Battery(this)
-        attachOdometry(this)
         attachGamepad(this)
+        attachOdometry(this)
         attachDriveTrain(this)
         attachTurret(this)
         attachSimpleStorage(this)
