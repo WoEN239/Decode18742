@@ -1,9 +1,11 @@
 package org.woen.configs
 
+
 import com.acmerobotics.dashboard.config.Config
 
 import org.woen.enumerators.Shooting
 import org.woen.enumerators.StorageSlot
+import org.woen.enumerators.StockPattern
 
 
 
@@ -13,9 +15,9 @@ object RobotSettings
     internal object ROBOT
     {
         @JvmField
-        var AUTONOMOUS_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = Shooting.StockPattern.Storage.GPP
+        var AUTONOMOUS_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = StockPattern.Storage.GPP
         @JvmField
-        var TELEOP_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = Shooting.StockPattern.Storage.EMPTY
+        var TELEOP_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = StockPattern.Storage.EMPTY
 
 
         @JvmField
@@ -94,7 +96,7 @@ object RobotSettings
         @JvmField
         var FAILSAFE_SHOOTING_MODE = Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
         @JvmField
-        var FAILSAFE_PATTERN = Shooting.StockPattern.Request.STREAM
+        var FAILSAFE_PATTERN = StockPattern.Request.STREAM
 
 
         @JvmField

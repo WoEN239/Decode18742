@@ -10,7 +10,7 @@ import org.woen.collector.Collector
 import org.woen.collector.RunMode
 import org.woen.scoringSystem.storage.Storage
 
-import org.woen.enumerators.Shooting
+import org.woen.enumerators.StockPattern
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.phases.SortingPhase
 import org.woen.enumerators.phases.ShootingPhase
@@ -71,12 +71,14 @@ class ScoringModulesConnector
 
     private fun subscribeToOdometry()
     {
-        _cms.collector.eventBus.subscribe(RobotEnterShootingAreaEvent::class) {
+        _cms.collector.eventBus.subscribe(RobotEnterShootingAreaEvent::class)
+        {
             _inShootingZone = true
             _enteredShootingZoneTimeStamp = _gameTimer.milliseconds()
         }
 
-        _cms.collector.eventBus.subscribe(RobotExitShootingAreaEvent::class) {
+        _cms.collector.eventBus.subscribe(RobotExitShootingAreaEvent::class)
+        {
             _inShootingZone = false
         }
     }
@@ -84,7 +86,7 @@ class ScoringModulesConnector
     {
         _cms.collector.eventBus.subscribe(OnPatternDetected::class)
         {
-//            _cms.dynamicMemoryPattern.setPermanent(it.pattern)
+            _cms.dynamicMemoryPattern.setPermanent(it.patternReq)
         }
     }
     private fun subscribeToDriverShootingGamepad1()
@@ -109,8 +111,8 @@ class ScoringModulesConnector
                                         "Sorting: ${_cms.sortingPhase.name}, " +
                                         "Calibration: ${_cms.calibrationPhase.name}",
                                     Debug.GENERIC)
-                            }   }
-                    )   )   )
+                        }   }
+            )   )   )
         }
         else
         {
@@ -134,8 +136,8 @@ class ScoringModulesConnector
                                         "Sorting: ${_cms.sortingPhase.name}, " +
                                         "Calibration: ${_cms.calibrationPhase.name}",
                                     Debug.GENERIC)
-                            }   }
-                )   )   )
+                        }   }
+            )   )   )
 
             _cms.collector.eventBus.invoke(
                 AddGamepad1ListenerEvent(
@@ -195,7 +197,7 @@ class ScoringModulesConnector
                         {
                             _cms.dynamicMemoryPattern.resetTemporary()
                         }
-                    )   )   )
+            )   )   )
             _cms.collector.eventBus.invoke(
                 AddGamepad2ListenerEvent(
                     ClickGamepadListener(
@@ -203,7 +205,7 @@ class ScoringModulesConnector
                         {
                             _cms.dynamicMemoryPattern.addToTemporary()
                         }
-                    )   )   )
+            )   )   )
             _cms.collector.eventBus.invoke(
                 AddGamepad2ListenerEvent(
                     ClickGamepadListener(
@@ -211,7 +213,7 @@ class ScoringModulesConnector
                         {
                             _cms.dynamicMemoryPattern.removeFromTemporary()
                         }
-                    )   )   )
+            )   )   )
 
 
             _cms.collector.eventBus.invoke(
@@ -220,31 +222,30 @@ class ScoringModulesConnector
                         { it.dpad_left },
                         {
                             _cms.dynamicMemoryPattern.setPermanent(
-                                Shooting.StockPattern.Request.GPP)
+                                StockPattern.Request.GPP)
                             _cms.awaitingPatternFromCamera = false
                         }
-                    )   )   )
+            )   )   )
             _cms.collector.eventBus.invoke(
                 AddGamepad2ListenerEvent(
                     ClickGamepadListener(
                         { it.dpad_up },
                         {
                             _cms.dynamicMemoryPattern.setPermanent(
-                                Shooting.StockPattern.Request.PGP)
+                                StockPattern.Request.PGP)
                             _cms.awaitingPatternFromCamera = false
                         }
-                    )   )   )
+            )   )   )
             _cms.collector.eventBus.invoke(
                 AddGamepad2ListenerEvent(
                     ClickGamepadListener(
                         { it.dpad_right },
                         {
                             _cms.dynamicMemoryPattern.setPermanent(
-                                Shooting.StockPattern.Request.PPG
-                            )
+                                StockPattern.Request.PPG)
                             _cms.awaitingPatternFromCamera = false
                         }
-                    )))
+            )   )   )
 
             logM.logMd("Init settings: USE SECOND DRIVER", Debug.GAMEPAD)
         }
@@ -420,7 +421,7 @@ class ScoringModulesConnector
         else _storage.startCustomisableDrumRequest(
                 TELEOP.PATTERN_SHOOTING_MODE,
                 _cms.dynamicMemoryPattern.permanent(),
-                Shooting.StockPattern.Request.STREAM,
+                StockPattern.Request.STREAM,
                 TELEOP.AUTOCORRECT_REQUEST_PATTERN,
                 TELEOP.AUTOCORRECT_FAILSAFE_PATTERN)
     }
