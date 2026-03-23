@@ -217,10 +217,10 @@ class Storage
         if (cells.notFullYet() && _cms.sortingPhase.isInactive())
         {
             _cms.canTriggerIntake = true
-            cells.hwSortingM.hwMotors.forwardBrush()
+            cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
 
             if (_cms.lazyIntakeIsActive)
-                cells.hwSortingM.hwMotors.forwardBelts(false)
+                cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
         }
     }
 
@@ -298,7 +298,7 @@ class Storage
     {
         logM.logMd("Sorting phase 8, closing gate with push", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
-        cells.hwSortingM.hwMotors.reverseBelts(false)
+        cells.hwSortingM.hwMotors.reverseBelts(onTime = false)
         cells.hwSortingM.hwMotors.closeGateWithPush()
     }
 }

@@ -11,7 +11,7 @@ import org.woen.utils.units.Orientation
 
 
 class OnCameraUpdateEvent(val orientation: Orientation = Orientation.ZERO)
-class OnPatternDetected(val pattern: Array<BallColor>, val patternReq: Array<BallRequest.Name>)
+class OnPatternDetectedEvent(val pattern: Array<BallRequest.Name>)
 class GetCurrentPatternEvent(var pattern: Array<BallColor>? = null)
 
 
@@ -61,7 +61,7 @@ fun attachLimelight(collector: Collector) {
 
                 if (isPatternDetected)
                     collector.eventBus.invoke(
-                        OnPatternDetected(pattern, patternReq))
+                        OnPatternDetectedEvent(patternReq))
             }
 
             val position = result.botpose.position

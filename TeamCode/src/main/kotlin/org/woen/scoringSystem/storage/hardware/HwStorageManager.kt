@@ -5,16 +5,14 @@ import kotlin.math.max
 import com.qualcomm.robotcore.util.ElapsedTime
 
 import org.woen.collector.RunMode
-import org.woen.configs.Delay
 import org.woen.scoringSystem.ConnectorModuleStatus
 
-import org.woen.configs.RobotSettings.CONTROLS
+import org.woen.enumerators.Ball
+import org.woen.utils.debug.Debug
+
+import org.woen.configs.Delay
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-
-import org.woen.utils.debug.Debug
-import org.woen.enumerators.Ball
-import org.woen.enumerators.status.MotorStatus
 
 
 
@@ -25,9 +23,10 @@ class HwSortingManager
     private val _cms: ConnectorModuleStatus
 
     var targetPushTime: Long = 0
+    var targetBrushTime: Long = 0
     var timeSinceLastShotUpdateMs: Double = 0.0
-    var beltRotationIsInfinite = true
     val rotatingBeltsTimer = ElapsedTime()
+    val rotatingBrushTimer = ElapsedTime()
 
 
 
@@ -52,6 +51,10 @@ class HwSortingManager
             if (_cms.calibrationPhase.isCalibrationPhase1())
                 calibrationPhase2()
         }
+
+        if (_cms.brushStatus.isOnTime() &&
+            rotatingBrushTimer.milliseconds() > targetBrushTime)
+            hwMotors.stopBrush()
     }
 
     fun updateColors(): Ball.Name
@@ -80,7 +83,7 @@ class HwSortingManager
         _cms.canTriggerIntake = false
         _cms.shootingPhase.switchToNextPhase()
 
-        hwMotors.reverseBrush()
+        hwMotors.reverseBrush(onTime = false)
         hwMotors.openLaunch()
     }
     fun isReadyForShootingPhase4()
@@ -134,7 +137,6 @@ class HwSortingManager
 
 
 
-
     fun extendableForward    (timeMs: Long, voltage: Double = 12.0)
         = extendable    (true, timeMs, voltage)
     fun reinstantiableForward(timeMs: Long, voltage: Double = 12.0)
@@ -158,9 +160,9 @@ class HwSortingManager
                  || (!forward && _cms.beltsStatus.isReverse())) timeMs
                 else max(timeMs, targetPushTime
                     - rotatingBeltsTimer.milliseconds().toLong()), voltage)
-    private fun startBeltsTime(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
+
+    fun startBeltsTime(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
     {
-        beltRotationIsInfinite = false
         hwMotors.logM.logMd("Rotate belts period: $timeMs", Debug.HW)
         targetPushTime = timeMs
         rotatingBeltsTimer.reset()
@@ -168,23 +170,12 @@ class HwSortingManager
         else hwMotors.reverseBelts(onTime = true, voltage)
     }
 
-
-//    fun rotateMobileSlot()
-//    {
-//        hwMotors.logM.logMd("ROTATING MOBILE SLOT", Debug.HW_HIGH)
-//
-//        hwMotors.closeTurretGate()
-//
-//        slowStartBelts()
-//        delay(Delay.MS.REALIGNMENT.SORTING_FORWARD)
-//        reverseBeltsTime(Delay.MS.REALIGNMENT.SORTING_REVERSE)
-//
-//        hwMotors.openGate()
-//        hwMotors.openPush()
-//
-//        forwardBeltsTime(Delay.MS.HW_REQUEST_FREQUENCY * 8)
-//
-//        closeGateWithPush
-//        forwardBeltsTime(Delay.MS.REALIGNMENT.SORTING_FORWARD)
-//    }
+    fun startBrushTime(forward: Boolean, timeMs: Long)
+    {
+        hwMotors.logM.logMd("Rotate brush period: $timeMs", Debug.HW)
+        targetBrushTime = timeMs
+        rotatingBrushTimer.reset()
+        if (forward) hwMotors.forwardBrush(onTime = true)
+        else hwMotors.reverseBrush(onTime = true)
+    }
 }

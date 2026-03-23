@@ -30,6 +30,7 @@ class ConnectorModuleStatus(var collector: Collector)
 
 
     var beltsStatus = MotorStatus()
+    var brushStatus = MotorStatus()
 
     var gateStatus   = ServoStatus()
     var pushStatus   = ServoStatus()

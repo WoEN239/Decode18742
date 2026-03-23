@@ -19,13 +19,13 @@ import org.woen.modules.ClickGamepadListener
 import org.woen.modules.AddGamepad1ListenerEvent
 import org.woen.modules.AddGamepad2ListenerEvent
 
-import org.woen.modules.OnPatternDetected
+import org.woen.modules.OnPatternDetectedEvent
 import org.woen.modules.drivetrain.RobotExitShootingAreaEvent
 import org.woen.modules.drivetrain.RobotEnterShootingAreaEvent
 
 import org.woen.configs.Delay
-import org.woen.configs.DebugSettings
 import org.woen.configs.Hardware
+import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
@@ -84,9 +84,10 @@ class ScoringModulesConnector
     }
     private fun subscribeToCameraPattern()
     {
-        _cms.collector.eventBus.subscribe(OnPatternDetected::class)
+        _cms.collector.eventBus.subscribe(OnPatternDetectedEvent::class)
         {
-            _cms.dynamicMemoryPattern.setPermanent(it.patternReq)
+            if (_cms.awaitingPatternFromCamera)
+                _cms.dynamicMemoryPattern.setPermanent(it.pattern)
         }
     }
     private fun subscribeToDriverShootingGamepad1()
@@ -167,11 +168,15 @@ class ScoringModulesConnector
                             _cms.calibrationPhase.isInactive())
                         {
                             if (_cms.lazyIntakeIsActive)
+                            {
                                 _storage.cells.hwSortingM.hwMotors.stopBelts()
+                                _storage.cells.hwSortingM.startBrushTime(
+                                    forward = false, Delay.MS.BRUSH_REVERSE)
+                            }
                             else
                             {
-                                _storage.cells.hwSortingM.hwMotors.forwardBelts(false)
-                                _storage.cells.hwSortingM.hwMotors.forwardBrush()
+                                _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+                                _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
                             }
 
                             _cms.lazyIntakeIsActive = !_cms.lazyIntakeIsActive
@@ -196,6 +201,7 @@ class ScoringModulesConnector
                         { it.ps },
                         {
                             _cms.dynamicMemoryPattern.resetTemporary()
+                            _cms.collector.opMode.gamepad2.rumble(100)
                         }
             )   )   )
             _cms.collector.eventBus.invoke(

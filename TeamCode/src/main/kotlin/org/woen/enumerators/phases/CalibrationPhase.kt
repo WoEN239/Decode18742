@@ -1,6 +1,7 @@
 package org.woen.enumerators.phases
 
 
+
 class CalibrationPhase
 {
     private var _name : Name

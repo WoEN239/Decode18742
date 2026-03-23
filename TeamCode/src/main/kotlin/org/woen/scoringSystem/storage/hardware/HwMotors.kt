@@ -8,7 +8,6 @@ import org.woen.utils.debug.LogManager
 import org.woen.utils.drivers.SoftServo
 import org.woen.scoringSystem.ConnectorModuleStatus
 
-import org.woen.enumerators.status.MotorStatus
 import org.woen.enumerators.status.ServoStatus
 
 import org.woen.configs.Hardware
@@ -148,14 +147,21 @@ class HwMotors
     }
 
 
-    fun forwardBrush()
+    fun forwardBrush(onTime: Boolean)
     {
+        _cms.beltsStatus.setForward(onTime)
         _brushMotor.power = _cms.collector.battery.voltageToPower(
             Hardware.MOTOR.BRUSH_FORWARD)
     }
-    fun reverseBrush()
+    fun reverseBrush(onTime: Boolean)
     {
+        _cms.beltsStatus.setReverse(onTime)
         _brushMotor.power = _cms.collector.battery.voltageToPower(
             Hardware.MOTOR.BRUSH_REVERSE)
+    }
+    fun stopBrush()
+    {
+        _cms.brushStatus.setIdle()
+        _brushMotor.power = 0.0
     }
 }
