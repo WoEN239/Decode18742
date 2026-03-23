@@ -405,7 +405,7 @@ class ScoringModulesConnector
     fun canStartManualShooting()
         =   _cms.sortingPhase.isInactive() &&
             _cms.calibrationPhase.isInactive()
-    fun autoShootCustomisablePattern(isAuto: Boolean): RequestResult.Name
+    fun autoShootCustomisablePattern(isAuto: Boolean): RequestResult
     {
         _cms.shootingPhase.shotBeltsVoltage = Hardware.MOTOR.BELTS_FOR_SORT_SHOOTING
 

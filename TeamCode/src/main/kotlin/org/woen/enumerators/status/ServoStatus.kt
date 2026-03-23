@@ -38,5 +38,4 @@ class ServoStatus
     fun isClosed() = _name == Name.CLOSED
     fun isClosingOrClosed() = isClosed()  || _name == Name.CLOSING
     fun isFinished()    = _name == Name.CLOSED  || _name == Name.OPENED
-    fun isNotFinished() = _name == Name.CLOSING || _name == Name.OPENING
 }

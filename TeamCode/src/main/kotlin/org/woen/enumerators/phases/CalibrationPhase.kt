@@ -37,16 +37,6 @@ class CalibrationPhase
     {
         _name = Name.P3_REALIGNING_FORWARDS
     }
-    fun switchToNextPhase()
-    {
-        _name = when (_name)
-        {
-            Name.NOT_ACTIVE             -> Name.P1_REVERSING_BELTS
-            Name.P1_REVERSING_BELTS     -> Name.P2_CLOSING_ALL_SERVOS
-            Name.P2_CLOSING_ALL_SERVOS  -> Name.P3_REALIGNING_FORWARDS
-            Name.P3_REALIGNING_FORWARDS -> Name.NOT_ACTIVE
-        }
-    }
 
 
     fun isInactive() = _name == Name.NOT_ACTIVE

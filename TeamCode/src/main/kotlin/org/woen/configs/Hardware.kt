@@ -1,10 +1,10 @@
 package org.woen.configs
 
 
+import kotlin.math.max
+import kotlin.math.ceil
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-import kotlin.math.ceil
-import kotlin.math.max
 
 
 
@@ -113,6 +113,8 @@ object Hardware
     {
         @JvmField
         var BELTS_DIRECTION = DcMotorSimple.Direction.FORWARD
+        @JvmField
+        var BRUSH_DIRECTION = DcMotorSimple.Direction.FORWARD
 
         @JvmField
         var BELTS_FORWARD = 11.0

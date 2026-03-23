@@ -3,9 +3,8 @@ package org.woen.scoringSystem.storage
 
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
-
-import org.woen.enumerators.RequestResult
 import org.woen.enumerators.Shooting
+import org.woen.enumerators.RequestResult
 
 import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
@@ -13,11 +12,9 @@ import org.woen.utils.debug.LogManager
 import org.woen.scoringSystem.misc.DynamicPattern
 import org.woen.scoringSystem.ConnectorModuleStatus
 
-import org.woen.configs.Alias.Request
-import org.woen.configs.DebugSettings
-
 import org.woen.configs.Delay
 import org.woen.configs.Hardware
+import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 
 
@@ -43,11 +40,11 @@ class Storage
 
     fun startCustomisableDrumRequest(
         shootingMode:  Shooting.Mode,
-        requestOrder:  Array<BallRequest.Name>,
-        autoCorrectPattern: Boolean = true): RequestResult.Name
+        requestOrder:  Array<BallRequest>,
+        autoCorrectPattern: Boolean = true): RequestResult
     {
-        if (cells.isEmpty()) return Request.FAIL_IS_EMPTY
-        if (requestOrder.isEmpty()) return Request.ILLEGAL_ARGUMENT
+        if (cells.isEmpty()) return RequestResult.FAIL_IS_EMPTY
+        if (requestOrder.isEmpty()) return RequestResult.FAIL_ILLEGAL_ARGUMENT
 
         val  standardPatternOrder = if (!autoCorrectPattern) requestOrder
         else DynamicPattern.trimPattern(
@@ -72,12 +69,12 @@ class Storage
     }
     fun startCustomisableDrumRequest(
         shootingMode:  Shooting.Mode,
-        requestOrder:  Array<BallRequest.Name>,
-        failsafeOrder: Array<BallRequest.Name>? = requestOrder,
+        requestOrder:  Array<BallRequest>,
+        failsafeOrder: Array<BallRequest>? = requestOrder,
         autoCorrectRequestPattern:  Boolean = true,
-        autoCorrectFailsafePattern: Boolean = true): RequestResult.Name
+        autoCorrectFailsafePattern: Boolean = true): RequestResult
     {
-        if (cells.isEmpty()) return Request.FAIL_IS_EMPTY
+        if (cells.isEmpty()) return RequestResult.FAIL_IS_EMPTY
 
         if (failsafeOrder.isNullOrEmpty() ||
             failsafeOrder.contentEquals(requestOrder))
@@ -117,10 +114,10 @@ class Storage
 
 
     private fun choosePatternForShot(
-        requested: Array<BallRequest.Name>,
-        failsafe:  Array<BallRequest.Name>,
+        requested: Array<BallRequest>,
+        failsafe:  Array<BallRequest>,
         onlyInSequence: Boolean
-    ): RequestResult.Name
+    ): RequestResult
     {
         val req1 = cells.predictSortSearch(requested, onlyInSequence).maxSequenceScore
         val req2 = cells.predictSortSearch(
@@ -131,29 +128,29 @@ class Storage
             else failsafe, onlyInSequence)
     }
     private fun shootFinalPhase(
-        requested: Array<BallRequest.Name>,
+        requested: Array<BallRequest>,
         onlyInSequence: Boolean
-    ): RequestResult.Name
+    ): RequestResult
     {
         val targetSorting = cells.predictSortSearch(requested, onlyInSequence)
-        if (targetSorting.totalMatches == 0) return Request.COLORS_NOT_PRESENT
+        if (targetSorting.totalMatches == 0) return RequestResult.FAIL_COLORS_NOT_PRESENT
 
         _cms.shootingPhase.startPhase0()
         sortingPhase1(targetSorting.totalRotations)
-        return Request.ROGER_STARTING_SORTING
+        return RequestResult.ROGER_STARTING_SORTING
     }
 
 
 
     fun streamDrumPhase1(
         laterGamepadHold: Boolean = false,
-        ballCount: Int = 0): RequestResult.Name
+        ballCount: Int = 0): RequestResult
     {
         if (_cms.sortingPhase.isActive() ||
             _cms.shootingPhase.isShootingPhase0())
-            return Request.AWAITING_SORTING
+            return RequestResult.FAIL_AWAITING_SORTING
         if (_cms.shootingPhase.isActive())
-            return Request.IGNORED_DUPLICATE_COMMAND
+            return RequestResult.FAIL_IGNORE_DUPLICATE_COMMAND
 
         _cms.shootingPhase.startPhase1(laterGamepadHold)
         _cms.shootingPhase.ballCountForPhase1 =
@@ -166,7 +163,7 @@ class Storage
         logM.logMd("StreamDrum phase 1, debug ballCount: $ballCount", Debug.LOGIC)
         cells.hwSortingM.hwMotors.openTurretGate()
 
-        return Request.ROGER_STARTING_SHOOTING
+        return RequestResult.ROGER_STARTING_SHOOTING
     }
     fun streamDrumPhase2()
     {

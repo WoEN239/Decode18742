@@ -3,33 +3,23 @@ package org.woen.scoringSystem.misc
 
 import kotlin.math.min
 import org.woen.enumerators.BallRequest
-import org.woen.configs.Alias.MAX_BALL_COUNT
+import org.woen.scoringSystem.storage.MAX_BALL_COUNT
 
 
 
 class DynamicPattern
 {
-    private var _permanentPattern = ArrayList<BallRequest.Name>()
-    private var _temporaryPattern = ArrayList<BallRequest.Name>()
+    private var _permanentPattern = ArrayList<BallRequest>()
+    private var _temporaryPattern = ArrayList<BallRequest>()
 
 
-
-    fun fullReset()
-    {
-        resetPermanent()
-        resetTemporary()
-    }
 
     fun resetPermanent() = _permanentPattern.clear()
     fun resetTemporary() = _temporaryPattern.clear()
 
-    fun setPermanent(permanent: Array<BallRequest.Name>)
+    fun setPermanent(permanent: Array<BallRequest>)
     {
         _permanentPattern = ArrayList(permanent.toList())
-    }
-    fun setTemporary(temporary: Array<BallRequest.Name>)
-    {
-        _temporaryPattern = ArrayList(temporary.toList())
     }
 
 
@@ -50,7 +40,7 @@ class DynamicPattern
 
 
     fun lastUnfinished() = ArrayList(_temporaryPattern)
-    fun permanent()      = _permanentPattern.toTypedArray()
+    fun permanent() = _permanentPattern.toTypedArray()
     fun permanentWasDetected() = _permanentPattern.isNotEmpty()
 
 
@@ -58,12 +48,12 @@ class DynamicPattern
     companion object
     {
         @JvmStatic
-        fun trimPattern(lastUnfinished: ArrayList<BallRequest.Name>,
-                        pattern: Array<BallRequest.Name>)
-                : Array<BallRequest.Name>
+        fun trimPattern(lastUnfinished: ArrayList<BallRequest>,
+                        pattern: Array<BallRequest>)
+                : Array<BallRequest>
         {
             val newPatternLength = min(MAX_BALL_COUNT, lastUnfinished.size + pattern.size)
-            val newPattern = Array(newPatternLength) { BallRequest.Name.NONE }
+            val newPattern = Array(newPatternLength) { BallRequest.NONE }
 
             var curRequestId = 0
             while (curRequestId < newPatternLength)

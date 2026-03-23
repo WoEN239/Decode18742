@@ -66,6 +66,9 @@ class HwMotors
             _cms.collector.hardwareMap,
             Hardware.SERVO.TURRET_GATE_CLOSE)
 
+        _beltMotor.direction  = Hardware.MOTOR.BELTS_DIRECTION
+        _brushMotor.direction = Hardware.MOTOR.BRUSH_DIRECTION
+
         _gateServo.start()
         _pushServo.start()
         _launchServo.start()

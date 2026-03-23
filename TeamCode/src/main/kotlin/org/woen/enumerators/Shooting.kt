@@ -18,31 +18,31 @@ object StockPattern
     object Request
     {
         val STREAM = arrayOf(
-            BallRequest.Name.ANY_CLOSEST,
-            BallRequest.Name.ANY_CLOSEST,
-            BallRequest.Name.ANY_CLOSEST)
+            BallRequest.ANY_CLOSEST,
+            BallRequest.ANY_CLOSEST,
+            BallRequest.ANY_CLOSEST)
 
         val PPP = arrayOf(
-            BallRequest.Name.PURPLE,
-            BallRequest.Name.PURPLE,
-            BallRequest.Name.PURPLE)
+            BallRequest.PURPLE,
+            BallRequest.PURPLE,
+            BallRequest.PURPLE)
         val GGG = arrayOf(
-            BallRequest.Name.GREEN,
-            BallRequest.Name.GREEN,
-            BallRequest.Name.GREEN)
+            BallRequest.GREEN,
+            BallRequest.GREEN,
+            BallRequest.GREEN)
 
         val GPP = arrayOf(
-            BallRequest.Name.GREEN,
-            BallRequest.Name.PURPLE,
-            BallRequest.Name.PURPLE)
+            BallRequest.GREEN,
+            BallRequest.PURPLE,
+            BallRequest.PURPLE)
         val PGP = arrayOf(
-            BallRequest.Name.PURPLE,
-            BallRequest.Name.GREEN,
-            BallRequest.Name.PURPLE)
+            BallRequest.PURPLE,
+            BallRequest.GREEN,
+            BallRequest.PURPLE)
         val PPG = arrayOf(
-            BallRequest.Name.PURPLE,
-            BallRequest.Name.PURPLE,
-            BallRequest.Name.GREEN)
+            BallRequest.PURPLE,
+            BallRequest.PURPLE,
+            BallRequest.GREEN)
     }
 
     object Storage

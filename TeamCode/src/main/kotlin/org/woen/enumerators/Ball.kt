@@ -1,9 +1,18 @@
 package org.woen.enumerators
 
 
-import org.woen.enumerators.BallRequest.Companion.toBall
-import org.woen.enumerators.BallRequest.Companion.isAbstractAny
 
+enum class BallRequest
+{
+    PURPLE,
+    GREEN,
+
+    PREFER_PURPLE,
+    PREFER_GREEN,
+    ANY_CLOSEST,
+
+    NONE
+}
 
 
 class Ball
@@ -44,17 +53,7 @@ class Ball
 
     val id   get() = _id
     val name get() = _name
-    fun paddedName(): String
-    {
-        return when (_name)
-        {
-            Name.PURPLE        -> "PURPLE "
-            Name.GREEN         -> "GREEN  "
 
-            Name.UNKNOWN_COLOR -> "UNKNOWN"
-            Name.NONE          -> "NONE   "
-        }
-    }
     fun formattedName(): String
     {
         return when (_name)
@@ -72,17 +71,16 @@ class Ball
     fun isEmpty()  = _id == NONE
 
 
-    fun hasBall(id:   Int)  = _id   == id
     fun hasBall(name: Name) = _name == name
 
 
-    fun isPseudoMatch(name: BallRequest.Name)
+    fun isPseudoMatch(name: BallRequest)
         = !isEmpty() &&
             (
                 isAbstractAny(name) ||
                 hasBall(toBall(name))
             )
-    fun isTrueMatch(name: BallRequest.Name)
+    fun isTrueMatch(name: BallRequest)
         = !isEmpty() && hasBall(toBall(name))
 
 
@@ -97,8 +95,7 @@ class Ball
 
 
         fun toName(id:  Int): Name
-        {
-            return when (id)
+            = when (id)
             {
                 PURPLE -> Name.PURPLE
                 GREEN  -> Name.GREEN
@@ -106,10 +103,8 @@ class Ball
                 UNKNOWN_COLOR -> Name.UNKNOWN_COLOR
                 else          -> Name.NONE
             }
-        }
         fun toInt(name: Name): Int
-        {
-            return when (name)
+            = when (name)
             {
                 Name.PURPLE -> PURPLE
                 Name.GREEN  -> GREEN
@@ -117,6 +112,19 @@ class Ball
                 Name.UNKNOWN_COLOR -> UNKNOWN_COLOR
                 Name.NONE          -> NONE
             }
-        }
+        fun toBall(name: BallRequest): Name
+            = when (name)
+                {
+                    BallRequest.PURPLE, BallRequest.PREFER_PURPLE -> Name.PURPLE
+                    BallRequest.GREEN,  BallRequest.PREFER_GREEN  -> Name.GREEN
+
+                    BallRequest.ANY_CLOSEST -> Name.UNKNOWN_COLOR
+                    BallRequest.NONE        -> Name.NONE
+                }
+
+        fun isAbstractAny(name: BallRequest)
+            =   name == BallRequest.PREFER_PURPLE ||
+                name == BallRequest.PREFER_GREEN  ||
+                name == BallRequest.ANY_CLOSEST
     }
 }

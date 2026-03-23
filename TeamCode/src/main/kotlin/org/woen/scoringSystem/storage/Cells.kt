@@ -7,7 +7,6 @@ import kotlin.math.floor
 
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
-
 import org.woen.enumerators.StorageSlot
 
 import org.woen.utils.debug.Debug
@@ -16,13 +15,8 @@ import org.woen.utils.debug.LogManager
 import org.woen.scoringSystem.ConnectorModuleStatus
 import org.woen.scoringSystem.storage.hardware.HwSortingManager
 
-import org.woen.configs.Alias.Request
-import org.woen.configs.Alias.MAX_BALL_COUNT
-import org.woen.configs.Alias.STORAGE_SLOT_COUNT
-import org.woen.configs.Alias.INTAKE_INPUT_ORDER
-import org.woen.configs.DebugSettings
-
 import org.woen.configs.Delay
+import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.ROBOT
 import org.woen.configs.RobotSettings.SORTING
 import org.woen.configs.RobotSettings.SORTING.PREDICT.TRUE_MATCH_WEIGHT
@@ -50,6 +44,8 @@ import org.woen.configs.RobotSettings.SORTING.PREDICT.PSEUDO_MATCH_WEIGHT
  *      \_____________________________________________________/
  *
  */
+const val MAX_BALL_COUNT     = 3
+const val STORAGE_SLOT_COUNT = 4
 
 
 
@@ -104,20 +100,20 @@ class Cells
             while  (requestId   <  trimmedRequestSize + startRequestId)
             {
                 val curRequest  = requested[requestId - startRequestId]
-                val storageBall = _storageCells[Request.SEARCH_ORDER[requestId % MAX_BALL_COUNT]]
+                val storageBall = _storageCells[ROBOT.REQUEST_SEARCH_ORDER[requestId % MAX_BALL_COUNT]]
                 //  Taking the module for the storage ball by 3 prevents counting empty mobile slot
 
 
-                if (storageBall.isTrueMatch(curRequest.name))
+                if (storageBall.isTrueMatch(curRequest))
                     localMaximum += TRUE_MATCH_WEIGHT
-                else if (storageBall.isPseudoMatch(curRequest.name))
+                else if (storageBall.isPseudoMatch(curRequest))
                     localMaximum += PSEUDO_MATCH_WEIGHT
                 else if (onlyInSequence)
                     requestId += trimmedRequestSize
 
                 logM.logMd("[=] RequestId: ${requestId % MAX_BALL_COUNT}, " +
                         "did match: ${requestId < trimmedRequestSize + startRequestId}"
-                        + "\n    Request ball: ${curRequest.name}, storage ball: ${storageBall.name}",
+                        + "\n    Request ball: ${curRequest}, storage ball: ${storageBall.name}",
                     Debug.GENERIC)
 
                 requestId++
@@ -150,7 +146,7 @@ class Cells
             floor(globalMaximum / PSEUDO_MATCH_WEIGHT).toInt())
     }
     fun predictSortSearch(
-        requested: Array<BallRequest.Name>,
+        requested: Array<BallRequest>,
         onlyInSequence: Boolean): PredictSortResult
     {
         val trimmedRequestSize = min(requested.size, MAX_BALL_COUNT)
@@ -158,13 +154,9 @@ class Cells
             return PredictSortResult(0,
                 0.0, 0)
 
-        val requestedFullData  = Array(requested.size)
-            { BallRequest(requested[it]) }
-
         logM.logMd("Start predict sort search", Debug.START)
         return predictSortSearchLogic(
-            requestedFullData,
-            trimmedRequestSize, onlyInSequence)
+            requested, trimmedRequestSize, onlyInSequence)
     }
 
 
@@ -176,7 +168,7 @@ class Cells
         var    curSlot  = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.TURRET)
         {
-            _storageCells[INTAKE_INPUT_ORDER[curSlot]].set(
+            _storageCells[ROBOT.INTAKE_INPUT_ORDER[curSlot]].set(
                 inputFromTurretSlotToBottom[curSlot])
             curSlot++
         }

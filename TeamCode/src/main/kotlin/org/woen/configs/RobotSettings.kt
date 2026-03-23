@@ -21,13 +21,13 @@ object RobotSettings
 
 
         @JvmField
-        var PREFERRED_INTAKE_SLOT_SEARCHING_ORDER = arrayOf(
+        var INTAKE_INPUT_ORDER = arrayOf(
             StorageSlot.TURRET,
             StorageSlot.CENTER,
             StorageSlot.BOTTOM)
 
         @JvmField
-        var PREFERRED_REQUEST_SLOT_SEARCHING_ORDER = arrayOf(
+        var REQUEST_SEARCH_ORDER = arrayOf(
             StorageSlot.TURRET,
             StorageSlot.CENTER,
             StorageSlot.BOTTOM,

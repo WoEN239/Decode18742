@@ -1,5 +1,6 @@
 package org.woen.configs
 
+
 import com.acmerobotics.dashboard.config.Config
 
 
@@ -63,12 +64,5 @@ object Delay
 
         @JvmField
         var GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL = 500
-    }
-
-    @Config
-    internal object SEC
-    {
-        @JvmField
-        var GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL = 0.5
     }
 }

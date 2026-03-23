@@ -28,7 +28,9 @@ object DebugSettings
             Debug.PROCESS_ENDING,
 
             Debug.GENERIC_INFO,
+            Debug.STATUS,
             Debug.LOGIC_STEPS,
-            Debug.PROCESS_NAME)
+            Debug.PROCESS_NAME,
+            Debug.ERROR)
     )
 }
