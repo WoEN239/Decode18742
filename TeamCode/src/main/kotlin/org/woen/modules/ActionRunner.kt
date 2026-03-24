@@ -123,6 +123,15 @@ class ShootAction(private val _eventBus: EventBus) : IAction {
         _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
 }
 
+class SlowShootAction(private val _eventBus: EventBus) : IAction {
+    override fun start() {
+        _eventBus.invoke(SlowShootEvent())
+    }
+
+    override fun isEnd() =
+        _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+}
+
 class StartEatAction(private val _eventBus: EventBus) : IAction {
     override fun start() {
         _eventBus.invoke(StartEatEvent())
@@ -166,7 +175,7 @@ fun attachActionRunner(collector: Collector) {
 
     val eventBus = collector.eventBus
 
-    val shootPosition = Vector2d(-0.974, -0.898)
+    val shootPosition = Vector2d(-1.032, -0.830)
 
     actions.addAll(
         arrayOf(
@@ -176,17 +185,18 @@ fun attachActionRunner(collector: Collector) {
                     shootPosition
                 ).build()
             ),
+            WaitAction(0.5),
             ShootAction(eventBus),
             TurretStateSwapAction(eventBus, TurretState.TO_OBELISK),
-            StartEatAction(eventBus),
             TrajectoryAction(
                 eventBus,
                 eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!
-                    .strafeToLinearHeading(Vector2d(-0.314, -0.5), -PI / 2.0).build()
+                    .strafeToLinearHeading(Vector2d(-0.2, -0.5), -PI / 2.0).build()
             ),
+            StartEatAction(eventBus),
             TrajectoryAction(eventBus, eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.
-            strafeToConstantHeading(Vector2d(-0.314, -1.33)).build()),
-            WaitAction(0.3),
+            strafeToConstantHeading(Vector2d(-0.2, -1.33)).build()),
+            WaitAction(1.2),
             StopEatAction(eventBus),
             TurretStateSwapAction(eventBus, TurretState.TO_BASKET),
             ParallelActions(
@@ -207,7 +217,7 @@ fun attachActionRunner(collector: Collector) {
                                 .setReversed(true)
                                 .strafeToConstantHeading(Vector2d(-0.314, -0.8))
                                 .setTangent(0.0)
-                                .splineToConstantHeading(Vector2d(0.0, -1.372), PI / 2.0).build()
+                                .splineToConstantHeading(Vector2d(0.0, -1.5), PI / 2.0).build()
                         ),
                         WaitAction(0.85),
                         TrajectoryAction(
@@ -219,11 +229,12 @@ fun attachActionRunner(collector: Collector) {
                     ),
                 ), ParallelActions.ExitType.AND
             ),
-            ShootAction(eventBus),
+            WaitAction(0.15),
+            SlowShootAction(eventBus),
             TrajectoryAction(
                 eventBus,
                 eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToLinearHeading(
-                    Vector2d(0.3, -0.729),
+                    Vector2d(0.35, -0.6),
                     -PI / 2.0
                 )
                     .build()
@@ -232,11 +243,11 @@ fun attachActionRunner(collector: Collector) {
             TrajectoryAction(
                 eventBus,
                 eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToConstantHeading(
-                    Vector2d(0.3, -1.5)
+                    Vector2d(0.35, -1.6)
                 )
                     .build()
             ),
-            WaitAction(0.3),
+            WaitAction(0.8),
             StopEatAction(eventBus),
             ParallelActions(
                 arrayOf(
@@ -245,7 +256,7 @@ fun attachActionRunner(collector: Collector) {
                             eventBus,
                             eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!
                                 .setReversed(true)
-                                .strafeToConstantHeading(Vector2d(0.3, -1.0))
+                                .strafeToConstantHeading(Vector2d(0.3, -0.5))
                                 .setReversed(false)
                                 .strafeToLinearHeading(
                                     shootPosition, 0.0
@@ -263,24 +274,28 @@ fun attachActionRunner(collector: Collector) {
                     )
                 ), ParallelActions.ExitType.AND
             ),
-            ShootAction(eventBus),
+            WaitAction(0.15),
+            SlowShootAction(eventBus),
             TrajectoryAction(
                 eventBus,
                 eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToLinearHeading(
-                    Vector2d(0.9, -0.649),
+                    Vector2d(-0.2, -0.65),
                     -PI / 2.0
                 )
+                    .strafeToConstantHeading(
+                        Vector2d(0.9, -0.65)
+                    )
                     .build()
             ),
             StartEatAction(eventBus),
             TrajectoryAction(
                 eventBus,
                 eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!.strafeToConstantHeading(
-                    Vector2d(0.9, -1.5)
+                    Vector2d(0.9, -1.6)
                 )
                     .build()
             ),
-            WaitAction(0.5),
+            WaitAction(1.0),
             StopEatAction(eventBus),
             ParallelActions(
                 arrayOf(
@@ -304,7 +319,17 @@ fun attachActionRunner(collector: Collector) {
                     )
                 ), ParallelActions.ExitType.AND
             ),
-            ShootAction(eventBus),
+            WaitAction(0.15),
+            SlowShootAction(eventBus),
+            SlowShootAction(eventBus),
+            TrajectoryAction(
+                eventBus,
+                eventBus.invoke(GetTrajectoryBuilderEvent()).builder!!
+                    .strafeToConstantHeading(
+                        Vector2d(shootPosition.x - 0.4, shootPosition.y)
+                    )
+                    .build()
+            )
         )
     )
 

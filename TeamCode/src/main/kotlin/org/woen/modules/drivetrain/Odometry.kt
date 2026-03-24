@@ -9,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import org.woen.collector.Collector
 import org.woen.collector.GameColor
 import org.woen.collector.GameSettings
+import org.woen.collector.RunMode
 import org.woen.modules.AddGamepad1ListenerEvent
 import org.woen.modules.ClickGamepadListener
 import org.woen.modules.OnCameraUpdateEvent
@@ -41,7 +42,7 @@ internal object ODOMETRY_CONFIG {
     var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
     @JvmField
-    var CALIBRATE_ORIENTATION = Orientation()
+    var CALIBRATE_ORIENTATION = Orientation(Vec2(-0.794, -0.791), Angle.ofDeg(90.0))
 }
 
 class GetRobotOdometry(
@@ -69,10 +70,10 @@ fun attachOdometry(collector: Collector) {
         GoBildaPinpointDriver.EncoderDirection.FORWARD
     )
 
-//    if (collector.runMode == RunMode.AUTO) {
-    pinpoint.recalibrateIMU()
-    pinpoint.resetPosAndIMU()
-//    }
+    if (collector.runMode == RunMode.AUTO) {
+        pinpoint.recalibrateIMU()
+        pinpoint.resetPosAndIMU()
+    }
 
     var orientation = GameSettings.startOrientation.startOrientation
 
