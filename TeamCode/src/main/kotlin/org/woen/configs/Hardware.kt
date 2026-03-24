@@ -97,9 +97,9 @@ object Hardware
 
 
         @JvmField
-        var LAUNCH_OPEN = 0.58
+        var LAUNCH_OPEN = 0.55
         @JvmField
-        var LAUNCH_CLOSE = 0.96
+        var LAUNCH_CLOSE = 0.98
 
 
         @JvmField

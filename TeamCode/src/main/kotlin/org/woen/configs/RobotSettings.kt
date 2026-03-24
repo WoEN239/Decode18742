@@ -51,13 +51,13 @@ object RobotSettings
         var TRY_AUTO_SORT_WHEN_FULL_IN_ENDGAME = false
 
         @JvmField
-        var USE_LAUNCHER_FOR_LAST_BALL = false
+        var USE_LAUNCHER_FOR_LAST_BALL = true
         @JvmField
-        var USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT = false
+        var USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT = true
 
 
         @JvmField
-        var HOLD_FOR_MANUAL_SHOOTING = true
+        var HOLD_FOR_MANUAL_SHOOTING = false
 
         @JvmField
         var DO_SORTING_TEST_100_ON_TOUCHPAD_1_PRESSED = false

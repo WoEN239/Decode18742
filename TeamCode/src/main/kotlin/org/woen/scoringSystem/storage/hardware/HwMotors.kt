@@ -141,7 +141,7 @@ class HwMotors
     fun reverseBelts(onTime: Boolean, voltage: Double = Hardware.MOTOR.BELTS_REVERSE)
     {
         _cms.beltsStatus.setReverse(onTime)
-        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
+        _beltMotor.power = -_cms.collector.battery.voltageToPower(voltage)
     }
     fun stopBelts()
     {
@@ -159,7 +159,7 @@ class HwMotors
     fun reverseBrush(onTime: Boolean)
     {
         _cms.beltsStatus.setReverse(onTime)
-        _brushMotor.power = _cms.collector.battery.voltageToPower(
+        _brushMotor.power = -_cms.collector.battery.voltageToPower(
             Hardware.MOTOR.BRUSH_REVERSE)
     }
     fun stopBrush()

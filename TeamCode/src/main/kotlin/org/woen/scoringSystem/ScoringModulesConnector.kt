@@ -167,12 +167,14 @@ class ScoringModulesConnector
                         {
                             if (_cms.lazyIntakeIsActive)
                             {
+                                logM.logMd("Stopped LazyIntake, reversing brush time", Debug.END)
                                 _storage.cells.hwSortingM.hwMotors.stopBelts()
                                 _storage.cells.hwSortingM.startBrushTime(
                                     forward = false, Delay.MS.BRUSH_REVERSE)
                             }
                             else
                             {
+                                logM.logMd("Started LazyIntake", Debug.START)
                                 _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
                                 _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
                             }
@@ -313,7 +315,7 @@ class ScoringModulesConnector
                 if (_storage.cells.hwSortingM.wasShotFired())
                     _storage.cells.updateAfterShot()
 
-                if ((!_cms.shootingPhase.isRegularPhase2() &&
+                if ((_cms.shootingPhase.isRegularPhase2() &&
                      CONTROLS.USE_LAUNCHER_FOR_LAST_BALL &&
                     _storage.cells.hwSortingM.isReadyForShootingPhase3()))
                     _storage.cells.hwSortingM.streamDrumPhase3()
@@ -324,7 +326,10 @@ class ScoringModulesConnector
 
             ShootingPhase.Name.P3_OPENING_LAUNCHER ->
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
-                    _cms.shootingPhase.switchToNextPhase()
+                {
+                    _storage.cells.hwSortingM.hwMotors.stopBelts()
+                    _cms.shootingPhase.startPhase4()
+                }
 
             ShootingPhase.Name.P4_CALIBRATING ->
                 if (canStartCalibrationAfterShooting())
@@ -395,16 +400,22 @@ class ScoringModulesConnector
         {
             if (_storage.cells.isNotEmpty())
                 _storage.cells.hwSortingM.calibrationPhase3()
-            else _storage.finishCalibration()
+            else
+            {
+                _storage.finishCalibration()
+                if (_cms.calibrationPhase.isInactive() &&
+                    _cms.shootingPhase.isShootingPhase4())
+                    _cms.shootingPhase.setInactive()
+            }
         }
         if (_cms.calibrationPhase.isCalibrationPhase3() &&
             _cms.beltsStatus.notOnTime())
+        {
             _storage.finishCalibration()
-
-
-        if (_cms.calibrationPhase.isInactive() &&
-            _cms.shootingPhase.isShootingPhase4())
-            _cms.shootingPhase.setInactive()
+            if (_cms.calibrationPhase.isInactive() &&
+                _cms.shootingPhase.isShootingPhase4())
+                _cms.shootingPhase.setInactive()
+        }
     }
 
 

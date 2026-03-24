@@ -48,6 +48,10 @@ class ShootingPhase
         _name = if (!laterGamepadHold) Name.P1_OPENING_TURRET_GATE
                else Name.P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD
     }
+    fun startPhase3()
+    {
+        _name = Name.P3_OPENING_LAUNCHER
+    }
     fun startPhase4()
     {
         _name = Name.P4_CALIBRATING

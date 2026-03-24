@@ -60,7 +60,7 @@ object Delay
         }
 
         @JvmField
-        var BRUSH_REVERSE: Long = 1500
+        var BRUSH_REVERSE: Long = 1000
 
         @JvmField
         var GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL = 500

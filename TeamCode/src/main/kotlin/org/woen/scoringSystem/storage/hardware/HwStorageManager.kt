@@ -81,7 +81,7 @@ class HwSortingManager
     {
         hwMotors.logM.logMd("StreamDrum phase 3, opening launch", Debug.LOGIC)
         _cms.canTriggerIntake = false
-        _cms.shootingPhase.switchToNextPhase()
+        _cms.shootingPhase.startPhase3()
 
         hwMotors.reverseBrush(onTime = false)
         hwMotors.openLaunch()
@@ -91,7 +91,7 @@ class HwSortingManager
              _cms.beltsStatus.isIdle()
             ) || (
             _cms.shootingPhase.isShootingPhase3() &&
-            _cms.launchStatus.isFinished())
+            _cms.launchStatus.isOpened())
 
 
 
@@ -150,15 +150,15 @@ class HwSortingManager
 
     private fun extendable    (forward: Boolean, timeMs: Long, voltage: Double = 12.0)
             = startBeltsTime(forward,
-                if ((forward && _cms.beltsStatus.isForward())
-                         || (!forward && _cms.beltsStatus.isReverse())) timeMs
+                if (!((forward && _cms.beltsStatus.isForward())
+                           || (!forward && _cms.beltsStatus.isReverse()))) timeMs
                 else timeMs + targetPushTime
                     - rotatingBeltsTimer.milliseconds().toLong(), voltage)
     private fun reinstantiable(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
         = startBeltsTime(forward,
-        if ((forward && _cms.beltsStatus.isForward())
-                 || (!forward && _cms.beltsStatus.isReverse())) timeMs
-                else max(timeMs, targetPushTime
+                if (!((forward && _cms.beltsStatus.isForward())
+                           || (!forward && _cms.beltsStatus.isReverse()))) timeMs
+                 else max(timeMs, targetPushTime
                     - rotatingBeltsTimer.milliseconds().toLong()), voltage)
 
     fun startBeltsTime(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
