@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Gamepad
 import org.woen.collector.Collector
+import org.woen.collector.GameColor
+import org.woen.collector.GameSettings
 import org.woen.collector.RunMode
 import org.woen.modules.AddGamepad1ListenerEvent
 import org.woen.modules.IGamepadListener
@@ -120,7 +122,8 @@ fun attachDriveTrain(collector: Collector) {
 
                 val odometry = collector.eventBus.invoke(GetRobotOdometry())
 
-                var direction = Vec2(ly, lx).turn(-odometry.orientation.angle - PI / 2.0)
+                val direction = Vec2(ly, lx)
+                    .turn(-odometry.orientation.angle + (if (GameSettings.startOrientation.gameColor == GameColor.BLUE) -PI else PI) / 2.0)
 
                 setPowers(
                     direction.x - direction.y - rx,

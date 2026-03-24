@@ -25,7 +25,7 @@ internal object GAME_CONFIGS {
     var BLUE_BASKET_POSITION = Vec2(-1.7, -1.7)
 
     @JvmField
-    var RED_BASKET_POSITION = Vec2(-3.66 / 2.0 + 0.3, 3.66 / 2.0 - 0.1)
+    var RED_BASKET_POSITION = Vec2(-1.7, 1.7)
 
     @JvmField
     var RED_PARKING_ORIENTATION = Orientation(Vec2(0.0, 0.0), Angle.ofDeg(0.0))

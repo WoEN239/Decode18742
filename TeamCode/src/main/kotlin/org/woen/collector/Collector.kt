@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.modules.Battery
 import org.woen.modules.Telemetry
-import org.woen.modules.attachActionRunner
+import org.woen.modules.actions.attachActionRunner
 import org.woen.modules.drivetrain.attachDriveTrain
 import org.woen.modules.attachGamepad
 import org.woen.modules.attachLimelight
@@ -12,7 +12,6 @@ import org.woen.modules.attachSimpleStorage
 import org.woen.modules.drivetrain.attachOdometry
 import org.woen.modules.attachTurret
 import org.woen.modules.drivetrain.attachRunner
-import org.woen.scoringSystem.ScoringModulesConnector
 import org.woen.utils.events.EventBus
 import org.woen.utils.events.SimpleEmptyEvent
 
@@ -51,7 +50,7 @@ class Collector {
         attachOdometry(this)
         attachDriveTrain(this)
         attachTurret(this)
-//        attachSimpleStorage(this)
+        attachSimpleStorage(this)
         attachLimelight(this)
 
         if(runMode == RunMode.AUTO){
@@ -59,6 +58,6 @@ class Collector {
             attachActionRunner(this)
         }
 
-        ScoringModulesConnector(this)
+//        ScoringModulesConnector(this)
     }
 }
