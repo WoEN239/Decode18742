@@ -32,6 +32,10 @@ import org.woen.configs.RobotSettings.AUTONOMOUS
 
 
 
+data class IsEndGameEvent(var isEndGame: Boolean = false)
+
+
+
 class ScoringModulesConnector
 {
     private val _cms: ConnectorModuleStatus
@@ -55,6 +59,7 @@ class ScoringModulesConnector
 
         subscribeToOdometry()
         subscribeToCameraPattern()
+        subscribeToIsEndGameEvent()
         subscribeToDriverShootingGamepad1()
         subscribeToDriverMiscellaneousGamepad1()
         subscribeToHelperGamepad2PatternRecalibration()
@@ -88,6 +93,13 @@ class ScoringModulesConnector
         {
             if (_cms.awaitingPatternFromCamera)
                 _cms.dynamicMemoryPattern.setPermanent(it.pattern)
+        }
+    }
+    private fun subscribeToIsEndGameEvent()
+    {
+        _cms.collector.eventBus.subscribe(IsEndGameEvent::class)
+        {
+            it.isEndGame = isEndGame
         }
     }
     private fun subscribeToDriverShootingGamepad1()
@@ -261,7 +273,7 @@ class ScoringModulesConnector
     {
         _storage.cells.hwSortingM.update()
 
-        _storage.cells.tryHandleIntake()
+        _storage.tryHandleIntake()
 
         updateSorting()
         updateShooting()

@@ -44,6 +44,7 @@ import org.woen.configs.RobotSettings.SORTING.PREDICT.PSEUDO_MATCH_WEIGHT
  *      \_____________________________________________________/
  *
  */
+
 const val MAX_BALL_COUNT     = 3
 const val STORAGE_SLOT_COUNT = 4
 
@@ -175,17 +176,8 @@ class Cells
 
         logAllStorageData()
     }
-    fun tryHandleIntake()
+    fun handleIntake(inputBall: Ball.Name)
     {
-        if (_cms.sortingPhase.isActive() ||
-            _cms.shootingPhase.isShootingPhase3() ||
-            _cms.shootingPhase.isShootingPhase4() ||
-            _cms.lazyIntakeIsActive || !_cms.canTriggerIntake
-            || alreadyFull()) return
-
-        val inputBall = hwSortingM.updateColors()
-        if (inputBall == Ball.Name.NONE) return
-
         logM.logMd("Color sensors triggered intake: $inputBall", Debug.START)
         var curSlot = StorageSlot.BOTTOM
         var rotationTime = Delay.MS.PUSH.PART
@@ -197,8 +189,6 @@ class Cells
         curSlot--
 
         if (curSlot >= StorageSlot.BOTTOM) _storageCells[curSlot].set(inputBall)
-        if (alreadyFull()) _cms.collector.opMode.gamepad1.rumble(
-            Delay.MS.GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL)
 
         logM.logMd("Storage after intake: ", Debug.GENERIC)
         logAllStorageData()

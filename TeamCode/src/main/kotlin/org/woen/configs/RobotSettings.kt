@@ -48,6 +48,9 @@ object RobotSettings
 
 
         @JvmField
+        var TRY_AUTO_SORT_WHEN_FULL_IN_ENDGAME = false
+
+        @JvmField
         var USE_LAUNCHER_FOR_LAST_BALL = false
         @JvmField
         var USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT = false

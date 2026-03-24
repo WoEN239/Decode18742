@@ -9,6 +9,7 @@ import org.woen.enumerators.RequestResult
 import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
 
+import org.woen.scoringSystem.IsEndGameEvent
 import org.woen.scoringSystem.misc.DynamicPattern
 import org.woen.scoringSystem.ConnectorModuleStatus
 
@@ -16,6 +17,7 @@ import org.woen.configs.Delay
 import org.woen.configs.Hardware
 import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
+import org.woen.configs.RobotSettings.TELEOP
 
 
 
@@ -38,9 +40,43 @@ class Storage
 
 
 
+    fun tryHandleIntake()
+    {
+        if (_cms.sortingPhase.isActive() ||
+            _cms.shootingPhase.isShootingPhase3() ||
+            _cms.shootingPhase.isShootingPhase4() ||
+            _cms.lazyIntakeIsActive || !_cms.canTriggerIntake
+            || cells.alreadyFull()) return
+
+        val inputBall = cells.hwSortingM.updateColors()
+        if (inputBall == Ball.Name.NONE) return
+
+        cells.handleIntake(inputBall)
+
+        if (cells.alreadyFull())
+        {
+            _cms.collector.opMode.gamepad1.rumble(
+                Delay.MS.GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL)
+
+            if (CONTROLS.TRY_AUTO_SORT_WHEN_FULL_IN_ENDGAME
+                && _cms.collector.eventBus.invoke(
+                    IsEndGameEvent()).isEndGame)
+            {
+                logM.logMd("Starting auto sorting [EndGame]", Debug.START)
+
+                startCustomisableDrumRequest(
+                    TELEOP.PATTERN_SHOOTING_MODE,
+                    _cms.dynamicMemoryPattern.permanent(),
+                    TELEOP.AUTOCORRECT_REQUEST_PATTERN)
+        }   }
+    }
+
+
+
     fun startCustomisableDrumRequest(
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest>,
+        shootAfterSorting: Boolean = true,
         autoCorrectPattern: Boolean = true): RequestResult
     {
         if (cells.isEmpty()) return RequestResult.FAIL_IS_EMPTY
@@ -54,23 +90,27 @@ class Storage
         return when (shootingMode)
         {
             Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
-                -> streamDrumPhase1()
+                -> if (shootAfterSorting) streamDrumPhase1()
+                   else RequestResult.SORTING_FAILED_NOT_SHOOTING
 
             Shooting.Mode.FIRE_PATTERN_CAN_SKIP
-                -> shootFinalPhase(
+                -> initiateSorting(
                 standardPatternOrder,
-                false)
+                false,
+                    shootAfterSorting)
 
             Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
-                -> shootFinalPhase(
+                -> initiateSorting(
                     standardPatternOrder,
-                    true)
+                    true,
+                    shootAfterSorting)
         }
     }
     fun startCustomisableDrumRequest(
         shootingMode:  Shooting.Mode,
         requestOrder:  Array<BallRequest>,
         failsafeOrder: Array<BallRequest>? = requestOrder,
+        shootAfterSorting: Boolean = true,
         autoCorrectRequestPattern:  Boolean = true,
         autoCorrectFailsafePattern: Boolean = true): RequestResult
     {
@@ -95,47 +135,55 @@ class Storage
         return when (shootingMode)
         {
             Shooting.Mode.FIRE_EVERYTHING_YOU_HAVE
-                -> streamDrumPhase1()
+                -> if (shootAfterSorting) streamDrumPhase1()
+                   else RequestResult.SORTING_FAILED_NOT_SHOOTING
 
             Shooting.Mode.FIRE_PATTERN_CAN_SKIP
-                -> choosePatternForShot(
-                standardPatternOrder,
-                failsafePatternOrder,
-                    false)
-
-            Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
-                -> choosePatternForShot(
+                -> choosePatternBeforeSorting(
                     standardPatternOrder,
                     failsafePatternOrder,
-                    true)
+                    false,
+                    shootAfterSorting)
+
+            Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
+                -> choosePatternBeforeSorting(
+                    standardPatternOrder,
+                    failsafePatternOrder,
+                    true,
+                    shootAfterSorting)
         }
     }
 
 
 
-    private fun choosePatternForShot(
+    private fun choosePatternBeforeSorting(
         requested: Array<BallRequest>,
         failsafe:  Array<BallRequest>,
-        onlyInSequence: Boolean
+        onlyInSequence: Boolean,
+        shootAfterSorting: Boolean = true
     ): RequestResult
     {
         val req1 = cells.predictSortSearch(requested, onlyInSequence).maxSequenceScore
         val req2 = cells.predictSortSearch(
             failsafe, onlyInSequence).maxSequenceScore
 
-        return shootFinalPhase(
-            if (req1 > req2) requested
-            else failsafe, onlyInSequence)
+        return initiateSorting(
+                if (req1 > req2) requested
+                else failsafe,
+            onlyInSequence,
+            shootAfterSorting)
     }
-    private fun shootFinalPhase(
+    private fun initiateSorting(
         requested: Array<BallRequest>,
-        onlyInSequence: Boolean
+        onlyInSequence: Boolean,
+        shootAfterSorting: Boolean = true
     ): RequestResult
     {
         val targetSorting = cells.predictSortSearch(requested, onlyInSequence)
         if (targetSorting.totalMatches == 0) return RequestResult.FAIL_COLORS_NOT_PRESENT
 
-        _cms.shootingPhase.startPhase0()
+        if (shootAfterSorting) _cms.shootingPhase.startPhase0()
+
         sortingPhase1(targetSorting.totalRotations)
         return RequestResult.ROGER_STARTING_SORTING
     }
