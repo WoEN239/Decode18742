@@ -116,7 +116,7 @@ fun attachDriveTrain(collector: Collector) {
     val xRegulator = Regulator(DRIVE_TRAIN_CONFIG.PARKING_X_REGULATOR)
     val yRegulator = Regulator(DRIVE_TRAIN_CONFIG.PARKING_Y_REGULATOR)
 
-    collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({it.circle}, {
+    collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({it.dpad_up}, {
         isParking = !isParking
 
         if(isParking){
