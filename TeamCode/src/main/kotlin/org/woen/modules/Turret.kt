@@ -53,7 +53,7 @@ internal object TURRET_CONFIG {
     var PULLEY_TICKS_REVOLUTION = 28.0
 
     @JvmField
-    var PULLEY_REGULATOR = PIDFCoefficients(190.0, 9.0, 0.0, 15.5)
+    var PULLEY_REGULATOR = PIDFCoefficients(195.0, 10.0, 0.0, 15.5)
 
     @JvmField
     var PULLEY_RATION = 37.0 / 33.0
@@ -74,7 +74,7 @@ internal object TURRET_CONFIG {
     var CLOSE_ANGLE_POSITION = 0.28
 
     @JvmField
-    var SHORT_FAR_PULLEY_VELOCITY = 14.9
+    var SHORT_FAR_PULLEY_VELOCITY = 14.7
 
     @JvmField
     var SHORT_FAR_ANGLE_POSITION = 0.4
@@ -84,24 +84,24 @@ internal object TURRET_CONFIG {
 
     @JvmField
     var CLOSE_DISTANCE = 1.1
-//
-//    @JvmField
-//    var FAR_PULLEY_VELOCITY = 10.5
-//
-//    @JvmField
-//    var FAR_ANGLE_POSITION = 0.28
-//
-//    @JvmField
-//    var LONG_CLOSE_PULLEY_VELOCITY = 14.9
-//
-//    @JvmField
-//    var LONG_CLOSE_ANGLE_POSITION = 0.43
-//
-//    @JvmField
-//    var LONG_CLOSE_DISTANCE = 2.63
-//
-//    @JvmField
-//    var FAR_DISTANCE = 1.0
+
+    @JvmField
+    var FAR_PULLEY_VELOCITY = 18.8
+
+    @JvmField
+    var FAR_ANGLE_POSITION = 0.43
+
+    @JvmField
+    var LONG_CLOSE_PULLEY_VELOCITY = 15.7
+
+    @JvmField
+    var LONG_CLOSE_ANGLE_POSITION = 0.408
+
+    @JvmField
+    var LONG_CLOSE_DISTANCE = 3.0
+
+    @JvmField
+    var FAR_DISTANCE = 4.1
 //
 //    @JvmField
 //    var ANGLE_POSITION = 0.5
@@ -164,17 +164,19 @@ fun attachTurret(collector: Collector) {
         val odometry = collector.eventBus.invoke(GetRobotOdometry())
 
         val basketErrPulley =
-            (GameSettings.startOrientation.basketPosition.invoke() -
+            ((if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke() -
                     odometry.linearVelocity.turn(odometry.orientation.angle) * TURRET_CONFIG.VELOCITY_PULLEY_COMPENSATE_K) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
                 .turn(odometry.orientation.angle))
 
-        val l = clamp(basketErrPulley.length(), 1.1, 2.58)
+        var l = basketErrPulley.length()
 
         val targetPulleyVelocity: Double
         val anglePosition: Double
 
         if (collector.runMode == RunMode.MANUAL) {
-//            if (odometry.orientation.x > 0.5) {
+            if (odometry.orientation.x < 0.5) {
+                l = clamp(l, TURRET_CONFIG.CLOSE_DISTANCE, TURRET_CONFIG.SHORT_FAR_DISTANCE)
+
                 targetPulleyVelocity = (TURRET_CONFIG.CLOSE_PULLEY_VELOCITY + clamp(
                     (l - TURRET_CONFIG.CLOSE_DISTANCE) /
                             (TURRET_CONFIG.SHORT_FAR_DISTANCE - TURRET_CONFIG.CLOSE_DISTANCE),
@@ -188,21 +190,23 @@ fun attachTurret(collector: Collector) {
                     0.0,
                     1.0
                 ) * (TURRET_CONFIG.SHORT_FAR_ANGLE_POSITION - TURRET_CONFIG.CLOSE_ANGLE_POSITION)
-//            } else {
-//                targetPulleyVelocity = (TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY + clamp(
-//                    (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
-//                            (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
-//                    0.0,
-//                    1.0
-//                ) * (TURRET_CONFIG.FAR_PULLEY_VELOCITY - TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY))
-//
-//                anglePosition = TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION + clamp(
-//                    (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
-//                            (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
-//                    0.0,
-//                    1.0
-//                ) * (TURRET_CONFIG.FAR_ANGLE_POSITION - TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION)
-//            }
+            } else {
+                l = clamp(l, TURRET_CONFIG.LONG_CLOSE_DISTANCE, TURRET_CONFIG.FAR_DISTANCE)
+
+                targetPulleyVelocity = (TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY + clamp(
+                    (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
+                            (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
+                    0.0,
+                    1.0
+                ) * (TURRET_CONFIG.FAR_PULLEY_VELOCITY - TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY))
+
+                anglePosition = TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION + clamp(
+                    (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
+                            (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
+                    0.0,
+                    1.0
+                ) * (TURRET_CONFIG.FAR_ANGLE_POSITION - TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION)
+            }
         } else {
             anglePosition = 0.3//TURRET_CONFIG.ANGLE_POSITION// 0.3
             targetPulleyVelocity = 10.6//TURRET_CONFIG.PULLEY_VELOCITY//10.4
@@ -218,7 +222,9 @@ fun attachTurret(collector: Collector) {
         )
 
         val basketErrHeading =
-            (GameSettings.startOrientation.basketPosition.invoke() - odometry.linearVelocity.turn(odometry.orientation.angle) * TURRET_CONFIG.LINEAR_VELOCITY_HEADING_COMPENSATE_K) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
+            ((if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke() - odometry.linearVelocity.turn(
+                odometry.orientation.angle
+            ) * TURRET_CONFIG.LINEAR_VELOCITY_HEADING_COMPENSATE_K) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
                 .turn(odometry.orientation.angle))
 
         turretHeading = if (state != TurretState.CALIBRATE_ODOMETRY) {
@@ -228,7 +234,7 @@ fun attachTurret(collector: Collector) {
                             TURRET_CONFIG.TURRET_CENTER_POS.turn(odometry.orientation.angle))).rot() + PI
                 )
 
-                TurretState.TO_BASKET -> Angle(basketErrHeading.rot() + PI - odometry.headingVelocity * TURRET_CONFIG.ANGULAR_VELOCITY_HEADING_COMPENSATE_K )
+                TurretState.TO_BASKET -> Angle(basketErrHeading.rot() + PI - odometry.headingVelocity * TURRET_CONFIG.ANGULAR_VELOCITY_HEADING_COMPENSATE_K)
 
                 else -> Angle.ZERO
             } - odometry.orientation.angl).angle

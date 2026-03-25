@@ -16,6 +16,7 @@ class GetCurrentPatternEvent(var pattern: Array<BallColor>? = null)
 
 
 fun attachLimelight(collector: Collector) {
+    val telemetry = collector.telemetry
     val ll = collector.hardwareMap.get(Limelight3A::class.java, "limelight")
 
     ll.start()
@@ -77,6 +78,11 @@ fun attachLimelight(collector: Collector) {
         }
 
         ll.pipelineSwitch(1)
+
+        if(isPatternDetected)
+            telemetry.addLine("pattern: " + pattern[0] + " " + pattern[1] + " " + pattern[2])
+        else
+            telemetry.addLine("pattern not detected")
     }
 }
 

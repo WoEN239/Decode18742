@@ -12,17 +12,12 @@ import org.woen.collector.GameSettings
 import org.woen.collector.RunMode
 import org.woen.modules.AddGamepad1ListenerEvent
 import org.woen.modules.ClickGamepadListener
-import org.woen.modules.OnCameraUpdateEvent
-import org.woen.modules.SIMPLE_STORAGE_CONFIG
-import org.woen.modules.TURRET_CONFIG
-import org.woen.utils.exponentialFilter.ExponentialFilter
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Color
 import org.woen.utils.units.Line
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Triangle
 import org.woen.utils.units.Vec2
-import kotlin.math.PI
 
 @Config
 internal object ODOMETRY_CONFIG {
@@ -42,7 +37,10 @@ internal object ODOMETRY_CONFIG {
     var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
 
     @JvmField
-    var CALIBRATE_ORIENTATION = Orientation(Vec2(-0.794, -0.791), Angle.ofDeg(90.0))
+    var CALIBRATE_BLUE_ORIENTATION = Orientation(Vec2(-0.794, -0.791), Angle.ofDeg(90.0))
+
+    @JvmField
+    var CALIBRATE_RED_ORIENTATION = Orientation(Vec2(-0.794, 0.791), Angle.ofDeg(-90.0))
 }
 
 class GetRobotOdometry(
@@ -85,8 +83,11 @@ fun attachOdometry(collector: Collector) {
     var longLocate = false
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.dpad_down }, {
+        val collaborateOrientation =
+            if (GameSettings.startOrientation.gameColor == GameColor.RED) ODOMETRY_CONFIG.CALIBRATE_RED_ORIENTATION else ODOMETRY_CONFIG.CALIBRATE_BLUE_ORIENTATION
+
         val orient =
-            ODOMETRY_CONFIG.CALIBRATE_ORIENTATION.pos.turn(-GameSettings.startOrientation.startOrientation.angle) - GameSettings.startOrientation.startOrientation.pos
+            collaborateOrientation.pos.turn(-GameSettings.startOrientation.startOrientation.angle) - GameSettings.startOrientation.startOrientation.pos
 
         pinpoint.position =
             Pose2D(
@@ -94,7 +95,7 @@ fun attachOdometry(collector: Collector) {
                 orient.x,
                 orient.y,
                 AngleUnit.RADIANS,
-                (ODOMETRY_CONFIG.CALIBRATE_ORIENTATION.angl - GameSettings.startOrientation.startOrientation.angl).angle
+                (collaborateOrientation.angl - GameSettings.startOrientation.startOrientation.angl).angle
             )
     })))
 

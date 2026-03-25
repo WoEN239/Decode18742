@@ -30,10 +30,10 @@ internal object SIMPLE_STORAGE_CONFIG {
     var PUSH_OPEN = 0.025
 
     @JvmField
-    var GATE_CLOSE = 0.2
+    var GATE_CLOSE = 0.29
 
     @JvmField
-    var GATE_OPEN = 0.76
+    var GATE_OPEN = 0.83
 
     @JvmField
     var SORTING_PUSH_TIME = 0.4
@@ -60,7 +60,7 @@ internal object SIMPLE_STORAGE_CONFIG {
     var CURRENT_TRIGGER_TIME = 0.15
 
     @JvmField
-    var TRIGGER_CURRENT = 2.0
+    var TRIGGER_CURRENT = 4.5
 
     @JvmField
     var LAUNCH_SERVO_OPEN = 0.57
@@ -73,6 +73,9 @@ internal object SIMPLE_STORAGE_CONFIG {
 
     @JvmField
     var SHOOT_LAUNCH_TIME = 0.5
+
+    @JvmField
+    var FAR_SHOOT_POWER = 7.0
 }
 
 enum class StorageState {
@@ -143,6 +146,7 @@ fun attachSimpleStorage(collector: Collector) {
     var requiredSwaps = 3
     val eatingTimer = ElapsedTime()
     val currentTriggerTimer = ElapsedTime()
+    var launchRevers = false
 
     fun switchState(state: StorageState) {
         currentState = state
@@ -166,6 +170,7 @@ fun attachSimpleStorage(collector: Collector) {
                 brushMotor.power = -1.0
 
                 stateTimer.reset()
+                launchRevers = false
             }
 
             StorageState.EATING -> {
@@ -318,18 +323,34 @@ fun attachSimpleStorage(collector: Collector) {
             currentTriggerTimer.reset()
         }
 
-        if(currentState == StorageState.SHOOTING && collector.opMode.gamepad1.right_trigger > 0.01)
-            launchServo.targetPosition = SIMPLE_STORAGE_CONFIG.LAUNCH_SERVO_OPEN
-        else
-            launchServo.targetPosition = SIMPLE_STORAGE_CONFIG.LAUNCH_SERVO_CLOSE
-
         when (currentState) {
             StorageState.SHOOTING -> {
-                if (collector.eventBus.invoke(GetRobotOdometry()).orientation.x > 0.5)
-                    beltMotor.power =
-                        battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SLOW_SHOOTING_POWER)
-                else
-                    beltMotor.power = 1.0
+                if(launchRevers)
+                    beltMotor.power = -1.0
+                else {
+                    if (collector.eventBus.invoke(GetRobotOdometry()).orientation.x > 0.5)
+                        beltMotor.power =
+                            battery.voltageToPower(SIMPLE_STORAGE_CONFIG.FAR_SHOOT_POWER)
+                    else
+                        beltMotor.power = 1.0
+                }
+
+                if(stateTimer.seconds() > (if(collector.eventBus.invoke(GetRobotOdometry()).orientation.x > 0.5) 1.2 else 0.9) && !launchRevers){
+                    launchServo.targetPosition = SIMPLE_STORAGE_CONFIG.LAUNCH_SERVO_OPEN
+
+                    if(launchServo.atTarget){
+                        launchServo.targetPosition = SIMPLE_STORAGE_CONFIG.LAUNCH_SERVO_CLOSE
+
+                        launchRevers = true
+
+                        stateTimer.reset()
+                    }
+                }
+
+                if(launchRevers && launchServo.atTarget){
+                    launchRevers = false
+                    stateTimer.reset()
+                }
             }
 
             StorageState.EATING, StorageState.STOP -> {}
