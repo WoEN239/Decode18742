@@ -1,33 +1,36 @@
 package org.woen.tests
 
+import org.woen.collector.Collector
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.woen.utils.drivers.LEDLine
 
+
 @Config
-internal object LEDCONFIG {
+internal object LED_TEST{
     @JvmField
-    var rightRpower: Double = 0.0
-
-    @JvmField
-    var rightGpower: Double = 0.0
-
-    @JvmField
-    var rightBpower: Double = 0.0
+    var POWER = 0.0
 }
 
 @TeleOp
 class LEDTest: LinearOpMode() {
     override fun runOpMode() {
-
         val ledLeftR = LEDLine("leftR",hardwareMap)
         val ledLeftG = LEDLine("leftG",hardwareMap)
         val ledLeftB = LEDLine("leftB",hardwareMap)
 
+        ledLeftR.power = 0.0
+        ledLeftG.power = 0.0
+        ledLeftB.power = 0.0
+
         val ledRightR = LEDLine("rightR",hardwareMap)
         val ledRightG = LEDLine("rightG",hardwareMap)
         val ledRightB = LEDLine("rightB",hardwareMap)
+
+        ledRightR.power = 0.0
+        ledRightG.power = 0.0
+        ledRightB.power = 0.0
 
 
         waitForStart()

@@ -11,6 +11,7 @@ import org.woen.collector.RunMode
 import org.woen.modules.drivetrain.GetRobotOdometry
 import org.woen.utils.drivers.SOFT_SERVO_CONFIG
 import org.woen.utils.drivers.SoftServo
+import org.woen.utils.exponentialFilter.ExponentialFilter
 
 @Config
 internal object SIMPLE_STORAGE_CONFIG {
@@ -54,19 +55,13 @@ internal object SIMPLE_STORAGE_CONFIG {
     var SORTING_BELT_POWER = 11.0
 
     @JvmField
-    var EATING_TIME = 0.3
+    var FULL_R = 2.6
 
     @JvmField
-    var CURRENT_TRIGGER_TIME = 0.2
+    var TWO_R = 3.7
 
     @JvmField
-    var FULL_CURRENT = 5.4
-
-    @JvmField
-    var TWO_CURRENT = 3.3
-
-    @JvmField
-    var ONE_CURRENT = 2.9
+    var ONE_R = 7.0
 
     @JvmField
     var LAUNCH_SERVO_OPEN = 0.57
@@ -82,6 +77,9 @@ internal object SIMPLE_STORAGE_CONFIG {
 
     @JvmField
     var FAR_SHOOT_POWER = 7.0
+
+    @JvmField
+    var R_FILTER_K = 0.2
 }
 
 enum class StorageState {
@@ -150,10 +148,10 @@ fun attachSimpleStorage(collector: Collector) {
     val stateTimer = ElapsedTime()
     val sortingTimer = ElapsedTime()
     var requiredSwaps = 3
-    val eatingTimer = ElapsedTime()
-    val currentTriggerTimer = ElapsedTime()
     var launchRevers = false
     var ballInStorage = 0
+    val rFilter = ExponentialFilter(SIMPLE_STORAGE_CONFIG.R_FILTER_K)
+    var beltR = 10.0
 
     fun switchState(state: StorageState) {
         currentState = state
@@ -279,6 +277,7 @@ fun attachSimpleStorage(collector: Collector) {
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
         switchState(StorageState.SHOOTING)
         ballInStorage = 0
+        collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
     })))
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
@@ -290,6 +289,7 @@ fun attachSimpleStorage(collector: Collector) {
         if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_SHOOTING) {
             switchState(StorageState.LAUNCH_SHOOT)
             ballInStorage = 0
+            collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
         }
     }
 
@@ -297,6 +297,7 @@ fun attachSimpleStorage(collector: Collector) {
         if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_SHOOTING) {
             switchState(StorageState.SLOW_SHUTTING)
             ballInStorage = 0
+            collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
         }
     }
 
@@ -312,6 +313,7 @@ fun attachSimpleStorage(collector: Collector) {
         gateServo.start()
         turretGateServo.start()
         launchServo.start()
+        rFilter.start()
 
         switchState(StorageState.STOP)
     }
@@ -321,38 +323,45 @@ fun attachSimpleStorage(collector: Collector) {
         gateServo.update()
         turretGateServo.update()
         launchServo.update()
+        rFilter.coef = SIMPLE_STORAGE_CONFIG.R_FILTER_K
+
+        val current = beltMotor.getCurrent(CurrentUnit.AMPS)
+
+        if (current > 1.0) {
+            val rawR = collector.battery.currentVoltage / beltMotor.getCurrent(CurrentUnit.AMPS)
+
+            beltR = rFilter.updateRaw(beltR, rawR - beltR)
+        } else {
+            rFilter.updateRaw(beltR, 0.0)
+            beltR = 10.0
+        }
 
         if (currentState == StorageState.EATING && collector.runMode == RunMode.MANUAL) {
-            if (eatingTimer.seconds() > SIMPLE_STORAGE_CONFIG.EATING_TIME) {
-                val current = beltMotor.getCurrent(CurrentUnit.AMPS)
+            if (beltR < SIMPLE_STORAGE_CONFIG.FULL_R) {
+                if (ballInStorage <= 2) {
+                    ballInStorage = 3
 
-                if (current > SIMPLE_STORAGE_CONFIG.FULL_CURRENT) {
-                    if (currentTriggerTimer.seconds() > SIMPLE_STORAGE_CONFIG.CURRENT_TRIGGER_TIME) {
-                        collector.opMode.gamepad1.rumble(200)
+                    collector.opMode.gamepad1.rumble(200)
 
-                        ballInStorage = 3
-                    }
+                    collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
                 }
-                else if (current > SIMPLE_STORAGE_CONFIG.TWO_CURRENT) {
-                    if(ballInStorage == 2)
-                        currentTriggerTimer.reset()
-                    else if (currentTriggerTimer.seconds() > SIMPLE_STORAGE_CONFIG.CURRENT_TRIGGER_TIME)
-                        ballInStorage = 2
-                } else if (current > SIMPLE_STORAGE_CONFIG.ONE_CURRENT) {
-                    if(ballInStorage == 1)
-                        currentTriggerTimer.reset()
-                    else if (currentTriggerTimer.seconds() > SIMPLE_STORAGE_CONFIG.CURRENT_TRIGGER_TIME)
-                        ballInStorage = 1
+            } else if (beltR < SIMPLE_STORAGE_CONFIG.TWO_R) {
+                if (ballInStorage <= 1) {
+                    ballInStorage = 2
+
+                    collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
                 }
-                else
-                    currentTriggerTimer.reset()
+            } else if (beltR < SIMPLE_STORAGE_CONFIG.ONE_R) {
+                if (ballInStorage == 0) {
+                    ballInStorage = 1
+
+                    collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
+                }
             }
-        } else {
-            eatingTimer.reset()
-            currentTriggerTimer.reset()
         }
 
         collector.telemetry.addData("ball count", ballInStorage)
+        collector.telemetry.addData("belt r", beltR)
 
         when (currentState) {
             StorageState.SHOOTING -> {

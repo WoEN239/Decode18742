@@ -14,6 +14,18 @@ fun attachLedFeedback(collector: Collector) {
     val ledRightG = LEDLine("rightG", collector.hardwareMap)
     val ledRightB = LEDLine("rightB", collector.hardwareMap)
 
+    ledLeftR.power = 0.0
+    ledLeftG.power = 0.0
+    ledLeftB.power = 0.0
+
+    ledRightR.power = 0.0
+    ledRightG.power = 0.0
+    ledRightB.power = 0.0
+
+    collector.startEvent += {
+        collector.eventBus.invoke(NewBallArrivedEvent(0))
+    }
+
     collector.eventBus.subscribe(NewBallArrivedEvent::class){
         when(it.ballsCount) {
             0 -> {
@@ -27,20 +39,20 @@ fun attachLedFeedback(collector: Collector) {
             }
             1 -> {
                 ledLeftR.power = 1.0
-                ledLeftG.power = 0.5
+                ledLeftG.power = 0.125
                 ledLeftB.power = 0.0
 
                 ledRightR.power = 1.0
-                ledRightG.power = 0.5
+                ledRightG.power = 0.125
                 ledRightB.power = 0.0
             }
             2 -> {
                 ledLeftR.power = 1.0
-                ledLeftG.power = 1.0
+                ledLeftG.power = 0.25
                 ledLeftB.power = 0.0
 
                 ledRightR.power = 1.0
-                ledRightG.power = 1.0
+                ledRightG.power = 0.25
                 ledRightB.power = 0.0
             }
 

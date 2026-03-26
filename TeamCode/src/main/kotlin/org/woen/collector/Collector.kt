@@ -7,6 +7,7 @@ import org.woen.modules.Telemetry
 import org.woen.modules.actions.attachActionRunner
 import org.woen.modules.drivetrain.attachDriveTrain
 import org.woen.modules.attachGamepad
+import org.woen.modules.attachLedFeedback
 import org.woen.modules.attachLimelight
 import org.woen.modules.attachSimpleStorage
 import org.woen.modules.drivetrain.attachOdometry
@@ -58,7 +59,8 @@ class Collector {
             attachActionRunner(this)
         }
 
-//        attachSimpleStorage(this)
-        ScoringModulesConnector(this)
+        attachSimpleStorage(this)
+        attachLedFeedback(this)
+//        ScoringModulesConnector(this)
     }
 }

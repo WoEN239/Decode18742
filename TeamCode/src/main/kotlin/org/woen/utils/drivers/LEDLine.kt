@@ -1,26 +1,13 @@
 package org.woen.utils.drivers
 
-import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.PwmControl
 import com.qualcomm.robotcore.hardware.Servo
 
-@Config
-internal object LED_CONFIG {
-    @JvmField
-    var MAX_BORDER = 1.0
-
-    @JvmField
-    var MIN_BORDER = 0.0
-}
-
 class LEDLine(
     name: String,
     hardwareMap: HardwareMap,
-    signalPin: SignalPin = SignalPin.PLUS,
-    private val _maxBorder: Double = LED_CONFIG.MAX_BORDER,
-    private val _minBorder: Double = LED_CONFIG.MIN_BORDER
+    signalPin: SignalPin = SignalPin.PLUS
 ) {
     enum class SignalPin {
         PLUS,
@@ -31,15 +18,15 @@ class LEDLine(
 
     var power
         set(value) {
-            _port.position = value
+            _port.position = value * (0.99 - 0.001) + 0.001
         }
-        get() = 0.0
+        get() = (_port.position - 0.001) / (0.99 - 0.001)
 
     init {
         if (signalPin == SignalPin.PLUS)
             _port.direction = Servo.Direction.REVERSE
 
-        (_port as PwmControl).pwmRange = PwmControl.PwmRange(0.0,100.0,100.0)
+        (_port as PwmControl).pwmRange = PwmControl.PwmRange(0.0, 1000.0, 1000.0)
 
         power = 0.0
     }
