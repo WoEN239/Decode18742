@@ -39,9 +39,6 @@ class MotorStatus
     }
 
 
-
-    fun isForward() = _name == Name.FORWARD_INFINITE || isForwardOnTime()
-    fun isReverse() = _name == Name.REVERSE_INFINITE || isReverseOnTime()
     fun isForwardOnTime() = _name == Name.FORWARD_TIME
     fun isReverseOnTime() = _name == Name.REVERSE_TIME
     fun isOnTime() = isForwardOnTime() || isReverseOnTime()

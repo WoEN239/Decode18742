@@ -374,7 +374,8 @@ class ScoringModulesConnector
             SortingPhase.Name.P8_CLOSING_GATE_AND_PUSH ->
                 if (_cms.gateStatus.isClosed() &&
                     _cms.pushStatus.isClosed())
-                    _storage.sortingPhaseRealignment()
+                    _storage.sortingPhaseRealignment(
+                        Delay.MS.PUSH.HALF)
 
             SortingPhase.Name.P9_REALIGN_STORAGE ->
                 if (_cms.beltsStatus.isIdle())
@@ -400,22 +401,11 @@ class ScoringModulesConnector
         {
             if (_storage.cells.isNotEmpty())
                 _storage.cells.hwSortingM.calibrationPhase3()
-            else
-            {
-                _storage.finishCalibration()
-                if (_cms.calibrationPhase.isInactive() &&
-                    _cms.shootingPhase.isShootingPhase4())
-                    _cms.shootingPhase.setInactive()
-            }
+            else _storage.finishCalibration()
         }
         if (_cms.calibrationPhase.isCalibrationPhase3() &&
             _cms.beltsStatus.notOnTime())
-        {
             _storage.finishCalibration()
-            if (_cms.calibrationPhase.isInactive() &&
-                _cms.shootingPhase.isShootingPhase4())
-                _cms.shootingPhase.setInactive()
-        }
     }
 
 

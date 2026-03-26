@@ -46,6 +46,7 @@ class HwSortingManager
         if ((_cms.beltsStatus.isOnTime()) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
         {
+            hwMotors.logM.logMd("Stopping belts on time", Debug.LOGIC)
             hwMotors.stopBelts()
 
             if (_cms.calibrationPhase.isCalibrationPhase1())
@@ -54,7 +55,10 @@ class HwSortingManager
 
         if (_cms.brushStatus.isOnTime() &&
             rotatingBrushTimer.milliseconds() > targetBrushTime)
+        {
+            hwMotors.logM.logMd("Stopping brush on time", Debug.LOGIC)
             hwMotors.stopBrush()
+        }
     }
 
     fun updateColors(): Ball.Name
@@ -85,6 +89,7 @@ class HwSortingManager
 
         hwMotors.reverseBrush(onTime = false)
         hwMotors.openLaunch()
+        hwMotors.forwardBelts(onTime = false)
     }
     fun isReadyForShootingPhase4()
         =   (_cms.shootingPhase.isAnyShootingPhase2() &&
@@ -104,11 +109,11 @@ class HwSortingManager
     }
     fun calibrationPhase2()
     {
-        hwMotors.logM.logMd("Calibration phase 1, closing servos", Debug.LOGIC)
+        hwMotors.logM.logMd("Calibration phase 2, closing servos", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase2()
 
-        hwMotors.stopBelts()
+        hwMotors.reverseBelts(onTime = false)
         hwMotors.closeLaunch()
         hwMotors.closeTurretGate()
         hwMotors.closeGateWithPush()
@@ -150,15 +155,15 @@ class HwSortingManager
 
     private fun extendable    (forward: Boolean, timeMs: Long, voltage: Double = 12.0)
             = startBeltsTime(forward,
-                if (!((forward && _cms.beltsStatus.isForward())
-                           || (!forward && _cms.beltsStatus.isReverse()))) timeMs
+                if (!((forward && _cms.beltsStatus.isForwardOnTime())
+                           || (!forward && _cms.beltsStatus.isReverseOnTime()))) timeMs
                 else timeMs + targetPushTime
                     - rotatingBeltsTimer.milliseconds().toLong(), voltage)
     private fun reinstantiable(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
-        = startBeltsTime(forward,
-                if (!((forward && _cms.beltsStatus.isForward())
-                           || (!forward && _cms.beltsStatus.isReverse()))) timeMs
-                 else max(timeMs, targetPushTime
+            = startBeltsTime(forward,
+                if (!((forward && _cms.beltsStatus.isForwardOnTime())
+                           || (!forward && _cms.beltsStatus.isReverseOnTime()))) timeMs
+                else max(timeMs, targetPushTime
                     - rotatingBeltsTimer.milliseconds().toLong()), voltage)
 
     fun startBeltsTime(forward: Boolean, timeMs: Long, voltage: Double = 12.0)

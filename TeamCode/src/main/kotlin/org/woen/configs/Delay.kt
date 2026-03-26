@@ -14,7 +14,7 @@ object Delay
         internal object PUSH
         {
             @JvmField
-            var FULL: Long = 400
+            var FULL: Long = 500
             val HALF get() = FULL / 2
 
             @JvmField
@@ -49,18 +49,18 @@ object Delay
         internal object REALIGNMENT
         {
             @JvmField
-            var SORTING_FORWARD: Long = 222
+            var SORTING_FORWARD: Long = 170
 
             @JvmField
-            var SORTING_REVERSE: Long = 85
+            var SORTING_REVERSE: Long = 0
 
 
             @JvmField
-            var WAITING_IN_SORTING_PASE_7: Long = 80
+            var WAITING_IN_SORTING_PASE_7: Long = 0
         }
 
         @JvmField
-        var BRUSH_REVERSE: Long = 1000
+        var BRUSH_REVERSE: Long = 500
 
         @JvmField
         var GAMEPAD_RUMBLE_STORAGE_IS_NOW_FULL = 500

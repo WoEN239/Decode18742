@@ -12,6 +12,7 @@ import org.woen.modules.attachSimpleStorage
 import org.woen.modules.drivetrain.attachOdometry
 import org.woen.modules.attachTurret
 import org.woen.modules.drivetrain.attachRunner
+import org.woen.scoringSystem.ScoringModulesConnector
 import org.woen.utils.events.EventBus
 import org.woen.utils.events.SimpleEmptyEvent
 
@@ -49,8 +50,8 @@ class Collector {
         attachGamepad(this)
         attachOdometry(this)
         attachDriveTrain(this)
-        attachTurret(this)
-        attachSimpleStorage(this)
+//        attachTurret(this)
+//        attachSimpleStorage(this)
         attachLimelight(this)
 
         if(runMode == RunMode.AUTO){
@@ -58,6 +59,6 @@ class Collector {
             attachActionRunner(this)
         }
 
-//        ScoringModulesConnector(this)
+        ScoringModulesConnector(this)
     }
 }

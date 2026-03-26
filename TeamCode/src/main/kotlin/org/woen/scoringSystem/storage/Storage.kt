@@ -45,8 +45,8 @@ class Storage
         if (_cms.sortingPhase.isActive() ||
             _cms.shootingPhase.isShootingPhase3() ||
             _cms.shootingPhase.isShootingPhase4() ||
-            _cms.lazyIntakeIsActive || !_cms.canTriggerIntake
-            || cells.alreadyFull()) return
+           !_cms.canTriggerIntake ||
+            cells.alreadyFull()) return
 
         val inputBall = cells.hwSortingM.updateColors()
         if (inputBall == Ball.Name.NONE) return
@@ -258,7 +258,10 @@ class Storage
     {
         logM.logMd("Finishing calibration", Debug.LOGIC)
 
+        cells.hwSortingM.hwMotors.stopBelts()
+
         _cms.calibrationPhase.setInactive()
+        _cms.shootingPhase.setInactive()
         if (cells.notFullYet() && _cms.sortingPhase.isInactive())
         {
             _cms.canTriggerIntake = true
@@ -297,12 +300,12 @@ class Storage
         if (_cms.lazyIntakeIsActive) cells.hwSortingM.hwMotors.stopBelts()
         cells.hwSortingM.hwMotors.closeTurretGate()
     }
-    fun sortingPhaseRealignment()
+    fun sortingPhaseRealignment(initialBeltPush: Long = 0)
     {
         logM.logMd("Sorting HW ReAdjustment (Phase 2 or 9)", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         cells.hwSortingM.hwMotors.stopBelts()
-        cells.hwReAdjustStorage()
+        cells.hwReAdjustStorage(initialBeltPush)
     }
     fun sortingPhase3()
     {
@@ -310,7 +313,7 @@ class Storage
         _cms.sortingPhase.switchToNextPhase()
         val timeMs = Delay.MS.REALIGNMENT.SORTING_FORWARD
 
-        if (timeMs <= 0) _cms.sortingPhase.switchToNextPhase()
+        if (timeMs <= 0) sortingPhase4()
         else cells.hwSortingM.reinstantiableForward(timeMs)
     }
     fun sortingPhase4()
@@ -319,7 +322,7 @@ class Storage
         _cms.sortingPhase.switchToNextPhase()
         val timeMs = Delay.MS.REALIGNMENT.SORTING_REVERSE
 
-        if (timeMs <= 0) _cms.sortingPhase.switchToNextPhase()
+        if (timeMs <= 0) sortingPhase5()
         else cells.hwSortingM.reinstantiableReverse(timeMs)
     }
     fun sortingPhase5()

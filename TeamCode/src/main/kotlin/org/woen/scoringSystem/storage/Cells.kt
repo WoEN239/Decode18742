@@ -237,14 +237,14 @@ class Cells
         logM.logMd("finished readjusting", Debug.END)
         return false
     }
-    fun hwReAdjustStorage()
+    fun hwReAdjustStorage(initialBeltPush: Long = 0)
     {
         if (_cms.calibrationPhase.isActive())
             return logM.logMd("-!- Failed to perform storage ReAdjustment", Debug.ERROR)
 
         _cms.canTriggerIntake = false
 
-        var beltPushTime: Long = 0
+        var beltPushTime: Long = initialBeltPush
         while (swReAdjustStorage())
             beltPushTime += Delay.MS.PUSH.FULL
 

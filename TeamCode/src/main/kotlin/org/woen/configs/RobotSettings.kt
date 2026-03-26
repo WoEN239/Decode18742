@@ -57,10 +57,10 @@ object RobotSettings
 
 
         @JvmField
-        var HOLD_FOR_MANUAL_SHOOTING = false
+        var HOLD_FOR_MANUAL_SHOOTING = true
 
         @JvmField
-        var DO_SORTING_TEST_100_ON_TOUCHPAD_1_PRESSED = false
+        var DO_SORTING_TEST_100_ON_TOUCHPAD_1_PRESSED = true
         @JvmField
         var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = false
     }

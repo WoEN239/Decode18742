@@ -1,6 +1,7 @@
 package org.woen.scoringSystem.storage.hardware
 
 
+import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 
 import org.woen.utils.motor.MotorOnly
@@ -68,6 +69,8 @@ class HwMotors
 
         _beltMotor.direction  = Hardware.MOTOR.BELTS_DIRECTION
         _brushMotor.direction = Hardware.MOTOR.BRUSH_DIRECTION
+
+        _brushMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
         _gateServo.start()
         _pushServo.start()
@@ -152,13 +155,13 @@ class HwMotors
 
     fun forwardBrush(onTime: Boolean)
     {
-        _cms.beltsStatus.setForward(onTime)
+        _cms.brushStatus.setForward(onTime)
         _brushMotor.power = _cms.collector.battery.voltageToPower(
             Hardware.MOTOR.BRUSH_FORWARD)
     }
     fun reverseBrush(onTime: Boolean)
     {
-        _cms.beltsStatus.setReverse(onTime)
+        _cms.brushStatus.setReverse(onTime)
         _brushMotor.power = -_cms.collector.battery.voltageToPower(
             Hardware.MOTOR.BRUSH_REVERSE)
     }
