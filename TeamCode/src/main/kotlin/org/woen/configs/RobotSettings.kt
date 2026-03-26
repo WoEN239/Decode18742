@@ -42,7 +42,7 @@ object RobotSettings
         var USE_LAZY_VERSION_OF_STREAM_DRUM = true
 
         @JvmField
-        var USE_AUTO_SHOOTING_WHEN_IN_ZONE = true
+        var USE_AUTO_SHOOTING_WHEN_IN_ZONE = false
         @JvmField
         var DISABLE_AUTO_SHOOTING_IN_END_GAME = true
 

@@ -11,6 +11,7 @@ import org.woen.enumerators.Ball
 import org.woen.utils.debug.Debug
 
 import org.woen.configs.Delay
+import org.woen.configs.Hardware
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
 
@@ -74,13 +75,19 @@ class HwSortingManager
 
 
     fun wasShotFired()
-            =   rotatingBeltsTimer.milliseconds() - timeSinceLastShotUpdateMs >
-            Delay.MS.SHOOTING.CONSIDER_SHOT_FIRED
+            = rotatingBeltsTimer.milliseconds() - timeSinceLastShotUpdateMs >
+                if (_cms.shootingPhase.shotBeltsVoltage
+                    == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
+                     Delay.MS.SHOOTING.FAST_CONSIDER_SHOT_FIRED
+                else Delay.MS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED
     fun isReadyForShootingPhase3()
         =   _cms.beltsStatus.isForwardOnTime() &&
             _cms.launchStatus.isClosingOrClosed() &&
             rotatingBeltsTimer.milliseconds() >
-            targetPushTime - Delay.MS.SHOOTING.FIRE_LAST_WITH_LAUNCHER
+            targetPushTime - if (_cms.shootingPhase.shotBeltsVoltage
+                == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
+                     Delay.MS.SHOOTING.FAST_LAST_WITH_LAUNCHER
+                else Delay.MS.SHOOTING.SLOW_LAST_WITH_LAUNCHER
     fun streamDrumPhase3()
     {
         hwMotors.logM.logMd("StreamDrum phase 3, opening launch", Debug.LOGIC)

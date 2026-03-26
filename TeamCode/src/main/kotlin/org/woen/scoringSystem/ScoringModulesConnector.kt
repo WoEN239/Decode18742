@@ -527,7 +527,7 @@ class ScoringModulesConnector
             _cms.calibrationPhase.isInactive()
     fun autoShootCustomisablePattern(isAuto: Boolean): RequestResult
     {
-        _cms.shootingPhase.shotBeltsVoltage = Hardware.MOTOR.BELTS_FOR_SORT_SHOOTING
+        _cms.shootingPhase.shotBeltsVoltage = Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING
 
         return if (isAuto)
         {

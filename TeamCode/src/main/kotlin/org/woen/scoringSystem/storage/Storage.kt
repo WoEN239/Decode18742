@@ -161,23 +161,30 @@ class Storage
         shootAfterSorting: Boolean = true
     ): RequestResult
     {
-        val req1 = cells.predictSortSearch(requested, onlyInSequence).maxSequenceScore
+        val req1 = cells.predictSortSearch(requested, onlyInSequence)
         val req2 = cells.predictSortSearch(
-            failsafe, onlyInSequence).maxSequenceScore
+            failsafe, onlyInSequence)
+
+        val pickDefault = req1.maxSequenceScore > req2.maxSequenceScore
 
         return initiateSorting(
-                if (req1 > req2) requested
+                if (pickDefault) requested
                 else failsafe,
             onlyInSequence,
-            shootAfterSorting)
+            shootAfterSorting,
+                if (pickDefault) req1
+                else req2)
     }
     private fun initiateSorting(
         requested: Array<BallRequest>,
         onlyInSequence: Boolean,
-        shootAfterSorting: Boolean = true
+        shootAfterSorting: Boolean = true,
+        predictSortResult: PredictSortResult? = null
     ): RequestResult
     {
-        val targetSorting = cells.predictSortSearch(requested, onlyInSequence)
+        val targetSorting = predictSortResult ?:
+            cells.predictSortSearch(requested, onlyInSequence)
+
         if (targetSorting.totalMatches == 0)
         {
             _cms.sortingPhase.setInactive()
@@ -231,13 +238,22 @@ class Storage
 
         logM.logMd("StreamDrum phase 2, shot count: $shotCount", Debug.LOGIC)
 
-        val beltPushTime = when (shotCount)
-        {
-            3    -> Delay.MS.SHOOTING.FIRE_3
-            2    -> Delay.MS.SHOOTING.FIRE_2
-            1    -> Delay.MS.SHOOTING.FIRE_1
-            else -> Delay.MS.SHOOTING.FIRE_LAST_WITH_LAUNCHER
-        }
+        val beltPushTime = if (_cms.shootingPhase.shotBeltsVoltage
+            == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
+                when(shotCount)
+                {
+                    3    -> Delay.MS.SHOOTING.FAST_3
+                    2    -> Delay.MS.SHOOTING.FAST_2
+                    1    -> Delay.MS.SHOOTING.FAST_1
+                    else -> Delay.MS.SHOOTING.FAST_LAST_WITH_LAUNCHER
+                }
+                else when(shotCount)
+                {
+                    3    -> Delay.MS.SHOOTING.SLOW_3
+                    2    -> Delay.MS.SHOOTING.SLOW_2
+                    1    -> Delay.MS.SHOOTING.SLOW_1
+                    else -> Delay.MS.SHOOTING.SLOW_LAST_WITH_LAUNCHER
+                }
 
         logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
 

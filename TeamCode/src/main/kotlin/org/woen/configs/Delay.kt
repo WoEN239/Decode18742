@@ -25,23 +25,40 @@ object Delay
         internal object SHOOTING
         {
             @JvmField
-            var FIRE_3: Long = 444
+            var FAST_3: Long = 333
 
             @JvmField
-            var FIRE_2: Long = 300
+            var FAST_2: Long = 250
 
             @JvmField
-            var FIRE_1: Long = 190
+            var FAST_1: Long = 125
 
             @JvmField
-            var FIRE_LAST_WITH_LAUNCHER: Long = 100
+            var FAST_LAST_WITH_LAUNCHER: Long = 100
+
+
+
+            @JvmField
+            var SLOW_3: Long = 510
+
+            @JvmField
+            var SLOW_2: Long = 400
+
+            @JvmField
+            var SLOW_1: Long = 200
+
+            @JvmField
+            var SLOW_LAST_WITH_LAUNCHER: Long = 150
 
 
             @JvmField
-            var BEFORE_AUTOSHOT: Long = 40
+            var BEFORE_AUTOSHOT: Long = 80
+
 
             @JvmField
-            var CONSIDER_SHOT_FIRED: Long = 140
+            var FAST_CONSIDER_SHOT_FIRED: Long = 110
+            @JvmField
+            var SLOW_CONSIDER_SHOT_FIRED: Long = 165
         }
 
 
