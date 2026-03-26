@@ -50,8 +50,7 @@ class Collector {
         attachGamepad(this)
         attachOdometry(this)
         attachDriveTrain(this)
-//        attachTurret(this)
-//        attachSimpleStorage(this)
+        attachTurret(this)
         attachLimelight(this)
 
         if(runMode == RunMode.AUTO){
@@ -59,6 +58,7 @@ class Collector {
             attachActionRunner(this)
         }
 
+//        attachSimpleStorage(this)
         ScoringModulesConnector(this)
     }
 }

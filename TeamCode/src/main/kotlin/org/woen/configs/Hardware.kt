@@ -105,7 +105,7 @@ object Hardware
         @JvmField
         var TURRET_GATE_OPEN = 0.72
         @JvmField
-        var TURRET_GATE_CLOSE = 0.45
+        var TURRET_GATE_CLOSE = 0.43
     }
 
     @Config

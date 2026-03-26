@@ -42,7 +42,7 @@ object RobotSettings
         var USE_LAZY_VERSION_OF_STREAM_DRUM = true
 
         @JvmField
-        var USE_AUTO_SHOOTING_WHEN_IN_ZONE = false
+        var USE_AUTO_SHOOTING_WHEN_IN_ZONE = true
         @JvmField
         var DISABLE_AUTO_SHOOTING_IN_END_GAME = true
 
@@ -57,12 +57,17 @@ object RobotSettings
 
 
         @JvmField
-        var HOLD_FOR_MANUAL_SHOOTING = true
+        var HOLD_FOR_MANUAL_SHOOTING = false
+
 
         @JvmField
-        var DO_SORTING_TEST_100_ON_TOUCHPAD_1_PRESSED = true
+        var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = true
+
         @JvmField
-        var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = false
+        var ENABLE_GAMEPAD_CONTROLLED_COLOR_INTAKE = true
+
+        @JvmField
+        var DO_SORTING_TEST_100_ON_TOUCHPAD_1_PRESSED = false
     }
 
 

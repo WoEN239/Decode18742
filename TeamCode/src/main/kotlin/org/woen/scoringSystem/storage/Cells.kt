@@ -155,7 +155,8 @@ class Cells
             return PredictSortResult(0,
                 0.0, 0)
 
-        logM.logMd("Start predict sort search", Debug.START)
+        val patternString = requested.joinToString(", ")
+        logM.logMd("Start predict sort search, PATTERN: $patternString", Debug.START)
         return predictSortSearchLogic(
             requested, trimmedRequestSize, onlyInSequence)
     }
@@ -205,6 +206,8 @@ class Cells
         _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
         _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
         _storageCells[StorageSlot.MOBILE].empty()
+
+        logM.logMd("Considering shot fired, ballCount after update: ${anyBallCount()}", Debug.STATUS)
     }
 
 
@@ -265,7 +268,7 @@ class Cells
                 "\n[:  BALL COUNT: ${anyBallCount()}" +
                 "                             |---   ---|              :]" +
                 "\n===============================================         =================\n ",
-            Debug.GENERIC)
+            Debug.STATUS)
     }
 
     fun anyBallCount(): Int

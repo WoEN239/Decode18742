@@ -84,8 +84,8 @@ class Storage
 
         val  standardPatternOrder = if (!autoCorrectPattern) requestOrder
         else DynamicPattern.trimPattern(
-             _cms.dynamicMemoryPattern.lastUnfinished(),
-             requestOrder)
+                requestOrder,
+                _cms.dynamicMemoryPattern.offset())
 
         return when (shootingMode)
         {
@@ -95,8 +95,8 @@ class Storage
 
             Shooting.Mode.FIRE_PATTERN_CAN_SKIP
                 -> initiateSorting(
-                standardPatternOrder,
-                false,
+                    standardPatternOrder,
+                    false,
                     shootAfterSorting)
 
             Shooting.Mode.FIRE_UNTIL_PATTERN_IS_BROKEN
@@ -122,14 +122,12 @@ class Storage
                 shootingMode, requestOrder, autoCorrectRequestPattern)
 
         val  standardPatternOrder = if (!autoCorrectRequestPattern) requestOrder
-        else DynamicPattern.trimPattern(
-            _cms.dynamicMemoryPattern.lastUnfinished(),
-            requestOrder)
+        else DynamicPattern.trimPattern(requestOrder,
+                _cms.dynamicMemoryPattern.offset())
 
         val  failsafePatternOrder = if (!autoCorrectFailsafePattern) requestOrder
-        else DynamicPattern.trimPattern(
-            _cms.dynamicMemoryPattern.lastUnfinished(),
-            requestOrder)
+        else DynamicPattern.trimPattern(requestOrder,
+                _cms.dynamicMemoryPattern.offset())
 
 
         return when (shootingMode)
@@ -180,9 +178,19 @@ class Storage
     ): RequestResult
     {
         val targetSorting = cells.predictSortSearch(requested, onlyInSequence)
-        if (targetSorting.totalMatches == 0) return RequestResult.FAIL_COLORS_NOT_PRESENT
+        if (targetSorting.totalMatches == 0)
+        {
+            _cms.sortingPhase.setInactive()
+            return RequestResult.FAIL_COLORS_NOT_PRESENT
+        }
 
         if (shootAfterSorting) _cms.shootingPhase.startPhase0()
+
+        if (targetSorting.totalRotations == 0)
+        {
+            _cms.sortingPhase.setInactive()
+            return RequestResult.SORTING_IGNORED_PATTERN_ALREADY_ALIGNED
+        }
 
         sortingPhase1(targetSorting.totalRotations)
         return RequestResult.ROGER_STARTING_SORTING
@@ -194,8 +202,7 @@ class Storage
         laterGamepadHold: Boolean = false,
         ballCount: Int = 0): RequestResult
     {
-        if (_cms.sortingPhase.isActive() ||
-            _cms.shootingPhase.isShootingPhase0())
+        if (_cms.shootingPhase.isShootingPhase0())
             return RequestResult.FAIL_AWAITING_SORTING
         if (_cms.shootingPhase.isActive())
             return RequestResult.FAIL_IGNORE_DUPLICATE_COMMAND

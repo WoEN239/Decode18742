@@ -29,7 +29,8 @@ import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-
+import org.woen.enumerators.Ball
+import org.woen.scoringSystem.misc.DynamicPattern
 
 
 data class IsEndGameEvent(var isEndGame: Boolean = false)
@@ -92,7 +93,12 @@ class ScoringModulesConnector
         _cms.collector.eventBus.subscribe(OnPatternDetectedEvent::class)
         {
             if (_cms.awaitingPatternFromCamera)
+            {
+                val patternString = it.pattern.joinToString(", ")
+
+                logM.logMd("(CAMERA) Storage received pattern: $patternString", Debug.STATUS)
                 _cms.dynamicMemoryPattern.setPermanent(it.pattern)
+            }
         }
     }
     private fun subscribeToIsEndGameEvent()
@@ -117,6 +123,29 @@ class ScoringModulesConnector
                                 logM.logMd(_storage.streamDrumPhase1()
                                     .toString(), Debug.START)
                             else logStartingError("ManualShooting")
+                        }
+            )   )   )
+
+            _cms.collector.eventBus.invoke(
+                AddGamepad1ListenerEvent(
+                    ClickGamepadListener(
+                        buttonSuppler = { it.left_bumper },
+                        activationState = true,
+                        onTriggered = {
+                            if (_cms.shootingPhase.isInactive()
+                                && canStartManualShooting())
+                            {
+                                val requestResult = autoShootCustomisablePattern(false)
+                                val resultString  =
+                                    if (requestResult == RequestResult.ROGER_STARTING_SORTING)
+                                        requestResult.toString() +
+                                        ", rotations: " +
+                                        _cms.sortingPhase.remainingRotations
+                                    else requestResult.toString()
+
+                                logM.logMd(resultString, Debug.START)
+                            }
+                            else logStartingError("Manual-Pattern-Shooting")
                         }
             )   )   )
         }
@@ -176,7 +205,8 @@ class ScoringModulesConnector
                             {
                                 logM.logMd("Started LazyIntake", Debug.START)
                                 _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
-                                _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+                                if (_cms.brushStatus.isIdle())
+                                    _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
                             }
 
                             _cms.lazyIntakeIsActive = !_cms.lazyIntakeIsActive
@@ -184,6 +214,35 @@ class ScoringModulesConnector
                         else logStartingError("LazyIntake")
                     }
         )   )   )
+
+
+
+        if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_COLOR_INTAKE)
+        {
+            _cms.collector.eventBus.invoke(
+                AddGamepad1ListenerEvent(
+                    ClickGamepadListener(
+                        { it.square },
+                        {
+                            logM.logMd("Gamepad - GREEN intake", Debug.GAMEPAD)
+                            _storage.cells.hwSortingM.startBrushTime(
+                                forward = true, Delay.MS.BRUSH_FORWARD)
+                            _storage.cells.handleIntake(Ball.Name.GREEN)
+                        }
+            )   )   )
+            _cms.collector.eventBus.invoke(
+                AddGamepad1ListenerEvent(
+                    ClickGamepadListener(
+                        { it.circle },
+                        {
+                            logM.logMd("Gamepad - PURPLE intake", Debug.GAMEPAD)
+                            _storage.cells.hwSortingM.startBrushTime(
+                                forward = true, Delay.MS.BRUSH_FORWARD)
+                            _storage.cells.handleIntake(Ball.Name.PURPLE)
+                        }
+            )   )   )
+        }
+
 
 
         if (CONTROLS.DO_SORTING_TEST_100_ON_TOUCHPAD_1_PRESSED)
@@ -211,7 +270,8 @@ class ScoringModulesConnector
                     ClickGamepadListener(
                         { it.ps },
                         {
-                            _cms.dynamicMemoryPattern.resetTemporary()
+                            logM.logMd("(GP2) Reset temporary pattern", Debug.STATUS)
+                            _cms.dynamicMemoryPattern.resetOffset()
                             _cms.collector.opMode.gamepad2.rumble(100)
                         }
             )   )   )
@@ -220,7 +280,15 @@ class ScoringModulesConnector
                     ClickGamepadListener(
                         { it.left_bumper },
                         {
-                            _cms.dynamicMemoryPattern.addToTemporary()
+                            _cms.dynamicMemoryPattern.addToOffset()
+                            logM.logMd("(GP2) + Added 1 to temporary, curCount: " +
+                                "${_cms.dynamicMemoryPattern.offset()}", Debug.STATUS)
+
+                            val pattern = DynamicPattern.trimPattern(
+                                _cms.dynamicMemoryPattern.permanent(),
+                                _cms.dynamicMemoryPattern.offset())
+                                .joinToString(", ")
+                            logM.logMd("CurAutoPattern: $pattern", Debug.STATUS)
                         }
             )   )   )
             _cms.collector.eventBus.invoke(
@@ -228,7 +296,15 @@ class ScoringModulesConnector
                     ClickGamepadListener(
                         { it.right_bumper },
                         {
-                            _cms.dynamicMemoryPattern.removeFromTemporary()
+                            _cms.dynamicMemoryPattern.removeFromOffset()
+                            logM.logMd("(GP2) - Removed 1 from temporary, curCount: " +
+                                "${_cms.dynamicMemoryPattern.offset()}", Debug.STATUS)
+
+                            val pattern = DynamicPattern.trimPattern(
+                                _cms.dynamicMemoryPattern.permanent(),
+                                _cms.dynamicMemoryPattern.offset())
+                                .joinToString(", ")
+                            logM.logMd("CurAutoPattern: $pattern", Debug.STATUS)
                         }
             )   )   )
 
@@ -238,6 +314,7 @@ class ScoringModulesConnector
                     ClickGamepadListener(
                         { it.dpad_left },
                         {
+                            logM.logMd("(GP2) Set PERMANENT: GPP", Debug.STATUS)
                             _cms.dynamicMemoryPattern.setPermanent(
                                 StockPattern.Request.GPP)
                             _cms.awaitingPatternFromCamera = false
@@ -248,6 +325,7 @@ class ScoringModulesConnector
                     ClickGamepadListener(
                         { it.dpad_up },
                         {
+                            logM.logMd("(GP2) Set PERMANENT: PGP", Debug.STATUS)
                             _cms.dynamicMemoryPattern.setPermanent(
                                 StockPattern.Request.PGP)
                             _cms.awaitingPatternFromCamera = false
@@ -258,6 +336,7 @@ class ScoringModulesConnector
                     ClickGamepadListener(
                         { it.dpad_right },
                         {
+                            logM.logMd("(GP2) Set PERMANENT: PPG", Debug.STATUS)
                             _cms.dynamicMemoryPattern.setPermanent(
                                 StockPattern.Request.PPG)
                             _cms.awaitingPatternFromCamera = false
@@ -294,15 +373,30 @@ class ScoringModulesConnector
                         && isEndGame)) logM.logMd(
                         _storage.streamDrumPhase1()
                             .toString(), Debug.START)
-                    else logM.logMd(
-                        autoShootCustomisablePattern(
-                        _cms.collector.runMode == RunMode.AUTO)
-                            .toString(), Debug.START)
+                    else
+                    {
+                        val requestResult = autoShootCustomisablePattern(
+                            _cms.collector.runMode == RunMode.AUTO)
+                        val resultString  =
+                            if (requestResult == RequestResult.ROGER_STARTING_SORTING)
+                                requestResult.toString() +
+                                ", rotations: " +
+                                _cms.sortingPhase.remainingRotations
+                            else requestResult.toString()
+
+                        logM.logMd(resultString, Debug.START)
+                    }
                 }
 
             ShootingPhase.Name.P0_AWAITING_SORTING ->
-                if (canStartAutoShooting())
-                    _cms.shootingPhase.switchToNextPhase()
+//                if (canStartAutoShooting())
+                if (canStartManualShooting())
+                {
+                    _cms.shootingPhase.setInactive()
+                    logM.logMd(
+                        _storage.streamDrumPhase1()
+                            .toString(), Debug.START)
+                }
 
             ShootingPhase.Name.P1_OPENING_TURRET_GATE,
             ShootingPhase.Name.P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD ->
@@ -325,11 +419,16 @@ class ScoringModulesConnector
             }
 
             ShootingPhase.Name.P3_OPENING_LAUNCHER ->
+            {
+                if (_storage.cells.hwSortingM.wasShotFired())
+                    _storage.cells.updateAfterShot()
+
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
                 {
                     _storage.cells.hwSortingM.hwMotors.stopBelts()
                     _cms.shootingPhase.startPhase4()
                 }
+            }
 
             ShootingPhase.Name.P4_CALIBRATING ->
                 if (canStartCalibrationAfterShooting())
@@ -386,8 +485,16 @@ class ScoringModulesConnector
                     else
                     {
                         _cms.sortingPhase.setInactive()
-                        if (canStartAutoShooting())
-                            _cms.shootingPhase.switchToNextPhase()
+
+//                        if (canStartAutoShooting())
+                        if (canStartManualShooting())
+                        {
+                            _cms.shootingPhase.setInactive()
+                            logM.logMd(
+                                _storage.streamDrumPhase1()
+                                    .toString(), Debug.START)
+                        }
+                        else _cms.shootingPhase.setInactive()
                     }
                 }
 
