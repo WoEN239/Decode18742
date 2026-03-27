@@ -58,7 +58,7 @@ internal object SIMPLE_STORAGE_CONFIG {
     var FULL_R = 2.6
 
     @JvmField
-    var TWO_R = 3.7
+    var TWO_R = 3.8
 
     @JvmField
     var ONE_R = 7.0
