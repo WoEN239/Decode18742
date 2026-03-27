@@ -37,7 +37,7 @@ internal object SIMPLE_STORAGE_CONFIG {
     var GATE_OPEN = 0.83
 
     @JvmField
-    var SORTING_PUSH_TIME = 0.4
+    var SORTING_PUSH_TIME = 0.2
 
     @JvmField
     var SORTING_REVERSE_TIME = 0.1
@@ -152,6 +152,7 @@ fun attachSimpleStorage(collector: Collector) {
     var ballInStorage = 0
     val rFilter = ExponentialFilter(SIMPLE_STORAGE_CONFIG.R_FILTER_K)
     var beltR = 10.0
+    var sortingShoot = false
 
     fun switchState(state: StorageState) {
         currentState = state
@@ -257,7 +258,7 @@ fun attachSimpleStorage(collector: Collector) {
     }
 
     collector.eventBus.subscribe(StartEatEvent::class) {
-        if (currentState == StorageState.STOP)
+        if (currentState == StorageState.STOP || currentState == StorageState.STOP_SHOOTING)
             switchState(StorageState.EATING)
     }
 
@@ -305,6 +306,7 @@ fun attachSimpleStorage(collector: Collector) {
         if (currentState == StorageState.STOP || currentState == StorageState.EATING) {
             requiredSwaps = 1
             switchState(StorageState.SORTING)
+            sortingShoot = true
         }
     })))
 
@@ -368,14 +370,14 @@ fun attachSimpleStorage(collector: Collector) {
                 if (launchRevers)
                     beltMotor.power = -1.0
                 else {
-                    if (collector.eventBus.invoke(GetRobotOdometry()).orientation.x > 0.5)
+                    if (collector.eventBus.invoke(GetRobotOdometry()).orientation.x > 0.5 || sortingShoot)
                         beltMotor.power =
                             battery.voltageToPower(SIMPLE_STORAGE_CONFIG.FAR_SHOOT_POWER)
                     else
                         beltMotor.power = 1.0
                 }
 
-                if (stateTimer.seconds() > (if (collector.eventBus.invoke(GetRobotOdometry()).orientation.x > 0.5) 1.2 else 0.9) && !launchRevers) {
+                if (stateTimer.seconds() > (if (collector.eventBus.invoke(GetRobotOdometry()).orientation.x > 0.5 || sortingShoot) 1.2 else 0.9) && !launchRevers) {
                     launchServo.targetPosition = SIMPLE_STORAGE_CONFIG.LAUNCH_SERVO_OPEN
 
                     if (launchServo.atTarget) {
@@ -410,8 +412,10 @@ fun attachSimpleStorage(collector: Collector) {
             }
 
             StorageState.STOP_SHOOTING -> {
-                if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SHOOTING_REVERSE_TIME)
+                if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SHOOTING_REVERSE_TIME) {
                     switchState(StorageState.STOP)
+                    sortingShoot = false
+                }
             }
 
             StorageState.SORTING -> {
@@ -435,16 +439,18 @@ fun attachSimpleStorage(collector: Collector) {
                             sortingState = SortingState.WAIT_PUSH
 
                             pushServo.targetPosition = SIMPLE_STORAGE_CONFIG.PUSH_CLOSE
+
+                            sortingTimer.reset()
                         }
                     }
 
                     SortingState.WAIT_PUSH -> {
+                        if (requiredSwaps == 1 && sortingTimer.seconds() > 0.05)
+                            gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
+
                         if (pushServo.atTarget) {
                             beltMotor.power =
                                 battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_BELT_POWER)
-
-                            if (requiredSwaps == 0)
-                                gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
                         } else
                             beltMotor.power =
                                 battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SORTING_SLOW_BELTS_POWER)
