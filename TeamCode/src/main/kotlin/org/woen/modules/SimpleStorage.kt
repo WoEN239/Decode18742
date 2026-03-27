@@ -277,7 +277,7 @@ fun attachSimpleStorage(collector: Collector) {
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
         switchState(StorageState.SHOOTING)
         ballInStorage = 0
-        collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
+        collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
     })))
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
@@ -289,7 +289,7 @@ fun attachSimpleStorage(collector: Collector) {
         if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_SHOOTING) {
             switchState(StorageState.LAUNCH_SHOOT)
             ballInStorage = 0
-            collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
+            collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
         }
     }
 
@@ -297,7 +297,7 @@ fun attachSimpleStorage(collector: Collector) {
         if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_SHOOTING) {
             switchState(StorageState.SLOW_SHUTTING)
             ballInStorage = 0
-            collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
+            collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
         }
     }
 
@@ -343,19 +343,19 @@ fun attachSimpleStorage(collector: Collector) {
 
                     collector.opMode.gamepad1.rumble(200)
 
-                    collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
+                    collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
                 }
             } else if (beltR < SIMPLE_STORAGE_CONFIG.TWO_R) {
                 if (ballInStorage <= 1) {
                     ballInStorage = 2
 
-                    collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
+                    collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
                 }
             } else if (beltR < SIMPLE_STORAGE_CONFIG.ONE_R) {
                 if (ballInStorage == 0) {
                     ballInStorage = 1
 
-                    collector.eventBus.invoke(NewBallArrivedEvent(ballInStorage))
+                    collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
                 }
             }
         }

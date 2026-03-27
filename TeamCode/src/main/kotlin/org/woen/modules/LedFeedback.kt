@@ -3,7 +3,7 @@ package org.woen.modules
 import org.woen.collector.Collector
 import org.woen.utils.drivers.LEDLine
 
-class NewBallArrivedEvent(var ballsCount: Int)
+class BallCountUpdateEvent(var ballsCount: Int)
 
 fun attachLedFeedback(collector: Collector) {
     val ledLeftR = LEDLine("leftR", collector.hardwareMap)
@@ -23,10 +23,10 @@ fun attachLedFeedback(collector: Collector) {
     ledRightB.power = 0.0
 
     collector.startEvent += {
-        collector.eventBus.invoke(NewBallArrivedEvent(0))
+        collector.eventBus.invoke(BallCountUpdateEvent(0))
     }
 
-    collector.eventBus.subscribe(NewBallArrivedEvent::class){
+    collector.eventBus.subscribe(BallCountUpdateEvent::class){
         when(it.ballsCount) {
             0 -> {
                 ledLeftR.power = 1.0
