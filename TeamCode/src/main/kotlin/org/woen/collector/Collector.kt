@@ -59,8 +59,8 @@ class Collector {
             attachActionRunner(this)
         }
 
-        attachSimpleStorage(this)
         attachLedFeedback(this)
+        attachSimpleStorage(this)
 //        ScoringModulesConnector(this)
     }
 }

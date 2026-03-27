@@ -167,21 +167,6 @@ class Cells
 
 
 
-    fun lazySet(inputFromTurretSlotToBottom: Array<Ball.Name>)
-    {
-        if (inputFromTurretSlotToBottom.size > MAX_BALL_COUNT) return
-
-        var    curSlot  = StorageSlot.BOTTOM
-        while (curSlot <= StorageSlot.TURRET)
-        {
-            _storageCells[ROBOT.INTAKE_INPUT_ORDER[curSlot]].set(
-                inputFromTurretSlotToBottom[curSlot])
-            curSlot++
-        }
-
-        updateBallCountForLEDLINE()
-        logAllStorageData()
-    }
     fun handleIntake(inputBall: Ball.Name)
     {
         logM.logMd("Color sensors triggered intake: $inputBall", Debug.START)

@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 
 
 
-object Hardware
+internal object Hardware
 {
     @Config
     internal object SENSORS

@@ -5,7 +5,7 @@ import com.acmerobotics.dashboard.config.Config
 
 
 @Config
-object Debug
+internal object Debug
 {
     @JvmField
     var SHOW_DEBUG_LEVEL = true

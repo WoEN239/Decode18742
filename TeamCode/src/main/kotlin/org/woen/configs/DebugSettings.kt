@@ -6,7 +6,7 @@ import org.woen.utils.debug.LogManager
 
 
 
-object DebugSettings
+internal object DebugSettings
 {
     var SMC = LogManager.Config(moduleName = "SMC")  //  Scoring Module Connector
 

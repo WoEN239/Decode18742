@@ -126,28 +126,7 @@ class ScoringModulesConnector
                         }
             )   )   )
 
-            _cms.collector.eventBus.invoke(
-                AddGamepad1ListenerEvent(
-                    ClickGamepadListener(
-                        buttonSuppler = { it.left_bumper },
-                        activationState = true,
-                        onTriggered = {
-                            if (_cms.shootingPhase.isInactive()
-                                && canStartManualShooting())
-                            {
-                                val requestResult = autoShootCustomisablePattern(false)
-                                val resultString  =
-                                    if (requestResult == RequestResult.ROGER_STARTING_SORTING)
-                                        requestResult.toString() +
-                                        ", rotations: " +
-                                        _cms.sortingPhase.remainingRotations
-                                    else requestResult.toString()
-
-                                logM.logMd(resultString, Debug.START)
-                            }
-                            else logStartingError("Manual-Pattern-Shooting")
-                        }
-            )   )   )
+            logM.logMd("Init settings: USE PRESSING for regular shooting", Debug.GAMEPAD)
         }
         else
         {
@@ -181,40 +160,76 @@ class ScoringModulesConnector
                                 else _cms.shootingPhase.startPhase4()
                         }   }
             )   )   )
+
+            logM.logMd("Init settings: USE HOLDING for regular shooting", Debug.GAMEPAD)
         }
+
+
+
+        if (CONTROLS.ENABLE_GAMEPAD_CUSTOMISABLE_SHOOTING)
+        {
+            _cms.collector.eventBus.invoke(
+                AddGamepad1ListenerEvent(
+                    ClickGamepadListener(
+                        buttonSuppler = { it.right_trigger > 0.5 },
+                        activationState = true,
+                        onTriggered = {
+                            if (_cms.shootingPhase.isInactive()
+                                && canStartManualShooting())
+                            {
+                                val requestResult = autoShootCustomisablePattern(false)
+                                val resultString  =
+                                    if (requestResult == RequestResult.ROGER_STARTING_SORTING)
+                                        requestResult.toString() +
+                                                ", rotations: " +
+                                                _cms.sortingPhase.remainingRotations
+                                    else requestResult.toString()
+
+                                logM.logMd(resultString, Debug.START)
+                            }
+                            else logStartingError("Manual Customisable shooting")
+                        }
+            )   )   )
+        }
+        else logM.logMd("Init settings: DISABLE Manual Customisable shooting", Debug.GAMEPAD)
     }
     private fun subscribeToDriverMiscellaneousGamepad1()
     {
-        _cms.collector.eventBus.invoke(
-            AddGamepad1ListenerEvent(
-                ClickGamepadListener(
-                    { it.right_trigger > 0.5 },
-                    {
-                        if (_cms.sortingPhase.isInactive() &&
-                            _cms.shootingPhase.isInactive() &&
-                            _cms.calibrationPhase.isInactive())
+        if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_LAZY_INTAKE)
+        {
+            _cms.collector.eventBus.invoke(
+                AddGamepad1ListenerEvent(
+                    ClickGamepadListener(
+                        { it.left_bumper },
                         {
-                            if (_cms.lazyIntakeIsActive)
+                            if (_cms.sortingPhase.isInactive() &&
+                                _cms.shootingPhase.isInactive() &&
+                                _cms.calibrationPhase.isInactive())
                             {
-                                logM.logMd("Stopped LazyIntake, reversing brush time", Debug.END)
-                                _storage.cells.hwSortingM.hwMotors.stopBelts()
-                                _storage.cells.hwSortingM.startBrushTime(
-                                    forward = false, Delay.MS.BRUSH_REVERSE)
-                            }
-                            else
-                            {
-                                logM.logMd("Started LazyIntake", Debug.START)
-                                _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
-                                if (_cms.brushStatus.isIdle())
-                                    _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
-                            }
+                                if (_cms.lazyIntakeIsActive)
+                                {
+                                    logM.logMd("Stopped LazyIntake, reversing brush time", Debug.END)
+                                    _storage.cells.hwSortingM.hwMotors.stopBelts()
+                                    _storage.cells.hwSortingM.startBrushTime(
+                                        forward = false, Delay.MS.BRUSH_REVERSE)
+                                }
+                                else
+                                {
+                                    logM.logMd("Started LazyIntake", Debug.START)
+                                    _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+                                    if (_cms.brushStatus.isIdle())
+                                        _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+                                }
 
-                            _cms.lazyIntakeIsActive = !_cms.lazyIntakeIsActive
+                                _cms.lazyIntakeIsActive = !_cms.lazyIntakeIsActive
+                            }
+                            else logStartingError("LazyIntake")
                         }
-                        else logStartingError("LazyIntake")
-                    }
-        )   )   )
+            )   )   )
 
+            logM.logMd("Init settings: ENABLE Manual LazyIntake", Debug.GAMEPAD)
+        }
+        else logM.logMd("Init settings: DISABLE LazyIntake", Debug.GAMEPAD)
 
 
         if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_COLOR_INTAKE)
@@ -241,25 +256,32 @@ class ScoringModulesConnector
                             _storage.cells.handleIntake(Ball.Name.PURPLE)
                         }
             )   )   )
+
+            logM.logMd("Init settings: ENABLE Manual color sensors imitation", Debug.GAMEPAD)
         }
+        else logM.logMd("Init settings: DISABLE Manual color sensors imitation", Debug.GAMEPAD)
 
 
-
-        if (CONTROLS.DO_SORTING_TEST_100_ON_TOUCHPAD_1_PRESSED)
+        if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_SORTING_SWAPS)
         {
             _cms.collector.eventBus.invoke(
                 AddGamepad1ListenerEvent(
                     ClickGamepadListener(
-                        { it.touchpadWasPressed() },
+                        { it.triangle },
                         {
                             if (_cms.shootingPhase.isInactive() &&
                                 _cms.sortingPhase.isInactive() &&
                                 _cms.calibrationPhase.isInactive())
-                                _storage.unsafeSortingTest100()
-                            else logStartingError("SortingTest100")
+                                _storage.sortingPhase1(
+                                    CONTROLS.SWAPS_COUNT_ON_TOUCHPAD_PRESSED)
+                            else logStartingError("ManualSortingSwap " +
+                                    "(${CONTROLS.SWAPS_COUNT_ON_TOUCHPAD_PRESSED})")
                         }
             )   )   )
+
+            logM.logMd("Init settings: ENABLE Manual Sorting swaps", Debug.GAMEPAD)
         }
+        else logM.logMd("Init settings: DISABLE Manual sorting swaps", Debug.GAMEPAD)
     }
     private fun subscribeToHelperGamepad2PatternRecalibration()
     {
@@ -278,7 +300,7 @@ class ScoringModulesConnector
             _cms.collector.eventBus.invoke(
                 AddGamepad2ListenerEvent(
                     ClickGamepadListener(
-                        { it.left_bumper },
+                        { it.right_bumper },
                         {
                             _cms.dynamicMemoryPattern.addToOffset()
                             logM.logMd("(GP2) + Added 1 to temporary, curCount: " +
@@ -294,7 +316,7 @@ class ScoringModulesConnector
             _cms.collector.eventBus.invoke(
                 AddGamepad2ListenerEvent(
                     ClickGamepadListener(
-                        { it.right_bumper },
+                        { it.left_bumper },
                         {
                             _cms.dynamicMemoryPattern.removeFromOffset()
                             logM.logMd("(GP2) - Removed 1 from temporary, curCount: " +
@@ -343,7 +365,7 @@ class ScoringModulesConnector
                         }
             )   )   )
 
-            logM.logMd("Init settings: USE SECOND DRIVER", Debug.GAMEPAD)
+            logM.logMd("Init settings: USE Second driver", Debug.GAMEPAD)
         }
         else logM.logMd("Init settings: DON'T use second driver", Debug.GAMEPAD)
     }

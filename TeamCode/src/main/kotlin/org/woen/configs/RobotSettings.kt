@@ -9,7 +9,7 @@ import org.woen.enumerators.StockPattern
 
 
 
-object RobotSettings
+internal object RobotSettings
 {
     @Config
     internal object ROBOT
@@ -63,15 +63,23 @@ object RobotSettings
         @JvmField
         var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = true
 
+
+        @JvmField
+        var ENABLE_GAMEPAD_CONTROLLED_LAZY_INTAKE = true
         @JvmField
         var ENABLE_GAMEPAD_CONTROLLED_COLOR_INTAKE = true
 
         @JvmField
-        var DO_SORTING_TEST_100_ON_TOUCHPAD_1_PRESSED = false
+        var ENABLE_GAMEPAD_CUSTOMISABLE_SHOOTING = false
+
+        @JvmField
+        var ENABLE_GAMEPAD_CONTROLLED_SORTING_SWAPS = true
+
+        @JvmField
+        var SWAPS_COUNT_ON_TOUCHPAD_PRESSED = 1
     }
 
 
-    @Config
     internal object SORTING
     {
         @Config

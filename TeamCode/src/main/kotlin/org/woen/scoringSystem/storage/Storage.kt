@@ -297,23 +297,6 @@ class Storage
 
 
 
-    fun unsafeSortingTest100()
-    {
-        logM.logMd("Starting unsafe test sorting 100", Debug.START)
-        logM.logMd("Changing sw storage to Stock.GPP", Debug.LOGIC)
-
-        val fill = arrayOf(Ball.Name.GREEN, Ball.Name.PURPLE, Ball.Name.PURPLE)
-        cells.lazySet(fill)
-
-        cells.logAllStorageData()
-
-        if (_cms.sortingPhase.isActive())
-            return logM.logMd("-!- Could not start SortingTest:" +
-                    " sorting is already active", Debug.ERROR)
-
-        sortingPhase1(100)
-    }
-
     fun sortingPhase1(totalRotations: Int)
     {
         logM.logMd("Sorting phase 1, closing turretGate", Debug.LOGIC)

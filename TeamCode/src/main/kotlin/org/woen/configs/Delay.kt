@@ -5,7 +5,7 @@ import com.acmerobotics.dashboard.config.Config
 
 
 
-object Delay
+internal object Delay
 {
     @Config
     internal object MS
