@@ -1,7 +1,6 @@
 package org.woen.scoringSystem.storage
 
 
-import org.woen.collector.RunMode
 import kotlin.math.min
 import kotlin.math.floor
 
@@ -11,6 +10,9 @@ import org.woen.enumerators.StorageSlot
 
 import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
+
+import org.woen.collector.RunMode
+import org.woen.modules.BallCountUpdateEvent
 
 import org.woen.scoringSystem.ConnectorModuleStatus
 import org.woen.scoringSystem.storage.hardware.HwSortingManager
@@ -45,6 +47,7 @@ import org.woen.configs.RobotSettings.SORTING.PREDICT.PSEUDO_MATCH_WEIGHT
  *
  */
 
+
 const val MAX_BALL_COUNT     = 3
 const val STORAGE_SLOT_COUNT = 4
 
@@ -78,6 +81,7 @@ class Cells
         hwSortingM = HwSortingManager(_cms)
 
         logM = LogManager(_cms.collector.telemetry, DebugSettings.CELLS)
+        updateBallCountForLEDLINE()
     }
 
 
@@ -175,6 +179,7 @@ class Cells
             curSlot++
         }
 
+        updateBallCountForLEDLINE()
         logAllStorageData()
     }
     fun handleIntake(inputBall: Ball.Name)
@@ -190,6 +195,7 @@ class Cells
         curSlot--
 
         if (curSlot >= StorageSlot.BOTTOM) _storageCells[curSlot].set(inputBall)
+        updateBallCountForLEDLINE(MAX_BALL_COUNT - curSlot)
 
         logM.logMd("Storage after intake: ", Debug.GENERIC)
         logAllStorageData()
@@ -207,7 +213,9 @@ class Cells
         _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
         _storageCells[StorageSlot.MOBILE].empty()
 
-        logM.logMd("Considering shot fired, ballCount after update: ${anyBallCount()}", Debug.STATUS)
+        val ballCount = anyBallCount()
+        logM.logMd("Considering shot fired, ballCount after update: $ballCount", Debug.STATUS)
+        updateBallCountForLEDLINE(ballCount)
     }
 
 
@@ -270,6 +278,11 @@ class Cells
                 "\n===============================================         =================\n ",
             Debug.STATUS)
     }
+    fun updateBallCountForLEDLINE(ballCount: Int = -1)
+        =   _cms.collector.eventBus.invoke(
+                BallCountUpdateEvent(
+                    if (ballCount != -1) ballCount
+                    else anyBallCount()))
 
     fun anyBallCount(): Int
     {
