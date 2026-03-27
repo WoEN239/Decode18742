@@ -2,6 +2,8 @@ package org.woen.modules
 
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
+import org.woen.collector.GameColor
+import org.woen.collector.GameSettings
 import org.woen.utils.drivers.LEDLine
 import kotlin.math.sin
 
@@ -31,6 +33,78 @@ fun attachLedFeedback(collector: Collector) {
     var sinStep: Double = 0.00
     var powerValue: Double = 0.00
     var currentBallsCount: Int = 0
+
+    var sinStepL: Double = 0.00
+    var sinStepR: Double = 3.14
+    var powerValueL: Double = 0.00
+    var powerValueR: Double = 0.00
+    val color = GameSettings.startOrientation.gameColor
+
+
+    collector.initUpdateEvent += {
+        when(color) {
+            GameColor.RED -> {
+                if (timer.milliseconds() - prevTime > 0.02) {
+                    if(sinStepL>6.282){
+                        sinStepL = 0.000
+                    }
+                    else {
+                        sinStepL += 0.0125
+                    }
+
+                    if(sinStepR>6.282){
+                        sinStepR = 0.000
+                    }
+                    else {
+                        sinStepR += 0.0125
+                    }
+
+                    powerValueL = (sin(sinStepL)+1)/2
+                    powerValueR = (sin(sinStepR)+1)/2
+
+                    ledLeftR.power = powerValueL
+                    ledLeftG.power = 0.0
+                    ledLeftB.power = 0.0
+
+                    ledRightR.power = powerValueR
+                    ledRightG.power = 0.0
+                    ledRightB.power = 0.0
+
+                    prevTime = timer.milliseconds()
+                }
+            }
+            GameColor.BLUE -> {
+                if (timer.milliseconds() - prevTime > 0.02) {
+                    if(sinStepL>6.282){
+                        sinStepL = 0.000
+                    }
+                    else {
+                        sinStepL += 0.0125
+                    }
+
+                    if(sinStepR>6.282){
+                        sinStepR = 0.000
+                    }
+                    else {
+                        sinStepR += 0.0125
+                    }
+
+                    powerValueL = (sin(sinStepL)+1)/2
+                    powerValueR = (sin(sinStepR)+1)/2
+
+                    ledLeftR.power = 0.0
+                    ledLeftG.power = 0.0
+                    ledLeftB.power = powerValueL
+
+                    ledRightR.power = 0.0
+                    ledRightG.power = 0.0
+                    ledRightB.power = powerValueR
+
+                    prevTime = timer.milliseconds()
+                }
+            }
+        }
+    }
 
     collector.startEvent += {
         collector.eventBus.invoke(BallCountUpdateEvent(0))
