@@ -35,12 +35,6 @@ internal object ODOMETRY_CONFIG {
 
     @JvmField
     var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
-
-    @JvmField
-    var CALIBRATE_BLUE_ORIENTATION = Orientation(Vec2(-0.794, -0.791), Angle.ofDeg(90.0))
-
-    @JvmField
-    var CALIBRATE_RED_ORIENTATION = Orientation(Vec2(-0.794, 0.791), Angle.ofDeg(-90.0))
 }
 
 class GetRobotOdometry(
@@ -82,11 +76,8 @@ fun attachOdometry(collector: Collector) {
     var longLocate = false
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.dpad_down }, {
-        val collaborateOrientation =
-            if (GameSettings.startOrientation.gameColor == GameColor.RED) ODOMETRY_CONFIG.CALIBRATE_RED_ORIENTATION else ODOMETRY_CONFIG.CALIBRATE_BLUE_ORIENTATION
-
         val orient =
-            collaborateOrientation.pos.turn(-GameSettings.startOrientation.startOrientation.angle) - GameSettings.startOrientation.startOrientation.pos
+            GameSettings.startOrientation.odometryCalibratePosition.turn(-GameSettings.startOrientation.startOrientation.angle) - GameSettings.startOrientation.startOrientation.pos
 
         pinpoint.position =
             Pose2D(
@@ -94,7 +85,7 @@ fun attachOdometry(collector: Collector) {
                 orient.x,
                 orient.y,
                 AngleUnit.RADIANS,
-                (collaborateOrientation.angl - GameSettings.startOrientation.startOrientation.angl).angle
+                (orientation.angl - GameSettings.startOrientation.startOrientation.angl).angle
             )
     })))
 

@@ -40,15 +40,6 @@ internal object DRIVE_TRAIN_CONFIG {
 
     @JvmField
     var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 2.0, kP = 1.2)
-
-    @JvmField
-    var PARKING_X_REGULATOR = RegulatorParameters(kP = 8.0)
-
-    @JvmField
-    var PARKING_Y_REGULATOR = RegulatorParameters(kP = 8.0)
-
-    @JvmField
-    var PARKING_H_REGULATOR = RegulatorParameters(kP = 1.2)
 }
 
 enum class DriveMode {
@@ -110,23 +101,9 @@ fun attachDriveTrain(collector: Collector) {
     val driveMode =
         if (collector.runMode == RunMode.MANUAL) DriveMode.POWER else DriveMode.REGULATOR
 
-    var isParking = false
-
-    val xRegulator = Regulator(DRIVE_TRAIN_CONFIG.PARKING_X_REGULATOR)
-    val yRegulator = Regulator(DRIVE_TRAIN_CONFIG.PARKING_Y_REGULATOR)
-
-//    collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({it.dpad_up}, {
-//        isParking = !isParking
-//
-//        if(isParking){
-//            xRegulator.start()
-//            yRegulator.start()
-//        }
-//    })))
-
     collector.eventBus.invoke(AddGamepad1ListenerEvent(object : IGamepadListener {
         override fun update(gamepadData: Gamepad) {
-            if (driveMode == DriveMode.POWER && !isParking) {
+            if (driveMode == DriveMode.POWER) {
                 var ly = -gamepadData.left_stick_y.toDouble()
                 var lx = -gamepadData.left_stick_x.toDouble()
 
@@ -221,28 +198,6 @@ fun attachDriveTrain(collector: Collector) {
             collector.telemetry.addData("target x vel", targetLinearVelocity.x)
             collector.telemetry.addData("target y vel", targetLinearVelocity.y)
             collector.telemetry.addData("target h vel", targetHeadingVelocity)
-        }
-        else if(isParking){
-            val odometry = collector.eventBus.invoke(GetRobotOdometry())
-
-            val err = (GameSettings.startOrientation.parkingOrientation.pos - odometry.orientation.pos)
-                .turn(-odometry.orientation.angle)
-
-            val direction = Vec2(xRegulator.update(err.x), yRegulator.update(err.y))
-
-            var rotation = -collector.opMode.gamepad1.right_stick_x.toDouble()
-
-            rotation = if (abs(rotation) < DRIVE_TRAIN_CONFIG.H_DEATH_ZONE) 0.0 else
-                (rotation - sign(rotation) * DRIVE_TRAIN_CONFIG.H_DEATH_ZONE) / (1.0 - DRIVE_TRAIN_CONFIG.H_DEATH_ZONE)
-
-            rotation *= rotation
-
-            setPowers(
-                direction.x - direction.y - rotation,
-                direction.x - direction.y + rotation,
-                direction.x + direction.y - rotation,
-                direction.x + direction.y + rotation
-            )
         }
     }
 }

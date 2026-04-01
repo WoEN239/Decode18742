@@ -1,7 +1,5 @@
 package org.woen.modules.actions
 
-import com.acmerobotics.roadrunner.Trajectory
-import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
 import org.woen.collector.GamePosition
@@ -16,17 +14,10 @@ import org.woen.modules.StartSortingEvent
 import org.woen.modules.StopEatEvent
 import org.woen.modules.StorageState
 import org.woen.modules.TurretState
-import org.woen.modules.drivetrain.DriveSegment
-import org.woen.modules.drivetrain.GetEndTrajectoryEvent
 import org.woen.modules.drivetrain.GetRunnerIsFinishedEvent
-import org.woen.modules.drivetrain.GetTrajectoryBuilderEvent
 import org.woen.modules.drivetrain.ITrajectorySegment
-import org.woen.modules.drivetrain.RegisterSegmentEvent
 import org.woen.modules.drivetrain.RunSegmentsEvent
-import org.woen.modules.drivetrain.TurnSegment
 import org.woen.utils.events.EventBus
-import org.woen.utils.units.Angle
-import kotlin.math.PI
 
 interface IAction {
     fun start() {}
@@ -36,40 +27,12 @@ interface IAction {
     fun isEnd(): Boolean = true
 }
 
-class TrajectoryAction(private val _eventBus: EventBus, trajectory: List<Trajectory>) : IAction {
-    private val _segment = _eventBus.invoke(RegisterSegmentEvent(DriveSegment(trajectory))).segment
-
+class DriveAction(val eventBus: EventBus, vararg val segments: ITrajectorySegment) : IAction {
     override fun start() {
-        _eventBus.invoke(RunSegmentsEvent(arrayOf(_segment)))
+        eventBus.invoke(RunSegmentsEvent(Array(segments.size) { segments[it] }))
     }
 
-    override fun isEnd() = _eventBus.invoke(GetRunnerIsFinishedEvent()).finished
-}
-
-class TurnAction : IAction {
-    constructor(eventBus: EventBus, endAngle: Angle) {
-        _eventBus = eventBus
-
-        val startOrientation = _eventBus.invoke(GetEndTrajectoryEvent()).orientation
-
-        _segment = _eventBus.invoke(
-            RegisterSegmentEvent(
-                TurnSegment(
-                    endAngle - startOrientation.angl,
-                    startOrientation.angl
-                )
-            )
-        ).segment
-    }
-
-    private val _eventBus: EventBus
-    private val _segment: ITrajectorySegment
-
-    override fun start() {
-        _eventBus.invoke(RunSegmentsEvent(arrayOf(_segment)))
-    }
-
-    override fun isEnd() = _eventBus.invoke(GetRunnerIsFinishedEvent()).finished
+    override fun isEnd() = eventBus.invoke(GetRunnerIsFinishedEvent()).finished
 }
 
 class WaitAction(val time: Double) : IAction {
@@ -183,7 +146,7 @@ fun attachActionRunner(collector: Collector) {
 
     var isOpModeStarted = false
 
-    if(GameSettings.startOrientation.gamePosition == GamePosition.CLOSE)
+    if (GameSettings.startOrientation.gamePosition == GamePosition.CLOSE)
         actions.addAll(closeTrajectory(collector))
     else
         actions.addAll(farTrajectory(collector))

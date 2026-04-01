@@ -1,216 +1,162 @@
 package org.woen.modules.drivetrain
 
 import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.roadrunner.AngularVelConstraint
-import com.acmerobotics.roadrunner.MinVelConstraint
-import com.acmerobotics.roadrunner.Pose2d
-import com.acmerobotics.roadrunner.Pose2dDual
-import com.acmerobotics.roadrunner.ProfileAccelConstraint
-import com.acmerobotics.roadrunner.ProfileParams
-import com.acmerobotics.roadrunner.Time
-import com.acmerobotics.roadrunner.TimeTrajectory
-import com.acmerobotics.roadrunner.TimeTurn
-import com.acmerobotics.roadrunner.Trajectory
-import com.acmerobotics.roadrunner.TrajectoryBuilder
-import com.acmerobotics.roadrunner.TrajectoryBuilderParams
-import com.acmerobotics.roadrunner.TranslationalVelConstraint
-import com.acmerobotics.roadrunner.TurnConstraints
-import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
 import org.woen.collector.GameSettings
+import org.woen.utils.regulator.Regulator
+import org.woen.utils.regulator.RegulatorParameters
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
 import org.woen.utils.units.Vec2
+import java.lang.Math.toRadians
+import kotlin.math.abs
+import kotlin.math.absoluteValue
+import kotlin.math.sign
+import kotlin.math.withSign
 
 @Config
 internal object RUNNER_CONFIG {
     @JvmField
-    var LINER_VELOCITY = 1.9
+    var POSITION_WINDOW = 0.1
 
     @JvmField
-    var HEADING_VELOCITY = 6.0
+    var ANGLE_WINDOW = toRadians(15.0)
 
     @JvmField
-    var LINEAR_ACCEL = 9.0
+    var X_REGULATOR = RegulatorParameters()
 
     @JvmField
-    var HEADING_ACCEL = 17.0
+    var Y_REGULATOR = RegulatorParameters()
 
     @JvmField
-    var POSITION_P_X = 2.7
-
-    @JvmField
-    var POSITION_P_Y = 3.25
-
-    @JvmField
-    var HEADING_P_H = 5.0
-
-    @JvmField
-    var POSITION_SENS = 0.3
+    var H_REGULATOR = RegulatorParameters()
 }
 
 interface ITrajectorySegment {
-    fun isEnd(time: Double): Boolean
-
-    fun linearVelocity(time: Double): Vec2
-    fun headingVelocity(time: Double): Double
-
-    fun targetPosition(time: Double): Vec2?
-    fun targetHeading(time: Double): Angle
-
-    fun duration(): Double
+    fun targetPosition(): Vec2?
+    fun targetHeading(): Angle?
+    fun linearVelocityConstrain(): Double?
+    fun headingVelocityConstrain(): Double?
 }
 
-class TurnSegment(angle: Angle, startAngle: Angle) : ITrajectorySegment {
-    private val _turn = TimeTurn(
-        Pose2d(0.0, 0.0, startAngle.angle), angle.angle,
-        TurnConstraints(
-            RUNNER_CONFIG.HEADING_VELOCITY,
-            -RUNNER_CONFIG.HEADING_VELOCITY,
-            RUNNER_CONFIG.HEADING_ACCEL
-        )
-    )
+class TurnSegment(private val endHeading: Angle, private val velocityConstrain: Double = -1.0) :
+    ITrajectorySegment {
+    override fun targetPosition() = null
 
-    override fun isEnd(time: Double) = time > duration()
+    override fun targetHeading() = endHeading
 
-    override fun linearVelocity(time: Double) = Vec2.ZERO
+    override fun linearVelocityConstrain() = null
 
-    override fun headingVelocity(time: Double) = _turn[time].velocity().angVel.value()
-
-    override fun targetPosition(time: Double) = null
-
-    override fun targetHeading(time: Double) = Angle(_turn[time].value().heading.toDouble())
-
-    override fun duration() = _turn.duration
+    override fun headingVelocityConstrain() =
+        if (velocityConstrain < 0.0) null else velocityConstrain
 }
 
-class DriveSegment(rawBuildedTrajectory: List<Trajectory>) : ITrajectorySegment {
-    private val _trajectory =
-        Array(rawBuildedTrajectory.size) { TimeTrajectory(rawBuildedTrajectory[it]) }
+class MoveSegment(private val endPoint: Vec2, private val velocityConstrain: Double = -1.0) :
+    ITrajectorySegment {
+    override fun targetPosition() = endPoint
 
-    private fun getPoseTime(time: Double): Pose2dDual<Time> {
-        var sumDuration = 0.0
+    override fun targetHeading() = null
 
-        for (i in _trajectory) {
-            if (i.duration + sumDuration > time)
-                return i[time - sumDuration]
+    override fun linearVelocityConstrain() =
+        if (velocityConstrain < 0.0) null else velocityConstrain
 
-            sumDuration += i.duration
-        }
-
-        return _trajectory.last()[time]
-    }
-
-    override fun isEnd(time: Double) = duration() < time
-
-    override fun linearVelocity(time: Double) = Vec2(getPoseTime(time).velocity().linearVel.value())
-
-    override fun headingVelocity(time: Double) = getPoseTime(time).velocity().angVel.value()
-
-    override fun targetPosition(time: Double) = Vec2(getPoseTime(time).position.value())
-
-    override fun targetHeading(time: Double) = Angle(getPoseTime(time).heading.value().toDouble())
-
-    override fun duration() = _trajectory.sumOf { it.duration }
+    override fun headingVelocityConstrain() = null
 }
 
-class GetTrajectoryBuilderEvent(
-    var startOrientation: Orientation? = null,
-    var builder: TrajectoryBuilder? = null
-)
+class DriveSegment(
+    private val endOrientation: Orientation,
+    private val linearVelocityConstrain: Double = -1.0,
+    private val headingVelocityConstrain: Double = -1.0
+) : ITrajectorySegment {
+    override fun targetPosition() = endOrientation.pos
+
+    override fun targetHeading() = endOrientation.angl
+
+    override fun linearVelocityConstrain() =
+        if (linearVelocityConstrain < 0.0) null else linearVelocityConstrain
+
+    override fun headingVelocityConstrain() =
+        if (headingVelocityConstrain < 0.0) null else headingVelocityConstrain
+}
+
 class RunSegmentsEvent(val segments: Array<ITrajectorySegment>)
 class GetRunnerIsFinishedEvent(var finished: Boolean = true)
-class GetEndTrajectoryEvent(var orientation: Orientation = Orientation.ZERO)
-class RegisterSegmentEvent(val segment: ITrajectorySegment)
 
 fun attachRunner(collector: Collector) {
     val segmentsQueue = ArrayDeque<ITrajectorySegment>()
     var targetOrientation = GameSettings.startOrientation.startOrientation
-    val segmentTimer = ElapsedTime()
+    var atTarget = true
+    var linearVelocityConstrain: Double? = null
+    var headingVelocityConstrain: Double? = null
 
-    var lastOrientation = targetOrientation
+    val xRegulator = Regulator(RUNNER_CONFIG.X_REGULATOR)
+    val yRegulator = Regulator(RUNNER_CONFIG.Y_REGULATOR)
+    val hRegulator = Regulator(RUNNER_CONFIG.H_REGULATOR)
 
-    collector.eventBus.subscribe(RegisterSegmentEvent::class){
-        val duration = it.segment.duration()
+    collector.startEvent += {
+        xRegulator.start()
+        yRegulator.start()
+        hRegulator.start()
+    }
 
-        lastOrientation = Orientation(it.segment.targetPosition(duration) ?: lastOrientation.pos,
-            it.segment.targetHeading(duration))
+    fun updateTarget() {
+        if (atTarget && segmentsQueue.isNotEmpty()) {
+            val segment = segmentsQueue.removeFirst()
+
+            targetOrientation = Orientation(
+                segment.targetPosition() ?: targetOrientation.pos,
+                segment.targetHeading() ?: targetOrientation.angl
+            )
+
+            if(segment.targetPosition() != null)
+                linearVelocityConstrain = segment.linearVelocityConstrain()
+
+            if(segment.targetHeading() != null)
+                headingVelocityConstrain = segment.headingVelocityConstrain()
+        }
     }
 
     collector.eventBus.subscribe(RunSegmentsEvent::class) {
-        if (segmentsQueue.isEmpty())
-            segmentTimer.reset()
-
         segmentsQueue.addAll(it.segments)
+
+        updateTarget()
     }
 
-    collector.eventBus.subscribe(GetEndTrajectoryEvent::class){
-        it.orientation = lastOrientation
-    }
-
-    collector.eventBus.subscribe(GetTrajectoryBuilderEvent::class) {
-        val startOrientation = lastOrientation
-
-        it.builder = TrajectoryBuilder(
-            TrajectoryBuilderParams(1e-6, ProfileParams(0.1, 0.1, 0.01)),
-            Pose2d(startOrientation.x, startOrientation.y, startOrientation.angl.angle), 0.0,
-            MinVelConstraint(
-                listOf(
-                    TranslationalVelConstraint(RUNNER_CONFIG.LINER_VELOCITY),
-                    AngularVelConstraint(RUNNER_CONFIG.HEADING_VELOCITY)
-                )
-            ),
-            ProfileAccelConstraint(-RUNNER_CONFIG.LINEAR_ACCEL, RUNNER_CONFIG.LINEAR_ACCEL)
-        )
-    }
-
-    collector.eventBus.subscribe(GetRunnerIsFinishedEvent::class){
-        val odometry = collector.eventBus.invoke(GetRobotOdometry())
-
-        it.finished = segmentsQueue.isEmpty() && (targetOrientation.pos - odometry.orientation.pos).length() < RUNNER_CONFIG.POSITION_SENS
-    }
-
-    collector.startEvent += {
-        if (segmentsQueue.isNotEmpty())
-            segmentTimer.reset()
+    collector.eventBus.subscribe(GetRunnerIsFinishedEvent::class) {
+        it.finished = segmentsQueue.isEmpty() && atTarget
     }
 
     collector.updateEvent += {
         val odometry = collector.eventBus.invoke(GetRobotOdometry())
 
-        val time = segmentTimer.seconds()
+        val err = targetOrientation - odometry.orientation
+        val localErr = err.pos.turn(-odometry.orientation.angle)
 
-        if (segmentsQueue.isNotEmpty()) {
-            val currentSegment = segmentsQueue.first()
+        val linearVelocity = Vec2(
+            xRegulator.update(localErr.x, 0.0, collector.battery.currentVoltage),
+            yRegulator.update(localErr.y, 0.0, collector.battery.currentVoltage)
+        )
 
-            if (currentSegment.isEnd(time)) {
-                segmentsQueue.removeFirst()
-                segmentTimer.reset()
-            } else {
-                val segmentDuration = currentSegment.duration()
+        var headingVelocity = hRegulator.update(err.angle, 0.0, collector.battery.currentVoltage)
 
-                targetOrientation = Orientation(
-                    currentSegment.targetPosition(segmentDuration) ?: targetOrientation.pos,
-                    currentSegment.targetHeading(segmentDuration)
-                )
-                collector.eventBus.invoke(
-                    SetDriveVelocityEvent(
-                        currentSegment.linearVelocity(time).turn(-odometry.orientation.angle) +
-                                (targetOrientation.pos - odometry.orientation.pos).turn(-odometry.orientation.angle) *
-                                Vec2(RUNNER_CONFIG.POSITION_P_X, RUNNER_CONFIG.POSITION_P_Y),
-                        currentSegment.headingVelocity(time) +
-                                (targetOrientation.angl - odometry.orientation.angl).angle * RUNNER_CONFIG.HEADING_P_H
-                    )
-                )
-            }
-        } else {
-            collector.eventBus.invoke(
-                SetDriveVelocityEvent(
-                    (targetOrientation.pos - odometry.orientation.pos).turn(-odometry.orientation.angle) *
-                            Vec2(RUNNER_CONFIG.POSITION_P_X, RUNNER_CONFIG.POSITION_P_Y),
-                    (targetOrientation.angl - odometry.orientation.angl).angle * RUNNER_CONFIG.HEADING_P_H
-                )
-            )
+        linearVelocityConstrain?.let {
+            if(linearVelocity.x.absoluteValue > it)
+                linearVelocity.x = it.withSign(linearVelocity.x.sign)
+
+            if(linearVelocity.y.absoluteValue > it)
+                linearVelocity.y = it.withSign(linearVelocity.y.sign)
         }
+
+        headingVelocityConstrain?.let {
+            if(headingVelocity.absoluteValue > it)
+                headingVelocity = it.withSign(headingVelocity.sign)
+        }
+
+        collector.eventBus.invoke(SetDriveVelocityEvent(linearVelocity, headingVelocity))
+
+        atTarget =
+            err.pos.length() < RUNNER_CONFIG.POSITION_WINDOW && abs(err.angle) < RUNNER_CONFIG.ANGLE_WINDOW
+
+        updateTarget()
     }
 }
