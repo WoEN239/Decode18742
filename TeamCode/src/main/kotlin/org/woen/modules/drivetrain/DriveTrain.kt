@@ -132,6 +132,8 @@ fun attachDriveTrain(collector: Collector) {
 
                 var rx = -gamepadData.right_stick_x.toDouble()
 
+                var speed = gamepadData.left_trigger.toDouble()
+
                 fun calcDeathZone(value: Double, death: Double) = if (abs(value) < death) 0.0 else
                     (value - sign(value) * death) / (1.0 - death)
 
@@ -139,14 +141,20 @@ fun attachDriveTrain(collector: Collector) {
                 lx = calcDeathZone(lx, DRIVE_TRAIN_CONFIG.Y_DEATH_ZONE)
                 rx = calcDeathZone(rx, DRIVE_TRAIN_CONFIG.H_DEATH_ZONE)
 
+                speed = calcDeathZone(speed, 0.05)
+
                 ly *= abs(ly)
                 lx *= abs(lx)
                 rx *= abs(rx)
+                speed *= abs(speed)
 
                 val odometry = collector.eventBus.invoke(GetRobotOdometry())
 
                 val direction = Vec2(ly, lx)
                     .turn(-odometry.orientation.angle + (if (GameSettings.startOrientation.gameColor == GameColor.BLUE) -PI else PI) / 2.0)
+
+                direction.x = if(speed > 0.01) sign(ly) else direction.x
+                direction.y = if(speed > 0.01) 0.0 else direction.y
 
                 setPowers(
                     direction.x - direction.y - rx,

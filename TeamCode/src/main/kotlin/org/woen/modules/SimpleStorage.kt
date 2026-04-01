@@ -31,7 +31,7 @@ internal object SIMPLE_STORAGE_CONFIG {
     var PUSH_OPEN = 0.025
 
     @JvmField
-    var GATE_CLOSE = 0.29
+    var GATE_CLOSE = 0.4
 
     @JvmField
     var GATE_OPEN = 0.83
@@ -55,7 +55,7 @@ internal object SIMPLE_STORAGE_CONFIG {
     var SORTING_BELT_POWER = 11.0
 
     @JvmField
-    var FULL_R = 2.6
+    var FULL_R = 2.71
 
     @JvmField
     var TWO_R = 3.8
@@ -79,7 +79,7 @@ internal object SIMPLE_STORAGE_CONFIG {
     var FAR_SHOOT_POWER = 7.0
 
     @JvmField
-    var R_FILTER_K = 0.2
+    var R_FILTER_K = 0.3
 }
 
 enum class StorageState {
@@ -89,7 +89,8 @@ enum class StorageState {
     SORTING,
     STOP_SHOOTING,
     SLOW_SHUTTING,
-    LAUNCH_SHOOT
+    LAUNCH_SHOOT,
+    REVERSE_BRUSH
 }
 
 enum class SortingState {
@@ -140,7 +141,8 @@ fun attachSimpleStorage(collector: Collector) {
     val turretGateServo = SoftServo(
         "turretGateServo",
         collector.hardwareMap,
-        SIMPLE_STORAGE_CONFIG.TURRET_GATE_SERVO_CLOSE
+        SIMPLE_STORAGE_CONFIG.TURRET_GATE_SERVO_CLOSE,
+        SOFT_SERVO_CONFIG.SERVO_E * 2.0
     )
 
     var currentState = StorageState.STOP
@@ -171,6 +173,7 @@ fun attachSimpleStorage(collector: Collector) {
 
             StorageState.SHOOTING -> {
                 turretGateServo.targetPosition = SIMPLE_STORAGE_CONFIG.TURRET_GATE_SERVO_OPEN
+                gateServo.targetPosition = 0.2
 
                 beltMotor.power = 1.0
                 brushMotor.power = -1.0
@@ -192,12 +195,14 @@ fun attachSimpleStorage(collector: Collector) {
 
                 sortingTimer.reset()
 
-                brushMotor.power = 0.0
+                brushMotor.power = -1.0
             }
 
             StorageState.STOP_SHOOTING -> {
                 brushMotor.power = 0.0
                 beltMotor.power = -1.0
+
+                gateServo.targetPosition = SIMPLE_STORAGE_CONFIG.GATE_CLOSE
 
                 stateTimer.reset()
             }
@@ -212,6 +217,10 @@ fun attachSimpleStorage(collector: Collector) {
                 stateTimer.reset()
                 turretGateServo.targetPosition = SIMPLE_STORAGE_CONFIG.TURRET_GATE_SERVO_OPEN
                 brushMotor.power = 0.0
+            }
+
+            StorageState.REVERSE_BRUSH -> {
+                brushMotor.power = -1.0
             }
         }
     }
@@ -254,11 +263,12 @@ fun attachSimpleStorage(collector: Collector) {
             StorageState.STOP_SHOOTING -> StorageState.SHOOTING
             StorageState.SLOW_SHUTTING -> StorageState.SHOOTING
             StorageState.LAUNCH_SHOOT -> StorageState.SHOOTING
+            StorageState.REVERSE_BRUSH -> StorageState.EATING
         }
     }
 
     collector.eventBus.subscribe(StartEatEvent::class) {
-        if (currentState == StorageState.STOP || currentState == StorageState.STOP_SHOOTING)
+        if (currentState == StorageState.STOP || currentState == StorageState.STOP_SHOOTING || currentState == StorageState.REVERSE_BRUSH)
             switchState(StorageState.EATING)
     }
 
@@ -275,19 +285,62 @@ fun attachSimpleStorage(collector: Collector) {
         collector.eventBus.invoke(StopEatEvent())
     }, false)))
 
-    collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
-        switchState(StorageState.SHOOTING)
-        ballInStorage = 0
-        collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
-    })))
+//    collector.eventBus.invoke(
+//        AddGamepad1ListenerEvent(
+//            ClickGamepadListener(
+//                { it.left_trigger > 0.01 },
+//                {
+//                    if (currentState == StorageState.STOP || currentState == StorageState.STOP_SHOOTING)
+//                        switchState(StorageState.REVERSE_BRUSH)
+//                })
+//        )
+//    )
+//
+//    collector.eventBus.invoke(
+//        AddGamepad1ListenerEvent(
+//            ClickGamepadListener(
+//                { it.left_trigger > 0.01 },
+//                {
+//                    if (currentState == StorageState.REVERSE_BRUSH)
+//                        switchState(StorageState.STOP)
+//                },
+//                false
+//            )
+//        )
+//    )
 
-    collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.right_bumper }, {
-        if (currentState == StorageState.SHOOTING)
-            switchState(StorageState.STOP_SHOOTING)
-    }, false)))
+    var isWaitShoot = false
+
+    collector.eventBus.invoke(
+        AddGamepad1ListenerEvent(
+            ClickGamepadListener(
+                { it.right_bumper },
+                {
+                    if (currentState != StorageState.SORTING) {
+                        switchState(StorageState.SHOOTING)
+                        ballInStorage = 0
+                        collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
+                    } else
+                        isWaitShoot = true
+                })
+        )
+    )
+
+    collector.eventBus.invoke(
+        AddGamepad1ListenerEvent(
+            ClickGamepadListener(
+                { it.right_bumper },
+                {
+                    if (currentState == StorageState.SHOOTING)
+                        switchState(StorageState.STOP_SHOOTING)
+                },
+                false
+            )
+        )
+    )
 
     collector.eventBus.subscribe(ShootEvent::class) {
-        if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_SHOOTING) {
+        if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_SHOOTING || currentState == StorageState.REVERSE_BRUSH) {
             switchState(StorageState.LAUNCH_SHOOT)
             ballInStorage = 0
             collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
@@ -295,20 +348,26 @@ fun attachSimpleStorage(collector: Collector) {
     }
 
     collector.eventBus.subscribe(SlowShootEvent::class) {
-        if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_SHOOTING) {
+        if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_SHOOTING || currentState == StorageState.REVERSE_BRUSH) {
             switchState(StorageState.SLOW_SHUTTING)
             ballInStorage = 0
             collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
         }
     }
 
-    collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.touchpad }, {
-        if (currentState == StorageState.STOP || currentState == StorageState.EATING) {
-            requiredSwaps = 1
-            switchState(StorageState.SORTING)
-            sortingShoot = true
-        }
-    })))
+    collector.eventBus.invoke(
+        AddGamepad1ListenerEvent(
+            ClickGamepadListener(
+                { it.right_trigger > 0.01 },
+                {
+                    if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.REVERSE_BRUSH) {
+                        requiredSwaps = 1
+                        switchState(StorageState.SORTING)
+                        sortingShoot = true
+                    }
+                })
+        )
+    )
 
     collector.startEvent += {
         pushServo.start()
@@ -321,6 +380,16 @@ fun attachSimpleStorage(collector: Collector) {
     }
 
     collector.updateEvent += {
+        if (isWaitShoot && currentState != StorageState.SORTING) {
+            if (collector.opMode.gamepad1.right_bumper) {
+                switchState(StorageState.SHOOTING)
+                ballInStorage = 0
+                collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
+            }
+
+            isWaitShoot = false
+        }
+
         pushServo.update()
         gateServo.update()
         turretGateServo.update()
@@ -395,7 +464,7 @@ fun attachSimpleStorage(collector: Collector) {
                 }
             }
 
-            StorageState.EATING, StorageState.STOP -> {}
+            StorageState.EATING, StorageState.STOP, StorageState.REVERSE_BRUSH -> {}
 
             StorageState.SLOW_SHUTTING -> {
                 beltMotor.power = battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SLOW_SHOOTING_POWER)
@@ -484,10 +553,13 @@ fun attachSimpleStorage(collector: Collector) {
             }
 
             StorageState.LAUNCH_SHOOT -> {
-                beltMotor.power =
-                    battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SHOOT_LAUNCH_BELT_POWER)
+                if (collector.eventBus.invoke(GetRobotOdometry()).orientation.x > 0.5)
+                    beltMotor.power =
+                        battery.voltageToPower(SIMPLE_STORAGE_CONFIG.FAR_SHOOT_POWER)
+                else
+                    beltMotor.power = 1.0
 
-                if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SHOOT_LAUNCH_TIME) {
+                if (stateTimer.seconds() > (if (collector.eventBus.invoke(GetRobotOdometry()).orientation.x > 0.5) 1.0 else SIMPLE_STORAGE_CONFIG.SHOOT_LAUNCH_TIME)) {
                     launchServo.targetPosition = SIMPLE_STORAGE_CONFIG.LAUNCH_SERVO_OPEN
 
                     if (launchServo.atTarget) {

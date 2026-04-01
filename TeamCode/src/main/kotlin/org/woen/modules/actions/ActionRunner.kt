@@ -4,6 +4,8 @@ import com.acmerobotics.roadrunner.Trajectory
 import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
+import org.woen.collector.GamePosition
+import org.woen.collector.GameSettings
 import org.woen.modules.BallColor
 import org.woen.modules.GetCurrentStorageStateEvent
 import org.woen.modules.SetTurretStateEvent
@@ -181,7 +183,10 @@ fun attachActionRunner(collector: Collector) {
 
     var isOpModeStarted = false
 
-    actions.addAll(closeTrajectory(collector))
+    if(GameSettings.startOrientation.gamePosition == GamePosition.CLOSE)
+        actions.addAll(closeTrajectory(collector))
+    else
+        actions.addAll(farTrajectory(collector))
 
     collector.eventBus.subscribe(RunActionsEvent::class) {
         val actionsEmpty = actions.isEmpty()

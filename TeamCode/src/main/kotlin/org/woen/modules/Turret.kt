@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.hardware.ServoImplEx
 import org.woen.collector.Collector
 import org.woen.collector.GAME_CONFIGS
+import org.woen.collector.GameColor
+import org.woen.collector.GamePosition
 import org.woen.collector.GameSettings
 import org.woen.collector.RunMode
 import org.woen.modules.drivetrain.GetRobotOdometry
@@ -53,7 +55,7 @@ internal object TURRET_CONFIG {
     var PULLEY_TICKS_REVOLUTION = 28.0
 
     @JvmField
-    var PULLEY_REGULATOR = PIDFCoefficients(195.0, 10.0, 0.0, 15.5)
+    var PULLEY_REGULATOR = PIDFCoefficients(195.0, 11.0, 0.0, 15.5)
 
     @JvmField
     var PULLEY_RATION = 37.0 / 33.0
@@ -68,13 +70,13 @@ internal object TURRET_CONFIG {
     var ANGULAR_VELOCITY_HEADING_COMPENSATE_K = 0.11
 
     @JvmField
-    var CLOSE_PULLEY_VELOCITY = 10.4
+    var CLOSE_PULLEY_VELOCITY = 10.5
 
     @JvmField
-    var CLOSE_ANGLE_POSITION = 0.28
+    var CLOSE_ANGLE_POSITION = 0.285
 
     @JvmField
-    var SHORT_FAR_PULLEY_VELOCITY = 14.7
+    var SHORT_FAR_PULLEY_VELOCITY = 13.9
 
     @JvmField
     var SHORT_FAR_ANGLE_POSITION = 0.4
@@ -86,13 +88,13 @@ internal object TURRET_CONFIG {
     var CLOSE_DISTANCE = 1.1
 
     @JvmField
-    var FAR_PULLEY_VELOCITY = 18.8
+    var FAR_PULLEY_VELOCITY = 18.7
 
     @JvmField
     var FAR_ANGLE_POSITION = 0.43
 
     @JvmField
-    var LONG_CLOSE_PULLEY_VELOCITY = 15.7
+    var LONG_CLOSE_PULLEY_VELOCITY = 16.35
 
     @JvmField
     var LONG_CLOSE_ANGLE_POSITION = 0.408
@@ -173,7 +175,7 @@ fun attachTurret(collector: Collector) {
         val targetPulleyVelocity: Double
         val anglePosition: Double
 
-        if (collector.runMode == RunMode.MANUAL) {
+        if (collector.runMode == RunMode.MANUAL || GameSettings.startOrientation.gamePosition == GamePosition.FAR) {
             if (odometry.orientation.x < 0.5) {
                 l = clamp(l, TURRET_CONFIG.CLOSE_DISTANCE, TURRET_CONFIG.SHORT_FAR_DISTANCE)
 
@@ -209,7 +211,7 @@ fun attachTurret(collector: Collector) {
             }
         } else {
             anglePosition = 0.3//TURRET_CONFIG.ANGLE_POSITION// 0.3
-            targetPulleyVelocity = 10.6//TURRET_CONFIG.PULLEY_VELOCITY//10.4
+            targetPulleyVelocity = 10.7//TURRET_CONFIG.PULLEY_VELOCITY//10.4
         }
 
         pulleyMotor.velocity =
@@ -224,13 +226,13 @@ fun attachTurret(collector: Collector) {
         val basketErrHeading =
             ((if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke() - odometry.linearVelocity.turn(
                 odometry.orientation.angle
-            ) * TURRET_CONFIG.LINEAR_VELOCITY_HEADING_COMPENSATE_K) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
+            ) * if(collector.runMode == RunMode.MANUAL) TURRET_CONFIG.LINEAR_VELOCITY_HEADING_COMPENSATE_K else 0.0) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
                 .turn(odometry.orientation.angle))
 
         turretHeading = if (state != TurretState.CALIBRATE_ODOMETRY) {
             (when (state) {
                 TurretState.TO_OBELISK -> Angle(
-                    (GAME_CONFIGS.OBELISK_POSITION - (odometry.orientation.pos +
+                    ((if(GameSettings.startOrientation.gameColor == GameColor.RED) GAME_CONFIGS.RED_OBELISK_POSITION else GAME_CONFIGS.BLUE_OBELISK_POSITION) - (odometry.orientation.pos +
                             TURRET_CONFIG.TURRET_CENTER_POS.turn(odometry.orientation.angle))).rot() + PI
                 )
 
@@ -253,7 +255,7 @@ fun attachTurret(collector: Collector) {
             pulleyMotor.velocity / TURRET_CONFIG.PULLEY_TICKS_REVOLUTION * 2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS * TURRET_CONFIG.PULLEY_RATION
         )
         collector.telemetry.drawCircle(
-            GameSettings.startOrientation.basketPosition.invoke(), 0.1, Color.ORANGE
+            (if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke(), 0.1, Color.ORANGE
         )
     }
 }

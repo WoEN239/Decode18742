@@ -22,16 +22,16 @@ internal object GAME_CONFIGS {
     var START_BLUE_FAR_ORIENTATION = Orientation(Vec2(0.01 + 1.35 + 0.38 / 2.0, -0.225 - 0.38 / 2.0 - 0.01), Angle.ofDeg(0.0))
 
     @JvmField
-    var BLUE_BASKET_POSITION = Vec2(-1.7, -1.7)
+    var BLUE_BASKET_POSITION = Vec2(-1.6, -1.7)
 
     @JvmField
-    var RED_BASKET_POSITION = Vec2(-1.7, 1.7)
+    var RED_BASKET_POSITION = Vec2(-1.6, 1.7)
 
     @JvmField
-    var BLUE_FAR_BASKET_POSITION = Vec2(-1.7, -1.55)
+    var BLUE_FAR_BASKET_POSITION = Vec2(-1.7, -1.6)
 
     @JvmField
-    var RED_FAR_BASKET_POSITION = Vec2(-1.7, 1.55)
+    var RED_FAR_BASKET_POSITION = Vec2(-1.7, 1.6)
 
     @JvmField
     var RED_PARKING_ORIENTATION = Orientation(Vec2(0.0, 0.0), Angle.ofDeg(0.0))
@@ -40,7 +40,10 @@ internal object GAME_CONFIGS {
     var BLUE_PARKING_ORIENTATION = Orientation(Vec2(0.0, 0.0), Angle.ofDeg(0.0))
 
     @JvmField
-    var OBELISK_POSITION = Vec2(-3.66 / 2.0, 0.0)
+    var RED_OBELISK_POSITION = Vec2(-3.66 / 2.0, 1.0)
+
+    @JvmField
+    var BLUE_OBELISK_POSITION = Vec2(-3.66 / 2.0, -1.0)
 }
 
 enum class GameColor {
