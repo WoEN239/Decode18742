@@ -58,6 +58,8 @@ internal object RobotSettings
 
         @JvmField
         var HOLD_FOR_MANUAL_SHOOTING = false
+        @JvmField
+        var HOLD_FOR_LAZY_INTAKE = true
 
 
         @JvmField
@@ -76,7 +78,7 @@ internal object RobotSettings
         var ENABLE_GAMEPAD_CONTROLLED_SORTING_SWAPS = true
 
         @JvmField
-        var SWAPS_COUNT_ON_TOUCHPAD_PRESSED = 1
+        var SWAPS_PER_MANUAL_BUTTON_SWITCH = 1
     }
 
 

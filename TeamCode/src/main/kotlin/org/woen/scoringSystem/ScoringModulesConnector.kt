@@ -171,7 +171,7 @@ class ScoringModulesConnector
             _cms.collector.eventBus.invoke(
                 AddGamepad1ListenerEvent(
                     ClickGamepadListener(
-                        buttonSuppler = { it.right_trigger > 0.5 },
+                        buttonSuppler = { it.triangle },
                         activationState = true,
                         onTriggered = {
                             if (_cms.shootingPhase.isInactive()
@@ -197,37 +197,83 @@ class ScoringModulesConnector
     {
         if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_LAZY_INTAKE)
         {
-            _cms.collector.eventBus.invoke(
-                AddGamepad1ListenerEvent(
-                    ClickGamepadListener(
-                        { it.left_bumper },
-                        {
-                            if (_cms.sortingPhase.isInactive() &&
-                                _cms.shootingPhase.isInactive() &&
-                                _cms.calibrationPhase.isInactive())
+            if (!CONTROLS.HOLD_FOR_LAZY_INTAKE)
+            {
+                _cms.collector.eventBus.invoke(
+                    AddGamepad1ListenerEvent(
+                        ClickGamepadListener(
+                            { it.left_bumper },
                             {
-                                if (_cms.lazyIntakeIsActive)
+                                if (_cms.sortingPhase.isInactive() &&
+                                    _cms.shootingPhase.isInactive() &&
+                                    _cms.calibrationPhase.isInactive())
+                                {
+                                    if (_cms.lazyIntakeIsActive)
+                                    {
+                                        logM.logMd("Stopped LazyIntake, reversing brush time", Debug.END)
+                                        _storage.cells.hwSortingM.hwMotors.stopBelts()
+                                        _storage.cells.hwSortingM.startBrushTime(
+                                            forward = false, Delay.MS.BRUSH_REVERSE)
+                                    }
+                                    else
+                                    {
+                                        logM.logMd("Started LazyIntake", Debug.START)
+                                        _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+                                        if (_cms.brushStatus.isIdle())
+                                            _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+                                    }
+
+                                    _cms.lazyIntakeIsActive = !_cms.lazyIntakeIsActive
+                                }
+                                else logStartingError("LazyIntake")
+                            }
+                )   )   )
+            }
+            else
+            {
+                _cms.collector.eventBus.invoke(
+                    AddGamepad1ListenerEvent(
+                        ClickGamepadListener(
+                            buttonSuppler = { it.left_bumper },
+                            activationState = true,
+                            onTriggered = {
+                                if (_cms.sortingPhase.isInactive() &&
+                                    _cms.shootingPhase.isInactive() &&
+                                    _cms.calibrationPhase.isInactive())
+                                {
+                                    logM.logMd("Started LazyIntake", Debug.START)
+                                    _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+                                    if (_cms.brushStatus.isIdle())
+                                        _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+
+                                    _cms.lazyIntakeIsActive = true
+                                }
+                                else logStartingError("LazyIntake")
+                            }
+                )   )   )
+
+                _cms.collector.eventBus.invoke(
+                    AddGamepad1ListenerEvent(
+                        ClickGamepadListener(
+                            buttonSuppler = { it.left_bumper },
+                            activationState = false,
+                            onTriggered = {
+                                if (_cms.sortingPhase.isInactive() &&
+                                    _cms.shootingPhase.isInactive() &&
+                                    _cms.calibrationPhase.isInactive())
                                 {
                                     logM.logMd("Stopped LazyIntake, reversing brush time", Debug.END)
                                     _storage.cells.hwSortingM.hwMotors.stopBelts()
                                     _storage.cells.hwSortingM.startBrushTime(
                                         forward = false, Delay.MS.BRUSH_REVERSE)
                                 }
-                                else
-                                {
-                                    logM.logMd("Started LazyIntake", Debug.START)
-                                    _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
-                                    if (_cms.brushStatus.isIdle())
-                                        _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
-                                }
-
-                                _cms.lazyIntakeIsActive = !_cms.lazyIntakeIsActive
+                                else logStartingError("LazyIntake")
                             }
-                            else logStartingError("LazyIntake")
-                        }
-            )   )   )
+                )   )   )
+            }
 
-            logM.logMd("Init settings: ENABLE Manual LazyIntake", Debug.GAMEPAD)
+            logM.logMd("Init settings: ENABLE Manual LazyIntake," +
+                    " HOLD:${CONTROLS.HOLD_FOR_LAZY_INTAKE}", Debug.GAMEPAD)
         }
         else logM.logMd("Init settings: DISABLE LazyIntake", Debug.GAMEPAD)
 
@@ -267,15 +313,15 @@ class ScoringModulesConnector
             _cms.collector.eventBus.invoke(
                 AddGamepad1ListenerEvent(
                     ClickGamepadListener(
-                        { it.triangle },
+                        { it.right_trigger > 0.5 },
                         {
                             if (_cms.shootingPhase.isInactive() &&
                                 _cms.sortingPhase.isInactive() &&
                                 _cms.calibrationPhase.isInactive())
                                 _storage.sortingPhase1(
-                                    CONTROLS.SWAPS_COUNT_ON_TOUCHPAD_PRESSED)
+                                    CONTROLS.SWAPS_PER_MANUAL_BUTTON_SWITCH)
                             else logStartingError("ManualSortingSwap " +
-                                    "(${CONTROLS.SWAPS_COUNT_ON_TOUCHPAD_PRESSED})")
+                                    "(${CONTROLS.SWAPS_PER_MANUAL_BUTTON_SWITCH})")
                         }
             )   )   )
 
