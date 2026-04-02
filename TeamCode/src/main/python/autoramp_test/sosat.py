@@ -63,9 +63,9 @@ class SoSAT:
 
                             kernel = np.ones((3,3),np.uint8)
                 
+                            maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_ERODE, kernel, iterations=self.morphErodeVal-erodeIter*morphStep)
                             maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_CLOSE, kernel, iterations=self.morphCloseVal-closeIter*morphStep)
                             maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_OPEN, kernel, iterations=self.morphOpenVal-openIter*morphStep)
-                            maskCombined = cv2.morphologyEx(maskCombined, cv2.MORPH_ERODE, kernel, iterations=self.morphErodeVal-erodeIter*morphStep)
 
                             masks.append(maskCombined)
 
@@ -104,14 +104,35 @@ class SoSAT:
                         maskCombined_gpu = cv2.cuda.bitwise_or(maskGreen_gpu, maskPurple_gpu)
 
                         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
-                        maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_OPEN, kernel, iterations=self.morphOpenVal-openIter*morphStep)
                         maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_ERODE, kernel, iterations=self.morphErodeVal-erodeIter*morphStep)
                         maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_CLOSE, kernel, iterations=self.morphCloseVal-closeIter*morphStep)
+                        maskCombined_gpu = self._cudaMorph(maskCombined_gpu, cv2.MORPH_OPEN, kernel, iterations=self.morphOpenVal-openIter*morphStep)
 
                         maskCombined = maskCombined_gpu.download()
                         masks.append(maskCombined)
 
         return masks
+
+    def _detect_from_masks(self, masks, matchThreshold=1, minArea=1000):
+        detectedArtefacts = []
+        for mask in masks:
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            for contour in contours:
+                if cv2.contourArea(contour) > minArea:
+                    matchScore = self.__matchContours(contour)
+                    if matchScore < float(matchThreshold):
+                        x,y,w,h = cv2.boundingRect(contour)
+                        artefactInfo = {
+                            "x": x,
+                            "y": y,
+                            "w": w,
+                            "h": h,
+                            "matchScore": matchScore
+                        }
+                        if not(self.__isPosOverlaps(detectedArtefacts,artefactInfo)):
+                            detectedArtefacts.append(artefactInfo)
+
+        return detectedArtefacts
 
     def __matchContours(self,contour):
         bestMatch = float('inf')
@@ -134,46 +155,10 @@ class SoSAT:
 
     def detectArtefacts(self,frame,matchThreshold=1,minArea=1000,maskValStep=25,maskValIterations=4,maskSatStep=10,maskSatIterations=10,morphStep=1,morphIterations=4):
         masks = self.colorMasks(frame,maskValStep,maskValIterations,maskSatStep,maskSatIterations,morphStep,morphIterations)
-
-        detectedArtefacts = []
-        for mask in masks:
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            for contour in contours:
-                if cv2.contourArea(contour) > minArea:
-                    matchScore = self.__matchContours(contour)
-                    if matchScore < float(matchThreshold):
-                        x,y,w,h = cv2.boundingRect(contour)
-                        artefactInfo = {
-                            "x": x,
-                            "y": y,
-                            "w": w,
-                            "h": h,
-                            "matchScore": matchScore
-                        }
-                        if not(self.__isPosOverlaps(detectedArtefacts,artefactInfo)):
-                            detectedArtefacts.append(artefactInfo)
-
+        detectedArtefacts = self._detect_from_masks(masks, matchThreshold, minArea)
         return detectedArtefacts, masks
 
-    def detectArtefactsGPU(self,frame,matchThreshold=5,minArea=0,maskThreshStep=25,maskIterations=4,morphStep=1,morphIterations=1):
-        masks = self.colorMasksGPU(frame,maskStep=maskThreshStep,maskIterations=maskIterations,morphStep=morphStep,morphIterations=morphIterations)
-
-        detectedArtefacts = []
-        for mask in masks:
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            for contour in contours:
-                if cv2.contourArea(contour) > minArea:
-                    matchScore = self.__matchContours(contour)
-                    if matchScore < float(matchThreshold):
-                        x,y,w,h = cv2.boundingRect(contour)
-                        artefactInfo = {
-                            "x": x,
-                            "y": y,
-                            "w": w,
-                            "h": h,
-                            "matchScore": matchScore
-                        }
-                        if not(self.__isPosOverlaps(detectedArtefacts,artefactInfo)):
-                            detectedArtefacts.append(artefactInfo)
-
-        return detectedArtefacts
+    def detectArtefactsGPU(self, frame, matchThreshold=5, minArea=0, maskValStep=25, maskValIterations=4, maskSatStep=10, maskSatIterations=10, morphStep=1, morphIterations=1):
+        masks = self.colorMasksGPU(frame, maskStep=maskValStep, maskIterations=maskValIterations, morphStep=morphStep, morphIterations=morphIterations)
+        detectedArtefacts = self._detect_from_masks(masks, matchThreshold, minArea)
+        return detectedArtefacts, masks
