@@ -33,13 +33,13 @@ internal object DRIVE_TRAIN_CONFIG {
     var H_DEATH_ZONE = 0.05
 
     @JvmField
-    var VELOCITY_FORWARD_REGULATOR = RegulatorParameters(kF = 10.0, kP = 8.0)
+    var VELOCITY_FORWARD_REGULATOR = RegulatorParameters(kF = 8.0, kP = 9.0)
 
     @JvmField
-    var VELOCITY_SIDE_REGULATOR = RegulatorParameters(kF = 8.0, kP = 8.0)
+    var VELOCITY_SIDE_REGULATOR = RegulatorParameters(kF = 10.5, kP = 9.0)
 
     @JvmField
-    var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 2.0, kP = 1.2)
+    var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 2.5, kP = 1.8)
 }
 
 enum class DriveMode {

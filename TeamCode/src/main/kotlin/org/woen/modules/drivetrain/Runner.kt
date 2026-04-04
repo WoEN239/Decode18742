@@ -18,22 +18,22 @@ import kotlin.math.withSign
 @Config
 internal object RUNNER_CONFIG {
     @JvmField
-    var POSITION_WINDOW = 0.1
+    var POSITION_WINDOW = 0.15
 
     @JvmField
-    var ANGLE_WINDOW = toRadians(15.0)
+    var ANGLE_WINDOW = toRadians(25.0)
 
     @JvmField
-    var X_REGULATOR = RegulatorParameters()
+    var X_REGULATOR = RegulatorParameters(kP = 2.5)
 
     @JvmField
-    var Y_REGULATOR = RegulatorParameters()
+    var Y_REGULATOR = RegulatorParameters(kP = 2.5)
 
     @JvmField
-    var H_REGULATOR = RegulatorParameters()
+    var H_REGULATOR = RegulatorParameters(kP = 5.0)
 
     @JvmField
-    var TARGET_TIMER = 0.05
+    var TARGET_TIMER = 0.01
 }
 
 interface ITrajectorySegment {
@@ -55,7 +55,7 @@ class TurnSegment(private val endHeading: Angle, private val velocityConstrain: 
         if (velocityConstrain < 0.0) null else velocityConstrain
 }
 
-class MoveSegment(private val endPoint: Vec2, private val velocityConstrain: Double = -1.0) :
+class MoveSegment(private val endPoint: Vec2, private val velocityConstrain: Double = -1.0, val isFlyingPoint: Boolean = false) :
     ITrajectorySegment {
     override fun targetPosition() = endPoint
 
@@ -85,13 +85,18 @@ class DriveSegment(
 
 class RunSegmentsEvent(val segments: Array<ITrajectorySegment>)
 class GetRunnerIsFinishedEvent(var finished: Boolean = true)
+class GetRunnerAtTargetPositionEvent(var atTarget: Boolean = true)
+class GetRunnerAtTargetAngleEvent(var atTarget: Boolean = true)
 
 fun attachRunner(collector: Collector) {
     val segmentsQueue = ArrayDeque<ITrajectorySegment>()
 
     var targetOrientation = GameSettings.startOrientation.startOrientation
-    var atTarget = true
-    val targetTimer = ElapsedTime()
+    var atTargetPosition = true
+    var atTargetRotation = true
+    var isFlyingPoint = false
+    val targetPositionTimer = ElapsedTime()
+    val targetRotationTimer = ElapsedTime()
 
     var linearVelocityConstrain: Double? = null
     var headingVelocityConstrain: Double? = null
@@ -104,24 +109,46 @@ fun attachRunner(collector: Collector) {
         xRegulator.start()
         yRegulator.start()
         hRegulator.start()
-
-        targetTimer.reset()
     }
 
     fun updateTarget() {
-        if (atTarget && segmentsQueue.isNotEmpty()) {
-            val segment = segmentsQueue.removeFirst()
+        if(segmentsQueue.isNotEmpty()) {
+            val first = segmentsQueue.first()
 
-            targetOrientation = Orientation(
-                segment.targetPosition() ?: targetOrientation.pos,
-                segment.targetHeading() ?: targetOrientation.angl
-            )
+            if(first is TurnSegment && atTargetRotation){
+                atTargetRotation = false
+                isFlyingPoint = false
 
-            if (segment.targetPosition() != null)
-                linearVelocityConstrain = segment.linearVelocityConstrain()
+                segmentsQueue.removeFirst()
 
-            if (segment.targetHeading() != null)
-                headingVelocityConstrain = segment.headingVelocityConstrain()
+                targetOrientation = Orientation(targetOrientation.pos, first.targetHeading())
+                headingVelocityConstrain = first.headingVelocityConstrain()
+            }
+
+            if(first is MoveSegment && atTargetPosition){
+                atTargetPosition = false
+
+                segmentsQueue.removeFirst()
+
+                targetOrientation = Orientation(first.targetPosition(), targetOrientation.angl)
+                linearVelocityConstrain = first.linearVelocityConstrain()
+
+                isFlyingPoint = first.isFlyingPoint
+            }
+
+
+            if(first is DriveSegment && atTargetPosition && atTargetRotation){
+                atTargetRotation = false
+                atTargetPosition = false
+                isFlyingPoint = false
+
+                segmentsQueue.removeFirst()
+
+                targetOrientation = Orientation(first.targetPosition(), first.targetHeading())
+
+                linearVelocityConstrain = first.linearVelocityConstrain()
+                headingVelocityConstrain = first.headingVelocityConstrain()
+            }
         }
     }
 
@@ -132,7 +159,15 @@ fun attachRunner(collector: Collector) {
     }
 
     collector.eventBus.subscribe(GetRunnerIsFinishedEvent::class) {
-        it.finished = segmentsQueue.isEmpty() && atTarget
+        it.finished = segmentsQueue.isEmpty() && atTargetPosition && atTargetRotation
+    }
+
+    collector.eventBus.subscribe(GetRunnerAtTargetAngleEvent::class){
+        it.atTarget = atTargetRotation
+    }
+
+    collector.eventBus.subscribe(GetRunnerAtTargetPositionEvent::class){
+        it.atTarget = atTargetPosition
     }
 
     collector.updateEvent += {
@@ -141,7 +176,7 @@ fun attachRunner(collector: Collector) {
         val err = targetOrientation - odometry.orientation
         val localErr = err.pos.turn(-odometry.orientation.angle)
 
-        val linearVelocity = Vec2(
+        var linearVelocity = Vec2(
             xRegulator.update(localErr.x, 0.0, collector.battery.currentVoltage),
             yRegulator.update(localErr.y, 0.0, collector.battery.currentVoltage)
         )
@@ -149,12 +184,12 @@ fun attachRunner(collector: Collector) {
         var headingVelocity = hRegulator.update(err.angle, 0.0, collector.battery.currentVoltage)
 
         linearVelocityConstrain?.let {
-            if (linearVelocity.x.absoluteValue > it)
-                linearVelocity.x = it.withSign(linearVelocity.x.sign)
-
-            if (linearVelocity.y.absoluteValue > it)
-                linearVelocity.y = it.withSign(linearVelocity.y.sign)
+            if (linearVelocity.length() > it)
+                linearVelocity = Vec2(it, 0.0).setRot(linearVelocity.rot())
         }
+
+        if(isFlyingPoint)
+            linearVelocity = Vec2(3.0, 0.0).setRot(linearVelocity.rot())
 
         headingVelocityConstrain?.let {
             if (headingVelocity.absoluteValue > it)
@@ -163,11 +198,18 @@ fun attachRunner(collector: Collector) {
 
         collector.eventBus.invoke(SetDriveVelocityEvent(linearVelocity, headingVelocity))
 
-        if (err.pos.length() < RUNNER_CONFIG.POSITION_WINDOW && abs(err.angle) < RUNNER_CONFIG.ANGLE_WINDOW)
-            atTarget = targetTimer.seconds() > RUNNER_CONFIG.TARGET_TIMER
+        if (err.pos.length() < RUNNER_CONFIG.POSITION_WINDOW)
+            atTargetPosition = targetPositionTimer.seconds() > RUNNER_CONFIG.TARGET_TIMER
         else {
-            atTarget = false
-            targetTimer.reset()
+            atTargetPosition = false
+            targetPositionTimer.reset()
+        }
+
+        if(abs(err.angle) < RUNNER_CONFIG.ANGLE_WINDOW)
+            atTargetRotation = targetRotationTimer.seconds() > RUNNER_CONFIG.TARGET_TIMER
+        else{
+            atTargetRotation = false
+            targetRotationTimer.reset()
         }
 
         updateTarget()

@@ -25,10 +25,10 @@ import kotlin.math.PI
 @Config
 internal object TURRET_CONFIG {
     @JvmField
-    var MAX_ANGLE_SERVO = 0.43
+    var MAX_ANGLE_SERVO = 0.45
 
     @JvmField
-    var MIN_ANGLE_SERVO = 0.28
+    var MIN_ANGLE_SERVO = 0.3
 
     @JvmField
     var MAX_HEADING = toRadians(90.0)
@@ -73,13 +73,13 @@ internal object TURRET_CONFIG {
     var CLOSE_PULLEY_VELOCITY = 10.5
 
     @JvmField
-    var CLOSE_ANGLE_POSITION = 0.285
+    var CLOSE_ANGLE_POSITION = 0.305
 
     @JvmField
     var SHORT_FAR_PULLEY_VELOCITY = 13.9
 
     @JvmField
-    var SHORT_FAR_ANGLE_POSITION = 0.4
+    var SHORT_FAR_ANGLE_POSITION = 0.42
 
     @JvmField
     var SHORT_FAR_DISTANCE = 2.58
@@ -91,13 +91,13 @@ internal object TURRET_CONFIG {
     var FAR_PULLEY_VELOCITY = 18.7
 
     @JvmField
-    var FAR_ANGLE_POSITION = 0.43
+    var FAR_ANGLE_POSITION = 0.45
 
     @JvmField
     var LONG_CLOSE_PULLEY_VELOCITY = 16.35
 
     @JvmField
-    var LONG_CLOSE_ANGLE_POSITION = 0.408
+    var LONG_CLOSE_ANGLE_POSITION = 0.428
 
     @JvmField
     var LONG_CLOSE_DISTANCE = 3.0

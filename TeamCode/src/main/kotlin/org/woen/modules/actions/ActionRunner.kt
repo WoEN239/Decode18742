@@ -14,10 +14,18 @@ import org.woen.modules.StartSortingEvent
 import org.woen.modules.StopEatEvent
 import org.woen.modules.StorageState
 import org.woen.modules.TurretState
+import org.woen.modules.drivetrain.DriveSegment
+import org.woen.modules.drivetrain.GetRunnerAtTargetAngleEvent
+import org.woen.modules.drivetrain.GetRunnerAtTargetPositionEvent
 import org.woen.modules.drivetrain.GetRunnerIsFinishedEvent
 import org.woen.modules.drivetrain.ITrajectorySegment
+import org.woen.modules.drivetrain.MoveSegment
 import org.woen.modules.drivetrain.RunSegmentsEvent
+import org.woen.modules.drivetrain.TurnSegment
 import org.woen.utils.events.EventBus
+import org.woen.utils.units.Angle
+import org.woen.utils.units.Orientation
+import org.woen.utils.units.Vec2
 
 interface IAction {
     fun start() {}
@@ -27,12 +35,30 @@ interface IAction {
     fun isEnd(): Boolean = true
 }
 
-class DriveAction(val eventBus: EventBus, vararg val segments: ITrajectorySegment) : IAction {
+class DriveAction(val eventBus: EventBus, vararg segments: ITrajectorySegment) : IAction {
+    val segments = segments.toMutableList()
+
     override fun start() {
-        eventBus.invoke(RunSegmentsEvent(Array(segments.size) { segments[it] }))
+        eventBus.invoke(RunSegmentsEvent(arrayOf(segments.first())))
     }
 
-    override fun isEnd() = eventBus.invoke(GetRunnerIsFinishedEvent()).finished
+    override fun update() {
+        if(segments.isNotEmpty()) {
+            val first = segments.first()
+
+            val atTargetPosition = eventBus.invoke(GetRunnerAtTargetPositionEvent()).atTarget
+            val atTargetAngle = eventBus.invoke(GetRunnerAtTargetAngleEvent()).atTarget
+
+            if ((first is MoveSegment && atTargetPosition) || (first is TurnSegment && atTargetAngle) || (first is DriveSegment && atTargetPosition && atTargetAngle)) {
+                segments.removeAt(0)
+
+                if(segments.isNotEmpty())
+                    eventBus.invoke(RunSegmentsEvent(arrayOf(segments.first())))
+            }
+        }
+    }
+
+    override fun isEnd() = segments.isEmpty()
 }
 
 class WaitAction(val time: Double) : IAction {
@@ -88,12 +114,15 @@ class ParallelActions(
 }
 
 class ShootAction(private val _eventBus: EventBus) : IAction {
+    val timer = ElapsedTime()
+
     override fun start() {
         _eventBus.invoke(ShootEvent())
+        timer.reset()
     }
 
-    override fun isEnd() =
-        _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+    override fun isEnd() = timer.seconds() > 0.4
+        //_eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
 }
 
 class SlowShootAction(private val _eventBus: EventBus) : IAction {
@@ -139,7 +168,6 @@ class TurretStateSwapAction(private val _eventBus: EventBus, private val _state:
 }
 
 class RunActionsEvent(val actions: List<IAction>)
-class GetIsActionsFinishedEvent(var finished: Boolean = true)
 
 fun attachActionRunner(collector: Collector) {
     val actions = ArrayDeque<IAction>()
