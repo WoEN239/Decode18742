@@ -43,7 +43,7 @@ class DriveAction(val eventBus: EventBus, vararg segments: ITrajectorySegment) :
     }
 
     override fun update() {
-        if(segments.isNotEmpty()) {
+        if (segments.isNotEmpty()) {
             val first = segments.first()
 
             val atTargetPosition = eventBus.invoke(GetRunnerAtTargetPositionEvent()).atTarget
@@ -52,7 +52,7 @@ class DriveAction(val eventBus: EventBus, vararg segments: ITrajectorySegment) :
             if ((first is MoveSegment && atTargetPosition) || (first is TurnSegment && atTargetAngle) || (first is DriveSegment && atTargetPosition && atTargetAngle)) {
                 segments.removeAt(0)
 
-                if(segments.isNotEmpty())
+                if (segments.isNotEmpty())
                     eventBus.invoke(RunSegmentsEvent(arrayOf(segments.first())))
             }
         }
@@ -122,7 +122,7 @@ class ShootAction(private val _eventBus: EventBus) : IAction {
     }
 
     override fun isEnd() = timer.seconds() > 0.4
-        //_eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+    //_eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
 }
 
 class SlowShootAction(private val _eventBus: EventBus) : IAction {

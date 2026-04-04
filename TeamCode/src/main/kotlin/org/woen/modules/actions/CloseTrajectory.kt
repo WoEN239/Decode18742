@@ -29,8 +29,8 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
                 arrayListOf(
                     DriveAction(
                         eventBus,
-                        MoveSegment(Vec2(0.306, -0.409 * colorK), isFlyingPoint = true),
-                        MoveSegment(Vec2(0.247, -0.615 * colorK), isFlyingPoint = true)
+                        MoveSegment(Vec2(0.306, -0.409 * colorK)),
+                        MoveSegment(Vec2(0.247, -0.615 * colorK))
                     )
                 )
             ), ParallelActions.ExitType.AND
@@ -41,30 +41,52 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
         StopEatAction(eventBus),
         DriveAction(
             eventBus,
-            MoveSegment(Vec2(0.283, -1.228 * colorK), isFlyingPoint = true),
-            MoveSegment(Vec2(0.101, -1.226 * colorK), isFlyingPoint = true),
+            MoveSegment(Vec2(0.283, -1.228 * colorK)),
+            MoveSegment(Vec2(0.101, -1.226 * colorK)),
             MoveSegment(Vec2(0.096, -1.440 * colorK))
         ),
         WaitAction(0.5),
-        DriveAction(eventBus, DriveSegment(Orientation(Vec2(0.046, -0.805 * colorK), Angle.ofDeg(-45.0 * colorK))),
-            DriveSegment(Orientation(shootPosition, Angle.ZERO))),
+        DriveAction(
+            eventBus,
+            DriveSegment(Orientation(Vec2(0.046, -0.805 * colorK), Angle.ofDeg(-45.0 * colorK))),
+            DriveSegment(Orientation(shootPosition, Angle.ZERO))
+        ),
         ShootAction(eventBus)
     )
 
     repeat(3) {
         actions.addAll(
             arrayListOf(
-                DriveAction(eventBus, MoveSegment(Vec2(-0.036, -0.697 * colorK), isFlyingPoint = true)),
+                DriveAction(
+                    eventBus,
+                    MoveSegment(Vec2(-0.036, -0.697 * colorK))
+                ),
                 StartEatAction(eventBus),
-                DriveAction(eventBus, DriveSegment(Orientation(Vec2(0.301, -1.515 * colorK), Angle.ofDeg(-126.914 * colorK)))),
+                DriveAction(
+                    eventBus,
+                    DriveSegment(
+                        Orientation(
+                            Vec2(0.301, -1.515 * colorK),
+                            Angle.ofDeg(-126.914 * colorK)
+                        )
+                    )
+                ),
                 WaitAction(2.0),
                 StopEatAction(eventBus),
-                DriveAction(eventBus, DriveSegment(Orientation(Vec2(0.046, -0.805 * colorK), Angle.ofDeg(-45.0 * colorK))),
-                    DriveSegment(Orientation(shootPosition, Angle.ZERO))),
+                DriveAction(
+                    eventBus,
+                    DriveSegment(
+                        Orientation(
+                            Vec2(0.046, -0.805 * colorK),
+                            Angle.ofDeg(-45.0 * colorK)
+                        )
+                    ),
+                    DriveSegment(Orientation(shootPosition, Angle.ZERO))
+                ),
                 ShootAction(eventBus)
             )
         )
     }
 
-    return Array(actions.size){actions[it]}
+    return Array(actions.size) { actions[it] }
 }

@@ -21,7 +21,7 @@ internal object RUNNER_CONFIG {
     var POSITION_WINDOW = 0.15
 
     @JvmField
-    var ANGLE_WINDOW = toRadians(25.0)
+    var HEADING_WINDOW = toRadians(25.0)
 
     @JvmField
     var X_REGULATOR = RegulatorParameters(kP = 2.5)
@@ -41,9 +41,15 @@ interface ITrajectorySegment {
     fun targetHeading(): Angle?
     fun linearVelocityConstrain(): Double?
     fun headingVelocityConstrain(): Double?
+    fun positionWindow(): Double?
+    fun headingWindow(): Double?
 }
 
-class TurnSegment(private val endHeading: Angle, private val velocityConstrain: Double = -1.0) :
+class TurnSegment(
+    private val endHeading: Angle,
+    private val velocityConstrain: Double = -1.0,
+    private val headingWindow: Double? = null
+) :
     ITrajectorySegment {
     override fun targetPosition() = null
 
@@ -53,9 +59,17 @@ class TurnSegment(private val endHeading: Angle, private val velocityConstrain: 
 
     override fun headingVelocityConstrain() =
         if (velocityConstrain < 0.0) null else velocityConstrain
+
+    override fun positionWindow() = null
+
+    override fun headingWindow() = headingWindow
 }
 
-class MoveSegment(private val endPoint: Vec2, private val velocityConstrain: Double = -1.0, val isFlyingPoint: Boolean = false) :
+class MoveSegment(
+    private val endPoint: Vec2,
+    private val velocityConstrain: Double = -1.0,
+    private val positionWindow: Double? = null
+) :
     ITrajectorySegment {
     override fun targetPosition() = endPoint
 
@@ -65,12 +79,18 @@ class MoveSegment(private val endPoint: Vec2, private val velocityConstrain: Dou
         if (velocityConstrain < 0.0) null else velocityConstrain
 
     override fun headingVelocityConstrain() = null
+
+    override fun positionWindow() = positionWindow
+
+    override fun headingWindow() = null
 }
 
 class DriveSegment(
     private val endOrientation: Orientation,
     private val linearVelocityConstrain: Double = -1.0,
-    private val headingVelocityConstrain: Double = -1.0
+    private val headingVelocityConstrain: Double = -1.0,
+    private val positionWindow: Double? = null,
+    private val headingWindow: Double? = null
 ) : ITrajectorySegment {
     override fun targetPosition() = endOrientation.pos
 
@@ -81,6 +101,10 @@ class DriveSegment(
 
     override fun headingVelocityConstrain() =
         if (headingVelocityConstrain < 0.0) null else headingVelocityConstrain
+
+    override fun positionWindow() = positionWindow
+
+    override fun headingWindow() = headingWindow
 }
 
 class RunSegmentsEvent(val segments: Array<ITrajectorySegment>)
@@ -94,9 +118,10 @@ fun attachRunner(collector: Collector) {
     var targetOrientation = GameSettings.startOrientation.startOrientation
     var atTargetPosition = true
     var atTargetRotation = true
-    var isFlyingPoint = false
     val targetPositionTimer = ElapsedTime()
     val targetRotationTimer = ElapsedTime()
+    var positionWindow = RUNNER_CONFIG.POSITION_WINDOW
+    var headingWindow = RUNNER_CONFIG.HEADING_WINDOW
 
     var linearVelocityConstrain: Double? = null
     var headingVelocityConstrain: Double? = null
@@ -112,35 +137,33 @@ fun attachRunner(collector: Collector) {
     }
 
     fun updateTarget() {
-        if(segmentsQueue.isNotEmpty()) {
+        if (segmentsQueue.isNotEmpty()) {
             val first = segmentsQueue.first()
 
-            if(first is TurnSegment && atTargetRotation){
+            if (first is TurnSegment && atTargetRotation) {
                 atTargetRotation = false
-                isFlyingPoint = false
 
                 segmentsQueue.removeFirst()
 
                 targetOrientation = Orientation(targetOrientation.pos, first.targetHeading())
                 headingVelocityConstrain = first.headingVelocityConstrain()
+                headingWindow = first.headingWindow() ?: RUNNER_CONFIG.HEADING_WINDOW
             }
 
-            if(first is MoveSegment && atTargetPosition){
+            if (first is MoveSegment && atTargetPosition) {
                 atTargetPosition = false
 
                 segmentsQueue.removeFirst()
 
                 targetOrientation = Orientation(first.targetPosition(), targetOrientation.angl)
                 linearVelocityConstrain = first.linearVelocityConstrain()
-
-                isFlyingPoint = first.isFlyingPoint
+                positionWindow = first.positionWindow() ?: RUNNER_CONFIG.POSITION_WINDOW
             }
 
 
-            if(first is DriveSegment && atTargetPosition && atTargetRotation){
+            if (first is DriveSegment && atTargetPosition && atTargetRotation) {
                 atTargetRotation = false
                 atTargetPosition = false
-                isFlyingPoint = false
 
                 segmentsQueue.removeFirst()
 
@@ -148,6 +171,9 @@ fun attachRunner(collector: Collector) {
 
                 linearVelocityConstrain = first.linearVelocityConstrain()
                 headingVelocityConstrain = first.headingVelocityConstrain()
+
+                headingWindow = first.headingWindow() ?: RUNNER_CONFIG.HEADING_WINDOW
+                positionWindow = first.positionWindow() ?: RUNNER_CONFIG.POSITION_WINDOW
             }
         }
     }
@@ -162,11 +188,11 @@ fun attachRunner(collector: Collector) {
         it.finished = segmentsQueue.isEmpty() && atTargetPosition && atTargetRotation
     }
 
-    collector.eventBus.subscribe(GetRunnerAtTargetAngleEvent::class){
+    collector.eventBus.subscribe(GetRunnerAtTargetAngleEvent::class) {
         it.atTarget = atTargetRotation
     }
 
-    collector.eventBus.subscribe(GetRunnerAtTargetPositionEvent::class){
+    collector.eventBus.subscribe(GetRunnerAtTargetPositionEvent::class) {
         it.atTarget = atTargetPosition
     }
 
@@ -188,9 +214,6 @@ fun attachRunner(collector: Collector) {
                 linearVelocity = Vec2(it, 0.0).setRot(linearVelocity.rot())
         }
 
-        if(isFlyingPoint)
-            linearVelocity = Vec2(3.0, 0.0).setRot(linearVelocity.rot())
-
         headingVelocityConstrain?.let {
             if (headingVelocity.absoluteValue > it)
                 headingVelocity = it.withSign(headingVelocity.sign)
@@ -198,16 +221,16 @@ fun attachRunner(collector: Collector) {
 
         collector.eventBus.invoke(SetDriveVelocityEvent(linearVelocity, headingVelocity))
 
-        if (err.pos.length() < RUNNER_CONFIG.POSITION_WINDOW)
+        if (err.pos.length() < positionWindow)
             atTargetPosition = targetPositionTimer.seconds() > RUNNER_CONFIG.TARGET_TIMER
         else {
             atTargetPosition = false
             targetPositionTimer.reset()
         }
 
-        if(abs(err.angle) < RUNNER_CONFIG.ANGLE_WINDOW)
+        if (abs(err.angle) < headingWindow)
             atTargetRotation = targetRotationTimer.seconds() > RUNNER_CONFIG.TARGET_TIMER
-        else{
+        else {
             atTargetRotation = false
             targetRotationTimer.reset()
         }
