@@ -9,7 +9,9 @@ import org.woen.utils.debug.LogManager
 import org.woen.collector.Collector
 import org.woen.collector.RunMode
 import org.woen.scoringSystem.storage.Storage
+import org.woen.scoringSystem.misc.DynamicPattern
 
+import org.woen.enumerators.Ball
 import org.woen.enumerators.StockPattern
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.phases.SortingPhase
@@ -29,11 +31,27 @@ import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-import org.woen.enumerators.Ball
-import org.woen.scoringSystem.misc.DynamicPattern
+
 
 
 data class IsEndGameEvent(var isEndGame: Boolean = false)
+
+
+enum class LazyIntakeTask
+{
+    STOP,
+    START,
+    SWITCH
+}
+
+data class SMC_TryUpdateLazyIntakeEvent(
+    var intakeTask: LazyIntakeTask,
+    var startingResult: Boolean = false)
+data class SMC_TryStartSortingEvent(
+    var swapCount: Int,
+    var startingResult: Boolean = false)
+data class SMC_TryStartShootingEvent(
+    var startingResult: Boolean = false)
 
 
 
@@ -60,7 +78,10 @@ class ScoringModulesConnector
 
         subscribeToOdometry()
         subscribeToCameraPattern()
+
         subscribeToIsEndGameEvent()
+        subscribeToOutsideControlEvents()
+
         subscribeToDriverShootingGamepad1()
         subscribeToDriverMiscellaneousGamepad1()
         subscribeToHelperGamepad2PatternRecalibration()
@@ -73,6 +94,7 @@ class ScoringModulesConnector
             update()
         }
     }
+
 
 
     private fun subscribeToOdometry()
@@ -108,6 +130,21 @@ class ScoringModulesConnector
             it.isEndGame = isEndGame
         }
     }
+    private fun subscribeToOutsideControlEvents()
+    {
+        _cms.collector.eventBus.subscribe(SMC_TryUpdateLazyIntakeEvent::class)
+        {
+            it.startingResult = tryUpdateLazyIntake(it.intakeTask)
+        }
+        _cms.collector.eventBus.subscribe(SMC_TryStartSortingEvent::class)
+        {
+            it.startingResult = tryStartSorting(it.swapCount)
+        }
+        _cms.collector.eventBus.subscribe(SMC_TryStartShootingEvent::class)
+        {
+            it.startingResult = tryStartSorting(0)
+        }
+    }
     private fun subscribeToDriverShootingGamepad1()
     {
         if (!CONTROLS.HOLD_FOR_MANUAL_SHOOTING)
@@ -118,11 +155,7 @@ class ScoringModulesConnector
                         buttonSuppler = { it.right_bumper },
                         activationState = true,
                         onTriggered = {
-                            if (_cms.shootingPhase.isInactive()
-                                && canStartManualShooting())
-                                logM.logMd(_storage.streamDrumPhase1()
-                                    .toString(), Debug.START)
-                            else logStartingError("ManualShooting")
+                            tryStartShooting(laterGamepadHold = false)
                         }
             )   )   )
 
@@ -136,13 +169,7 @@ class ScoringModulesConnector
                         buttonSuppler = { it.right_bumper },
                         activationState = true,
                         onTriggered = {
-                            if (_cms.shootingPhase.isInactive()
-                                && canStartManualShooting())
-                                logM.logMd(
-                                    _storage.streamDrumPhase1(
-                                        laterGamepadHold = true)
-                                        .toString(), Debug.START)
-                            else logStartingError("ManualShooting")
+                            tryStartShooting(laterGamepadHold = true)
                         }
             )   )   )
 
@@ -152,10 +179,10 @@ class ScoringModulesConnector
                         buttonSuppler = { it.right_bumper },
                         activationState = false,
                         onTriggered = {
-                            if (_cms.sortingPhase.isInactive() &&
-                                _cms.shootingPhase.isGamepadHoldPhase2())
+                            if (_cms.sortingPhase.isInactive())
                             {
-                                if (CONTROLS.USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT)
+                                if (_cms.shootingPhase.isGamepadHoldPhase2() &&
+                                    CONTROLS.USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT)
                                     _storage.cells.hwSortingM.streamDrumPhase3()
                                 else _cms.shootingPhase.startPhase4()
                         }   }
@@ -204,28 +231,7 @@ class ScoringModulesConnector
                         ClickGamepadListener(
                             { it.left_bumper },
                             {
-                                if (_cms.sortingPhase.isInactive() &&
-                                    _cms.shootingPhase.isInactive() &&
-                                    _cms.calibrationPhase.isInactive())
-                                {
-                                    if (_cms.lazyIntakeIsActive)
-                                    {
-                                        logM.logMd("Stopped LazyIntake, reversing brush time", Debug.END)
-                                        _storage.cells.hwSortingM.hwMotors.stopBelts()
-                                        _storage.cells.hwSortingM.startBrushTime(
-                                            forward = false, Delay.MS.BRUSH_REVERSE)
-                                    }
-                                    else
-                                    {
-                                        logM.logMd("Started LazyIntake", Debug.START)
-                                        _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
-                                        if (_cms.brushStatus.isIdle())
-                                            _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
-                                    }
-
-                                    _cms.lazyIntakeIsActive = !_cms.lazyIntakeIsActive
-                                }
-                                else logStartingError("LazyIntake")
+                                tryUpdateLazyIntake(LazyIntakeTask.SWITCH)
                             }
                 )   )   )
             }
@@ -237,18 +243,7 @@ class ScoringModulesConnector
                             buttonSuppler = { it.left_bumper },
                             activationState = true,
                             onTriggered = {
-                                if (_cms.sortingPhase.isInactive() &&
-                                    _cms.shootingPhase.isInactive() &&
-                                    _cms.calibrationPhase.isInactive())
-                                {
-                                    logM.logMd("Started LazyIntake", Debug.START)
-                                    _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
-                                    if (_cms.brushStatus.isIdle())
-                                        _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
-
-                                    _cms.lazyIntakeIsActive = true
-                                }
-                                else logStartingError("LazyIntake")
+                                tryUpdateLazyIntake(LazyIntakeTask.START)
                             }
                 )   )   )
 
@@ -258,16 +253,7 @@ class ScoringModulesConnector
                             buttonSuppler = { it.left_bumper },
                             activationState = false,
                             onTriggered = {
-                                if (_cms.sortingPhase.isInactive() &&
-                                    _cms.shootingPhase.isInactive() &&
-                                    _cms.calibrationPhase.isInactive())
-                                {
-                                    logM.logMd("Stopped LazyIntake, reversing brush time", Debug.END)
-                                    _storage.cells.hwSortingM.hwMotors.stopBelts()
-                                    _storage.cells.hwSortingM.startBrushTime(
-                                        forward = false, Delay.MS.BRUSH_REVERSE)
-                                }
-                                else logStartingError("LazyIntake")
+                                tryUpdateLazyIntake(LazyIntakeTask.STOP)
                             }
                 )   )   )
             }
@@ -315,13 +301,7 @@ class ScoringModulesConnector
                     ClickGamepadListener(
                         { it.right_trigger > 0.5 },
                         {
-                            if (_cms.shootingPhase.isInactive() &&
-                                _cms.sortingPhase.isInactive() &&
-                                _cms.calibrationPhase.isInactive())
-                                _storage.sortingPhase1(
-                                    CONTROLS.SWAPS_PER_MANUAL_BUTTON_SWITCH)
-                            else logStartingError("ManualSortingSwap " +
-                                    "(${CONTROLS.SWAPS_PER_MANUAL_BUTTON_SWITCH})")
+                            tryStartSorting(CONTROLS.SWAPS_PER_MANUAL_BUTTON_SWITCH)
                         }
             )   )   )
 
@@ -430,6 +410,72 @@ class ScoringModulesConnector
     }
 
 
+    fun updateSorting()
+    {
+        when (_cms.sortingPhase.name)
+        {
+            SortingPhase.Name.P1_CLOSING_TURRET_GATE ->
+                if (_cms.turretGateStatus.isClosed())
+                    _storage.sortingPhaseRealignment()
+
+            SortingPhase.Name.P2_REALIGN_STORAGE ->
+                if (_cms.beltsStatus.notOnTime())
+                    _storage.sortingPhase3()
+
+            SortingPhase.Name.P3_REALIGNING_UPWARDS ->
+                if (_cms.beltsStatus.notOnTime())
+                    _storage.sortingPhase4()
+
+            SortingPhase.Name.P4_REALIGNING_DOWNWARDS ->
+                if (_cms.beltsStatus.isIdle())
+                    _storage.sortingPhase5()
+
+            SortingPhase.Name.P5_OPENING_GATE ->
+                if (_cms.gateStatus.isOpened())
+                    _storage.sortingPhase6()
+
+            SortingPhase.Name.P6_OPENING_PUSH ->
+                if (_cms.pushStatus.isOpened())
+                    _storage.sortingPhase7(
+                        _gameTimer.milliseconds())
+
+            SortingPhase.Name.P7_WAIT_SOME_TIME ->
+                if (_gameTimer.milliseconds() -
+                    Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 >
+                    _storage.cells.hwSortingM.timeSinceLastShotUpdateMs)
+                    _storage.sortingPhase8()
+
+            SortingPhase.Name.P8_CLOSING_GATE_AND_PUSH ->
+                if (_cms.gateStatus.isClosed() &&
+                    _cms.pushStatus.isClosed())
+                    _storage.sortingPhaseRealignment(
+                        Delay.MS.PUSH.HALF)
+
+            SortingPhase.Name.P9_REALIGN_STORAGE ->
+                if (_cms.beltsStatus.isIdle())
+                {
+                    _cms.sortingPhase.remainingRotations--
+                    if  (_cms.sortingPhase.remainingRotations > 0)
+                        _cms.sortingPhase.startPhase1()
+                    else
+                    {
+                        _cms.sortingPhase.setInactive()
+
+//                        if (canStartAutoShooting())
+                        if (canStartManualShooting())
+                        {
+                            _cms.shootingPhase.setInactive()
+                            logM.logMd(
+                                _storage.streamDrumPhase1()
+                                    .toString(), Debug.START)
+                        }
+                        else _cms.shootingPhase.setInactive()
+                    }
+                }
+
+            SortingPhase.Name.NOT_ACTIVE -> { }
+        }
+    }
     fun updateShooting()
     {
         when (_cms.shootingPhase.name)
@@ -503,72 +549,6 @@ class ScoringModulesConnector
                     _storage.streamDrumPhase4()
         }
     }
-    fun updateSorting()
-    {
-        when (_cms.sortingPhase.name)
-        {
-            SortingPhase.Name.P1_CLOSING_TURRET_GATE ->
-               if (_cms.turretGateStatus.isClosed())
-                   _storage.sortingPhaseRealignment()
-
-            SortingPhase.Name.P2_REALIGN_STORAGE ->
-                if (_cms.beltsStatus.notOnTime())
-                    _storage.sortingPhase3()
-
-            SortingPhase.Name.P3_REALIGNING_UPWARDS ->
-                if (_cms.beltsStatus.notOnTime())
-                    _storage.sortingPhase4()
-
-            SortingPhase.Name.P4_REALIGNING_DOWNWARDS ->
-                if (_cms.beltsStatus.isIdle())
-                    _storage.sortingPhase5()
-
-            SortingPhase.Name.P5_OPENING_GATE ->
-                if (_cms.gateStatus.isOpened())
-                    _storage.sortingPhase6()
-
-            SortingPhase.Name.P6_OPENING_PUSH ->
-                if (_cms.pushStatus.isOpened())
-                    _storage.sortingPhase7(
-                        _gameTimer.milliseconds())
-
-            SortingPhase.Name.P7_WAIT_SOME_TIME ->
-                if (_gameTimer.milliseconds() -
-                    Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 >
-                    _storage.cells.hwSortingM.timeSinceLastShotUpdateMs)
-                    _storage.sortingPhase8()
-
-            SortingPhase.Name.P8_CLOSING_GATE_AND_PUSH ->
-                if (_cms.gateStatus.isClosed() &&
-                    _cms.pushStatus.isClosed())
-                    _storage.sortingPhaseRealignment(
-                        Delay.MS.PUSH.HALF)
-
-            SortingPhase.Name.P9_REALIGN_STORAGE ->
-                if (_cms.beltsStatus.isIdle())
-                {
-                    _cms.sortingPhase.remainingRotations--
-                    if  (_cms.sortingPhase.remainingRotations > 0)
-                         _cms.sortingPhase.startPhase1()
-                    else
-                    {
-                        _cms.sortingPhase.setInactive()
-
-//                        if (canStartAutoShooting())
-                        if (canStartManualShooting())
-                        {
-                            _cms.shootingPhase.setInactive()
-                            logM.logMd(
-                                _storage.streamDrumPhase1()
-                                    .toString(), Debug.START)
-                        }
-                        else _cms.shootingPhase.setInactive()
-                    }
-                }
-
-            SortingPhase.Name.NOT_ACTIVE -> { }
-        }
-    }
     fun updateCalibrationPhase()
     {
         if (_cms.calibrationPhase.isCalibrationPhase2() &&
@@ -581,6 +561,70 @@ class ScoringModulesConnector
         if (_cms.calibrationPhase.isCalibrationPhase3() &&
             _cms.beltsStatus.notOnTime())
             _storage.finishCalibration()
+    }
+
+
+
+    private fun hardStartLazyIntake(intakeTaskName: String)
+    {
+        _cms.lazyIntakeIsActive = true
+        logM.logMd("($intakeTaskName) Started LazyIntake", Debug.START)
+
+        _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+        if (_cms.brushStatus.isIdle())
+            _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+    }
+    private fun hardStopLazyIntake(intakeTaskName: String)
+    {
+        _cms.lazyIntakeIsActive = false
+        logM.logMd("($intakeTaskName) Stopped LazyIntake", Debug.END)
+
+        _storage.cells.hwSortingM.hwMotors.stopBelts()
+        _storage.cells.hwSortingM.startBrushTime(
+            forward = false, Delay.MS.BRUSH_REVERSE)
+    }
+    private fun tryUpdateLazyIntake(intakeTask: LazyIntakeTask): Boolean
+    {
+        val canManage = _cms.sortingPhase.isInactive() &&
+            _cms.shootingPhase.isInactive() &&
+            _cms.calibrationPhase.isInactive()
+
+
+        if (canManage) when (intakeTask)
+        {
+            LazyIntakeTask.STOP   -> hardStartLazyIntake("Start")
+            LazyIntakeTask.START  -> hardStopLazyIntake("Stop")
+            LazyIntakeTask.SWITCH ->
+            {
+                if (_cms.lazyIntakeIsActive)
+                     hardStopLazyIntake("Switch")
+                else hardStartLazyIntake("Switch")
+            }
+        }
+        else logStartingError("LazyIntake")
+
+        return canManage
+    }
+
+    private fun tryStartSorting(swapCount: Int): Boolean
+    {
+        val canStart = _cms.sortingPhase.isInactive()  &&
+                _cms.shootingPhase.isInactive() &&
+                _cms.calibrationPhase.isInactive()
+
+        if (canStart) _storage.sortingPhase1(swapCount)
+        else logStartingError("Gamepad/ExtEvent SortingSwaps (${swapCount})")
+
+        return canStart
+    }
+    private fun tryStartShooting(laterGamepadHold: Boolean = false): Boolean
+    {
+        val canStart = _cms.shootingPhase.isInactive() && canStartManualShooting()
+
+        if (canStart) logM.logMd(_storage.streamDrumPhase1(laterGamepadHold).toString(), Debug.START)
+        else logStartingError("Gamepad/ExtEvent Shooting")
+
+        return canStart
     }
 
 
