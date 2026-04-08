@@ -22,6 +22,10 @@ import org.woen.modules.drivetrain.ITrajectorySegment
 import org.woen.modules.drivetrain.MoveSegment
 import org.woen.modules.drivetrain.RunSegmentsEvent
 import org.woen.modules.drivetrain.TurnSegment
+import org.woen.scoringSystem.LazyIntakeTask
+import org.woen.scoringSystem.SMC_ShootingStatus
+import org.woen.scoringSystem.SMC_TryStartShootingEvent
+import org.woen.scoringSystem.SMC_TryUpdateLazyIntakeEvent
 import org.woen.utils.events.EventBus
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Orientation
@@ -117,12 +121,14 @@ class ShootAction(private val _eventBus: EventBus) : IAction {
     val timer = ElapsedTime()
 
     override fun start() {
-        _eventBus.invoke(ShootEvent())
+//        _eventBus.invoke(ShootEvent())
+        _eventBus.invoke(SMC_TryStartShootingEvent())
         timer.reset()
     }
 
     override fun isEnd() =
-    _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+//    _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+        _eventBus.invoke(SMC_ShootingStatus().isFinished)
 }
 
 class SlowShootAction(private val _eventBus: EventBus) : IAction {
@@ -136,13 +142,15 @@ class SlowShootAction(private val _eventBus: EventBus) : IAction {
 
 class StartEatAction(private val _eventBus: EventBus) : IAction {
     override fun start() {
-        _eventBus.invoke(StartEatEvent())
+//        _eventBus.invoke(StartEatEvent())
+        _eventBus.invoke(SMC_TryUpdateLazyIntakeEvent(LazyIntakeTask.START))
     }
 }
 
 class StopEatAction(private val _eventBus: EventBus) : IAction {
     override fun start() {
-        _eventBus.invoke(StopEatEvent())
+//        _eventBus.invoke(StopEatEvent())
+        _eventBus.invoke(SMC_TryUpdateLazyIntakeEvent(LazyIntakeTask.STOP))
     }
 }
 

@@ -21,6 +21,7 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
 
     actions.addAll(
         arrayOf(
+            WaitAction(1.0),
             DriveAction(eventBus, MoveSegment(shootPosition)),
             ShootAction(eventBus),
             StartEatAction(eventBus),
@@ -76,33 +77,43 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
             WaitAction(1.5),
             DriveAction(eventBus, DriveSegment(Orientation(shootPosition, Angle.ZERO))),
             ShootAction(eventBus),
+            DriveAction(
+                    eventBus,
+                    DriveSegment(Orientation(Vec2(-0.1, -1.2 * colorK), Angle.ofDeg(-90.0 * colorK)), positionWindow = 0.4),
+                MoveSegment(Vec2(-0.1, -1.45 * colorK))
+                ),
+            WaitAction(2.5),
+            DriveAction(
+                eventBus,
+                MoveSegment(Vec2(-0.1, -1.2 * colorK))
+            ),
         )
     )
-
-    repeat(3) {
-        actions.addAll(
-            arrayOf(
-                StartEatAction(eventBus),
-                DriveAction(
-                    eventBus,
-                    DriveSegment(
-                        Orientation(Vec2(0.264, -1.137 * colorK), Angle.ofDeg(-129.679 * colorK)),
-                        positionWindow = 0.4
-                    ),
-                    MoveSegment(Vec2(0.264, -1.597 * colorK))
-                ),
-                WaitAction(2.0),
-                DriveAction(
-                    eventBus,
-                    DriveSegment(Orientation(Vec2(0.0, -1.45 * colorK), Angle.ofDeg(-90.0 * colorK)))
-                ),
-                WaitAction(1.0),
-                StopEatAction(eventBus),
-                DriveAction(eventBus, DriveSegment(Orientation(shootPosition, Angle.ZERO))),
-                ShootAction(eventBus),
-            )
-        )
-    }
+//
+//    repeat(3) {
+//        actions.addAll(
+//            arrayOf(
+//                StartEatAction(eventBus),
+//                DriveAction(
+//                    eventBus,
+//                    DriveSegment(
+//                        Orientation(Vec2(0.264, -1.137 * colorK), Angle.ofDeg(-129.679 * colorK)),
+//                        positionWindow = 0.4
+//                    ),
+//                    MoveSegment(Vec2(0.264, -1.597 * colorK))
+//                ),
+//                WaitAction(2.0),
+//                DriveAction(
+//                    eventBus,
+//                    DriveSegment(Orientation(Vec2(0.0, -1.45 * colorK), Angle.ofDeg(-90.0 * colorK)))
+//                ),
+//                WaitAction(1.0),
+//                StopEatAction(eventBus),
+//                DriveAction(eventBus, DriveSegment(Orientation(shootPosition, Angle.ZERO))),
+//                ShootAction(eventBus),
+//            )
+//        )
+//    }
 
     return Array(actions.size) { actions[it] }
 }

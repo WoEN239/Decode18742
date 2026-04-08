@@ -153,7 +153,7 @@ class ScoringModulesConnector
         }
         _cms.collector.eventBus.subscribe(SMC_TryStartShootingEvent::class)
         {
-            it.startingResult = tryStartSorting(0)
+            it.startingResult = tryStartShooting(laterGamepadHold = false)
         }
     }
     private fun subscribeToGiveStatusInfoEvents()
