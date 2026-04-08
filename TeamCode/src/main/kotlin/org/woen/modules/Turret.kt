@@ -55,7 +55,7 @@ internal object TURRET_CONFIG {
     var PULLEY_TICKS_REVOLUTION = 28.0
 
     @JvmField
-    var PULLEY_REGULATOR = PIDFCoefficients(195.0, 11.0, 0.0, 15.5)
+    var PULLEY_REGULATOR = PIDFCoefficients(195.0, 9.0, 0.0, 15.5)
 
     @JvmField
     var PULLEY_RATION = 37.0 / 33.0
@@ -175,7 +175,7 @@ fun attachTurret(collector: Collector) {
         val targetPulleyVelocity: Double
         val anglePosition: Double
 
-        if (collector.runMode == RunMode.MANUAL || GameSettings.startOrientation.gamePosition == GamePosition.FAR) {
+//        if (collector.runMode == RunMode.MANUAL || GameSettings.startOrientation.gamePosition == GamePosition.FAR) {
             if (odometry.orientation.x < 0.5) {
                 l = clamp(l, TURRET_CONFIG.CLOSE_DISTANCE, TURRET_CONFIG.SHORT_FAR_DISTANCE)
 
@@ -209,10 +209,10 @@ fun attachTurret(collector: Collector) {
                     1.0
                 ) * (TURRET_CONFIG.FAR_ANGLE_POSITION - TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION)
             }
-        } else {
-            anglePosition = 0.3//TURRET_CONFIG.ANGLE_POSITION// 0.3
-            targetPulleyVelocity = 10.7//TURRET_CONFIG.PULLEY_VELOCITY//10.4
-        }
+//        } else {
+//            anglePosition = 0.3//TURRET_CONFIG.ANGLE_POSITION// 0.3
+//            targetPulleyVelocity = 10.7//TURRET_CONFIG.PULLEY_VELOCITY//10.4
+//        }
 
         pulleyMotor.velocity =
             targetPulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION / TURRET_CONFIG.PULLEY_RATION

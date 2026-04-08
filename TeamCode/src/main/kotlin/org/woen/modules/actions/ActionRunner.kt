@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
 import org.woen.collector.GamePosition
 import org.woen.collector.GameSettings
+import org.woen.collector.StartOrientation
 import org.woen.modules.BallColor
 import org.woen.modules.GetCurrentStorageStateEvent
 import org.woen.modules.SetTurretStateEvent
@@ -17,7 +18,6 @@ import org.woen.modules.TurretState
 import org.woen.modules.drivetrain.DriveSegment
 import org.woen.modules.drivetrain.GetRunnerAtTargetAngleEvent
 import org.woen.modules.drivetrain.GetRunnerAtTargetPositionEvent
-import org.woen.modules.drivetrain.GetRunnerIsFinishedEvent
 import org.woen.modules.drivetrain.ITrajectorySegment
 import org.woen.modules.drivetrain.MoveSegment
 import org.woen.modules.drivetrain.RunSegmentsEvent
@@ -121,8 +121,8 @@ class ShootAction(private val _eventBus: EventBus) : IAction {
         timer.reset()
     }
 
-    override fun isEnd() = timer.seconds() > 0.4
-    //_eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+    override fun isEnd() =
+    _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
 }
 
 class SlowShootAction(private val _eventBus: EventBus) : IAction {
@@ -174,10 +174,14 @@ fun attachActionRunner(collector: Collector) {
 
     var isOpModeStarted = false
 
-    if (GameSettings.startOrientation.gamePosition == GamePosition.CLOSE)
-        actions.addAll(closeTrajectory(collector))
-    else
-        actions.addAll(farTrajectory(collector))
+    if(GameSettings.startOrientation == StartOrientation.RED_ULT || GameSettings.startOrientation == StartOrientation.BLUE_ULT)
+        actions.addAll(ultTrajectory(collector))
+    else {
+        if (GameSettings.startOrientation.gamePosition == GamePosition.CLOSE)
+            actions.addAll(closeTrajectory(collector))
+        else
+            actions.addAll(farTrajectory(collector))
+    }
 
     collector.eventBus.subscribe(RunActionsEvent::class) {
         val actionsEmpty = actions.isEmpty()

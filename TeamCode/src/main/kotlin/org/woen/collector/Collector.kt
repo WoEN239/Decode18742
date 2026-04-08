@@ -60,7 +60,7 @@ class Collector {
         }
 
         attachLedFeedback(this)
-//        attachSimpleStorage(this)
-        ScoringModulesConnector(this)
+        attachSimpleStorage(this)
+//        ScoringModulesConnector(this)
     }
 }

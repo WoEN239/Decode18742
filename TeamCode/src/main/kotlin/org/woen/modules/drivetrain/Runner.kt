@@ -24,13 +24,13 @@ internal object RUNNER_CONFIG {
     var HEADING_WINDOW = toRadians(25.0)
 
     @JvmField
-    var X_REGULATOR = RegulatorParameters(kP = 2.5)
+    var X_REGULATOR = RegulatorParameters(kP = 3.0, kD = 0.1)
 
     @JvmField
-    var Y_REGULATOR = RegulatorParameters(kP = 2.5)
+    var Y_REGULATOR = RegulatorParameters(kP = 3.0, kD = 0.1)
 
     @JvmField
-    var H_REGULATOR = RegulatorParameters(kP = 5.0)
+    var H_REGULATOR = RegulatorParameters(kP = 6.0)
 
     @JvmField
     var TARGET_TIMER = 0.01
