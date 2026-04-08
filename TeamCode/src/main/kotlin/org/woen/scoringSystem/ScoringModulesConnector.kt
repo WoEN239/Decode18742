@@ -449,7 +449,7 @@ class ScoringModulesConnector
                 if (_cms.gateStatus.isClosed() &&
                     _cms.pushStatus.isClosed())
                     _storage.sortingPhaseRealignment(
-                        Delay.MS.PUSH.HALF)
+                        Delay.MS.PUSH.PART)
 
             SortingPhase.Name.P9_REALIGN_STORAGE ->
                 if (_cms.beltsStatus.isIdle())
@@ -462,7 +462,8 @@ class ScoringModulesConnector
                         _cms.sortingPhase.setInactive()
 
 //                        if (canStartAutoShooting())
-                        if (canStartManualShooting())
+                        if (canStartManualShooting() &&
+                            CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE)
                         {
                             _cms.shootingPhase.setInactive()
                             logM.logMd(
@@ -592,8 +593,8 @@ class ScoringModulesConnector
 
         if (canManage) when (intakeTask)
         {
-            LazyIntakeTask.STOP   -> hardStartLazyIntake("Start")
-            LazyIntakeTask.START  -> hardStopLazyIntake("Stop")
+            LazyIntakeTask.STOP   -> hardStopLazyIntake("Start")
+            LazyIntakeTask.START  -> hardStartLazyIntake("Stop")
             LazyIntakeTask.SWITCH ->
             {
                 if (_cms.lazyIntakeIsActive)

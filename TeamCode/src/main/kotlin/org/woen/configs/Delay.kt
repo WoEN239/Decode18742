@@ -25,7 +25,7 @@ internal object Delay
         internal object SHOOTING
         {
             @JvmField
-            var FAST_3: Long = 333
+            var FAST_3: Long = 350
 
             @JvmField
             var FAST_2: Long = 250
