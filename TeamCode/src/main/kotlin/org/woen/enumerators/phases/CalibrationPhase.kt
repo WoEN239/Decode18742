@@ -7,6 +7,7 @@ class CalibrationPhase
     private var _name : Name
 
     constructor(name: Name = Name.NOT_ACTIVE) { _name = name }
+    constructor(calibrationPhase: CalibrationPhase) { _name = calibrationPhase.name }
 
 
     enum class Name

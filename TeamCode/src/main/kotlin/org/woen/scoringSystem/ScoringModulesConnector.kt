@@ -31,7 +31,7 @@ import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-
+import org.woen.enumerators.phases.CalibrationPhase
 
 
 data class IsEndGameEvent(var isEndGame: Boolean = false)
@@ -52,6 +52,16 @@ data class SMC_TryStartSortingEvent(
     var startingResult: Boolean = false)
 data class SMC_TryStartShootingEvent(
     var startingResult: Boolean = false)
+
+data class SMC_ShootingStatus(
+    var isFinished: Boolean = false,
+    var phase: ShootingPhase = ShootingPhase())
+data class SMC_SortingStatus(
+    var isFinished: Boolean = false,
+    var phase: SortingPhase = SortingPhase())
+data class SMC_CalibrationStatus(
+    var isFinished: Boolean = false,
+    var phase: CalibrationPhase = CalibrationPhase())
 
 
 
@@ -81,6 +91,7 @@ class ScoringModulesConnector
 
         subscribeToIsEndGameEvent()
         subscribeToOutsideControlEvents()
+        subscribeToGiveStatusInfoEvents()
 
         subscribeToDriverShootingGamepad1()
         subscribeToDriverMiscellaneousGamepad1()
@@ -143,6 +154,24 @@ class ScoringModulesConnector
         _cms.collector.eventBus.subscribe(SMC_TryStartShootingEvent::class)
         {
             it.startingResult = tryStartSorting(0)
+        }
+    }
+    private fun subscribeToGiveStatusInfoEvents()
+    {
+        _cms.collector.eventBus.subscribe(SMC_SortingStatus::class)
+        {
+            it.phase = SortingPhase(_cms.sortingPhase)
+            it.isFinished = _cms.sortingPhase.isInactive()
+        }
+        _cms.collector.eventBus.subscribe(SMC_ShootingStatus::class)
+        {
+            it.phase = ShootingPhase(_cms.shootingPhase)
+            it.isFinished = _cms.shootingPhase.isInactive()
+        }
+        _cms.collector.eventBus.subscribe(SMC_CalibrationStatus::class)
+        {
+            it.phase = CalibrationPhase(_cms.calibrationPhase)
+            it.isFinished = _cms.calibrationPhase.isInactive()
         }
     }
     private fun subscribeToDriverShootingGamepad1()

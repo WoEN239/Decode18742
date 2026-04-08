@@ -13,6 +13,12 @@ class ShootingPhase
 
 
     constructor(name: Name = Name.NOT_ACTIVE) { _name = name }
+    constructor(shootingPhase: ShootingPhase)
+    {
+        _name = shootingPhase._name
+        ballCountForPhase1 = shootingPhase.ballCountForPhase1
+        shotBeltsVoltage = shootingPhase.shotBeltsVoltage
+    }
 
 
     enum class Name

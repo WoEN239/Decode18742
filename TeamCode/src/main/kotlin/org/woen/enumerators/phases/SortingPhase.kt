@@ -9,6 +9,11 @@ class SortingPhase
 
 
     constructor(name: Name = Name.NOT_ACTIVE) { _name = name }
+    constructor(sortingPhase: SortingPhase)
+    {
+        _name = sortingPhase._name
+        remainingRotations = sortingPhase.remainingRotations
+    }
 
 
     enum class Name
