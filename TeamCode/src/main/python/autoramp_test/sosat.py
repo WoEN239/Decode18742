@@ -5,12 +5,12 @@ import json
 class SoSAT:
     greenThreshLower = np.array([70,113,120])
     greenThreshUpper = np.array([90,255,249])
-    purpleThreshLower = np.array([106,0,0])
-    purpleThreshUpper = np.array([140,171,255])
+    purpleThreshLower = np.array([120,0,115])
+    purpleThreshUpper = np.array([140,180,255])
 
-    morphOpenVal = 6
-    morphErodeVal = 6
-    morphCloseVal = 6
+    morphOpenVal = 4
+    morphErodeVal = 4
+    morphCloseVal = 4
     contoursList = []
 
     def __init__(self,contoursPath="contours_data.json"):

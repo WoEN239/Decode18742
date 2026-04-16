@@ -5,10 +5,11 @@ import time
 cv2.namedWindow("Result",cv2.WINDOW_NORMAL)
 
 sosat = SoSAT()
-frame = cv2.imread("test_images/only_in_ramp/test5_6.png")
+frame = cv2.imread("test_images/only_in_ramp/test3_6.png")
 
 start = time.time()
-detectedArtefacts,masks = sosat.detectArtefacts(frame,0.3,1000,10,5,5,2,2,2)
+detectedArtefacts,masks = sosat.detectArtefacts(frame,1,500,5,4,5,1,1,4)
+
 end = time.time()
 
 processingTime = end-start

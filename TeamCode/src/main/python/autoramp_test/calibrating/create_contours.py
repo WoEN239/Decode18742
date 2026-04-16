@@ -78,22 +78,21 @@ for imageName in imageNames:
         elif isSelected and startCoords[0] is not None and endCoords[0] is not None:
             displayFrame = frame[startCoords[1]:endCoords[1],startCoords[0]:endCoords[0]]
             height, width = displayFrame.shape[:2]
-            masks = detector.colorMasks(displayFrame,25,4,10,2,2,4)
+            masks = detector.colorMasks(displayFrame,5,10,5,5,1,5)
 
+            all_contours = []
             for mask in masks:
-                displayFrame = frame[startCoords[1]:endCoords[1],startCoords[0]:endCoords[0]]
                 contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                
-                maxArea = 0
-                endContour = None
                 for contour in contours:
                     area = cv2.contourArea(contour)
-                    if area > maxArea and area > 1000 and not touches_edge(contour,width,height):
-                        maxArea = area
-                        endContour = contour
+                    if area > 500 and not touches_edge(contour, width, height):
+                        all_contours.append((area, contour))
 
-                if endContour is not None:
-                    contoursList.append(endContour.tolist())
+            all_contours.sort(key=lambda x: x[0], reverse=True)
+            top_contours = [contour for _, contour in all_contours[:10]]
+
+            for contour in top_contours:
+                contoursList.append(contour.tolist())
 
             print(f"CONTOURS ADDED: {len(contoursList)}")
             isSelected = False
