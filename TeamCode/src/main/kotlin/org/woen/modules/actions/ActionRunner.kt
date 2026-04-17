@@ -128,7 +128,7 @@ class ShootAction(private val _eventBus: EventBus) : IAction {
 
     override fun isEnd() =
 //    _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
-        _eventBus.invoke(SMC_ShootingStatus().isFinished)
+        _eventBus.invoke(SMC_ShootingStatus()).isFinished
 }
 
 class SlowShootAction(private val _eventBus: EventBus) : IAction {

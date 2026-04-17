@@ -601,8 +601,7 @@ class ScoringModulesConnector
         logM.logMd("($intakeTaskName) Started LazyIntake", Debug.START)
 
         _storage.cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
-        if (_cms.brushStatus.isIdle())
-            _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+        _storage.cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
     }
     private fun hardStopLazyIntake(intakeTaskName: String)
     {
