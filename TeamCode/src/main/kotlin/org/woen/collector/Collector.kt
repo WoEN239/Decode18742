@@ -57,10 +57,11 @@ class Collector {
         if(runMode == RunMode.AUTO){
             attachRunner(this)
             attachActionRunner(this)
-            ScoringModulesConnector(this)
+//            ScoringModulesConnector(this)
         }
-        else attachSimpleStorage(this)
 
+
+        attachSimpleStorage(this)
         attachLedFeedback(this)
     }
 }

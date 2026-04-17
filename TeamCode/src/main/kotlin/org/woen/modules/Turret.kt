@@ -176,7 +176,7 @@ fun attachTurret(collector: Collector) {
         val anglePosition: Double
 
 //        if (collector.runMode == RunMode.MANUAL || GameSettings.startOrientation.gamePosition == GamePosition.FAR) {
-            if (odometry.orientation.x < 0.5) {
+//            if (odometry.orientation.x < 0.5) {
                 l = clamp(l, TURRET_CONFIG.CLOSE_DISTANCE, TURRET_CONFIG.SHORT_FAR_DISTANCE)
 
                 targetPulleyVelocity = (TURRET_CONFIG.CLOSE_PULLEY_VELOCITY + clamp(
@@ -192,23 +192,23 @@ fun attachTurret(collector: Collector) {
                     0.0,
                     1.0
                 ) * (TURRET_CONFIG.SHORT_FAR_ANGLE_POSITION - TURRET_CONFIG.CLOSE_ANGLE_POSITION)
-            } else {
-                l = clamp(l, TURRET_CONFIG.LONG_CLOSE_DISTANCE, TURRET_CONFIG.FAR_DISTANCE)
-
-                targetPulleyVelocity = (TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY + clamp(
-                    (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
-                            (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
-                    0.0,
-                    1.0
-                ) * (TURRET_CONFIG.FAR_PULLEY_VELOCITY - TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY))
-
-                anglePosition = TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION + clamp(
-                    (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
-                            (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
-                    0.0,
-                    1.0
-                ) * (TURRET_CONFIG.FAR_ANGLE_POSITION - TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION)
-            }
+//            } else {
+//                l = clamp(l, TURRET_CONFIG.LONG_CLOSE_DISTANCE, TURRET_CONFIG.FAR_DISTANCE)
+//
+//                targetPulleyVelocity = (TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY + clamp(
+//                    (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
+//                            (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
+//                    0.0,
+//                    1.0
+//                ) * (TURRET_CONFIG.FAR_PULLEY_VELOCITY - TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY))
+//
+//                anglePosition = TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION + clamp(
+//                    (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
+//                            (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
+//                    0.0,
+//                    1.0
+//                ) * (TURRET_CONFIG.FAR_ANGLE_POSITION - TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION)
+//            }
 //        } else {
 //            anglePosition = 0.3//TURRET_CONFIG.ANGLE_POSITION// 0.3
 //            targetPulleyVelocity = 10.7//TURRET_CONFIG.PULLEY_VELOCITY//10.4

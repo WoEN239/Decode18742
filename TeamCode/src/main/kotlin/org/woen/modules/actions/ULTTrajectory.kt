@@ -87,6 +87,13 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
                 eventBus,
                 MoveSegment(Vec2(-0.1, -1.2 * colorK))
             ),
+            StartEatAction(eventBus),
+            DriveAction(eventBus, DriveSegment(Orientation(Vec2(1.0, -1.578 * colorK), Angle.ofDeg(-34.767 * colorK)), linearVelocityConstrain = 1.2)),
+            WaitAction(0.5),
+            StopEatAction(eventBus),
+            DriveAction(eventBus, DriveSegment(Orientation(shootPosition, Angle.ZERO))),
+            ShootAction(eventBus),
+            DriveAction(eventBus, DriveSegment(Orientation(Vec2(0.0, shootPosition.y), Angle.ZERO))),
         )
     )
 //
