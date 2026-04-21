@@ -87,19 +87,19 @@ class SoSAT:
                 bestMatch = match
         return bestMatch
 
-    def __isPosOverlaps(self,existingArtefacts,newArtefact):
+    def __isPosOverlaps(self,existingArtifacts,newArtifact):
 
-        for artefact in existingArtefacts:
-            newMid = (newArtefact["x"] + newArtefact["w"]/2, newArtefact["y"] + newArtefact["h"]/2)
-            oldMid = (artefact["x"] + artefact["w"]/2, artefact["y"] + artefact["h"]/2)
+        for artifact in existingArtifacts:
+            newMid = (newArtifact["x"] + newArtifact["w"]/2, newArtifact["y"] + newArtifact["h"]/2)
+            oldMid = (artifact["x"] + artifact["w"]/2, artifact["y"] + artifact["h"]/2)
 
-            if abs(newMid[0]-oldMid[0]) < (newArtefact["w"]/2 + artefact["w"]/2) and abs(newMid[1]-oldMid[1]) < (newArtefact["h"]/2 + artefact["h"]/2):
+            if abs(newMid[0]-oldMid[0]) < (newArtifact["w"]/2 + artifact["w"]/2) and abs(newMid[1]-oldMid[1]) < (newArtifact["h"]/2 + artifact["h"]/2):
                 return True
 
         return False
     
     def __detectFromMasks(self, masks, matchThreshold, minArea):
-        detectedArtefacts = []
+        detectedArtifacts = []
         for mask in masks:
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             for contour in contours:
@@ -107,19 +107,19 @@ class SoSAT:
                     matchScore = self.__matchContours(contour)
                     if matchScore < float(matchThreshold):
                         x,y,w,h = cv2.boundingRect(contour)
-                        artefactInfo = {
+                        artifactInfo = {
                             "x": x,
                             "y": y,
                             "w": w,
                             "h": h,
                             "matchScore": matchScore
                         }
-                        if not(self.__isPosOverlaps(detectedArtefacts,artefactInfo)):
-                            detectedArtefacts.append(artefactInfo)
+                        if not(self.__isPosOverlaps(detectedArtifacts,artifactInfo)):
+                            detectedArtifacts.append(artifactInfo)
 
-        return detectedArtefacts
+        return detectedArtifacts
 
-    def detectArtefacts(self,frame,matchThreshold=0.5,minArea=100,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
+    def detectArtifacts(self,frame,matchThreshold=0.5,minArea=100,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
         masks = self.colorMasks(frame,hRange,hIterations,sRange,sIterations,vRange,vIterations,morphCloseIterations,erodeIterations,morphOpenIterations)
-        detectedArtefacts = self.__detectFromMasks(masks, matchThreshold, minArea)
-        return detectedArtefacts, masks
+        detectedArtifacts = self.__detectFromMasks(masks, matchThreshold, minArea)
+        return detectedArtifacts, masks
