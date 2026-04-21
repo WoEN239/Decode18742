@@ -1,8 +1,12 @@
 import cv2
 import numpy as np
 import time
+import json
+
 
 class SoSAT:
+
+    contoursList = []
 
     purpleLowerThreshold = np.array([150, 100, 120])
     purpleUpperThreshold = np.array([179, 255, 255])
@@ -10,7 +14,9 @@ class SoSAT:
     greenUpperThreshold = np.array([100, 205, 240])
 
     def __init__(self,pathToContours):
-        pass
+        with open(pathToContours, "r") as f:
+            loaded = json.load(f)
+            self.contoursList = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
 
     __wbSimple = cv2.xphoto.createSimpleWB()
     __kernel = np.ones((3,3), np.uint8)
@@ -23,7 +29,7 @@ class SoSAT:
 
         return frame
     
-    def colorMasks(self,frame,hRange,hIterations,sRange,sIterations,vRange,vIterations, morphCloseIterations, erodeIterations, morphOpenIterations):
+    def colorMasks(self,frame,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
 
         frame = self.__prepareImage(frame)
         frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
@@ -72,3 +78,48 @@ class SoSAT:
                     masks.append(mask)
 
         return masks
+    
+    def __matchContours(self,contour):
+        bestMatch = float('inf')
+        for storedContour in self.contoursList:
+            match = cv2.matchShapes(contour, storedContour,1,0.0)
+            if match < bestMatch:
+                bestMatch = match
+        return bestMatch
+
+    def __isPosOverlaps(self,existingArtefacts,newArtefact):
+
+        for artefact in existingArtefacts:
+            newMid = (newArtefact["x"] + newArtefact["w"]/2, newArtefact["y"] + newArtefact["h"]/2)
+            oldMid = (artefact["x"] + artefact["w"]/2, artefact["y"] + artefact["h"]/2)
+
+            if abs(newMid[0]-oldMid[0]) < (newArtefact["w"]/2 + artefact["w"]/2) and abs(newMid[1]-oldMid[1]) < (newArtefact["h"]/2 + artefact["h"]/2):
+                return True
+
+        return False
+    
+    def __detectFromMasks(self, masks, matchThreshold, minArea):
+        detectedArtefacts = []
+        for mask in masks:
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            for contour in contours:
+                if cv2.contourArea(contour) > minArea:
+                    matchScore = self.__matchContours(contour)
+                    if matchScore < float(matchThreshold):
+                        x,y,w,h = cv2.boundingRect(contour)
+                        artefactInfo = {
+                            "x": x,
+                            "y": y,
+                            "w": w,
+                            "h": h,
+                            "matchScore": matchScore
+                        }
+                        if not(self.__isPosOverlaps(detectedArtefacts,artefactInfo)):
+                            detectedArtefacts.append(artefactInfo)
+
+        return detectedArtefacts
+
+    def detectArtefacts(self,frame,matchThreshold=0.5,minArea=100,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
+        masks = self.colorMasks(frame,hRange,hIterations,sRange,sIterations,vRange,vIterations,morphCloseIterations,erodeIterations,morphOpenIterations)
+        detectedArtefacts = self.__detectFromMasks(masks, matchThreshold, minArea)
+        return detectedArtefacts, masks
