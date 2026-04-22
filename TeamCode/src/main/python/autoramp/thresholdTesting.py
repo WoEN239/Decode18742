@@ -19,7 +19,7 @@ cv2.createTrackbar("MorphOpenValue","Test thresholds",0,10,nothing)
 cv2.createTrackbar("ErodeValue","Test thresholds",0,10,nothing)
 cv2.createTrackbar("CloseValue","Test thresholds",0,10,nothing)
 
-sosat = SoSAT("")
+sosat = SoSAT("contoursData.json")
 imageNames = os.listdir("testImages")
 imageNum = 0
 

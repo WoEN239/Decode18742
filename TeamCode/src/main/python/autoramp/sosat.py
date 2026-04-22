@@ -122,4 +122,4 @@ class SoSAT:
     def detectArtifacts(self,frame,matchThreshold=0.5,minArea=100,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
         masks = self.colorMasks(frame,hRange,hIterations,sRange,sIterations,vRange,vIterations,morphCloseIterations,erodeIterations,morphOpenIterations)
         detectedArtifacts = self.__detectFromMasks(masks, matchThreshold, minArea)
-        return detectedArtifacts, masks
+        return detectedArtifacts
