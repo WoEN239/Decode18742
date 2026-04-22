@@ -43,6 +43,7 @@ class HwSortingManager
     fun update()
     {
         hwMotors.updateServos()
+        hwMotors.updateMotors()
 
         if ((_cms.beltsStatus.isOnTime()) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)

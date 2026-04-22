@@ -4,6 +4,7 @@ package org.woen.scoringSystem.storage.hardware
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 
+import org.woen.utils.debug.Debug
 import org.woen.utils.motor.MotorOnly
 import org.woen.utils.debug.LogManager
 import org.woen.utils.drivers.SoftServo
@@ -91,6 +92,17 @@ class HwMotors
         _cms.launchStatus.tryUpdate(_launchServo.atTarget)
         _cms.turretGateStatus.tryUpdate(_turretGateServo.atTarget)
     }
+    fun updateMotors()
+    {
+        logM.logMd("Hw update motors: " +
+                "${_cms.beltsStatus._accelerationPhase} = " +
+                "${_cms.beltsStatus.motorSpeedForAcceleration}", Debug.HW_LOW)
+        _beltMotor .power = _cms.beltsStatus.motorSpeedForAcceleration
+//        _brushMotor.power = _cms.brushStatus.motorSpeedForAcceleration
+
+        _cms.beltsStatus.updateAccelerationPhase()
+//        _cms.brushStatus.updateAccelerationPhase()
+    }
 
 
 
@@ -139,17 +151,23 @@ class HwMotors
     fun forwardBelts(onTime: Boolean, voltage: Double = Hardware.MOTOR.BELTS_FORWARD)
     {
         _cms.beltsStatus.setForward(onTime)
-        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
+        _beltMotor.power = _cms.brushStatus.motorSpeedForAcceleration
+//        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
+
+        _cms.beltsStatus.motorSpeed = _cms.collector.battery.voltageToPower(voltage)
     }
     fun reverseBelts(onTime: Boolean, voltage: Double = Hardware.MOTOR.BELTS_REVERSE)
     {
         _cms.beltsStatus.setReverse(onTime)
-        _beltMotor.power = -_cms.collector.battery.voltageToPower(voltage)
+        _beltMotor.power = _cms.brushStatus.motorSpeedForAcceleration
+//        _beltMotor.power = -_cms.collector.battery.voltageToPower(voltage)
+        _cms.beltsStatus.motorSpeed = -_cms.collector.battery.voltageToPower(voltage)
     }
     fun stopBelts()
     {
         _cms.beltsStatus.setIdle()
         _beltMotor.power = 0.0
+        _cms.beltsStatus.motorSpeed = 0.0
     }
 
 
