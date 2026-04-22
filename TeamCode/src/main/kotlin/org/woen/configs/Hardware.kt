@@ -114,6 +114,9 @@ internal object Hardware
         @JvmField
         var ACCELERATION_PHASES_LIMIT: Double = 3.0
 
+        @JvmField
+        var ACC_PHASE_K: Double = 2.0
+
 
         @JvmField
         var BELTS_DIRECTION = DcMotorSimple.Direction.FORWARD

@@ -61,13 +61,14 @@ class MotorStatus
 
     val motorSpeedForAcceleration: Double get()
     {
+        val k = Hardware.MOTOR.ACC_PHASE_K
         val phase = _accelerationPhase / Hardware.MOTOR.ACCELERATION_PHASES_LIMIT
-        return min(
+        return (min(
             1.0,
             max(
                 abs (sin(1.5 * phase)),
                 sqrt(abs(phase))
-            )   ) * motorSpeed
+            )   ) + k - 1) * motorSpeed / k
     }
     fun updateAccelerationPhase()
     {
