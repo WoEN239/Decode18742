@@ -24,6 +24,8 @@ import org.woen.modules.drivetrain.RunSegmentsEvent
 import org.woen.modules.drivetrain.TurnSegment
 import org.woen.scoringSystem.LazyIntakeTask
 import org.woen.scoringSystem.SMC_ShootingStatus
+import org.woen.scoringSystem.SMC_SortingStatus
+import org.woen.scoringSystem.SMC_TryStartCustomisableShootingEvent
 import org.woen.scoringSystem.SMC_TryStartShootingEvent
 import org.woen.scoringSystem.SMC_TryUpdateLazyIntakeEvent
 import org.woen.utils.events.EventBus
@@ -161,11 +163,14 @@ class SortingAction(
     private val _bal3: BallColor
 ) : IAction {
     override fun start() {
-        _eventBus.invoke(StartSortingEvent(_bal1, _bal2, _bal3))
+//        _eventBus.invoke(StartSortingEvent(_bal1, _bal2, _bal3))
+        _eventBus.invoke(SMC_TryStartCustomisableShootingEvent(
+            isAuto = true, shootAfterSorting = false))
     }
 
     override fun isEnd() =
-        _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+//        _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+        _eventBus.invoke(SMC_SortingStatus()).isFinished
 }
 
 class TurretStateSwapAction(private val _eventBus: EventBus, private val _state: TurretState) :

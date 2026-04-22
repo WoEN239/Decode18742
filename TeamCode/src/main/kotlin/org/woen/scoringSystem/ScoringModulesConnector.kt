@@ -50,8 +50,13 @@ data class SMC_TryUpdateLazyIntakeEvent(
 data class SMC_TryStartSortingEvent(
     var swapCount: Int,
     var startingResult: Boolean = false)
+data class SMC_TryStartCustomisableShootingEvent(
+    var isAuto: Boolean,
+    var shootAfterSorting: Boolean = true,
+    var startingResult: Boolean = false)
 data class SMC_TryStartShootingEvent(
     var startingResult: Boolean = false)
+
 
 data class SMC_ShootingStatus(
     var isFinished: Boolean = false,
@@ -154,6 +159,11 @@ class ScoringModulesConnector
         _cms.collector.eventBus.subscribe(SMC_TryStartShootingEvent::class)
         {
             it.startingResult = tryStartShooting(laterGamepadHold = false)
+        }
+        _cms.collector.eventBus.subscribe(SMC_TryStartCustomisableShootingEvent::class)
+        {
+            it.startingResult = canStartManualShooting()
+            if (it.startingResult) autoShootCustomisablePattern(it.isAuto, it.shootAfterSorting)
         }
     }
     private fun subscribeToGiveStatusInfoEvents()
@@ -666,7 +676,9 @@ class ScoringModulesConnector
     fun canStartManualShooting()
         =   _cms.sortingPhase.isInactive() &&
             _cms.calibrationPhase.isInactive()
-    fun autoShootCustomisablePattern(isAuto: Boolean): RequestResult
+    fun autoShootCustomisablePattern(
+        isAuto: Boolean,
+        shootAfterSorting: Boolean = true): RequestResult
     {
         _cms.shootingPhase.shotBeltsVoltage = Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING
 
@@ -676,16 +688,19 @@ class ScoringModulesConnector
                 _storage.startCustomisableDrumRequest(
                     AUTONOMOUS.PATTERN_SHOOTING_MODE,
                     _cms.dynamicMemoryPattern.permanent(),
+                    shootAfterSorting,
                     AUTONOMOUS.AUTOCORRECT_REQUEST_PATTERN)
             else _storage.startCustomisableDrumRequest(
                 AUTONOMOUS.FAILSAFE_SHOOTING_MODE,
                 AUTONOMOUS.FAILSAFE_PATTERN,
+                shootAfterSorting,
                 AUTONOMOUS.AUTOCORRECT_FAILSAFE_PATTERN)
         }
         else _storage.startCustomisableDrumRequest(
                 TELEOP.PATTERN_SHOOTING_MODE,
                 _cms.dynamicMemoryPattern.permanent(),
                 StockPattern.Request.STREAM,
+                shootAfterSorting,
                 TELEOP.AUTOCORRECT_REQUEST_PATTERN,
                 TELEOP.AUTOCORRECT_FAILSAFE_PATTERN)
     }
