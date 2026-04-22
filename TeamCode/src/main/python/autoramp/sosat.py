@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import time
+
 import json
 
 
@@ -22,16 +22,28 @@ class SoSAT:
     __kernel = np.ones((3,3), np.uint8)
 
 
-    def __prepareImage(self,frame):
+    def __prepareImage(self,frame,brightness=150):
 
-        frame = cv2.bilateralFilter(frame, d=10, sigmaColor=100,sigmaSpace=100)
+        cv2.imshow("Result", frame)
+        cv2.waitKey(0)
+        frame = cv2.bilateralFilter(frame, d=10, sigmaColor=150,sigmaSpace=100)
+        cv2.imshow("Result", frame)
+        cv2.waitKey(0)
         frame = self.__wbSimple.balanceWhite(frame)
+        cv2.imshow("Result", frame)
+        cv2.waitKey(0)
+
+        frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        frameBrightness =  np.mean(frameGray)
+        frame = cv2.convertScaleAbs(frame, alpha=1, beta=brightness - frameBrightness)
+        cv2.imshow("Result", frame)
+        cv2.waitKey(0)
 
         return frame
     
-    def colorMasks(self,frame,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
+    def colorMasks(self,frame,brightness=150,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
 
-        frame = self.__prepareImage(frame)
+        frame = self.__prepareImage(frame, brightness)
         frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
         masks = []
@@ -119,7 +131,7 @@ class SoSAT:
 
         return detectedArtifacts
 
-    def detectArtifacts(self,frame,matchThreshold=0.5,minArea=100,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
-        masks = self.colorMasks(frame,hRange,hIterations,sRange,sIterations,vRange,vIterations,morphCloseIterations,erodeIterations,morphOpenIterations)
+    def detectArtifacts(self,frame,matchThreshold=0.5,minArea=100,brightness=150,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
+        masks = self.colorMasks(frame,brightness,hRange,hIterations,sRange,sIterations,vRange,vIterations,morphCloseIterations,erodeIterations,morphOpenIterations)
         detectedArtifacts = self.__detectFromMasks(masks, matchThreshold, minArea)
         return detectedArtifacts
