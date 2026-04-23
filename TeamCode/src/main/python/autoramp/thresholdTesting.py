@@ -42,7 +42,12 @@ while True:
     sosat.purpleLowerThreshold = np.array([LowerHue, LowerSaturation, LowerValue])
     sosat.purpleUpperThreshold = np.array([UpperHue, UpperSaturation, UpperValue])
 
-    mask = sosat.colorMasks(frame,0,1,0,1,0,1,morphOpenIterations=morphOpenValue,erodeIterations=erodeValue,morphCloseIterations=morphСloseValue)[0]
+    mask = sosat.colorMasks(frame,150,0,1,0,1,0,1,morphOpenIterations=morphOpenValue,erodeIterations=erodeValue,morphCloseIterations=morphСloseValue)[0]
+    if isinstance(mask, list):
+        if mask:
+            mask = mask[0]
+        else:
+            mask = np.zeros_like(frame[:, :, 0])
     maskedImage = cv2.bitwise_and(frame, frame, mask=mask)
     cv2.imshow("Test thresholds",maskedImage)
 

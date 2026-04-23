@@ -3,10 +3,22 @@ import numpy as np
 
 import json
 
+from enum import Enum
+
+class TeamColor(Enum):
+    RED = 1
+    BLUE = 2
 
 class SoSAT:
 
     contoursList = []
+
+    teamColor = TeamColor.BLUE
+
+    redLowerThreshold = np.array([140, 185, 155])
+    redUpperThreshold = np.array([179, 255, 255])
+    blueLowerThreshold = np.array([80, 20, 55])
+    blueUpperThreshold = np.array([130, 255, 255])
 
     purpleLowerThreshold = np.array([150, 100, 120])
     purpleUpperThreshold = np.array([179, 255, 255])
@@ -21,19 +33,43 @@ class SoSAT:
     __wbSimple = cv2.xphoto.createSimpleWB()
     __kernel = np.ones((3,3), np.uint8)
 
+    def rampROI(self,frame):
+        lowerThreshold = None
+        upperThreshold = None
+        if self.teamColor == TeamColor.RED:
+            lowerThreshold = self.redLowerThreshold
+            upperThreshold = self.redUpperThreshold
+        elif self.teamColor == TeamColor.BLUE:
+            lowerThreshold = self.blueLowerThreshold
+            upperThreshold = self.blueUpperThreshold
 
-    def __prepareImage(self,frame,brightness=150):
-        frame = cv2.bilateralFilter(frame, d=10, sigmaColor=150,sigmaSpace=100)
+        frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(frameHSV, lowerThreshold, upperThreshold)
+
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            return frame, (0, 0, frame.shape[1], frame.shape[0])
+
+        largestContour = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(largestContour)
+
+        return frame[y:y+h, x:x+w], (x, y, w, h)
+
+    def prepareImage(self,frame,brightness=150):
+
+
+        frame = cv2.medianBlur(frame,5)
+
         frame = self.__wbSimple.balanceWhite(frame)
 
         frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         frameBrightness =  np.mean(frameGray)
         frame = cv2.convertScaleAbs(frame, alpha=1, beta=brightness - frameBrightness)
+
         return frame
     
     def colorMasks(self,frame,brightness=150,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
 
-        frame = self.__prepareImage(frame, brightness)
         frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
         masks = []
@@ -63,7 +99,6 @@ class SoSAT:
                     realTimeGreenLowerThreshold[2] = np.clip(realTimeGreenLowerThreshold[2] - vStep, 0, 255)
                     realTimePurpleLowerThreshold[2] = np.clip(realTimePurpleLowerThreshold[2] - vStep, 0, 255)
 
-                    # Skip if all values already at maximum bounds
                     allMaxed = (realTimeGreenLowerThreshold[2] >= 255 and 
                                 realTimePurpleLowerThreshold[2] >= 255)
                     
@@ -71,13 +106,13 @@ class SoSAT:
                         greenMask = cv2.inRange(frameHSV, realTimeGreenLowerThreshold.astype(np.uint8), self.greenUpperThreshold.astype(np.uint8))
                         purpleMask = cv2.inRange(frameHSV, realTimePurpleLowerThreshold.astype(np.uint8), self.purpleUpperThreshold.astype(np.uint8))
 
-                    mask = cv2.bitwise_or(greenMask, purpleMask)
-                
-                    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, self.__kernel, iterations=morphCloseIterations)
-                    mask = cv2.erode(mask, self.__kernel, iterations=erodeIterations)
-                    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.__kernel, iterations=morphOpenIterations)
+                        mask = cv2.bitwise_or(greenMask, purpleMask)
+                    
+                        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, self.__kernel, iterations=morphCloseIterations)
+                        mask = cv2.erode(mask, self.__kernel, iterations=erodeIterations)
+                        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.__kernel, iterations=morphOpenIterations)
 
-                    masks.append(mask)
+                        masks.append(mask)
 
         return masks
     
@@ -109,6 +144,8 @@ class SoSAT:
                     matchScore = self.__matchContours(contour)
                     if matchScore < float(matchThreshold):
                         x,y,w,h = cv2.boundingRect(contour)
+                        x = max(0, x)
+                        y = max(0, y)
                         artifactInfo = {
                             "x": x,
                             "y": y,
@@ -122,6 +159,14 @@ class SoSAT:
         return detectedArtifacts
 
     def detectArtifacts(self,frame,matchThreshold=0.5,minArea=100,brightness=150,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
+        frame, bbox = self.rampROI(frame)
+        frame = self.prepareImage(frame, brightness)
+
         masks = self.colorMasks(frame,brightness,hRange,hIterations,sRange,sIterations,vRange,vIterations,morphCloseIterations,erodeIterations,morphOpenIterations)
         detectedArtifacts = self.__detectFromMasks(masks, matchThreshold, minArea)
+        
+        cropX, cropY = bbox[0], bbox[1]
+        for artifact in detectedArtifacts:
+            artifact["x"] += cropX
+            artifact["y"] += cropY
         return detectedArtifacts
