@@ -44,6 +44,9 @@ enum class LazyIntakeTask
     SWITCH
 }
 
+data class SMC_ForceSetStorage(
+    var stockPattern: Array<Ball>? = null,
+    var nameSequence: Array<Ball.Name>? = null)
 data class SMC_TryUpdateLazyIntakeEvent(
     var intakeTask: LazyIntakeTask,
     var startingResult: Boolean = false)
@@ -148,6 +151,13 @@ class ScoringModulesConnector
     }
     private fun subscribeToOutsideControlEvents()
     {
+        _cms.collector.eventBus.subscribe(SMC_ForceSetStorage::class)
+        {
+            if (it.stockPattern != null)
+                _storage.cells.forceSet(it.stockPattern!!)
+            else if (it.nameSequence != null)
+                _storage.cells.forceSet(it.nameSequence!!)
+        }
         _cms.collector.eventBus.subscribe(SMC_TryUpdateLazyIntakeEvent::class)
         {
             it.startingResult = tryUpdateLazyIntake(it.intakeTask)

@@ -24,7 +24,8 @@ internal object RobotSettings
         var INTAKE_INPUT_ORDER = arrayOf(
             StorageSlot.TURRET,
             StorageSlot.CENTER,
-            StorageSlot.BOTTOM)
+            StorageSlot.BOTTOM,
+            StorageSlot.MOBILE)
 
         @JvmField
         var REQUEST_SEARCH_ORDER = arrayOf(
