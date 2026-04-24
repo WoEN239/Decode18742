@@ -15,7 +15,7 @@ internal object RobotSettings
     internal object ROBOT
     {
         @JvmField
-        var AUTONOMOUS_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = StockPattern.Storage.GPP
+        var AUTONOMOUS_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = StockPattern.Storage.EMPTY
         @JvmField
         var TELEOP_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = StockPattern.Storage.EMPTY
 

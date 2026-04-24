@@ -19,36 +19,36 @@ class Auto : LinearOpMode() {
 
         GameSettings.startOrientation = orientations[selectedOrientationIndex]
 
-        var _oldLeftBumperState = false
-        var _oldRightBumperState = false
+        var oldLeftBumperState = false
+        var oldRightBumperState = false
 
         val dashboardTelemetry = FtcDashboard.getInstance().telemetry
 
-//        while (!isStarted() && !gamepad1.touchpad) {
-//            val leftBumper = gamepad1.left_bumper
-//            val rightBumper = gamepad1.right_bumper
-//
-//            if (leftBumper && !_oldLeftBumperState) {
-//                selectedOrientationIndex++
-//                selectedOrientationIndex %= orientations.size
-//            }
-//
-//            if (rightBumper && !_oldRightBumperState) {
-//                selectedOrientationIndex--
-//
-//                if (selectedOrientationIndex < 0)
-//                    selectedOrientationIndex += orientations.size
-//            }
-//
-//            _oldLeftBumperState = leftBumper
-//            _oldRightBumperState = rightBumper
-//
-//            telemetry.addLine("selected orientation ${orientations[selectedOrientationIndex].name}")
-//            dashboardTelemetry.addLine("selected orientation ${orientations[selectedOrientationIndex].name}")
-//
-//            telemetry.update()
-//            dashboardTelemetry.update()
-//        }
+        while (!isStarted() && !gamepad1.touchpad) {
+            val leftBumper = gamepad1.left_bumper
+            val rightBumper = gamepad1.right_bumper
+
+            if (leftBumper && !oldLeftBumperState) {
+                selectedOrientationIndex++
+                selectedOrientationIndex %= orientations.size
+            }
+
+            if (rightBumper && !oldRightBumperState) {
+                selectedOrientationIndex--
+
+                if (selectedOrientationIndex < 0)
+                    selectedOrientationIndex += orientations.size
+            }
+
+            oldLeftBumperState = leftBumper
+            oldRightBumperState = rightBumper
+
+            telemetry.addLine("selected orientation ${orientations[selectedOrientationIndex].name}")
+            dashboardTelemetry.addLine("selected orientation ${orientations[selectedOrientationIndex].name}")
+
+            telemetry.update()
+            dashboardTelemetry.update()
+        }
 
         GameSettings.startOrientation = orientations[selectedOrientationIndex]
 

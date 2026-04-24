@@ -45,8 +45,8 @@ enum class LazyIntakeTask
 }
 
 data class SMC_ForceSetStorage(
-    var stockPattern: Array<Ball>? = null,
-    var nameSequence: Array<Ball.Name>? = null)
+    var stockPattern: Array<Ball> = arrayOf(),
+    var nameSequence: Array<Ball.Name> = arrayOf())
 data class SMC_TryUpdateLazyIntakeEvent(
     var intakeTask: LazyIntakeTask,
     var startingResult: Boolean = false)
@@ -153,10 +153,10 @@ class ScoringModulesConnector
     {
         _cms.collector.eventBus.subscribe(SMC_ForceSetStorage::class)
         {
-            if (it.stockPattern != null)
-                _storage.cells.forceSet(it.stockPattern!!)
-            else if (it.nameSequence != null)
-                _storage.cells.forceSet(it.nameSequence!!)
+            if (it.stockPattern.isNotEmpty())
+                _storage.cells.forceSet(it.stockPattern)
+            else if (it.nameSequence.isNotEmpty())
+                _storage.cells.forceSet(it.nameSequence)
         }
         _cms.collector.eventBus.subscribe(SMC_TryUpdateLazyIntakeEvent::class)
         {
@@ -173,7 +173,9 @@ class ScoringModulesConnector
         _cms.collector.eventBus.subscribe(SMC_TryStartCustomisableShootingEvent::class)
         {
             it.startingResult = canStartManualShooting()
+            logM.logMd("Try start CustomisableShooting: ${it.startingResult}")
             if (it.startingResult) autoShootCustomisablePattern(it.isAuto, it.shootAfterSorting)
+            else logStartingError("CustomisableShooting")
         }
     }
     private fun subscribeToGiveStatusInfoEvents()
@@ -186,7 +188,7 @@ class ScoringModulesConnector
         _cms.collector.eventBus.subscribe(SMC_ShootingStatus::class)
         {
             it.phase = ShootingPhase(_cms.shootingPhase)
-            it.isFinished = _cms.shootingPhase.isInactive()
+            it.isFinished = _cms.shootingPhase.isNotShooting()
         }
         _cms.collector.eventBus.subscribe(SMC_CalibrationStatus::class)
         {
@@ -308,7 +310,7 @@ class ScoringModulesConnector
             }
 
             logM.logMd("Init settings: ENABLE Manual LazyIntake," +
-                    " HOLD:${CONTROLS.HOLD_FOR_LAZY_INTAKE}", Debug.GAMEPAD)
+                    " HOLD: ${CONTROLS.HOLD_FOR_LAZY_INTAKE}", Debug.GAMEPAD)
         }
         else logM.logMd("Init settings: DISABLE LazyIntake", Debug.GAMEPAD)
 
@@ -449,13 +451,13 @@ class ScoringModulesConnector
 
     fun update()
     {
-        _storage.cells.hwSortingM.update()
-
         _storage.tryHandleIntake()
 
         updateSorting()
         updateShooting()
         updateCalibrationPhase()
+
+        _storage.cells.hwSortingM.update()
     }
 
 
@@ -495,8 +497,9 @@ class ScoringModulesConnector
                     _storage.sortingPhase8()
 
             SortingPhase.Name.P8_CLOSING_GATE_AND_PUSH ->
-                if (_cms.gateStatus.isClosed() &&
-                    _cms.pushStatus.isClosed())
+                if (_cms.pushStatus.isClosed() && (
+                    _cms.gateStatus.isClosed() ||
+                    _cms.sortingPhase.remainingRotations > 1))
                     _storage.sortingPhaseRealignment(
                         Delay.MS.PUSH.PART)
 
@@ -573,9 +576,9 @@ class ScoringModulesConnector
                 if (_storage.cells.hwSortingM.wasShotFired())
                     _storage.cells.updateAfterShot()
 
-                if ((_cms.shootingPhase.isRegularPhase2() &&
+                if (_cms.shootingPhase.isRegularPhase2() &&
                      CONTROLS.USE_LAUNCHER_FOR_LAST_BALL &&
-                    _storage.cells.hwSortingM.isReadyForShootingPhase3()))
+                    _storage.cells.hwSortingM.isReadyForShootingPhase3())
                     _storage.cells.hwSortingM.streamDrumPhase3()
 
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
@@ -629,8 +632,9 @@ class ScoringModulesConnector
         logM.logMd("($intakeTaskName) Stopped LazyIntake", Debug.END)
 
         _storage.cells.hwSortingM.hwMotors.stopBelts()
-        _storage.cells.hwSortingM.startBrushTime(
-            forward = false, Delay.MS.BRUSH_REVERSE)
+        _storage.cells.hwSortingM.hwMotors.stopBrush()
+//        _storage.cells.hwSortingM.startBrushTime(
+//            forward = false, Delay.MS.BRUSH_REVERSE)
     }
     private fun tryUpdateLazyIntake(intakeTask: LazyIntakeTask): Boolean
     {
@@ -641,8 +645,8 @@ class ScoringModulesConnector
 
         if (canManage) when (intakeTask)
         {
-            LazyIntakeTask.STOP   -> hardStopLazyIntake("Start")
-            LazyIntakeTask.START  -> hardStartLazyIntake("Stop")
+            LazyIntakeTask.STOP   -> hardStopLazyIntake("Stop")
+            LazyIntakeTask.START  -> hardStartLazyIntake("Start")
             LazyIntakeTask.SWITCH ->
             {
                 if (_cms.lazyIntakeIsActive)
@@ -685,6 +689,7 @@ class ScoringModulesConnector
             canStartManualShooting()
     fun canStartManualShooting()
         =   _cms.sortingPhase.isInactive() &&
+            _cms.shootingPhase.isInactive() &&
             _cms.calibrationPhase.isInactive()
     fun autoShootCustomisablePattern(
         isAuto: Boolean,

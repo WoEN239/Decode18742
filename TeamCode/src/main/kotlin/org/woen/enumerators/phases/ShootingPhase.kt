@@ -84,6 +84,7 @@ class ShootingPhase
 
     fun isInactive() = _name == Name.NOT_ACTIVE
     fun isActive()   = !isInactive()
+    fun isNotShooting() = isInactive() || isShootingPhase4()
 
     fun isShootingPhase0() = _name == Name.P0_AWAITING_SORTING
 

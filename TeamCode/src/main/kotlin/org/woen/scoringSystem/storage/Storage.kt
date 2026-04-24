@@ -288,10 +288,14 @@ class Storage
         if (cells.notFullYet() && _cms.sortingPhase.isInactive())
         {
             _cms.canTriggerIntake = true
-            cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+//            cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+            cells.hwSortingM.hwMotors.stopBrush()
 
-            if (_cms.lazyIntakeIsActive)
-                cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+//            if (_cms.lazyIntakeIsActive)
+//            {
+//                cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+//                cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+//            }
         }
     }
 
@@ -355,9 +359,19 @@ class Storage
     }
     fun sortingPhase8()
     {
-        logM.logMd("Sorting phase 8, closing gate with push", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         cells.hwSortingM.hwMotors.reverseBelts(onTime = false)
-        cells.hwSortingM.hwMotors.closeGateWithPush()
+        if (_cms.sortingPhase.remainingRotations < 2)
+        {
+            cells.hwSortingM.hwMotors.closeGateWithPush()
+            logM.logMd("Sorting phase 8, closing gate with push" +
+                    " (Rotations: ${_cms.sortingPhase.remainingRotations})", Debug.LOGIC)
+        }
+        else
+        {
+            logM.logMd("Sorting phase 8, closing ONLY push" +
+                    " (Rotations: ${_cms.sortingPhase.remainingRotations})", Debug.LOGIC)
+            cells.hwSortingM.hwMotors.closePush()
+        }
     }
 }

@@ -115,7 +115,7 @@ internal object Hardware
         var ACCELERATION_PHASES_LIMIT: Double = 3.0
 
         @JvmField
-        var ACC_PHASE_K: Double = 2.0
+        var ACC_PHASE_K: Double = 3.0
 
 
         @JvmField

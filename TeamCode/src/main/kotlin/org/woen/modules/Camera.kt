@@ -31,6 +31,11 @@ fun attachLimelight(collector: Collector) {
             it.pattern = pattern
     }
 
+    collector.startEvent += {
+        collector.eventBus.invoke(
+            OnPatternDetectedEvent(StockPattern.Request.PGP))
+    }
+
     collector.updateEvent += {
         ll.pipelineSwitch(0)
 

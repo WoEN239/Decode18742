@@ -3,6 +3,8 @@ package org.woen.modules.actions
 import org.woen.collector.Collector
 import org.woen.collector.GameColor
 import org.woen.collector.GameSettings
+import org.woen.enumerators.StockPattern
+import org.woen.modules.BallColor
 import org.woen.modules.drivetrain.DriveSegment
 import org.woen.modules.drivetrain.MoveSegment
 import org.woen.modules.drivetrain.TurnSegment
@@ -24,16 +26,16 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
         DriveAction(
             eventBus,
             DriveSegment(
-                Orientation(Vec2(0.306, -0.582 * colorK), Angle.ofDeg(-90.0 * colorK)),
+                Orientation(Vec2(0.265, -0.582 * colorK), Angle.ofDeg(-90.0 * colorK)),
                 positionWindow = 0.4,
                 headingWindow = toRadians(40.0)
             )
         ),
         StartEatAction(eventBus),
-        DriveAction(eventBus, MoveSegment(Vec2(0.306, -1.5 * colorK), 1.2)),
+        DriveAction(eventBus, MoveSegment(Vec2(0.436, -1.55 * colorK), 1.2)),
         WaitAction(0.2),
         StopEatAction(eventBus),
-        DriveAction(eventBus, MoveSegment(Vec2(0.252, -1.233 * colorK), positionWindow = 0.4)),
+        DriveAction(eventBus, MoveSegment(Vec2(0.436, -1.283 * colorK), positionWindow = 0.4)),
         ParallelActions(
             arrayOf(
                 arrayListOf(
@@ -66,20 +68,21 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
             eventBus,
             DriveSegment(
                 Orientation(
-                    Vec2(0.329, -1.609 * colorK),
-                    Angle.ofDeg(-132.261 * colorK)
+                    Vec2(0.264, -1.557 * colorK),
+                    Angle.ofDeg(-129.679 * colorK)
                 ),
                 positionWindow = 0.4
             )
         ),
-        WaitAction(2.4),
+        WaitAction(1.9),
         DriveAction(
             eventBus,
             DriveSegment(Orientation(Vec2(0.0, -1.393 * colorK), Angle.ofDeg(-90.0 * colorK)))
         ),
         WaitAction(0.4),
         StopEatAction(eventBus),
-        DriveAction(eventBus, MoveSegment(Vec2(0.252, 1.233), positionWindow = 0.4)),
+        SortingAction(eventBus, StockPattern.Storage.GPP),
+        DriveAction(eventBus, MoveSegment(Vec2(0.252, -1.233 * colorK), positionWindow = 0.4)),
         ParallelActions(
             arrayOf(
                 arrayListOf(
@@ -94,11 +97,12 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
                 )
             ), ParallelActions.ExitType.AND
         ),
+        WaitForSortingEndAction(eventBus),
         ShootAction(eventBus),
         DriveAction(
             eventBus,
             DriveSegment(
-                Orientation(Vec2(0.914, -0.766 * colorK), Angle.ofDeg(-90.0 * colorK)),
+                Orientation(Vec2(0.914, -0.726 * colorK), Angle.ofDeg(-90.0 * colorK)),
                 positionWindow = 0.4
             )
         ),
@@ -106,6 +110,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
         DriveAction(eventBus, MoveSegment(Vec2(0.914, -1.5 * colorK), 1.2)),
         WaitAction(0.2),
         StopEatAction(eventBus),
+        SortingAction(eventBus, StockPattern.Storage.GPP),
         DriveAction(
             eventBus,
             DriveSegment(
@@ -114,19 +119,25 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
             )
         ),
         DriveAction(eventBus, MoveSegment(shootPosition)),
+        WaitForSortingEndAction(eventBus),
         ShootAction(eventBus),
-        StartEatAction(eventBus),
         DriveAction(
             eventBus,
             DriveSegment(
                 Orientation(Vec2(-0.265, -0.751 * colorK), Angle.ofDeg(-90.0 * colorK)),
                 positionWindow = 0.4
-            ),
+            )
+        ),
+        StartEatAction(eventBus),
+        DriveAction(
+            eventBus,
             MoveSegment(Vec2(-0.289, -1.393 * colorK), 1.2)
         ),
         WaitAction(0.2),
         StopEatAction(eventBus),
+        SortingAction(eventBus, StockPattern.Storage.PPG),
         DriveAction(eventBus, DriveSegment(Orientation(shootPosition, Angle.ZERO))),
+        WaitForSortingEndAction(eventBus),
         ShootAction(eventBus),
         DriveAction(eventBus, MoveSegment(Vec2(shootPosition.x + 0.5, shootPosition.y)))
 //        )

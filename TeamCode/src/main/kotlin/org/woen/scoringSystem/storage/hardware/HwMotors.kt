@@ -116,6 +116,11 @@ class HwMotors
         _pushServo.targetPosition = Hardware.SERVO.PUSH_OPEN
         _cms.pushStatus.set(ServoStatus.Name.OPENING)
     }
+    fun closePush()
+    {
+        _pushServo.targetPosition = Hardware.SERVO.PUSH_CLOSE
+        _cms.pushStatus.set(ServoStatus.Name.CLOSING)
+    }
     fun closeGateWithPush()
     {
         _gateServo.targetPosition = Hardware.SERVO.GATE_CLOSE

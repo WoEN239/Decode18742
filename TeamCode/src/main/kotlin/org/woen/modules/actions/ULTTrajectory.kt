@@ -107,7 +107,7 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
 //                        Orientation(Vec2(0.264, -1.137 * colorK), Angle.ofDeg(-129.679 * colorK)),
 //                        positionWindow = 0.4
 //                    ),
-//                    MoveSegment(Vec2(0.264, -1.597 * colorK))
+//                    MoveSegment(VecOrientation(Vec2(0.264,2(0.264, -1.597 * colorK))
 //                ),
 //                WaitAction(2.0),
 //                DriveAction(

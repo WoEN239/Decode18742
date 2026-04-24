@@ -5,6 +5,7 @@ import org.woen.collector.Collector
 import org.woen.collector.GamePosition
 import org.woen.collector.GameSettings
 import org.woen.collector.StartOrientation
+import org.woen.enumerators.Ball
 import org.woen.modules.BallColor
 import org.woen.modules.GetCurrentStorageStateEvent
 import org.woen.modules.SetTurretStateEvent
@@ -23,6 +24,7 @@ import org.woen.modules.drivetrain.MoveSegment
 import org.woen.modules.drivetrain.RunSegmentsEvent
 import org.woen.modules.drivetrain.TurnSegment
 import org.woen.scoringSystem.LazyIntakeTask
+import org.woen.scoringSystem.SMC_ForceSetStorage
 import org.woen.scoringSystem.SMC_ShootingStatus
 import org.woen.scoringSystem.SMC_SortingStatus
 import org.woen.scoringSystem.SMC_TryStartCustomisableShootingEvent
@@ -158,20 +160,30 @@ class StopEatAction(private val _eventBus: EventBus) : IAction {
 
 class SortingAction(
     private val _eventBus: EventBus,
-    private val _bal1: BallColor,
-    private val _bal2: BallColor,
-    private val _bal3: BallColor
+//    private val _bal1: BallColor,
+//    private val _bal2: BallColor,
+//    private val _bal3: BallColor,
+    private val _eaten: Array<Ball>
 ) : IAction {
     override fun start() {
 //        _eventBus.invoke(StartSortingEvent(_bal1, _bal2, _bal3))
+        _eventBus.invoke(SMC_ForceSetStorage(stockPattern = _eaten))
         _eventBus.invoke(SMC_TryStartCustomisableShootingEvent(
             isAuto = true, shootAfterSorting = false))
     }
 
-    override fun isEnd() =
+    override fun isEnd() = true
 //        _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
-        _eventBus.invoke(SMC_SortingStatus()).isFinished
+//        _eventBus.invoke(SMC_SortingStatus()).isFinished
 }
+class WaitForSortingEndAction(
+    private val _eventBus: EventBus
+) : IAction {
+    override fun start() { }
+
+    override fun isEnd() = _eventBus.invoke(SMC_SortingStatus()).isFinished
+}
+
 
 class TurretStateSwapAction(private val _eventBus: EventBus, private val _state: TurretState) :
     IAction {
