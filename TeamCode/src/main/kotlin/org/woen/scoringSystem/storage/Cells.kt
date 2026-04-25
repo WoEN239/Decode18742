@@ -62,7 +62,7 @@ class PredictSortResult(
 
 class Cells
 {
-    private val _storageCells: Array<Ball>
+    private val _storageCells: Array<Ball> = arrayOf(Ball(), Ball(), Ball(), Ball())
     private val _cms: ConnectorModuleStatus
     val hwSortingM: HwSortingManager
 
@@ -74,9 +74,10 @@ class Cells
     {
         _cms = cms
 
-        _storageCells = if (_cms.collector.runMode == RunMode.AUTO)
-             ROBOT.AUTONOMOUS_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
-        else ROBOT.TELEOP_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
+        forceSet(
+            if (_cms.collector.runMode == RunMode.AUTO)
+                 ROBOT.AUTONOMOUS_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
+            else ROBOT.TELEOP_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM)
 
         hwSortingM = HwSortingManager(_cms)
 
@@ -167,30 +168,30 @@ class Cells
 
 
 
-    fun forceSet(inputFromTurretSlotToBottom: Array<Ball>)
+    fun forceSet(fullStorage: Array<Ball>)
     {
-        if (inputFromTurretSlotToBottom.size > STORAGE_SLOT_COUNT) return
+        if (fullStorage.size > STORAGE_SLOT_COUNT) return
 
         var    curSlot  = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.MOBILE)
         {
             _storageCells[curSlot].set(
-                inputFromTurretSlotToBottom[curSlot])
+                fullStorage[curSlot])
             curSlot++
         }
 
         updateBallCountForLEDLINE()
         logAllStorageData()
     }
-    fun forceSet(inputFromTurretSlotToBottom: Array<Ball.Name>)
+    fun forceSet(pattern: Array<Ball.Name>)
     {
-        if (inputFromTurretSlotToBottom.size > MAX_BALL_COUNT) return
+        if (pattern.size > MAX_BALL_COUNT) return
 
         var    curSlot  = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.TURRET)
         {
             _storageCells[ROBOT.INTAKE_INPUT_ORDER[curSlot]].set(
-                inputFromTurretSlotToBottom[curSlot])
+                pattern[curSlot])
             curSlot++
         }
 

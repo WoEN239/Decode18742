@@ -288,14 +288,18 @@ class Storage
         if (cells.notFullYet() && _cms.sortingPhase.isInactive())
         {
             _cms.canTriggerIntake = true
-//            cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
-            cells.hwSortingM.hwMotors.stopBrush()
 
-//            if (_cms.lazyIntakeIsActive)
-//            {
-//                cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
-//                cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
-//            }
+            if (CONTROLS.AUTO_ENABLE_BRUSHES_AFTER_SHOOTING)
+                 cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+            else cells.hwSortingM.hwMotors.stopBrush()
+
+
+            if (CONTROLS.AUTO_PRESERVE_LAZY_INTAKE_STATUS
+                && _cms.lazyIntakeIsActive)
+            {
+                cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+                cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+            }
         }
     }
 

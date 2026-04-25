@@ -633,8 +633,10 @@ class ScoringModulesConnector
 
         _storage.cells.hwSortingM.hwMotors.stopBelts()
         _storage.cells.hwSortingM.hwMotors.stopBrush()
-//        _storage.cells.hwSortingM.startBrushTime(
-//            forward = false, Delay.MS.BRUSH_REVERSE)
+
+        if (CONTROLS.REVERSE_BRUSHES_AFTER_LAZY_INTAKE)
+            _storage.cells.hwSortingM.startBrushTime(
+                forward = false, Delay.MS.BRUSH_REVERSE)
     }
     private fun tryUpdateLazyIntake(intakeTask: LazyIntakeTask): Boolean
     {
@@ -682,7 +684,8 @@ class ScoringModulesConnector
 
 
 
-    fun canStartAutoShooting() = _inShootingZone &&
+    fun canStartAutoShooting()
+        =   _inShootingZone &&
             CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE &&
             _gameTimer.milliseconds() - _enteredShootingZoneTimeStamp >
                 Delay.MS.SHOOTING.BEFORE_AUTOSHOT &&

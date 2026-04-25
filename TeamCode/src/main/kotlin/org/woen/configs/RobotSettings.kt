@@ -70,7 +70,7 @@ internal object RobotSettings
         @JvmField
         var ENABLE_GAMEPAD_CONTROLLED_LAZY_INTAKE = true
         @JvmField
-        var ENABLE_GAMEPAD_CONTROLLED_COLOR_INTAKE = true
+        var ENABLE_GAMEPAD_CONTROLLED_COLOR_INTAKE = false
 
         @JvmField
         var ENABLE_GAMEPAD_CUSTOMISABLE_SHOOTING = false
@@ -80,6 +80,15 @@ internal object RobotSettings
 
         @JvmField
         var SWAPS_PER_MANUAL_BUTTON_SWITCH = 1
+
+
+
+        @JvmField
+        var AUTO_PRESERVE_LAZY_INTAKE_STATUS = false
+        @JvmField
+        var REVERSE_BRUSHES_AFTER_LAZY_INTAKE = false
+        @JvmField
+        var AUTO_ENABLE_BRUSHES_AFTER_SHOOTING = false
     }
 
 
