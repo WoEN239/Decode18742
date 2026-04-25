@@ -49,6 +49,7 @@ import org.woen.configs.RobotSettings.SORTING.PREDICT.PSEUDO_MATCH_WEIGHT
  */
 
 
+
 const val MAX_BALL_COUNT     = 3
 const val STORAGE_SLOT_COUNT = 4
 
@@ -323,11 +324,20 @@ class Cells
                 "\n===============================================         =================\n ",
             Debug.STATUS)
     }
-    fun updateBallCountForLEDLINE(ballCount: Int = -1)
-        =   _cms.collector.eventBus.invoke(
-                BallCountUpdateEvent(
-                    if (ballCount != -1) ballCount
-                    else anyBallCount()))
+    fun updateBallCountForLEDLINE(
+        ballCount: Int = -1,
+        infoIsGuaranteed: Boolean = true)
+    {
+        val finalBallCount =
+            if (ballCount != -1) ballCount
+            else anyBallCount()
+
+        _cms.ballCountForLED.update(finalBallCount, infoIsGuaranteed)
+
+        _cms.collector.eventBus.invoke(
+            BallCountUpdateEvent(
+                finalBallCount))
+    }
 
     fun anyBallCount(): Int
     {

@@ -3,6 +3,7 @@ package org.woen.scoringSystem.storage.hardware
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 
 import org.woen.utils.debug.Debug
 import org.woen.utils.motor.MotorOnly
@@ -163,7 +164,7 @@ class HwMotors
         _beltMotor.power = motorPower
 //        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
 
-        logM.logMd("[Low] Forward belts, power: $motorPower, onTime: $onTime", Debug.HW_HIGH)
+        logM.logMd("[Low] Forward belts, power: $motorPower, onTime: $onTime", Debug.HW_LOW)
     }
     fun reverseBelts(onTime: Boolean, voltage: Double = Hardware.MOTOR.BELTS_REVERSE)
     {
@@ -175,7 +176,7 @@ class HwMotors
         _beltMotor.power = motorPower
 //        _beltMotor.power = -_cms.collector.battery.voltageToPower(voltage)
 
-        logM.logMd("[Low] Reverse belts, power: $motorPower, onTime: $onTime", Debug.HW_HIGH)
+        logM.logMd("[Low] Reverse belts, power: $motorPower, onTime: $onTime", Debug.HW_LOW)
     }
     fun stopBelts()
     {
@@ -202,4 +203,8 @@ class HwMotors
         _cms.brushStatus.setIdle()
         _brushMotor.power = 0.0
     }
+
+
+    fun getBeltsCurrent()
+        = _beltMotor.getCurrent(CurrentUnit.AMPS)
 }

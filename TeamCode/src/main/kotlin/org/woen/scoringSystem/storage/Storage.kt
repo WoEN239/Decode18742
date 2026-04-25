@@ -285,26 +285,32 @@ class Storage
 
     fun finishCalibration()
     {
-        logM.logMd("Finishing calibration", Debug.LOGIC)
+        if (CONTROLS.DO_RUMBLE_GAMEPAD_AFTER_SHOT)
+            _cms.collector.opMode.gamepad1.rumble(200)
 
+        logM.logMd("Finishing calibration", Debug.LOGIC)
         cells.hwSortingM.hwMotors.stopBelts()
 
         _cms.calibrationPhase.setInactive()
         _cms.shootingPhase.setInactive()
+
         if (cells.notFullYet() && _cms.sortingPhase.isInactive())
         {
             _cms.canTriggerIntake = true
-
-            if (CONTROLS.AUTO_ENABLE_BRUSHES_AFTER_SHOOTING)
-                 cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
-            else cells.hwSortingM.hwMotors.stopBrush()
-
 
             if (CONTROLS.AUTO_PRESERVE_LAZY_INTAKE_STATUS
                 && _cms.lazyIntakeIsActive)
             {
                 cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
                 cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+            }
+            else
+            {
+                if (CONTROLS.AUTO_ENABLE_BRUSHES_AFTER_SHOOTING)
+                     cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
+                else cells.hwSortingM.hwMotors.stopBrush()
+
+                _cms.lazyIntakeIsActive = false
             }
         }
     }

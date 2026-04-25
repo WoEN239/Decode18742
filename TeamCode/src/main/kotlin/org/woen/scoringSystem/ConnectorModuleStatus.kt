@@ -2,6 +2,7 @@ package org.woen.scoringSystem
 
 
 import org.woen.collector.Collector
+import org.woen.scoringSystem.misc.BallCountForLED
 import org.woen.scoringSystem.misc.DynamicPattern
 
 import org.woen.enumerators.status.MotorStatus
@@ -14,6 +15,7 @@ import org.woen.enumerators.phases.CalibrationPhase
 
 class ConnectorModuleStatus(var collector: Collector)
 {
+    var ballCountForLED = BallCountForLED()
     var dynamicMemoryPattern = DynamicPattern()
     var awaitingPatternFromCamera = true
 

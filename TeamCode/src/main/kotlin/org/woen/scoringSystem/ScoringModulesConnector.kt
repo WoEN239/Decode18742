@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
 
 import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
+import org.woen.utils.exponentialFilter.ExponentialFilter
 
 import org.woen.collector.Collector
 import org.woen.collector.RunMode
@@ -16,6 +17,7 @@ import org.woen.enumerators.StockPattern
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.phases.SortingPhase
 import org.woen.enumerators.phases.ShootingPhase
+import org.woen.enumerators.phases.CalibrationPhase
 
 import org.woen.modules.ClickGamepadListener
 import org.woen.modules.AddGamepad1ListenerEvent
@@ -31,7 +33,7 @@ import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-import org.woen.enumerators.phases.CalibrationPhase
+import org.woen.scoringSystem.storage.MAX_BALL_COUNT
 
 
 data class SMC_IsEndGameEvent(var isEndGame: Boolean = false)
@@ -82,8 +84,12 @@ class ScoringModulesConnector
     var logM: LogManager
 
     private val _gameTimer = ElapsedTime()
-    private var _enteredShootingZoneTimeStamp: Double = 0.0
     private var _inShootingZone = false
+    private var _enteredShootingZoneTimeStamp: Double = 0.0
+
+    private var _beltR: Double = 10.0
+    private val _rFilter = ExponentialFilter(
+        org.woen.modules.SIMPLE_STORAGE_CONFIG.R_FILTER_K)
 
 
 
@@ -109,6 +115,7 @@ class ScoringModulesConnector
 
         collector.startEvent  += {
             _gameTimer.reset()
+            _rFilter.start()
         }
         collector.updateEvent += {
             update()
@@ -177,7 +184,7 @@ class ScoringModulesConnector
         }
         _cms.collector.eventBus.subscribe(SMC_TryStartCustomisableShootingEvent::class)
         {
-            it.startingResult = canStartManualShooting()
+            it.startingResult = isFullyIdle()
             logM.logMd("Try start CustomisableShooting: ${it.startingResult}")
             if (it.startingResult) autoShootCustomisablePattern(it.isAuto, it.shootAfterSorting)
             else logStartingError("CustomisableShooting")
@@ -258,7 +265,7 @@ class ScoringModulesConnector
                         activationState = true,
                         onTriggered = {
                             if (_cms.shootingPhase.isInactive()
-                                && canStartManualShooting())
+                                && isFullyIdle())
                             {
                                 val requestResult = autoShootCustomisablePattern(false)
                                 val resultString  =
@@ -456,6 +463,9 @@ class ScoringModulesConnector
 
     fun update()
     {
+        tryUpdateBallCountOnBeltsCurrent()
+        //  Comment if you don't use this for better performance
+
         _storage.tryHandleIntake()
 
         updateSorting()
@@ -530,7 +540,7 @@ class ScoringModulesConnector
                         _storage.cells.hwSortingM.hwMotors.stopBelts()
 
 //                        if (canStartAutoShooting())
-                        if (canStartManualShooting() &&
+                        if (isFullyIdle() &&
                             CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE)
                         {
                             _cms.shootingPhase.setInactive()
@@ -573,7 +583,7 @@ class ScoringModulesConnector
 
             ShootingPhase.Name.P0_AWAITING_SORTING ->
 //                if (canStartAutoShooting())
-                if (canStartManualShooting())
+                if (isFullyIdle())
                 {
                     _cms.shootingPhase.setInactive()
                     logM.logMd(
@@ -633,6 +643,43 @@ class ScoringModulesConnector
     }
 
 
+    fun tryUpdateBallCountOnBeltsCurrent()
+    {
+        if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_LAZY_INTAKE &&
+            CONTROLS.ENABLE_BALL_COUNT_PREDICTION_IN_LAZY_INTAKE &&
+            _cms.lazyIntakeIsActive && isFullyIdle() &&
+            (!_cms.ballCountForLED.infoIsGuaranteed ||
+              _cms.ballCountForLED.count == 0))
+        {
+            val current = _storage.cells.hwSortingM.hwMotors.getBeltsCurrent()
+
+            if (current > 1.0)
+            {
+                val rawR = _cms.collector.battery.currentVoltage / current
+                _beltR = _rFilter.updateRaw(_beltR, rawR - _beltR)
+            }
+            else
+            {
+                _rFilter.updateRaw(_beltR, 0.0)
+                _beltR = 10.0
+            }
+
+            var ballCount = _cms.ballCountForLED.count
+            val countBasedOnCurrent
+               = if (_beltR < org.woen.modules.SIMPLE_STORAGE_CONFIG.FULL_R) 3
+            else if (_beltR < org.woen.modules.SIMPLE_STORAGE_CONFIG.TWO_R)  2
+            else if (_beltR < org.woen.modules.SIMPLE_STORAGE_CONFIG.ONE_R)  1
+            else -1
+
+            if (ballCount < countBasedOnCurrent) ballCount = countBasedOnCurrent
+
+            if (ballCount > _cms.ballCountForLED.count)
+            _storage.cells.updateBallCountForLEDLINE(
+                ballCount, infoIsGuaranteed = false)
+        }
+    }
+
+
 
     private fun hardStartLazyIntake(intakeTaskName: String)
     {
@@ -663,12 +710,12 @@ class ScoringModulesConnector
 
         if (canManage) when (intakeTask)
         {
-            LazyIntakeTask.STOP   -> hardStopLazyIntake("Stop")
+            LazyIntakeTask.STOP   -> hardStopLazyIntake ("Stop")
             LazyIntakeTask.START  -> hardStartLazyIntake("Start")
             LazyIntakeTask.SWITCH ->
             {
                 if (_cms.lazyIntakeIsActive)
-                     hardStopLazyIntake("Switch")
+                     hardStopLazyIntake ("Switch")
                 else hardStartLazyIntake("Switch")
             }
         }
@@ -690,7 +737,7 @@ class ScoringModulesConnector
     }
     private fun tryStartShooting(laterGamepadHold: Boolean = false): Boolean
     {
-        val canStart = _cms.shootingPhase.isInactive() && canStartManualShooting()
+        val canStart = _cms.shootingPhase.isInactive() && isFullyIdle()
 
         if (canStart) logM.logMd(_storage.streamDrumPhase1(laterGamepadHold).toString(), Debug.START)
         else logStartingError("Gamepad/ExtEvent Shooting")
@@ -705,8 +752,8 @@ class ScoringModulesConnector
             CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE &&
             _gameTimer.milliseconds() - _enteredShootingZoneTimeStamp >
                 Delay.MS.SHOOTING.BEFORE_AUTOSHOT &&
-            canStartManualShooting()
-    fun canStartManualShooting()
+            isFullyIdle()
+    fun isFullyIdle()
         =   _cms.sortingPhase.isInactive() &&
             _cms.shootingPhase.isInactive() &&
             _cms.calibrationPhase.isInactive()

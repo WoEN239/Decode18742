@@ -67,6 +67,9 @@ internal object RobotSettings
         var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = true
 
 
+
+        @JvmField
+        var ENABLE_BALL_COUNT_PREDICTION_IN_LAZY_INTAKE = true
         @JvmField
         var ENABLE_GAMEPAD_CONTROLLED_LAZY_INTAKE = true
         @JvmField
@@ -78,8 +81,15 @@ internal object RobotSettings
         @JvmField
         var ENABLE_GAMEPAD_CONTROLLED_SORTING_SWAPS = true
 
+
         @JvmField
-        var SWAPS_PER_MANUAL_BUTTON_SWITCH = 2
+        var SWAPS_PER_MANUAL_BUTTON_SWITCH = 1
+
+
+        @JvmField
+        var DO_RUMBLE_GAMEPAD_AFTER_SHOT = true
+        @JvmField
+        var DO_RUMBLE_GAMEPAD_WHEN_STORAGE_FULL_BY_CURRENT = true
 
 
 
