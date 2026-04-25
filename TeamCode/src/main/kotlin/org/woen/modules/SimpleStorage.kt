@@ -88,7 +88,7 @@ enum class StorageState {
     EATING,
     SORTING,
     STOP_SHOOTING,
-    SLOW_SHUTTING,
+    SLOW_SHOOTING,
     LAUNCH_SHOOT,
     REVERSE_BRUSH
 }
@@ -207,7 +207,7 @@ fun attachSimpleStorage(collector: Collector) {
                 stateTimer.reset()
             }
 
-            StorageState.SLOW_SHUTTING -> {
+            StorageState.SLOW_SHOOTING -> {
                 stateTimer.reset()
                 turretGateServo.targetPosition = SIMPLE_STORAGE_CONFIG.TURRET_GATE_SERVO_OPEN
                 brushMotor.power = 0.0
@@ -261,7 +261,7 @@ fun attachSimpleStorage(collector: Collector) {
             StorageState.EATING -> StorageState.EATING
             StorageState.SORTING -> StorageState.SORTING
             StorageState.STOP_SHOOTING -> StorageState.SHOOTING
-            StorageState.SLOW_SHUTTING -> StorageState.SHOOTING
+            StorageState.SLOW_SHOOTING -> StorageState.SHOOTING
             StorageState.LAUNCH_SHOOT -> StorageState.SHOOTING
             StorageState.REVERSE_BRUSH -> StorageState.EATING
         }
@@ -349,7 +349,7 @@ fun attachSimpleStorage(collector: Collector) {
 
     collector.eventBus.subscribe(SlowShootEvent::class) {
         if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.STOP_SHOOTING || currentState == StorageState.REVERSE_BRUSH) {
-            switchState(StorageState.SLOW_SHUTTING)
+            switchState(StorageState.SLOW_SHOOTING)
             ballInStorage = 0
             collector.eventBus.invoke(BallCountUpdateEvent(ballInStorage))
         }
@@ -361,7 +361,7 @@ fun attachSimpleStorage(collector: Collector) {
                 { it.right_trigger > 0.01 },
                 {
                     if (currentState == StorageState.STOP || currentState == StorageState.EATING || currentState == StorageState.REVERSE_BRUSH) {
-                        requiredSwaps = 1
+                        requiredSwaps = 2
                         switchState(StorageState.SORTING)
                         sortingShoot = true
                     }
@@ -466,7 +466,7 @@ fun attachSimpleStorage(collector: Collector) {
 
             StorageState.EATING, StorageState.STOP, StorageState.REVERSE_BRUSH -> {}
 
-            StorageState.SLOW_SHUTTING -> {
+            StorageState.SLOW_SHOOTING -> {
                 beltMotor.power = battery.voltageToPower(SIMPLE_STORAGE_CONFIG.SLOW_SHOOTING_POWER)
 
                 if (stateTimer.seconds() > SIMPLE_STORAGE_CONFIG.SLOW_SHOOTING_TIMER) {

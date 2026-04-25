@@ -79,7 +79,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
             eventBus,
             DriveSegment(Orientation(Vec2(0.0, -1.393 * colorK), Angle.ofDeg(-90.0 * colorK)))
         ),
-        WaitAction(0.4),
+        WaitAction(0.1),
         StopEatAction(eventBus),
         SortingAction(eventBus, StockPattern.Storage.GPP),
         DriveAction(eventBus, MoveSegment(Vec2(0.252, -1.233 * colorK), positionWindow = 0.4)),

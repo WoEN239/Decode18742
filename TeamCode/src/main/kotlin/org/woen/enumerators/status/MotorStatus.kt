@@ -44,6 +44,7 @@ class MotorStatus
     {
         _name = Name.IDLE
         _accelerationPhase = 0.0
+        motorSpeed = 0.0
     }
     fun setForward(onTime: Boolean)
     {

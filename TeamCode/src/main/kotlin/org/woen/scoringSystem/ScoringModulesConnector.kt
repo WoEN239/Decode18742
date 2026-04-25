@@ -34,7 +34,8 @@ import org.woen.configs.RobotSettings.AUTONOMOUS
 import org.woen.enumerators.phases.CalibrationPhase
 
 
-data class IsEndGameEvent(var isEndGame: Boolean = false)
+data class SMC_IsEndGameEvent(var isEndGame: Boolean = false)
+data class SMC_GetCurrentGameTimerEvent(var timeMs: Double = 0.0)
 
 
 enum class LazyIntakeTask
@@ -144,9 +145,13 @@ class ScoringModulesConnector
     }
     private fun subscribeToIsEndGameEvent()
     {
-        _cms.collector.eventBus.subscribe(IsEndGameEvent::class)
+        _cms.collector.eventBus.subscribe(SMC_IsEndGameEvent::class)
         {
             it.isEndGame = isEndGame
+        }
+        _cms.collector.eventBus.subscribe(SMC_GetCurrentGameTimerEvent::class)
+        {
+            it.timeMs = _gameTimer.milliseconds()
         }
     }
     private fun subscribeToOutsideControlEvents()
@@ -467,7 +472,8 @@ class ScoringModulesConnector
         {
             SortingPhase.Name.P1_CLOSING_TURRET_GATE ->
                 if (_cms.turretGateStatus.isClosed())
-                    _storage.sortingPhaseRealignment()
+                    _storage.sortingPhaseRealignment(
+                        ifDoneSkipToPhase3 = true)
 
             SortingPhase.Name.P2_REALIGN_STORAGE ->
                 if (_cms.beltsStatus.notOnTime())
@@ -487,31 +493,41 @@ class ScoringModulesConnector
 
             SortingPhase.Name.P6_OPENING_PUSH ->
                 if (_cms.pushStatus.isOpened())
-                    _storage.sortingPhase7(
-                        _gameTimer.milliseconds())
+                    _storage.sortingPhase7()
 
             SortingPhase.Name.P7_WAIT_SOME_TIME ->
-                if (_gameTimer.milliseconds() -
-                    Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 >
-                    _storage.cells.hwSortingM.timeSinceLastShotUpdateMs)
+                if (Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0
+                    || (_gameTimer.milliseconds() -
+                        Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 >
+                        _storage.cells.hwSortingM.timeSinceLastShotUpdateMs))
                     _storage.sortingPhase8()
 
             SortingPhase.Name.P8_CLOSING_GATE_AND_PUSH ->
-                if (_cms.pushStatus.isClosed() && (
-                    _cms.gateStatus.isClosed() ||
-                    _cms.sortingPhase.remainingRotations > 1))
-                    _storage.sortingPhaseRealignment(
-                        Delay.MS.PUSH.PART)
+                if (_cms.pushStatus.isClosed())
+                {
+                    _storage.cells.hwSortingM.hwMotors.forwardBelts(
+                        onTime = false, 11.0)
+
+                    if (_cms.gateStatus.isClosed() ||
+                        _cms.sortingPhase.remainingRotations > 1)
+                            _storage.sortingPhaseRealignment(
+                                ifDoneSkipToPhase3 = false)
+                }
 
             SortingPhase.Name.P9_REALIGN_STORAGE ->
-                if (_cms.beltsStatus.isIdle())
+                if (_cms.beltsStatus.isIdle()
+                    || (_cms.sortingPhase.remainingRotations > 1 &&
+                        _gameTimer.milliseconds() >
+                        _storage.cells.hwSortingM.timeSinceLastShotUpdateMs))
                 {
                     _cms.sortingPhase.remainingRotations--
                     if  (_cms.sortingPhase.remainingRotations > 0)
-                        _cms.sortingPhase.startPhase1()
+                        _storage.sortingPhase1(
+                            _cms.sortingPhase.remainingRotations)
                     else
                     {
                         _cms.sortingPhase.setInactive()
+                        _storage.cells.hwSortingM.hwMotors.stopBelts()
 
 //                        if (canStartAutoShooting())
                         if (canStartManualShooting() &&

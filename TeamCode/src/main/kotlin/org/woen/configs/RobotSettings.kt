@@ -15,9 +15,9 @@ internal object RobotSettings
     internal object ROBOT
     {
         @JvmField
-        var AUTONOMOUS_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = StockPattern.Storage.EMPTY
+        var AUTONOMOUS_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = StockPattern.Storage.GPP
         @JvmField
-        var TELEOP_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = StockPattern.Storage.EMPTY
+        var TELEOP_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM = StockPattern.Storage.GPP
 
 
         @JvmField
@@ -79,7 +79,7 @@ internal object RobotSettings
         var ENABLE_GAMEPAD_CONTROLLED_SORTING_SWAPS = true
 
         @JvmField
-        var SWAPS_PER_MANUAL_BUTTON_SWITCH = 1
+        var SWAPS_PER_MANUAL_BUTTON_SWITCH = 2
 
 
 

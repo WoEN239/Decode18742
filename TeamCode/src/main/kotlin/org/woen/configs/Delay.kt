@@ -14,11 +14,11 @@ internal object Delay
         internal object PUSH
         {
             @JvmField
-            var FULL: Long = 515
+            var FULL: Long = 160
             val HALF get() = FULL / 2
 
             @JvmField
-            var PART: Long = 300
+            var PART: Long = 100
         }
 
         @Config
@@ -66,10 +66,10 @@ internal object Delay
         internal object REALIGNMENT
         {
             @JvmField
-            var SORTING_FORWARD: Long = 170
+            var SORTING_FORWARD: Long = 0
 
             @JvmField
-            var SORTING_REVERSE: Long = 0
+            var SORTING_REVERSE: Long = 80
 
 
             @JvmField

@@ -9,9 +9,11 @@ import org.woen.enumerators.RequestResult
 import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
 
-import org.woen.scoringSystem.IsEndGameEvent
 import org.woen.scoringSystem.misc.DynamicPattern
 import org.woen.scoringSystem.ConnectorModuleStatus
+
+import org.woen.scoringSystem.SMC_IsEndGameEvent
+import org.woen.scoringSystem.SMC_GetCurrentGameTimerEvent
 
 import org.woen.configs.Delay
 import org.woen.configs.Hardware
@@ -60,7 +62,7 @@ class Storage
 
             if (CONTROLS.TRY_AUTO_SORT_WHEN_FULL_IN_ENDGAME
                 && _cms.collector.eventBus.invoke(
-                    IsEndGameEvent()).isEndGame)
+                    SMC_IsEndGameEvent()).isEndGame)
             {
                 logM.logMd("Starting auto sorting [EndGame]", Debug.START)
 
@@ -310,16 +312,31 @@ class Storage
         logM.logMd("Sorting phase 1, closing turretGate", Debug.LOGIC)
         _cms.sortingPhase.startPhase1()
         _cms.sortingPhase.remainingRotations = totalRotations
+        cells.hwSortingM.hwMotors.openGate()
 
-        if (_cms.lazyIntakeIsActive) cells.hwSortingM.hwMotors.stopBelts()
-        cells.hwSortingM.hwMotors.closeTurretGate()
+        if (_cms.turretGateStatus.isClosed())
+            sortingPhaseRealignment(ifDoneSkipToPhase3 = true)
+        else
+        {
+            if (_cms.lazyIntakeIsActive) cells.hwSortingM.hwMotors.stopBelts()
+
+            cells.hwSortingM.hwMotors.closeTurretGate()
+        }
     }
-    fun sortingPhaseRealignment(initialBeltPush: Long = 0)
+    fun sortingPhaseRealignment(
+        ifDoneSkipToPhase3: Boolean,
+        initialBeltPush: Long = 0)
     {
         logM.logMd("Sorting HW ReAdjustment (Phase 2 or 9)", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
-        cells.hwSortingM.hwMotors.stopBelts()
-        cells.hwReAdjustStorage(initialBeltPush)
+
+        if (cells.hwReAdjustStorage(initialBeltPush))
+        {
+            if (ifDoneSkipToPhase3)
+                sortingPhase3()
+            else if (_cms.sortingPhase.remainingRotations < 2)
+                cells.hwSortingM.hwMotors.stopBelts()
+        }
     }
     fun sortingPhase3()
     {
@@ -337,34 +354,56 @@ class Storage
         val timeMs = Delay.MS.REALIGNMENT.SORTING_REVERSE
 
         if (timeMs <= 0) sortingPhase5()
-        else cells.hwSortingM.reinstantiableReverse(timeMs)
+        else cells.hwSortingM.reinstantiableReverse(
+            timeMs, Hardware.MOTOR.BELTS_REVERSE)
     }
     fun sortingPhase5()
     {
         logM.logMd("Sorting phase 5, opening gate", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
-        cells.hwSortingM.hwMotors.openGate()
+
+        if (_cms.gateStatus.isOpened())
+            sortingPhase6()
+        else cells.hwSortingM.hwMotors.openGate()
     }
     fun sortingPhase6()
     {
         logM.logMd("Sorting phase 6, opening push", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
-        cells.hwSortingM.hwMotors.openPush()
+        if (_cms.pushStatus.isOpened())
+            sortingPhase7()
+        else cells.hwSortingM.hwMotors.openPush()
     }
-    fun sortingPhase7(waitTimeStampMs: Double)
+    fun sortingPhase7()
     {
+        cells.rotateSwStorage()
         logM.logMd("Sorting phase 7, waiting for ball to fly in MOBILE position", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
 
         if (Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0)
             return sortingPhase8()
 
-        cells.hwSortingM.timeSinceLastShotUpdateMs = waitTimeStampMs
+        cells.hwSortingM.timeSinceLastShotUpdateMs =
+            _cms.collector.eventBus.invoke(
+                SMC_GetCurrentGameTimerEvent()
+            ).timeMs
     }
     fun sortingPhase8()
     {
         _cms.sortingPhase.switchToNextPhase()
-        cells.hwSortingM.hwMotors.reverseBelts(onTime = false)
+
+//        cells.hwSortingM.hwMotors.reverseBelts(onTime = false)
+        cells.hwSortingM.hwMotors.forwardBelts(onTime = false, 9.0)
+
+
+        if (_cms.pushStatus.isClosed() && (
+            _cms.gateStatus.isClosed() ||
+            _cms.sortingPhase.remainingRotations > 1))
+                sortingPhaseRealignment(
+                    ifDoneSkipToPhase3 = false,
+                    Delay.MS.PUSH.PART)
+
+
         if (_cms.sortingPhase.remainingRotations < 2)
         {
             cells.hwSortingM.hwMotors.closeGateWithPush()

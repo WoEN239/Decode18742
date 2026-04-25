@@ -13,6 +13,7 @@ import org.woen.utils.debug.LogManager
 
 import org.woen.collector.RunMode
 import org.woen.modules.BallCountUpdateEvent
+import org.woen.scoringSystem.SMC_GetCurrentGameTimerEvent
 
 import org.woen.scoringSystem.ConnectorModuleStatus
 import org.woen.scoringSystem.storage.hardware.HwSortingManager
@@ -73,6 +74,7 @@ class Cells
     constructor(cms: ConnectorModuleStatus)
     {
         _cms = cms
+        logM = LogManager(_cms.collector.telemetry, DebugSettings.CELLS)
 
         forceSet(
             if (_cms.collector.runMode == RunMode.AUTO)
@@ -81,7 +83,6 @@ class Cells
 
         hwSortingM = HwSortingManager(_cms)
 
-        logM = LogManager(_cms.collector.telemetry, DebugSettings.CELLS)
         updateBallCountForLEDLINE()
     }
 
@@ -235,6 +236,13 @@ class Cells
         logM.logMd("Considering shot fired, ballCount after update: $ballCount", Debug.STATUS)
         updateBallCountForLEDLINE(ballCount)
     }
+    fun rotateSwStorage()
+    {
+        _storageCells[StorageSlot.MOBILE].set(_storageCells[StorageSlot.TURRET])
+        _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
+        _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
+        _storageCells[StorageSlot.BOTTOM].empty()
+    }
 
 
 
@@ -266,10 +274,13 @@ class Cells
         logM.logMd("finished readjusting", Debug.END)
         return false
     }
-    fun hwReAdjustStorage(initialBeltPush: Long = 0)
+    fun hwReAdjustStorage(initialBeltPush: Long = 0): Boolean
     {
         if (_cms.calibrationPhase.isActive())
-            return logM.logMd("-!- Failed to perform storage ReAdjustment", Debug.ERROR)
+        {
+            logM.logMd("-!- Failed to perform storage ReAdjustment", Debug.ERROR)
+            return true
+        }
 
         _cms.canTriggerIntake = false
 
@@ -277,7 +288,23 @@ class Cells
         while (swReAdjustStorage())
             beltPushTime += Delay.MS.PUSH.FULL
 
-        hwSortingM.reinstantiableForward(beltPushTime)
+        logM.logMd("Realigning time: $beltPushTime", Debug.LOGIC)
+        val requireAligning = beltPushTime > 0
+        if (requireAligning)
+        {
+            if (_cms.sortingPhase.remainingRotations > 1)
+            {
+                hwSortingM.timeSinceLastShotUpdateMs =
+                    _cms.collector.eventBus.invoke(
+                        SMC_GetCurrentGameTimerEvent()
+                    ).timeMs + beltPushTime
+
+                hwSortingM.hwMotors.forwardBelts(onTime = false)
+            }
+            else hwSortingM.reinstantiableForward(beltPushTime)
+        }
+
+        return !requireAligning
     }
 
 

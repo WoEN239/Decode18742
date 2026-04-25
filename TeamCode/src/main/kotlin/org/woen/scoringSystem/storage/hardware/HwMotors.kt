@@ -156,23 +156,32 @@ class HwMotors
     fun forwardBelts(onTime: Boolean, voltage: Double = Hardware.MOTOR.BELTS_FORWARD)
     {
         _cms.beltsStatus.setForward(onTime)
-        _beltMotor.power = _cms.brushStatus.motorSpeedForAcceleration
+        _cms.beltsStatus.motorSpeed = _cms.collector.battery.voltageToPower(voltage)
+
+        val motorPower = _cms.beltsStatus.motorSpeedForAcceleration
+
+        _beltMotor.power = motorPower
 //        _beltMotor.power = _cms.collector.battery.voltageToPower(voltage)
 
-        _cms.beltsStatus.motorSpeed = _cms.collector.battery.voltageToPower(voltage)
+        logM.logMd("[Low] Forward belts, power: $motorPower, onTime: $onTime", Debug.HW_HIGH)
     }
     fun reverseBelts(onTime: Boolean, voltage: Double = Hardware.MOTOR.BELTS_REVERSE)
     {
         _cms.beltsStatus.setReverse(onTime)
-        _beltMotor.power = _cms.brushStatus.motorSpeedForAcceleration
-//        _beltMotor.power = -_cms.collector.battery.voltageToPower(voltage)
         _cms.beltsStatus.motorSpeed = -_cms.collector.battery.voltageToPower(voltage)
+
+        val motorPower = _cms.beltsStatus.motorSpeedForAcceleration
+
+        _beltMotor.power = motorPower
+//        _beltMotor.power = -_cms.collector.battery.voltageToPower(voltage)
+
+        logM.logMd("[Low] Reverse belts, power: $motorPower, onTime: $onTime", Debug.HW_HIGH)
     }
     fun stopBelts()
     {
         _cms.beltsStatus.setIdle()
         _beltMotor.power = 0.0
-        _cms.beltsStatus.motorSpeed = 0.0
+        logM.logMd("STOPPED BELTS", Debug.HW_LOW)
     }
 
 
