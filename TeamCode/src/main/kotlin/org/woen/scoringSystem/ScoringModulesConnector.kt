@@ -33,7 +33,7 @@ import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-import org.woen.scoringSystem.storage.MAX_BALL_COUNT
+
 
 
 data class SMC_IsEndGameEvent(var isEndGame: Boolean = false)
@@ -674,8 +674,8 @@ class ScoringModulesConnector
             if (ballCount < countBasedOnCurrent) ballCount = countBasedOnCurrent
 
             if (ballCount > _cms.ballCountForLED.count)
-            _storage.cells.updateBallCountForLEDLINE(
-                ballCount, infoIsGuaranteed = false)
+                _storage.cells.updateBallCountForLEDLINE(
+                    ballCount, infoIsGuaranteed = false)
         }
     }
 

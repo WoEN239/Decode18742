@@ -32,8 +32,8 @@ fun attachLimelight(collector: Collector) {
     }
 
     collector.startEvent += {
-        collector.eventBus.invoke(
-            OnPatternDetectedEvent(StockPattern.Request.PGP))
+//        collector.eventBus.invoke(
+//            OnPatternDetectedEvent(StockPattern.Request.PGP))
     }
 
     collector.updateEvent += {
