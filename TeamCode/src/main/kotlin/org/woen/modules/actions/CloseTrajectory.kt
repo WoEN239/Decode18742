@@ -26,16 +26,16 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
         DriveAction(
             eventBus,
             DriveSegment(
-                Orientation(Vec2(0.265, -0.582 * colorK), Angle.ofDeg(-90.0 * colorK)),
+                Orientation(Vec2(0.426, -0.582 * colorK), Angle.ofDeg(-90.0 * colorK)),
                 positionWindow = 0.4,
                 headingWindow = toRadians(40.0)
             )
         ),
         StartEatAction(eventBus),
-        DriveAction(eventBus, MoveSegment(Vec2(0.436, -1.55 * colorK), 1.2)),
-        WaitAction(0.2),
+        DriveAction(eventBus, MoveSegment(Vec2(0.426, -1.62 * colorK), 1.2)),
+        WaitAction(0.5),
         StopEatAction(eventBus),
-        DriveAction(eventBus, MoveSegment(Vec2(0.436, -1.283 * colorK), positionWindow = 0.4)),
+        DriveAction(eventBus, MoveSegment(Vec2(0.426, -1.283 * colorK), positionWindow = 0.4)),
         ParallelActions(
             arrayOf(
                 arrayListOf(
@@ -74,7 +74,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
                 positionWindow = 0.4
             )
         ),
-        WaitAction(1.9),
+        WaitAction(2.2),
         DriveAction(
             eventBus,
             DriveSegment(Orientation(Vec2(0.0, -1.393 * colorK), Angle.ofDeg(-90.0 * colorK)))
@@ -131,9 +131,9 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
         StartEatAction(eventBus),
         DriveAction(
             eventBus,
-            MoveSegment(Vec2(-0.289, -1.393 * colorK), 1.2)
+            MoveSegment(Vec2(-0.289, -1.413 * colorK), 1.2)
         ),
-        WaitAction(0.2),
+        WaitAction(0.5),
         StopEatAction(eventBus),
         SortingAction(eventBus, StockPattern.Storage.PPG),
         DriveAction(eventBus, DriveSegment(Orientation(shootPosition, Angle.ZERO))),

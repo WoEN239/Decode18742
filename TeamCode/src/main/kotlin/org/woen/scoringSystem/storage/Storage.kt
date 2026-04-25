@@ -1,6 +1,7 @@
 package org.woen.scoringSystem.storage
 
 
+import org.woen.collector.RunMode
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
 import org.woen.enumerators.Shooting
@@ -240,7 +241,7 @@ class Storage
 
         logM.logMd("StreamDrum phase 2, shot count: $shotCount", Debug.LOGIC)
 
-        val beltPushTime = if (_cms.shootingPhase.shotBeltsVoltage
+        var beltPushTime = if (_cms.shootingPhase.shotBeltsVoltage
             == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
                 when(shotCount)
                 {
@@ -256,6 +257,9 @@ class Storage
                     1    -> Delay.MS.SHOOTING.SLOW_1
                     else -> Delay.MS.SHOOTING.SLOW_LAST_WITH_LAUNCHER
                 }
+
+        if (_cms.collector.runMode == RunMode.MANUAL)
+            beltPushTime += Delay.MS.SHOOTING.ADDITIONAL_TOLERANCE_FOR_TELEOP
 
         logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
 

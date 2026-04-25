@@ -286,7 +286,7 @@ class Cells
 
         var beltPushTime: Long = initialBeltPush
         while (swReAdjustStorage())
-            beltPushTime += Delay.MS.PUSH.FULL
+            beltPushTime += Delay.MS.PUSH.READJUSTING
 
         logM.logMd("Realigning time: $beltPushTime", Debug.LOGIC)
         val requireAligning = beltPushTime > 0

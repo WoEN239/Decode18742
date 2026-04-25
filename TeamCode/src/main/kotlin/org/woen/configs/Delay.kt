@@ -19,11 +19,18 @@ internal object Delay
 
             @JvmField
             var PART: Long = 100
+
+            @JvmField
+            var READJUSTING: Long = 160
         }
 
         @Config
         internal object SHOOTING
         {
+            @JvmField
+            var ADDITIONAL_TOLERANCE_FOR_TELEOP: Long = 40
+
+
             @JvmField
             var FAST_3: Long = 300
 
