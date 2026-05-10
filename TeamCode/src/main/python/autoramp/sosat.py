@@ -30,45 +30,78 @@ class SoSAT:
             loaded = json.load(f)
             self.contoursList = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
 
-    __wbSimple = cv2.xphoto.createSimpleWB()
     __kernel = np.ones((3,3), np.uint8)
-
-    def rampROI(self,frame):
-        lowerThreshold = None
-        upperThreshold = None
-        if self.teamColor == TeamColor.RED:
-            lowerThreshold = self.redLowerThreshold
-            upperThreshold = self.redUpperThreshold
-        elif self.teamColor == TeamColor.BLUE:
-            lowerThreshold = self.blueLowerThreshold
-            upperThreshold = self.blueUpperThreshold
-
-        frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(frameHSV, lowerThreshold, upperThreshold)
-
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        if not contours:
-            return frame, (0, 0, frame.shape[1], frame.shape[0])
-
-        largestContour = max(contours, key=cv2.contourArea)
-        x, y, w, h = cv2.boundingRect(largestContour)
-
-        return frame[y:y+h, x:x+w], (x, y, w, h)
-
-    def prepareImage(self,frame,brightness=150):
-
-
-        frame = cv2.medianBlur(frame,5)
-
-        frame = self.__wbSimple.balanceWhite(frame)
-
-        frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frameBrightness =  np.mean(frameGray)
-        frame = cv2.convertScaleAbs(frame, alpha=1, beta=brightness - frameBrightness)
-
-        return frame
     
-    def colorMasks(self,frame,brightness=150,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
+    class imageCorrection():
+        
+        def __init__(self):
+            pass
+        
+        def referenceROI(self,frame,referenceLowerThershold,referenceUpperThreshold):
+
+            frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            mask = cv2.inRange(frameHSV, referenceLowerThershold, referenceUpperThreshold)
+
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if not contours:
+                return frame, (0, 0, frame.shape[1], frame.shape[0])
+
+            largestContour = max(contours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(largestContour)
+
+            return frame[y:y+h, x:x+w]
+
+        def removeNoise(self,frame,iterations):
+            
+            resultFrame = cv2.medianBlur(frame,iterations)
+            
+            return resultFrame
+
+        def correctColor(self,frame,ROIframe,referenceLowerThershold,referenceUpperThreshold,referenceExpectedValue):
+
+            ROIframeHSV = cv2.cvtColor(ROIframe, cv2.COLOR_BGR2HSV)
+
+            referenceMask = cv2.inRange(
+                ROIframeHSV,
+                referenceLowerThershold,
+                referenceUpperThreshold
+            )
+
+            referencePixels = ROIframeHSV[referenceMask > 0]
+
+            if len(referencePixels) == 0:
+                return frame
+
+            meanValue = np.mean(referencePixels, axis=0)
+
+            correction = (
+                referenceExpectedValue - meanValue
+            ).astype(np.int16)
+
+            frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            frameHSV = frameHSV.astype(np.int16)
+
+            frameHSV[:, :, 0] += correction[0]
+            frameHSV[:, :, 1] += correction[1]
+            frameHSV[:, :, 2] += correction[2]
+
+            frameHSV = np.clip(frameHSV, 0, 255).astype(np.uint8)
+
+            resultFrame = cv2.cvtColor(frameHSV, cv2.COLOR_HSV2BGR)
+
+            return resultFrame
+        
+        def correctImage(self,frame,referenceLowerThershold,referenceUpperThreshold,referenceExpectedValue,noiseRemovingIterations=5):
+            
+            frameDenoised = self.removeNoise(frame,noiseRemovingIterations)
+            ROIframe = self.referenceROI(frameDenoised,referenceLowerThershold,referenceUpperThreshold)
+            resultFrame = self.correctColor(frame,ROIframe,referenceLowerThershold,referenceUpperThreshold,referenceExpectedValue)
+            
+            return resultFrame
+    
+    correction = imageCorrection()
+    
+    def colorMasks(self,frame,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
 
         frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
@@ -158,15 +191,11 @@ class SoSAT:
 
         return detectedArtifacts
 
-    def detectArtifacts(self,frame,matchThreshold=0.5,minArea=100,brightness=150,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
-        frame, bbox = self.rampROI(frame)
-        frame = self.prepareImage(frame, brightness)
+    def detectArtifacts(self,frame,matchThreshold=0.5,minArea=100,hRange=10,hIterations=2,sRange=50,sIterations=2,vRange=70,vIterations=5, morphCloseIterations=3, erodeIterations=2, morphOpenIterations=3):
+        
+        frame = self.correction.correctImage(frame,self.blueLowerThreshold,self.blueUpperThreshold,np.array([100,255,127]))
 
-        masks = self.colorMasks(frame,brightness,hRange,hIterations,sRange,sIterations,vRange,vIterations,morphCloseIterations,erodeIterations,morphOpenIterations)
+        masks = self.colorMasks(frame,hRange,hIterations,sRange,sIterations,vRange,vIterations,morphCloseIterations,erodeIterations,morphOpenIterations)
         detectedArtifacts = self.__detectFromMasks(masks, matchThreshold, minArea)
         
-        cropX, cropY = bbox[0], bbox[1]
-        for artifact in detectedArtifacts:
-            artifact["x"] += cropX
-            artifact["y"] += cropY
         return detectedArtifacts
