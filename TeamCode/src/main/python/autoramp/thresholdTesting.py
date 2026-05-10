@@ -25,6 +25,7 @@ imageNum = 0
 
 while True:
     frame = cv2.imread("testImages/" + imageNames[imageNum])
+    frame = sosat.correction.correctImage(frame,sosat.blueLowerThreshold,sosat.blueUpperThreshold,[100,255,127])
 
     LowerHue = cv2.getTrackbarPos("LowerHue","Test thresholds")
     LowerSaturation = cv2.getTrackbarPos("LowerSaturation","Test thresholds")
@@ -42,7 +43,7 @@ while True:
     sosat.purpleLowerThreshold = np.array([LowerHue, LowerSaturation, LowerValue])
     sosat.purpleUpperThreshold = np.array([UpperHue, UpperSaturation, UpperValue])
 
-    mask = sosat.colorMasks(frame,150,0,1,0,1,0,1,morphOpenIterations=morphOpenValue,erodeIterations=erodeValue,morphCloseIterations=morphСloseValue)[0]
+    mask = sosat.colorMasks(frame,0,1,0,1,0,1,morphOpenIterations=morphOpenValue,erodeIterations=erodeValue,morphCloseIterations=morphСloseValue)[0]
     if isinstance(mask, list):
         if mask:
             mask = mask[0]

@@ -22,8 +22,8 @@ class SoSAT:
 
     purpleLowerThreshold = np.array([150, 100, 120])
     purpleUpperThreshold = np.array([179, 255, 255])
-    greenLowerThreshold = np.array([40, 50, 0])
-    greenUpperThreshold = np.array([100, 205, 240])
+    greenLowerThreshold = np.array([25, 40, 100])
+    greenUpperThreshold = np.array([90, 250, 210])
 
     def __init__(self,pathToContours):
         with open(pathToContours, "r") as f:
@@ -36,20 +36,6 @@ class SoSAT:
         
         def __init__(self):
             pass
-        
-        def referenceROI(self,frame,referenceLowerThershold,referenceUpperThreshold):
-
-            frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            mask = cv2.inRange(frameHSV, referenceLowerThershold, referenceUpperThreshold)
-
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            if not contours:
-                return frame, (0, 0, frame.shape[1], frame.shape[0])
-
-            largestContour = max(contours, key=cv2.contourArea)
-            x, y, w, h = cv2.boundingRect(largestContour)
-
-            return frame[y:y+h, x:x+w]
 
         def removeNoise(self,frame,iterations):
             
@@ -57,20 +43,14 @@ class SoSAT:
             
             return resultFrame
 
-        def correctColor(self,frame,ROIframe,referenceLowerThershold,referenceUpperThreshold,referenceExpectedValue):
+        def correctColor(self,frameHSV,referenceLowerThershold,referenceUpperThreshold,referenceExpectedValue):
 
-            ROIframeHSV = cv2.cvtColor(ROIframe, cv2.COLOR_BGR2HSV)
+            referenceMask = cv2.inRange(frameHSV,referenceLowerThershold,referenceUpperThreshold) > 0
 
-            referenceMask = cv2.inRange(
-                ROIframeHSV,
-                referenceLowerThershold,
-                referenceUpperThreshold
-            )
-
-            referencePixels = ROIframeHSV[referenceMask > 0]
+            referencePixels = frameHSV[referenceMask]
 
             if len(referencePixels) == 0:
-                return frame
+                return frameHSV
 
             meanValue = np.mean(referencePixels, axis=0)
 
@@ -78,26 +58,19 @@ class SoSAT:
                 referenceExpectedValue - meanValue
             ).astype(np.int16)
 
-            frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             frameHSV = frameHSV.astype(np.int16)
 
-            frameHSV[:, :, 0] += correction[0]
-            frameHSV[:, :, 1] += correction[1]
-            frameHSV[:, :, 2] += correction[2]
+            frameHSV += correction
 
-            frameHSV = np.clip(frameHSV, 0, 255).astype(np.uint8)
-
-            resultFrame = cv2.cvtColor(frameHSV, cv2.COLOR_HSV2BGR)
-
-            return resultFrame
+            return np.clip(frameHSV, 0, 255).astype(np.uint8)
         
-        def correctImage(self,frame,referenceLowerThershold,referenceUpperThreshold,referenceExpectedValue,noiseRemovingIterations=5):
+        def correctImage(self,frame,referenceLowerThershold,referenceUpperThreshold,referenceExpectedValue,noiseRemovingIterations=3):
             
-            frameDenoised = self.removeNoise(frame,noiseRemovingIterations)
-            ROIframe = self.referenceROI(frameDenoised,referenceLowerThershold,referenceUpperThreshold)
-            resultFrame = self.correctColor(frame,ROIframe,referenceLowerThershold,referenceUpperThreshold,referenceExpectedValue)
+            frame = self.removeNoise(frame,noiseRemovingIterations)
+            frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+            frameHSV = self.correctColor(frameHSV,referenceLowerThershold,referenceUpperThreshold,referenceExpectedValue)
             
-            return resultFrame
+            return cv2.cvtColor(frameHSV,cv2.COLOR_HSV2BGR)
     
     correction = imageCorrection()
     

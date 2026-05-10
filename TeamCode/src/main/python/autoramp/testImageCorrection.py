@@ -6,10 +6,10 @@ import time
 cv2.namedWindow("Result",cv2.WINDOW_NORMAL)
 
 sosat = SoSAT("contoursData.json")
-frame = cv2.imread("testImages/test1.png")
+frame = cv2.imread("testImages/test5.png")
 
 start = time.time()
-preparedImage = sosat.correction.correctImage(frame,sosat.blueLowerThreshold,sosat.blueUpperThreshold,np.array([100,255,127]))
+preparedImage = sosat.correction.correctImage(frame,sosat.blueLowerThreshold,sosat.blueUpperThreshold,np.array([100,255,127]),3)
 end = time.time()
 
 processingTime = end-start
