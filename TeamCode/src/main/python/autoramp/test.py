@@ -6,7 +6,7 @@ cv2.namedWindow("Result",cv2.WINDOW_NORMAL)
 
 sosat = SoSAT("contoursData.json")
 sosat.teamColor = TeamColor.BLUE
-frame = cv2.imread("testImages/test1.png")
+frame = cv2.imread("testImages/test2.png")
 
 start = time.time()
 detectedArtifacts = sosat.detectArtifacts(frame)

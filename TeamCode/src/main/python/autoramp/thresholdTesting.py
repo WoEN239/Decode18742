@@ -48,8 +48,11 @@ while True:
             mask = mask[0]
         else:
             mask = np.zeros_like(frame[:, :, 0])
+
     maskedImage = cv2.bitwise_and(frame, frame, mask=mask)
-    cv2.imshow("Test thresholds",maskedImage)
+
+    result = np.concatenate((maskedImage,frame),1)
+    cv2.imshow("Test thresholds",result)
 
     key = cv2.waitKey(10) & 0xFF
     if key == ord('q'):
@@ -59,11 +62,25 @@ while True:
     elif key == ord('n'):
         
         print(f"[{LowerHue}, {LowerSaturation}, {LowerValue}] - [{UpperHue}, {UpperSaturation}, {UpperValue}] - MorphOpen: {morphOpenValue}, Erode: {erodeValue}, Close: {morphСloseValue}")
-        imageNum += 1
-        print("ImageName: " + imageNames[imageNum])
+
+        if len(imageNames)-1 > imageNum:
+
+            imageNum += 1
+            print("ImageName: " + imageNames[imageNum])
+
+        else:
+
+            print("Nothing more")    
 
     elif key == ord('p'):
 
         print(f"[{LowerHue}, {LowerSaturation}, {LowerValue}] - [{UpperHue}, {UpperSaturation}, {UpperValue}] - MorphOpen: {morphOpenValue}, Erode: {erodeValue}, Close: {morphСloseValue}")
-        imageNum -= 1
-        print("ImageName: " + imageNames[imageNum])
+
+        if imageNum > 0:
+
+            imageNum -= 1
+            print("ImageName: " + imageNames[imageNum])
+
+        else:
+
+            print("Nothing more")
