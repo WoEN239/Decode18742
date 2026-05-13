@@ -467,12 +467,13 @@ class ScoringModulesConnector
         //  Comment if you don't use this for better performance
 
         _storage.tryHandleIntake()
+        _storage.cells.hwSortingM.update()
 
         updateSorting()
         updateShooting()
         updateCalibrationPhase()
 
-        _storage.cells.hwSortingM.update()
+        _storage.cells.hwSortingM.hwMotors.updateMotorsAccelerations()
     }
 
 

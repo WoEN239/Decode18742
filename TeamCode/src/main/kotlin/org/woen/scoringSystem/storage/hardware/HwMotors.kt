@@ -93,9 +93,9 @@ class HwMotors
         _cms.launchStatus.tryUpdate(_launchServo.atTarget)
         _cms.turretGateStatus.tryUpdate(_turretGateServo.atTarget)
     }
-    fun updateMotors()
+    fun updateMotorsAccelerations()
     {
-        logM.logMd("Hw update motors: " +
+        logM.logMd("Hw update motors accelerations: " +
                 "${_cms.beltsStatus._accelerationPhase} = " +
                 "${_cms.beltsStatus.motorSpeedForAcceleration}", Debug.HW_LOW)
         _beltMotor .power = _cms.beltsStatus.motorSpeedForAcceleration
