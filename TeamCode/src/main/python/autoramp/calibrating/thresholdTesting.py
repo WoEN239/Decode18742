@@ -2,7 +2,12 @@ import cv2
 import numpy as np
 import os
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from sosat import SoSAT
+from autoramp import AutoRamp
 
 cv2.namedWindow("Test thresholds",cv2.WINDOW_NORMAL)
 
@@ -12,20 +17,21 @@ def nothing(x):
 cv2.createTrackbar("LowerHue","Test thresholds",0,179,nothing)
 cv2.createTrackbar("LowerSaturation","Test thresholds",0,255,nothing)
 cv2.createTrackbar("LowerValue","Test thresholds",0,255,nothing)
-cv2.createTrackbar("UpperHue","Test thresholds",0,179,nothing)
-cv2.createTrackbar("UpperSaturation","Test thresholds",0,255,nothing)
-cv2.createTrackbar("UpperValue","Test thresholds",0,255,nothing)
+cv2.createTrackbar("UpperHue","Test thresholds",179,179,nothing)
+cv2.createTrackbar("UpperSaturation","Test thresholds",255,255,nothing)
+cv2.createTrackbar("UpperValue","Test thresholds",255,255,nothing)
 cv2.createTrackbar("MorphOpenValue","Test thresholds",0,10,nothing)
 cv2.createTrackbar("ErodeValue","Test thresholds",0,10,nothing)
 cv2.createTrackbar("CloseValue","Test thresholds",0,10,nothing)
 
 sosat = SoSAT("contoursData.json")
+ar = AutoRamp("contoursData.json")
 imageNames = os.listdir("testImages")
 imageNum = 0
 
 while True:
     frame = cv2.imread("testImages/" + imageNames[imageNum])
-    frame = sosat.correction.correctImage(frame,sosat.blueLowerThreshold,sosat.blueUpperThreshold,[100,255,127])
+    frame = sosat.correction.correctImage(frame,ar.blueLowerThreshold,ar.blueUpperThreshold,[100,255,127])
 
     LowerHue = cv2.getTrackbarPos("LowerHue","Test thresholds")
     LowerSaturation = cv2.getTrackbarPos("LowerSaturation","Test thresholds")
@@ -37,13 +43,35 @@ while True:
     erodeValue = cv2.getTrackbarPos("ErodeValue","Test thresholds")
     morphСloseValue = cv2.getTrackbarPos("CloseValue","Test thresholds")
 
-    sosat.greenLowerThreshold = np.array([LowerHue, LowerSaturation, LowerValue])
-    sosat.greenUpperThreshold = np.array([UpperHue, UpperSaturation, UpperValue])
+    lowerThreshold = np.array([LowerHue, LowerSaturation, LowerValue])
+    upperThreshold = np.array([UpperHue, UpperSaturation, UpperValue])
 
-    sosat.purpleLowerThreshold = np.array([LowerHue, LowerSaturation, LowerValue])
-    sosat.purpleUpperThreshold = np.array([UpperHue, UpperSaturation, UpperValue])
+    mask = sosat.colorMasks(
+        frame,
+        lowerThreshold,
+        upperThreshold,
 
-    mask = sosat.colorMasks(frame,0,1,0,1,0,1,morphOpenIterations=morphOpenValue,erodeIterations=erodeValue,morphCloseIterations=morphСloseValue)[0]
+        0,
+        1,
+
+        0,
+        1,
+
+        0,
+        1,
+
+        morphOpenValue,
+        0,
+        1,
+
+        erodeValue,
+        0,
+        1,
+
+        morphСloseValue,
+        0,
+        1
+    )
     if isinstance(mask, list):
         if mask:
             mask = mask[0]
