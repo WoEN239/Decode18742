@@ -80,7 +80,7 @@ for imageName in imageNames:
             displayFrame = frame[startCoords[1]:endCoords[1],startCoords[0]:endCoords[0]]
             height, width = displayFrame.shape[:2]
             if height > 0 and width > 0:
-                displayFrame = sosat.correction.correctImage(displayFrame, ar.blueLowerThreshold, ar.blueUpperThreshold, np.array([100,255,127]))
+                displayFrame = sosat.correction.correctImage(displayFrame, ar.referenceLowerThreshold, ar.referenceUpperThreshold, ar.referenceExpectedValue)
                 
                 masks = sosat.colorMasks(
                     displayFrame,
@@ -140,7 +140,7 @@ for imageName in imageNames:
                     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                     for contour in contours:
                         area = cv2.contourArea(contour)
-                        if area > 50 and not touches_edge(contour, width, height):
+                        if area > ar.Settings.minArea and not touches_edge(contour, width, height):
                             all_contours.append((area, contour))
 
                 all_contours.sort(key=lambda x: x[0], reverse=True)

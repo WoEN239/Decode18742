@@ -12,9 +12,9 @@ class AutoRamp():
 
     class Settings():
 
-        matchThreshold = 0.1
+        matchThreshold = 1
 
-        minArea = 100
+        minArea = 50
         
         hRange = 5
         hIterations = 1
@@ -22,46 +22,48 @@ class AutoRamp():
         sRange = 25
         sIterations = 2
 
-        vRange = 30
+        vRange = 50
         vIterations = 3
 
-        morphOpenValue = 1
-        morphOpenRange = 2
-        morphOpenIterations = 2
+        morphOpenValue = 0
+        morphOpenRange = 0
+        morphOpenIterations = 1
 
-        erodeValue = 0
+        erodeValue = 1
         erodeRange = 0
-        erodeIterations = 0
+        erodeIterations = 1
 
         morphCloseValue = 2
-        morphCloseRange = 0
-        morphCloseIterations = 1
+        morphCloseRange = 2
+        morphCloseIterations = 2
 
-    __teamColor = TeamColor.BLUE
+    teamColor = None
 
-    __referenceLowerThershold = np.array([0, 0, 0])
-    __referenceUpperThreshold = np.array([179, 255, 255])
-    __refernceExpectedValue = np.array([100,255,127])
+    referenceLowerThreshold = np.array([0, 0, 45])
+    referenceUpperThreshold = np.array([60, 80, 245])
+    referenceExpectedValue = np.array([15,75,130])
 
     redLowerThreshold = np.array([140, 185, 155])
     redUpperThreshold = np.array([179, 255, 255])
     blueLowerThreshold = np.array([80, 20, 55])
     blueUpperThreshold = np.array([130, 255, 255])
 
-    purpleLowerThreshold = np.array([130, 50, 50])
-    purpleUpperThreshold = np.array([160, 255, 230])
-    greenLowerThreshold = np.array([50, 75, 30])
-    greenUpperThreshold = np.array([80, 255, 190])
+    purpleLowerThreshold = np.array([130, 90, 130])
+    purpleUpperThreshold = np.array([170, 220, 240])
+    greenLowerThreshold = np.array([45, 90, 75])
+    greenUpperThreshold = np.array([85, 255, 255])
 
     def __init__(self,pathToContours):
 
         self.sosat = SoSAT(pathToContours)
 
+        self.sosat.referenceLowerThershold = self.referenceLowerThreshold
+        self.sosat.referenceUpperThreshold = self.referenceUpperThreshold
+        self.sosat.referenceExpectedValue = self.referenceExpectedValue
+
     def changeTeamColor(self,teamColor):
-        self.__teamColor = teamColor
-        self.sosat.referenceLowerThershold = self.blueLowerThreshold if teamColor == TeamColor.BLUE else self.redLowerThreshold
-        self.sosat.referenceUpperThreshold = self.blueUpperThreshold if teamColor == TeamColor.BLUE else self.redUpperThreshold
-        self.sosat.referenceExpectedValue = np.array([100,255,127]) if teamColor == TeamColor.BLUE else np.array([160,255,127])
+
+        self.teamColor = teamColor
 
     def detectArtifacts(self,frame):
 
@@ -72,8 +74,8 @@ class AutoRamp():
                                                             minArea=self.Settings.minArea,
                                                             matchThreshold=self.Settings.matchThreshold, 
 
-                                                            lowerThreshold=self.greenLowerThreshold,
-                                                            upperThreshold=self.greenUpperThreshold,
+                                                            lowerThreshold=self.purpleLowerThreshold,
+                                                            upperThreshold=self.purpleUpperThreshold,
 
                                                             hRange=self.Settings.hRange,
                                                             hIterations=self.Settings.hIterations,

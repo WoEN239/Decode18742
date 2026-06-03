@@ -25,7 +25,7 @@ cv2.waitKey(0)
 cv2.destroyAllWindows()
 
 startTime = time.time()
-correctedFrame = correction.correctImage(frame, ar.blueLowerThreshold, ar.blueUpperThreshold, np.array([100,255,127]))
+correctedFrame = correction.correctImage(frame, ar.referenceLowerThreshold, ar.referenceUpperThreshold, ar.referenceExpectedValue)
 endTime = time.time()
 
 

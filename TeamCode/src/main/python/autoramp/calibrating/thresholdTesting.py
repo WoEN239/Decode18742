@@ -31,7 +31,7 @@ imageNum = 0
 
 while True:
     frame = cv2.imread("testImages/" + imageNames[imageNum])
-    frame = sosat.correction.correctImage(frame,ar.blueLowerThreshold,ar.blueUpperThreshold,[100,255,127])
+    frame = sosat.correction.correctImage(frame,ar.referenceLowerThreshold,ar.referenceUpperThreshold,ar.referenceExpectedValue)
 
     LowerHue = cv2.getTrackbarPos("LowerHue","Test thresholds")
     LowerSaturation = cv2.getTrackbarPos("LowerSaturation","Test thresholds")

@@ -14,9 +14,8 @@ from autoramp import AutoRamp, TeamColor
 
 
 ar = AutoRamp("contoursData.json")
-ar.changeTeamColor(TeamColor.BLUE)
 
-frame = cv2.imread("testImages/test1.png")
+frame = cv2.imread("testImages/test10.png")
 
 startTime = time.time()
 detectedArtifacts = ar.detectArtifacts(frame)
@@ -27,7 +26,7 @@ print(f"Processed in {(endTime - startTime)*1000:.0f} ms")
 for artifact in detectedArtifacts:
     x, y, w, h, matchScore = artifact["x"], artifact["y"], artifact["w"], artifact["h"], artifact["matchScore"]
     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    cv2.putText(frame, f"{matchScore:.5f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+    cv2.putText(frame, f"{matchScore:.3f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
 cv2.imshow("Detected Artifacts", frame)
 cv2.waitKey(0)
