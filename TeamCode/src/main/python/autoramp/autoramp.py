@@ -16,14 +16,14 @@ class AutoRamp():
 
         minArea = 50
         
-        hRange = 5
-        hIterations = 1
+        hRange = 10
+        hIterations = 2
 
-        sRange = 25
+        sRange = 10
         sIterations = 2
 
-        vRange = 50
-        vIterations = 3
+        vRange = 75
+        vIterations = 5
 
         morphOpenValue = 0
         morphOpenRange = 0
@@ -33,8 +33,8 @@ class AutoRamp():
         erodeRange = 0
         erodeIterations = 1
 
-        morphCloseValue = 2
-        morphCloseRange = 2
+        morphCloseValue = 6
+        morphCloseRange = 4
         morphCloseIterations = 2
 
     teamColor = None
@@ -47,9 +47,9 @@ class AutoRamp():
     redUpperThreshold = np.array([179, 255, 255])
     blueLowerThreshold = np.array([80, 20, 55])
     blueUpperThreshold = np.array([130, 255, 255])
-
-    purpleLowerThreshold = np.array([130, 90, 130])
-    purpleUpperThreshold = np.array([170, 220, 240])
+    
+    purpleLowerThreshold = np.array([145, 60, 100])
+    purpleUpperThreshold = np.array([170, 255, 240])
     greenLowerThreshold = np.array([45, 90, 75])
     greenUpperThreshold = np.array([85, 255, 255])
 

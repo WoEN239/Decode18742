@@ -5,12 +5,14 @@ import json
 
 class SoSAT:
 
-    contoursList = []
-
     def __init__(self,pathToContours):
+
         with open(pathToContours, "r") as f:
+
             loaded = json.load(f)
             self.contoursList = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
+        
+        self.correction = self.imageCorrection()
 
     __kernel = np.ones((3,3), np.uint8)
     
@@ -34,9 +36,9 @@ class SoSAT:
             
             return resultFrame
 
-        def correctColor(self,frameHSV, referenceLowerThershold,referenceUpperThreshold, referenceExpectedValue):
+        def correctColor(self,frameHSV, referenceLowerThreshold,referenceUpperThreshold, referenceExpectedValue):
 
-            referenceMask = cv2.inRange(frameHSV,referenceLowerThershold,referenceUpperThreshold) > 0
+            referenceMask = cv2.inRange(frameHSV,referenceLowerThreshold,referenceUpperThreshold) > 0
 
             referencePixels = frameHSV[referenceMask]
 
@@ -53,7 +55,10 @@ class SoSAT:
 
             frameHSV += correction
 
-            return np.clip(frameHSV, 0, 255).astype(np.uint8)
+            frameHSV[:,:,0] = np.clip(frameHSV[:,:,0], 0, 179)
+            frameHSV[:,:,1:] = np.clip(frameHSV[:,:,1:], 0, 255)
+
+            return frameHSV.astype(np.uint8)
             
         def correctImage(self,frame, referenceLowerThershold,referenceUpperThreshold, referenceExpectedValue):
             
@@ -63,8 +68,7 @@ class SoSAT:
 
             return cv2.cvtColor(frameHSV,cv2.COLOR_HSV2BGR)
     
-    correction = imageCorrection()
-    
+
     def colorMasks( self,
 
                     frame,
@@ -99,63 +103,79 @@ class SoSAT:
 
         masks = []
 
-        hStep = (hRange / hIterations) / 2
-        sStep = (sRange / sIterations) / 2
-        vStep = (vRange / vIterations) / 2
+        hStep = hRange / hIterations
+        sStep = sRange / sIterations
+        vStep = vRange / vIterations
 
-        morphOpenStep = round((morphOpenIterations / hIterations) / 2)
-        erodeStep = round((erodeIterations / hIterations) / 2)
-        morphCloseStep = round((morphCloseIterations / hIterations) / 2)
+        morphOpenStep = int( (morphOpenRange / morphOpenIterations) )
+        erodeStep = int( (erodeRange / erodeIterations) )
+        morphCloseStep = int( (morphCloseRange / morphCloseIterations) )
 
-        realTimeLowerThreshold = np.clip(np.array([lowerThreshold[0]+(hRange/2), lowerThreshold[1]+(sRange/2), lowerThreshold[2]+(vRange/2)]), [0, 0, 0], [179, 255, 255])
-        realTimeOpenValue = morphOpenValue
-        realTimeErodeValue = erodeValue
-        realTimeCloseValue = morphCloseValue
+        startLowerThreshold = np.clip(np.array([lowerThreshold[0] + (hRange / 2), lowerThreshold[1] + (sRange / 2), lowerThreshold[2] + (vRange / 2)] ), [0, 0, 0], [179, 255, 255])
+        startUpperThreshold = np.clip(np.array([upperThreshold[0] + (hRange / 2), upperThreshold[1] + (sRange / 2), upperThreshold[2] + (vRange / 2)] ), [0, 0, 0], [179, 255, 255])
+
+        startTimeOpenValue = int( morphOpenValue - (morphOpenRange / 2) )
+        startTimeErodeValue = int( erodeValue - (erodeRange / 2) )
+        startTimeCloseValue = int( morphCloseValue - (morphCloseRange / 2) )
+
+        realTimeLowerThreshold = startLowerThreshold.copy()
+        realTimeUpperThreshold = startUpperThreshold.copy()
+
+        realTimeOpenValue = startTimeOpenValue
+        realTimeErodeValue = startTimeErodeValue
+        realTimeCloseValue = startTimeCloseValue
+
 
         for hIteration in range(hIterations):
 
-            if realTimeLowerThreshold[0] - hStep >= 0:
-                realTimeLowerThreshold[0] -= hStep
+            realTimeLowerThreshold[0] = np.clip(startLowerThreshold[0] - hStep * hIteration, 0, 179)
+            realTimeUpperThreshold[0] = np.clip(startUpperThreshold[0] - hStep * hIteration, 0, 179)
 
             for sIteration in range(sIterations):
 
-                realTimeLowerThreshold[1] = np.clip(realTimeLowerThreshold[1] - sStep, 0, 255)
+                realTimeLowerThreshold[1] = np.clip(startLowerThreshold[1] - sStep * sIteration, 0, 255)
+                realTimeUpperThreshold[1] = np.clip(startUpperThreshold[1] - sStep * sIteration, 0, 255)
 
                 for vIteration in range(vIterations):
 
-                    realTimeLowerThreshold[2] = np.clip(realTimeLowerThreshold[2] - vStep, 0, 255)
+                    realTimeLowerThreshold[2] = np.clip(startLowerThreshold[2] - vStep * vIteration, 0, 255)
+                    realTimeUpperThreshold[2] = np.clip(startUpperThreshold[2] - vStep * vIteration, 0, 255)
 
                     for openIteration in range(morphOpenIterations):
 
-                        realTimeOpenValue += morphOpenStep
+                        realTimeOpenValue = max(0, startTimeOpenValue - morphOpenStep * openIteration)
 
                         for erodeIteration in range(erodeIterations):
 
-                            realTimeErodeValue += erodeStep
+                            realTimeErodeValue = max(0, startTimeErodeValue - erodeStep * erodeIteration)
 
                             for closeIteration in range(morphCloseIterations):
                                 
-                                realTimeCloseValue += morphCloseStep
+                                realTimeCloseValue = max(0, startTimeCloseValue - morphCloseStep * closeIteration)
 
-                                allMaxed = (realTimeLowerThreshold[2] >= 255)
-                                
-                                if not allMaxed:
-                                    mask = cv2.inRange(frameHSV, realTimeLowerThreshold.astype(np.uint8), upperThreshold.astype(np.uint8))
-                                
-                                    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.__kernel, iterations=realTimeOpenValue)
-                                    mask = cv2.erode(mask, self.__kernel, iterations=realTimeErodeValue)
-                                    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, self.__kernel, iterations=realTimeCloseValue)
-                                
-                                    masks.append(mask)
+
+                                mask = cv2.inRange(frameHSV, realTimeLowerThreshold.astype(np.uint8), realTimeUpperThreshold.astype(np.uint8))
+                            
+                                mask = cv2.erode(mask, self.__kernel, iterations=realTimeErodeValue)
+                                mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.__kernel, iterations=realTimeOpenValue)    
+                                mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, self.__kernel, iterations=realTimeCloseValue)
+
+                                masks.append(mask)
 
         return masks
     
     def __matchContours(self,contour):
+
         bestMatch = float('inf')
+
         for storedContour in self.contoursList:
+
             match = cv2.matchShapes(contour, storedContour,1,0.0)
+
             if match < bestMatch:
+
                 bestMatch = match
+
         return bestMatch
 
     def __isPosOverlaps(self,existingObjects,newObject):
@@ -198,6 +218,7 @@ class SoSAT:
                         }
 
                         if not(self.__isPosOverlaps(detectedObjects,objectInfo)):
+
                             detectedObjects.append(objectInfo)
 
         return detectedObjects
