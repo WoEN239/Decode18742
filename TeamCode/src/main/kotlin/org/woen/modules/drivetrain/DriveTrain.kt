@@ -33,13 +33,13 @@ internal object DRIVE_TRAIN_CONFIG {
     var H_DEATH_ZONE = 0.05
 
     @JvmField
-    var VELOCITY_FORWARD_REGULATOR = RegulatorParameters(kF = 8.0, kP = 9.0)
+    var VELOCITY_FORWARD_REGULATOR = RegulatorParameters(kF = 6.0, kP = 5.0)
 
     @JvmField
-    var VELOCITY_SIDE_REGULATOR = RegulatorParameters(kF = 10.5, kP = 9.0)
+    var VELOCITY_SIDE_REGULATOR = RegulatorParameters(kF = 10.0, kP = 5.0)
 
     @JvmField
-    var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 2.5, kP = 1.8)
+    var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 1.6, kP = 1.8)
 }
 
 enum class DriveMode {
@@ -101,6 +101,9 @@ fun attachDriveTrain(collector: Collector) {
     val driveMode =
         if (collector.runMode == RunMode.MANUAL) DriveMode.POWER else DriveMode.REGULATOR
 
+    var targetLinearVelocity = Vec2.ZERO
+    var targetHeadingVelocity = 0.0
+
     collector.eventBus.invoke(AddGamepad1ListenerEvent(object : IGamepadListener {
         override fun update(gamepadData: Gamepad) {
             if (driveMode == DriveMode.POWER) {
@@ -148,9 +151,6 @@ fun attachDriveTrain(collector: Collector) {
     val rotateRegulator = Regulator(DRIVE_TRAIN_CONFIG.VELOCITY_ROTATE_REGULATOR)
 
     val battery = collector.battery
-
-    var targetLinearVelocity = Vec2.ZERO
-    var targetHeadingVelocity = 0.0
 
     collector.eventBus.subscribe(SetDriveVelocityEvent::class) {
         targetLinearVelocity = it.linearVelocity

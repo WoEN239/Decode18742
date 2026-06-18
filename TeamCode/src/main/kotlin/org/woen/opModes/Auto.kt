@@ -2,6 +2,7 @@ package org.woen.opModes
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
@@ -24,7 +25,7 @@ class Auto : LinearOpMode() {
 
         val dashboardTelemetry = FtcDashboard.getInstance().telemetry
 
-        while (!isStarted() && !gamepad1.touchpad) {
+        while (!isStarted() && !gamepad1.triangle) {
             val leftBumper = gamepad1.left_bumper
             val rightBumper = gamepad1.right_bumper
 

@@ -22,10 +22,10 @@ import org.woen.utils.units.Vec2
 @Config
 internal object ODOMETRY_CONFIG {
     @JvmField
-    var X_ODOMETER_POSITION = -0.0995
+    var X_ODOMETER_POSITION = -0.09915
 
     @JvmField
-    var Y_ODOMETER_POSITION = -0.0895
+    var Y_ODOMETER_POSITION = -0.08665
 
     @JvmField
     var ROBOT_SIZE = Vec2(0.38, 0.38)
@@ -51,6 +51,8 @@ class RobotExitShootingAreaEvent()
 fun attachOdometry(collector: Collector) {
     val pinpoint = collector.hardwareMap.get("odometry") as GoBildaPinpointDriver
 
+    val zeroingOrientation = Orientation(Vec2(0.37 / 2.0 + 0.01, 0.615 + 0.39 / 2.0), Angle.ofDeg(0.0))
+
     pinpoint.setOffsets(
         ODOMETRY_CONFIG.X_ODOMETER_POSITION, ODOMETRY_CONFIG.Y_ODOMETER_POSITION,
         DistanceUnit.METER
@@ -66,7 +68,7 @@ fun attachOdometry(collector: Collector) {
         pinpoint.resetPosAndIMU()
     }
 
-    var orientation = GameSettings.startOrientation.startOrientation
+    var orientation = zeroingOrientation
 
     var linearVelocity = Vec2.ZERO
     var headingVelocity = 0.0
@@ -77,7 +79,7 @@ fun attachOdometry(collector: Collector) {
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.dpad_down }, {
         val orient =
-            GameSettings.startOrientation.odometryCalibratePosition.turn(-GameSettings.startOrientation.startOrientation.angle) - GameSettings.startOrientation.startOrientation.pos
+            GameSettings.startOrientation.odometryCalibratePosition.turn(-zeroingOrientation.angle) - zeroingOrientation.pos
 
         pinpoint.position =
             Pose2D(
@@ -85,7 +87,7 @@ fun attachOdometry(collector: Collector) {
                 orient.x,
                 orient.y,
                 AngleUnit.RADIANS,
-                (orientation.angl - GameSettings.startOrientation.startOrientation.angl).angle
+                (orientation.angl - zeroingOrientation.angl).angle
             )
     })))
 
@@ -106,14 +108,14 @@ fun attachOdometry(collector: Collector) {
             Vec2(
                 pinpointOrientation.getX(DistanceUnit.METER),
                 pinpointOrientation.getY(DistanceUnit.METER)
-            ).turn(GameSettings.startOrientation.startOrientation.angle),
+            ).turn(zeroingOrientation.angle),
             Angle(pinpointOrientation.getHeading(AngleUnit.RADIANS))
-        ) + GameSettings.startOrientation.startOrientation
+        ) + zeroingOrientation
 
         linearVelocity = Vec2(
             pinpoint.getVelX(DistanceUnit.METER),
             pinpoint.getVelY(DistanceUnit.METER)
-        ).turn((Angle(GameSettings.startOrientation.startOrientation.angle) - orientation.angl).angle)
+        ).turn((zeroingOrientation.angl - orientation.angl).angle)
         headingVelocity = pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS)
 
         collector.telemetry.drawRect(

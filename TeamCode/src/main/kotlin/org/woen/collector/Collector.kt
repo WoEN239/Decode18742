@@ -1,5 +1,6 @@
 package org.woen.collector
 
+import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.woen.modules.Battery
@@ -42,6 +43,11 @@ class Collector {
         this.opMode = opMode
         this.hardwareMap = opMode.hardwareMap
 
+        val hubs = hardwareMap.getAll(LynxModule::class.java)
+
+        for(i in hubs)
+            i.bulkCachingMode = LynxModule.BulkCachingMode.AUTO
+
         stopEvent += {
             for (i in opMode.hardwareMap.servoController) i.pwmDisable()
         }
@@ -51,21 +57,21 @@ class Collector {
         attachGamepad(this)
         attachOdometry(this)
         attachDriveTrain(this)
-        attachTurret(this)
-        attachLimelight(this)
+//        attachTurret(this)
+//        attachLimelight(this)
 
         if(runMode == RunMode.AUTO){
             attachRunner(this)
             attachActionRunner(this)
-//            attachSimpleStorage(this)
-            ScoringModulesConnector(this)
+////            attachSimpleStorage(this)
+//            ScoringModulesConnector(this)
         }
-        else
-        {
-//            attachSimpleStorage(this)
-            ScoringModulesConnector(this)
-        }
+//        else
+//        {
+////            attachSimpleStorage(this)
+//            ScoringModulesConnector(this)
+//        }
 
-        attachLedFeedback(this)
+//        attachLedFeedback(this)
     }
 }
