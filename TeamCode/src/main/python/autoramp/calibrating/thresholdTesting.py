@@ -6,8 +6,9 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sosat import SoSAT
-from autoramp import AutoRamp
+from detection import DetectArtifacts
+
+detect = DetectArtifacts("contoursData.json")
 
 cv2.namedWindow("Test thresholds",cv2.WINDOW_NORMAL)
 
@@ -24,14 +25,17 @@ cv2.createTrackbar("MorphOpenValue","Test thresholds",0,10,nothing)
 cv2.createTrackbar("ErodeValue","Test thresholds",0,10,nothing)
 cv2.createTrackbar("CloseValue","Test thresholds",0,10,nothing)
 
-sosat = SoSAT("contoursData.json")
-ar = AutoRamp("contoursData.json")
+
 imageNames = os.listdir("testImages")
 imageNum = 0
 
+detect.imageCorrection.referenceLowerThreshold = detect.blueLowerThreshold
+detect.imageCorrection.referenceUpperThreshold = detect.blueUpperThreshold
+detect.imageCorrection.referenceExpectedValue = detect.blueExpectedValue
+
 while True:
     frame = cv2.imread("testImages/" + imageNames[imageNum])
-    frame = sosat.correction.correctImage(frame,ar.referenceLowerThreshold,ar.referenceUpperThreshold,ar.referenceExpectedValue)
+    frame = cv2.cvtColor(detect.correctImage(frame),cv2.COLOR_HSV2BGR)
 
     LowerHue = cv2.getTrackbarPos("LowerHue","Test thresholds")
     LowerSaturation = cv2.getTrackbarPos("LowerSaturation","Test thresholds")
@@ -46,8 +50,9 @@ while True:
     lowerThreshold = np.array([LowerHue, LowerSaturation, LowerValue])
     upperThreshold = np.array([UpperHue, UpperSaturation, UpperValue])
 
-    mask = sosat.colorMasks(
-        frame,
+    mask = detect.colorMasks(
+
+        cv2.cvtColor(frame,cv2.COLOR_BGR2HSV),
         lowerThreshold,
         upperThreshold,
 

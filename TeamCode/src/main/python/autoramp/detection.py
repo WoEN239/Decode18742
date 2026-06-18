@@ -1,9 +1,58 @@
 import cv2
 import numpy as np
-
 import json
 
-class SoSAT:
+from enum import Enum
+
+class TeamColor(Enum):
+    RED = 1
+    BLUE = 2
+
+class DetectArtifacts():
+
+    redLowerThreshold = np.array([140, 185, 155])
+    redUpperThreshold = np.array([179, 255, 255])
+    redExpectedValue = np.array([179,150,220])
+
+    blueLowerThreshold = np.array([80, 20, 55])
+    blueUpperThreshold = np.array([130, 255, 255])
+    blueExpectedValue = np.array([120,150,220])
+    
+    referenceLowerThreshold = np.array([])
+    referenceUpperThreshold = np.array([])
+    referenceExpectedThreshold = np.array([])
+
+    purpleLowerThreshold = np.array([145, 60, 100])
+    purpleUpperThreshold = np.array([170, 255, 240])
+    greenLowerThreshold = np.array([45, 90, 75])
+    greenUpperThreshold = np.array([85, 255, 255])
+
+    class Settings():
+
+        matchThreshold = 0.1
+
+        minArea = 75
+        
+        hRange = 10
+        hIterations = 2
+
+        sRange = 10
+        sIterations = 2
+
+        vRange = 75
+        vIterations = 5
+
+        morphOpenValue = 0
+        morphOpenRange = 0
+        morphOpenIterations = 1
+
+        erodeValue = 1
+        erodeRange = 0
+        erodeIterations = 1
+
+        morphCloseValue = 6
+        morphCloseRange = 4
+        morphCloseIterations = 2
 
     def __init__(self,pathToContours):
 
@@ -11,28 +60,36 @@ class SoSAT:
 
             loaded = json.load(f)
             self.contoursList = [np.array(contour, dtype=np.int32).reshape(-1, 1, 2) for contour in loaded]
+
+        self.__kernel = np.ones((3,3), np.uint8)
         
-        self.correction = self.imageCorrection()
+    def changeTeamColor(self,teamColor):
 
-    __kernel = np.ones((3,3), np.uint8)
+        if teamColor == TeamColor.BLUE:
+
+            self.imageCorrection.referenceLowerThreshold = self.blueLowerThreshold
+            self.imageCorrection.referenceUpperThreshold = self.blueUpperThreshold
+            self.imageCorrection.referenceExpectedValue = self.blueExpectedValue
+
+        elif teamColor == TeamColor.RED:
+
+            self.imageCorrection.referenceLowerThreshold = self.redLowerThreshold
+            self.imageCorrection.referenceUpperThreshold = self.redUpperThreshold
+            self.imageCorrection.referenceExpectedValue = self.redExpectedValue
     
-    referenceLowerThershold = np.array([0, 0, 0])
-    referenceUpperThreshold = np.array([179, 255, 255])
-    referenceExpectedValue = np.array([0,0,0])
-
     class imageCorrection():
 
-        def __init__(self):
-            pass
+        referenceLowerThreshold = np.array([])
+        referenceUpperThreshold = np.array([])
+        referenceExpectedValue = np.array([])
 
+        def removeNoise(frame):
 
-        def removeNoise(self,frame):
-
-            resultFrame = cv2.bilateralFilter(frame,15,75,15)
+            resultFrame = cv2.bilateralFilter(frame,15,50,50)
             
             return resultFrame
 
-        def correctColor(self,frameHSV, referenceLowerThreshold,referenceUpperThreshold, referenceExpectedValue):
+        def correctColor(frameHSV, referenceLowerThreshold,referenceUpperThreshold, referenceExpectedValue):
 
             referenceMask = cv2.inRange(frameHSV,referenceLowerThreshold,referenceUpperThreshold) > 0
 
@@ -55,19 +112,18 @@ class SoSAT:
             frameHSV[:,:,1:] = np.clip(frameHSV[:,:,1:], 0, 255)
 
             return frameHSV.astype(np.uint8)
-            
-        def correctImage(self,frame, referenceLowerThershold,referenceUpperThreshold, referenceExpectedValue):
-            
-            frame = self.removeNoise(frame)
-            frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
-            frameHSV = self.correctColor(frameHSV, referenceLowerThershold, referenceUpperThreshold, referenceExpectedValue)
+        
+    def correctImage(self,frame):
 
-            return cv2.cvtColor(frameHSV,cv2.COLOR_HSV2BGR)
-    
+        frame = self.imageCorrection.removeNoise(frame)
+        frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+        frameHSV = self.imageCorrection.correctColor(frameHSV,self.blueLowerThreshold,self.blueUpperThreshold,np.array([120,220,200]))
 
+        return frameHSV
+            
     def colorMasks( self,
 
-                    frame,
+                    frameHSV,
 
                     lowerThreshold,
                     upperThreshold,
@@ -94,8 +150,6 @@ class SoSAT:
                     morphCloseIterations
 
                     ):
-
-        frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
         masks = []
 
@@ -174,7 +228,7 @@ class SoSAT:
 
         return bestMatch
 
-    def __isPosOverlaps(self,existingObjects,newObject):
+    def __isNotPosOverlaps(self,existingObjects,newObject):
 
         for object in existingObjects:
 
@@ -182,28 +236,51 @@ class SoSAT:
             oldMid = (object["x"] + object["w"]/2, object["y"] + object["h"]/2)
 
             if abs(newMid[0]-oldMid[0]) < (newObject["w"]/2 + object["w"]/2) and abs(newMid[1]-oldMid[1]) < (newObject["h"]/2 + object["h"]/2):
-                return True
+                return False
 
-        return False
+        return True
     
-    def detectFromMasks(self, masks, matchThreshold, minArea):
+    def detectObjects(self,frame):
+        
         detectedObjects = []
+
+        frameHSV = self.correctImage(frame)
+
+        masks = []
+
+        masks.extend(   self.colorMasks(frameHSV,
+                            self.greenLowerThreshold,self.greenUpperThreshold,
+                            self.Settings.hRange,self.Settings.hIterations,
+                            self.Settings.sRange,self.Settings.sIterations,
+                            self.Settings.vRange,self.Settings.vIterations,
+                            self.Settings.morphOpenValue,self.Settings.morphOpenRange,self.Settings.morphOpenIterations,
+                            self.Settings.erodeValue,self.Settings.erodeRange,self.Settings.erodeIterations,
+                            self.Settings.morphCloseValue,self.Settings.morphCloseRange,self.Settings.morphCloseIterations)
+                    )
+        
+        masks.extend(   self.colorMasks(frameHSV,
+                            self.purpleLowerThreshold,self.purpleUpperThreshold,
+                            self.Settings.hRange,self.Settings.hIterations,
+                            self.Settings.sRange,self.Settings.sIterations,
+                            self.Settings.vRange,self.Settings.vIterations,
+                            self.Settings.morphOpenValue,self.Settings.morphOpenRange,self.Settings.morphOpenIterations,
+                            self.Settings.erodeValue,self.Settings.erodeRange,self.Settings.erodeIterations,
+                            self.Settings.morphCloseValue,self.Settings.morphCloseRange,self.Settings.morphCloseIterations)
+                    )
+        
         for mask in masks:
 
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
 
             for contour in contours:
 
-                if cv2.contourArea(contour) > minArea:
+                if cv2.contourArea(contour) > self.Settings.minArea:
 
                     matchScore = self.__matchContours(contour)
 
-                    if matchScore < float(matchThreshold):
+                    if matchScore < float(self.Settings.matchThreshold):
 
                         x,y,w,h = cv2.boundingRect(contour)
-
-                        x = max(0, x)
-                        y = max(0, y)
 
                         objectInfo = {
                             "x": x,
@@ -213,74 +290,8 @@ class SoSAT:
                             "matchScore": matchScore
                         }
 
-                        if not(self.__isPosOverlaps(detectedObjects,objectInfo)):
+                        if (self.__isNotPosOverlaps(detectedObjects,objectInfo)):
 
                             detectedObjects.append(objectInfo)
-
-        return detectedObjects
-
-    def detectObjects(  self,
-                        frame,
-
-                        lowerThreshold,
-                        upperThreshold,
-
-                        matchThreshold,
-
-                        minArea,
-
-                        hRange,
-                        hIterations,
-                        
-                        sRange,
-                        sIterations,
-                        
-                        vRange,
-                        vIterations, 
-                        
-                        morphOpenValue,
-                        morphOpenRange,
-                        morphOpenIterations,
-
-                        erodeValue,
-                        erodeRange,
-                        erodeIterations,
-
-                        morphCloseValue,
-                        morphCloseRange,
-                        morphCloseIterations
-                    
-                        ):
-        
-        frame = self.correction.correctImage(frame,self.referenceLowerThershold,self.referenceUpperThreshold,self.referenceExpectedValue)
-
-        masks = self.colorMasks(frame,
-
-                                lowerThreshold,
-                                upperThreshold,
-
-                                hRange,
-                                hIterations,
-
-                                sRange,
-                                sIterations,
-
-                                vRange,
-                                vIterations,
-
-                                morphOpenValue,
-                                morphOpenRange,
-                                morphOpenIterations,
-
-                                erodeValue,
-                                erodeRange,
-                                erodeIterations,
-
-                                morphCloseValue,
-                                morphCloseRange,
-                                morphCloseIterations
-                                
-                                )
-        detectedObjects = self.detectFromMasks(masks, matchThreshold, minArea)
         
         return detectedObjects

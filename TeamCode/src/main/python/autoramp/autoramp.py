@@ -41,7 +41,7 @@ class AutoRamp():
 
     referenceLowerThreshold = np.array([0, 0, 45])
     referenceUpperThreshold = np.array([60, 80, 245])
-    referenceExpectedValue = np.array([15,75,130])
+    referenceExpectedValue = np.array([120,150,220])
 
     redLowerThreshold = np.array([140, 185, 155])
     redUpperThreshold = np.array([179, 255, 255])

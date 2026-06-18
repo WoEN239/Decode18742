@@ -10,27 +10,23 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sosat import SoSAT
-from autoramp import AutoRamp, TeamColor
+from detection import DetectArtifacts,TeamColor
 
-sosat = SoSAT("contoursData.json")
-correction = sosat.imageCorrection()
-ar = AutoRamp("contoursData.json")
-ar.changeTeamColor(TeamColor.BLUE)
+
+detect = DetectArtifacts("contoursData.json")
+detect.changeTeamColor(TeamColor.BLUE)
 
 frame = cv2.imread("testImages/test1.png")
 
-cv2.imshow("Original Frame", frame)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
 
 startTime = time.time()
-correctedFrame = correction.correctImage(frame, ar.referenceLowerThreshold, ar.referenceUpperThreshold, ar.referenceExpectedValue)
+
+frame = cv2.cvtColor(detect.correctImage(frame),cv2.COLOR_HSV2BGR)
+
 endTime = time.time()
 
+print(f"Processed in {(endTime - startTime)*1000:.0f} ms")
 
-print(f"Processed in {endTime - startTime} secs")
-
-cv2.imshow("Corrected Frame", correctedFrame)
+cv2.imshow("Corrected", frame)
 cv2.waitKey(0)
 cv2.destroyAllWindows()

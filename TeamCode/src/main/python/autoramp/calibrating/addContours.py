@@ -7,11 +7,11 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sosat import SoSAT
-from autoramp import AutoRamp
+from detection import DetectArtifacts
+from detection import TeamColor
 
-sosat = SoSAT("contoursData.json")
-ar = AutoRamp("contoursData.json")
+detect = DetectArtifacts("contoursData.json")
+detect.changeTeamColor(TeamColor.BLUE)
 
 isSelecting = False
 isSelected = False
@@ -72,6 +72,8 @@ exiting = False
 for imageName in imageNames:
     
     frame = cv2.imread(f"testImages/{imageName}")
+    frame = cv2.cvtColor(detect.correctImage(frame),cv2.COLOR_HSV2BGR)
+
     while True:
         if isSelecting:
             displayFrame = selectingFrame
@@ -80,58 +82,59 @@ for imageName in imageNames:
             displayFrame = frame[startCoords[1]:endCoords[1],startCoords[0]:endCoords[0]]
             height, width = displayFrame.shape[:2]
             if height > 0 and width > 0:
-                displayFrame = sosat.correction.correctImage(displayFrame, ar.referenceLowerThreshold, ar.referenceUpperThreshold, ar.referenceExpectedValue)
                 
-                masks = sosat.colorMasks(
+
+                
+                masks = detect.colorMasks(
                     displayFrame,
-                    ar.greenLowerThreshold,
-                    ar.greenUpperThreshold,
+                    detect.greenLowerThreshold,
+                    detect.greenUpperThreshold,
 
-                    ar.Settings.hRange,
-                    ar.Settings.hIterations,
+                    detect.Settings.hRange,
+                    detect.Settings.hIterations,
 
-                    ar.Settings.sRange,
-                    ar.Settings.sIterations,
+                    detect.Settings.sRange,
+                    detect.Settings.sIterations,
 
-                    ar.Settings.vRange,
-                    ar.Settings.vIterations,
+                    detect.Settings.vRange,
+                    detect.Settings.vIterations,
 
-                    ar.Settings.morphOpenValue,
-                    ar.Settings.morphOpenRange,
-                    ar.Settings.morphOpenIterations,
+                    detect.Settings.morphOpenValue,
+                    detect.Settings.morphOpenRange,
+                    detect.Settings.morphOpenIterations,
 
-                    ar.Settings.erodeValue,
-                    ar.Settings.erodeRange,
-                    ar.Settings.erodeIterations,
+                    detect.Settings.erodeValue,
+                    detect.Settings.erodeRange,
+                    detect.Settings.erodeIterations,
 
-                    ar.Settings.morphCloseValue,
-                    ar.Settings.morphCloseRange,
-                    ar.Settings.morphCloseIterations
-                ) + sosat.colorMasks(
+                    detect.Settings.morphCloseValue,
+                    detect.Settings.morphCloseRange,
+                    detect.Settings.morphCloseIterations
+                ) + detect.colorMasks(
                     displayFrame,
-                    ar.purpleLowerThreshold,
-                    ar.purpleUpperThreshold,
+                    detect.purpleLowerThreshold,
+                    detect.purpleUpperThreshold,
 
-                    ar.Settings.hRange,
-                    ar.Settings.hIterations,
+                    detect.Settings.hRange,
+                    detect.Settings.hIterations,
 
-                    ar.Settings.sRange,
-                    ar.Settings.sIterations,
+                    detect.Settings.sRange,
+                    detect.Settings.sIterations,
 
-                    ar.Settings.vRange,
-                    ar.Settings.vIterations,
+                    detect.Settings.vRange,
+                    detect.Settings.vIterations,
 
-                    ar.Settings.morphOpenValue,
-                    ar.Settings.morphOpenRange,
-                    ar.Settings.morphOpenIterations,
+                    detect.Settings.morphOpenValue,
+                    detect.Settings.morphOpenRange,
+                    detect.Settings.morphOpenIterations,
 
-                    ar.Settings.erodeValue,
-                    ar.Settings.erodeRange,
-                    ar.Settings.erodeIterations,
+                    detect.Settings.erodeValue,
+                    detect.Settings.erodeRange,
+                    detect.Settings.erodeIterations,
 
-                    ar.Settings.morphCloseValue,
-                    ar.Settings.morphCloseRange,
-                    ar.Settings.morphCloseIterations
+                    detect.Settings.morphCloseValue,
+                    detect.Settings.morphCloseRange,
+                    detect.Settings.morphCloseIterations
                 )
 
 
@@ -140,7 +143,7 @@ for imageName in imageNames:
                     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                     for contour in contours:
                         area = cv2.contourArea(contour)
-                        if area > ar.Settings.minArea and not touches_edge(contour, width, height):
+                        if area > detect.Settings.minArea and not touches_edge(contour, width, height):
                             all_contours.append((area, contour))
 
                 all_contours.sort(key=lambda x: x[0], reverse=True)
