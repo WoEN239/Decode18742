@@ -20,7 +20,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
 
     val shootPosition = Vec2(-0.476, -0.725 * colorK)
 
-    val actions = arrayListOf(
+    val actions = arrayListOf<IAction>(
 //        DriveAction(eventBus, MoveSegment(shootPosition)),
 //        ShootAction(eventBus),
 //        DriveAction(
@@ -143,8 +143,14 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
 ////        )
 //    )
 ////    }
-        DriveAction(eventBus, MoveSegment(Vec2(-1.0, 0.615 + 0.39 / 2.0)))
     )
+
+    repeat(100){
+        actions.add(DriveAction(eventBus, DriveSegment(Orientation(Vec2(-1.0, 1.0), Angle.ofDeg(-90.0)))))
+        actions.add(DriveAction(eventBus, DriveSegment(Orientation(Vec2(-1.0, -1.0), Angle.ofDeg(180.0)))))
+        actions.add(DriveAction(eventBus, DriveSegment(Orientation(Vec2(-1.0, 1.0), Angle.ofDeg(90.0)))))
+        actions.add(DriveAction(eventBus, DriveSegment(Orientation(Vec2(1.0, 1.0), Angle.ofDeg(0.0)))))
+    }
 
     return Array(actions.size) { actions[it] }
 }

@@ -63,7 +63,7 @@ internal object Hardware
 
 
         @JvmField
-        var STORAGE_BELT_MOTOR = "beltMotor"
+        var STORAGE_BELT_MOTOR = "beltsMotor"
         @JvmField
         var BRUSH_MOTOR = "brushMotor"
 
@@ -87,23 +87,23 @@ internal object Hardware
         @JvmField
         var GATE_OPEN = 0.83
         @JvmField
-        var GATE_CLOSE = 0.4
+        var GATE_CLOSE = 0.33
 
 
         @JvmField
-        var PUSH_OPEN = 0.025
+        var PUSH_OPEN = 0.27
         @JvmField
-        var PUSH_CLOSE = 0.25
+        var PUSH_CLOSE = 0.065
 
 
         @JvmField
-        var LAUNCH_OPEN = 0.55
+        var LAUNCH_OPEN = 0.6
         @JvmField
-        var LAUNCH_CLOSE = 0.98
+        var LAUNCH_CLOSE = 0.955
 
 
         @JvmField
-        var TURRET_GATE_OPEN = 0.75
+        var TURRET_GATE_OPEN = 0.735
         @JvmField
         var TURRET_GATE_CLOSE = 0.45
     }

@@ -18,10 +18,10 @@ internal object Delay
             val HALF get() = FULL / 2
 
             @JvmField
-            var PART: Long = 100
+            var PART: Long = 80
 
             @JvmField
-            var READJUSTING: Long = 160
+            var READJUSTING: Long = 100
         }
 
         @Config

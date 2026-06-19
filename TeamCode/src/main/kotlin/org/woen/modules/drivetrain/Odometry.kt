@@ -65,6 +65,7 @@ fun attachOdometry(collector: Collector) {
     )
 
     if (collector.runMode == RunMode.AUTO) {
+        pinpoint.recalibrateIMU()
         pinpoint.resetPosAndIMU()
     }
 

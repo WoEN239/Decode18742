@@ -25,7 +25,7 @@ class Auto : LinearOpMode() {
 
         val dashboardTelemetry = FtcDashboard.getInstance().telemetry
 
-        while (!isStarted() && !gamepad1.triangle) {
+//        while (!isStarted() && !gamepad1.triangle) {
             val leftBumper = gamepad1.left_bumper
             val rightBumper = gamepad1.right_bumper
 
@@ -49,7 +49,7 @@ class Auto : LinearOpMode() {
 
             telemetry.update()
             dashboardTelemetry.update()
-        }
+//        }
 
         GameSettings.startOrientation = orientations[selectedOrientationIndex]
 
