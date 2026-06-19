@@ -225,54 +225,38 @@ class Storage
 
         if (_cms.lazyIntakeIsActive) cells.hwSortingM.hwMotors.stopBelts()
 
-        logM.logMd("StreamDrum phase 1, debug ballCount: $ballCount", Debug.LOGIC)
+        logM.logMd("StreamDrum P1, debug ballCount: $ballCount", Debug.LOGIC)
         cells.hwSortingM.hwMotors.openTurretGate()
 
         return RequestResult.ROGER_STARTING_SHOOTING
     }
     fun streamDrumPhase2()
     {
-        _cms.shootingPhase.switchToNextPhase()
+        _cms.shootingPhase.startPhase2(
+            CONTROLS.USE_COLOR_SENSORS_FOR_SHOOTING)
 
-        val shotCount = if (_cms.shootingPhase.ballCountForPhase1 != 0)
-            _cms.shootingPhase.ballCountForPhase1
-        else if (CONTROLS.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
-        else cells.anyBallCount()
-
-        logM.logMd("StreamDrum phase 2, shot count: $shotCount", Debug.LOGIC)
-
-        var beltPushTime = if (_cms.shootingPhase.shotBeltsVoltage
-            == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
-                when(shotCount)
-                {
-                    3    -> Delay.MS.SHOOTING.FAST_3
-                    2    -> Delay.MS.SHOOTING.FAST_2
-                    1    -> Delay.MS.SHOOTING.FAST_1
-                    else -> Delay.MS.SHOOTING.FAST_LAST_WITH_LAUNCHER
-                }
-                else when(shotCount)
-                {
-                    3    -> Delay.MS.SHOOTING.SLOW_3
-                    2    -> Delay.MS.SHOOTING.SLOW_2
-                    1    -> Delay.MS.SHOOTING.SLOW_1
-                    else -> Delay.MS.SHOOTING.SLOW_LAST_WITH_LAUNCHER
-                }
-
-        if (_cms.collector.runMode == RunMode.MANUAL)
-            beltPushTime += Delay.MS.SHOOTING.ADDITIONAL_TOLERANCE_FOR_TELEOP
-
-        logM.logMd("Firing time: $beltPushTime", Debug.GENERIC)
-
-        if (_cms.shootingPhase.isGamepadHoldPhase2())
+        if (_cms.shootingPhase.isNotOnTimePhase2())
+        {
             cells.hwSortingM.hwMotors.forwardBelts(
                 onTime = false, _cms.shootingPhase.shotBeltsVoltage)
-        else cells.hwSortingM.extendableForward(
-            beltPushTime, _cms.shootingPhase.shotBeltsVoltage)
 
-        cells.hwSortingM.timeSinceLastShotUpdateMs =
-            cells.hwSortingM.rotatingBeltsTimer.milliseconds()
+            if (cells.isLastBall() && CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
+                cells.hwSortingM.hwMotors.openLaunch()
+            logM.logMd("StreamDrum P2 (not on time)", Debug.LOGIC)
+        }
+        else
+        {
+            val shotCount = calcShotCount()
+            val beltPushTime = calcShootingTimeForP2(shotCount)
 
-        if (shotCount == -1) cells.hwSortingM.hwMotors.openLaunch()
+            cells.hwSortingM.extendableForward(beltPushTime,
+                _cms.shootingPhase.shotBeltsVoltage)
+            if (shotCount == -1) cells.hwSortingM.hwMotors.openLaunch()
+
+            cells.hwSortingM.timeSinceLastShotUpdateMs =
+                cells.hwSortingM.rotatingBeltsTimer.milliseconds()
+            logM.logMd("StreamDrum P2, shots: $shotCount, firingMS: $beltPushTime", Debug.LOGIC)
+        }
     }
     fun streamDrumPhase4()
     {
@@ -282,6 +266,29 @@ class Storage
         if (cells.isNotEmpty()) cells.hwSortingM.calibrationPhase1()
         else cells.hwSortingM.calibrationPhase2()
     }
+    private fun calcShotCount(): Int
+        = if (_cms.shootingPhase.ballCountForPhase1 != 0)
+              _cms.shootingPhase.ballCountForPhase1
+        else if (CONTROLS.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
+        else cells.anyBallCount()
+    private fun calcShootingTimeForP2(shotCount: Int): Long
+        = if (_cms.collector.runMode == RunMode.AUTO) 0
+        else Delay.MS.SHOOTING.ADDITIONAL_TOLERANCE_FOR_TELEOP +
+            if (_cms.shootingPhase.shotBeltsVoltage == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
+                when (shotCount) {
+                    3 -> Delay.MS.SHOOTING.FAST_3
+                    2 -> Delay.MS.SHOOTING.FAST_2
+                    1 -> Delay.MS.SHOOTING.FAST_1
+                    else -> Delay.MS.SHOOTING.FAST_LAST_WITH_LAUNCHER
+                }
+            else when (shotCount) {
+                    3 -> Delay.MS.SHOOTING.SLOW_3
+                    2 -> Delay.MS.SHOOTING.SLOW_2
+                    1 -> Delay.MS.SHOOTING.SLOW_1
+                    else -> Delay.MS.SHOOTING.SLOW_LAST_WITH_LAUNCHER
+                }
+
+
 
     fun finishCalibration()
     {
@@ -319,7 +326,7 @@ class Storage
 
     fun sortingPhase1(totalRotations: Int)
     {
-        logM.logMd("Sorting phase 1, closing turretGate", Debug.LOGIC)
+        logM.logMd("Sorting P1, closing turretGate", Debug.LOGIC)
         _cms.sortingPhase.startPhase1()
         _cms.sortingPhase.remainingRotations = totalRotations
         cells.hwSortingM.hwMotors.openGate()
@@ -337,20 +344,20 @@ class Storage
         ifDoneSkipToPhase3: Boolean,
         initialBeltPush: Long = 0)
     {
-        logM.logMd("Sorting HW ReAdjustment (Phase 2 or 9)", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
+        logM.logMd(if (ifDoneSkipToPhase3) "Sorting HW ReAdjustment (P2)"
+            else "Sorting HW ReAdjustment (P9)", Debug.LOGIC)
 
         if (cells.hwReAdjustStorage(initialBeltPush))
         {
-            if (ifDoneSkipToPhase3)
-                sortingPhase3()
+            if (ifDoneSkipToPhase3) sortingPhase3()
             else if (_cms.sortingPhase.remainingRotations < 2)
                 cells.hwSortingM.hwMotors.stopBelts()
         }
     }
     fun sortingPhase3()
     {
-        logM.logMd("Sorting phase 3, forwards realignment", Debug.LOGIC)
+        logM.logMd("Sorting P3, forwards realignment", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         val timeMs = Delay.MS.REALIGNMENT.SORTING_FORWARD
 
@@ -359,7 +366,7 @@ class Storage
     }
     fun sortingPhase4()
     {
-        logM.logMd("Sorting phase 4, reverse realignment", Debug.LOGIC)
+        logM.logMd("Sorting P4, reverse realignment", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         val timeMs = Delay.MS.REALIGNMENT.SORTING_REVERSE
 
@@ -369,7 +376,7 @@ class Storage
     }
     fun sortingPhase5()
     {
-        logM.logMd("Sorting phase 5, opening gate", Debug.LOGIC)
+        logM.logMd("Sorting P5, opening gate", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
 
         if (_cms.gateStatus.isOpened())
@@ -378,7 +385,7 @@ class Storage
     }
     fun sortingPhase6()
     {
-        logM.logMd("Sorting phase 6, opening push", Debug.LOGIC)
+        logM.logMd("Sorting P6, opening push", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
         if (_cms.pushStatus.isOpened())
             sortingPhase7()
@@ -387,7 +394,7 @@ class Storage
     fun sortingPhase7()
     {
         cells.rotateSwStorage()
-        logM.logMd("Sorting phase 7, waiting for ball to fly in MOBILE position", Debug.LOGIC)
+        logM.logMd("Sorting P7, waiting for ball to fly in MOBILE position", Debug.LOGIC)
         _cms.sortingPhase.switchToNextPhase()
 
         if (Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0)
@@ -395,8 +402,7 @@ class Storage
 
         cells.hwSortingM.timeSinceLastShotUpdateMs =
             _cms.collector.eventBus.invoke(
-                SMC_GetCurrentGameTimerEvent()
-            ).timeMs
+                SMC_GetCurrentGameTimerEvent()).timeMs
     }
     fun sortingPhase8()
     {
@@ -405,7 +411,6 @@ class Storage
 //        cells.hwSortingM.hwMotors.reverseBelts(onTime = false)
         cells.hwSortingM.hwMotors.forwardBelts(onTime = false, 9.0)
 
-
         if (_cms.pushStatus.isClosed() && (
             _cms.gateStatus.isClosed() ||
             _cms.sortingPhase.remainingRotations > 1))
@@ -413,18 +418,10 @@ class Storage
                     ifDoneSkipToPhase3 = false,
                     Delay.MS.PUSH.PART)
 
-
-        if (_cms.sortingPhase.remainingRotations < 2)
-        {
-            cells.hwSortingM.hwMotors.closeGateWithPush()
-            logM.logMd("Sorting phase 8, closing gate with push" +
-                    " (Rotations: ${_cms.sortingPhase.remainingRotations})", Debug.LOGIC)
-        }
-        else
-        {
-            logM.logMd("Sorting phase 8, closing ONLY push" +
-                    " (Rotations: ${_cms.sortingPhase.remainingRotations})", Debug.LOGIC)
-            cells.hwSortingM.hwMotors.closePush()
-        }
+        logM.logMd("Sorting P8, closing " +
+            if (_cms.sortingPhase.remainingRotations < 2)
+                 cells.hwSortingM.hwMotors.closeGateWithPush()
+            else cells.hwSortingM.hwMotors.closePush() +
+        " push (Rotations: ${_cms.sortingPhase.remainingRotations})", Debug.LOGIC)
     }
 }

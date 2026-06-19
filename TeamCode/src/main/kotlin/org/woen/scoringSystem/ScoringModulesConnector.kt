@@ -598,15 +598,23 @@ class ScoringModulesConnector
                     _storage.streamDrumPhase2()
 
             ShootingPhase.Name.P2_SHOOT_BELTS_ON_TIME,
-                ShootingPhase.Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD ->
+            ShootingPhase.Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD,
+            ShootingPhase.Name.P2_SHOOT_UNTIL_EMPTY_USING_COLORS ->
             {
                 if (_storage.cells.hwSortingM.wasShotFired())
                     _storage.cells.updateAfterShot()
+                //  Improve for using color sensors, or ideally, just clear storage after shooting
 
-                if (_cms.shootingPhase.isRegularPhase2() &&
-                     CONTROLS.USE_LAUNCHER_FOR_LAST_BALL &&
-                    _storage.cells.hwSortingM.isReadyForShootingPhase3())
-                    _storage.cells.hwSortingM.streamDrumPhase3()
+                if (CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
+                {
+                    if (_cms.shootingPhase.isRegularPhase2() &&
+                        _storage.cells.hwSortingM.isReadyForShootingPhase3())
+                        _storage.cells.hwSortingM.streamDrumPhase3()
+
+                    if (_cms.shootingPhase.isUntilColorsPhase2())
+                        _storage.cells.hwSortingM.streamDrumPhase3()
+                    //TODO("ADD ColorSensor CHECK for transitioning to PHASE 3 when shooting LAST BALL")
+                }
 
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
                     _cms.shootingPhase.startPhase4()

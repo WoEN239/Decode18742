@@ -40,6 +40,8 @@ internal object RobotSettings
     internal object CONTROLS
     {
         @JvmField
+        var USE_COLOR_SENSORS_FOR_SHOOTING = false
+        @JvmField
         var USE_LAZY_VERSION_OF_STREAM_DRUM = true
 
         @JvmField

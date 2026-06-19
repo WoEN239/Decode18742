@@ -100,7 +100,7 @@ class HwSortingManager
         hwMotors.forwardBelts(onTime = false)
     }
     fun isReadyForShootingPhase4()
-        =   (_cms.shootingPhase.isAnyShootingPhase2() &&
+        =   (_cms.shootingPhase.isAnyPhase2() &&
              _cms.beltsStatus.isIdle()
             ) || (
             _cms.shootingPhase.isShootingPhase3() &&
