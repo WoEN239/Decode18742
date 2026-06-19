@@ -226,6 +226,7 @@ class Storage
         if (_cms.lazyIntakeIsActive) cells.hwSortingM.hwMotors.stopBelts()
 
         logM.logMd("StreamDrum P1, debug ballCount: $ballCount", Debug.LOGIC)
+        cells.hwSortingM.hwMotors.forwardBelts(onTime = false, _cms.shootingPhase.shotBeltsVoltage)
         cells.hwSortingM.hwMotors.openTurretGate()
 
         return RequestResult.ROGER_STARTING_SHOOTING
@@ -260,7 +261,7 @@ class Storage
     }
     fun streamDrumPhase4()
     {
-        logM.logMd("StreamDrum phase 4, starting calibration", Debug.LOGIC)
+        logM.logMd("StreamDrum P4, starting calibration", Debug.LOGIC)
         _cms.shootingPhase.shotBeltsVoltage = Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING
 
         if (cells.isNotEmpty()) cells.hwSortingM.calibrationPhase1()

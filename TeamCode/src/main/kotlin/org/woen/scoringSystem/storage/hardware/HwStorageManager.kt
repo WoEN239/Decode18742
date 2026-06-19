@@ -91,7 +91,7 @@ class HwSortingManager
                 else Delay.MS.SHOOTING.SLOW_LAST_WITH_LAUNCHER)
     fun streamDrumPhase3()
     {
-        hwMotors.logM.logMd("StreamDrum phase 3, opening launch", Debug.LOGIC)
+        hwMotors.logM.logMd("StreamDrum P3, opening launch", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.shootingPhase.startPhase3()
 
@@ -110,14 +110,14 @@ class HwSortingManager
 
     fun calibrationPhase1()
     {
-        hwMotors.logM.logMd("Calibration phase 1, reversing belts", Debug.LOGIC)
+        hwMotors.logM.logMd("Calibration P1, reversing belts", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase1()
         extendableReverse(Delay.MS.PUSH.HALF)
     }
     fun calibrationPhase2()
     {
-        hwMotors.logM.logMd("Calibration phase 2, closing servos", Debug.LOGIC)
+        hwMotors.logM.logMd("Calibration P2, closing servos", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase2()
 
@@ -128,7 +128,7 @@ class HwSortingManager
     }
     fun calibrationPhase3()
     {
-        hwMotors.logM.logMd("Calibration phase 3, forward realignment", Debug.LOGIC)
+        hwMotors.logM.logMd("Calibration P3, forward realignment", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase3()
         extendableForward(Delay.MS.PUSH.FULL)

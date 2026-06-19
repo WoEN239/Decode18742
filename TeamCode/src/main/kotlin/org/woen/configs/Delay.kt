@@ -28,20 +28,20 @@ internal object Delay
         internal object SHOOTING
         {
             @JvmField
-            var ADDITIONAL_TOLERANCE_FOR_TELEOP: Long = 40
+            var ADDITIONAL_TOLERANCE_FOR_TELEOP: Long = 20
 
 
             @JvmField
-            var FAST_3: Long = 300
+            var FAST_3: Long = 100
 
             @JvmField
-            var FAST_2: Long = 200
+            var FAST_2: Long = 60
 
             @JvmField
-            var FAST_1: Long = 125
+            var FAST_1: Long = 20
 
             @JvmField
-            var FAST_LAST_WITH_LAUNCHER: Long = 50
+            var FAST_LAST_WITH_LAUNCHER: Long = 40
 
 
 
@@ -63,7 +63,7 @@ internal object Delay
 
 
             @JvmField
-            var FAST_CONSIDER_SHOT_FIRED: Long = 95
+            var FAST_CONSIDER_SHOT_FIRED: Long = 20
             @JvmField
             var SLOW_CONSIDER_SHOT_FIRED: Long = 150
         }

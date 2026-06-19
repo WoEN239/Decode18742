@@ -622,9 +622,6 @@ class ScoringModulesConnector
 
             ShootingPhase.Name.P3_OPENING_LAUNCHER ->
             {
-                if (_storage.cells.hwSortingM.wasShotFired())
-                    _storage.cells.updateAfterShot()
-
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
                 {
                     _storage.cells.hwSortingM.hwMotors.stopBelts()
