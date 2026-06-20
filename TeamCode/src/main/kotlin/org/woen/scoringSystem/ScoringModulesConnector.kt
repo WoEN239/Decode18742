@@ -604,17 +604,16 @@ class ScoringModulesConnector
             {
                 if (_storage.cells.hwSortingM.wasShotFired())
                     _storage.cells.updateAfterShot()
-                //  Improve for using color sensors, or ideally, just clear storage after shooting
+                //TODO("Improve by using color sensors, or maybe even just clear storage after shooting")
 
                 if (CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
                 {
-                    if (_cms.shootingPhase.isRegularPhase2() &&
-                        _storage.cells.hwSortingM.isReadyForShootingPhase3())
+                    if ((_cms.shootingPhase.isRegularPhase2() &&
+                         _storage.cells.hwSortingM.isReadyForShootingPhase3()
+                        ) || (
+                        _cms.shootingPhase.isUntilColorsPhase2() &&
+                        _cms.colorResults.onlyLastBallForShooting()))
                         _storage.cells.hwSortingM.streamDrumPhase3()
-
-                    if (_cms.shootingPhase.isUntilColorsPhase2())
-                        _storage.cells.hwSortingM.streamDrumPhase3()
-                    //TODO("ADD ColorSensor CHECK for transitioning to PHASE 3 when shooting LAST BALL")
                 }
 
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())

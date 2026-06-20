@@ -3,6 +3,7 @@ package org.woen.scoringSystem
 
 import org.woen.collector.Collector
 import org.woen.scoringSystem.misc.BallCountForLED
+import org.woen.scoringSystem.misc.ColorResults
 import org.woen.scoringSystem.misc.DynamicPattern
 
 import org.woen.enumerators.status.MotorStatus
@@ -17,11 +18,11 @@ class ConnectorModuleStatus(var collector: Collector)
 {
     var ballCountForLED = BallCountForLED()
     var dynamicMemoryPattern = DynamicPattern()
+    var colorResults = ColorResults()
+
     var awaitingPatternFromCamera = true
 
     var canTriggerIntake = true
-
-
     var lazyIntakeIsActive  = false
 
 

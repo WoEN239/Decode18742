@@ -14,7 +14,7 @@ import org.woen.configs.Delay
 import org.woen.configs.Hardware
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-
+import org.woen.enumerators.phases.ShootingPhase
 
 
 class HwSortingManager
@@ -42,8 +42,6 @@ class HwSortingManager
 
     fun update()
     {
-        hwMotors.updateServos()
-
         if ((_cms.beltsStatus.isOnTime()) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
         {
@@ -60,6 +58,8 @@ class HwSortingManager
             hwMotors.logM.logMd("Stopping brush on time", Debug.LOGIC)
             hwMotors.stopBrush()
         }
+
+        hwMotors.updateServos()
     }
 
     fun updateColors(): Ball.Name
@@ -71,15 +71,16 @@ class HwSortingManager
                 && !TELEOP.IGNORE_COLOR_SENSORS))
             _hwSensors.update()
         else Ball.Name.NONE
+    //TODO("Optimise color sensor updating using targets in _cms.colorResults")
 
 
 
     fun wasShotFired()
-            = rotatingBeltsTimer.milliseconds() - lastUpdateTimestampMS >
-                if (_cms.shootingPhase.shotBeltsVoltage
-                    == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
-                     Delay.MS.SHOOTING.FAST_CONSIDER_SHOT_FIRED
-                else Delay.MS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED
+        = rotatingBeltsTimer.milliseconds() - lastUpdateTimestampMS >
+            if (_cms.shootingPhase.shotBeltsVoltage
+                == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
+                 Delay.MS.SHOOTING.FAST_CONSIDER_SHOT_FIRED
+            else Delay.MS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED
     fun isReadyForShootingPhase3()
         =   _cms.beltsStatus.isIdle() || (
             _cms.beltsStatus.isForwardOnTime() &&
@@ -100,11 +101,17 @@ class HwSortingManager
         hwMotors.forwardBelts(onTime = false)
     }
     fun isReadyForShootingPhase4()
-        =   (_cms.shootingPhase.isAnyPhase2() &&
-             _cms.beltsStatus.isIdle()
-            ) || (
-            _cms.shootingPhase.isShootingPhase3() &&
-            _cms.launchStatus.isOpened())
+        = when (_cms.shootingPhase.name)
+        {
+            ShootingPhase.Name.P2_SHOOT_BELTS_ON_TIME,
+            ShootingPhase.Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD
+                 -> _cms.beltsStatus.isIdle()
+            ShootingPhase.Name.P2_SHOOT_UNTIL_EMPTY_USING_COLORS
+                 -> _cms.colorResults.isEmptyBySensors()
+            ShootingPhase.Name.P3_OPENING_LAUNCHER
+                 -> _cms.launchStatus.isOpened()
+            else -> false
+        }
 
 
 
@@ -176,19 +183,19 @@ class HwSortingManager
 
     fun startBeltsTime(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
     {
-        hwMotors.logM.logMd("Rotate belts period: $timeMs", Debug.HW)
-        targetPushTime = timeMs
-        rotatingBeltsTimer.reset()
         if (forward) hwMotors.forwardBelts(onTime = true, voltage)
         else hwMotors.reverseBelts(onTime = true, voltage)
+        hwMotors.logM.logMd("Rotate belts period: $timeMs", Debug.HW)
+        rotatingBeltsTimer.reset()
+        targetPushTime = timeMs
     }
 
     fun startBrushTime(forward: Boolean, timeMs: Long)
     {
-        hwMotors.logM.logMd("Rotate brush period: $timeMs", Debug.HW)
-        targetBrushTime = timeMs
-        rotatingBrushTimer.reset()
         if (forward) hwMotors.forwardBrush(onTime = true)
         else hwMotors.reverseBrush(onTime = true)
+        hwMotors.logM.logMd("Rotate brush period: $timeMs", Debug.HW)
+        rotatingBrushTimer.reset()
+        targetBrushTime = timeMs
     }
 }

@@ -32,6 +32,7 @@ class Ball
         GREEN,
 
         UNKNOWN_COLOR,
+        NOT_UPDATED,
         NONE
     }
 
@@ -61,6 +62,7 @@ class Ball
             Name.PURPLE        -> "+ PURPLE +"
             Name.GREEN         -> "+ GREEN + "
 
+            Name.NOT_UPDATED   -> "~ no info "
             Name.UNKNOWN_COLOR -> "  + ?? +  "
             Name.NONE          -> "    --    "
         }
@@ -75,13 +77,20 @@ class Ball
 
 
     fun isPseudoMatch(name: BallRequest)
-        = !isEmpty() &&
+        = isFilled() &&
             (
                 isAbstractAny(name) ||
                 hasBall(toBall(name))
             )
     fun isTrueMatch(name: BallRequest)
-        = !isEmpty() && hasBall(toBall(name))
+        = isFilled() && hasBall(toBall(name))
+    fun matchesMask(mask: Name)
+        = when (mask)
+        {
+            Name.NOT_UPDATED -> true
+            Name.UNKNOWN_COLOR -> isFilled()
+            else -> _name == mask
+        }
 
 
 
@@ -91,9 +100,11 @@ class Ball
         const val GREEN:  Int = 1
 
         const val UNKNOWN_COLOR: Int = 2
-        const val NONE:          Int = 3
+        const val NOT_UPDATED:   Int = 3
+        const val NONE:          Int = 4
 
 
+        fun isMaskEmpty (mask: Name) = mask == Name.NONE || mask == Name.NOT_UPDATED
         fun toName(id:  Int): Name
             = when (id)
             {
@@ -101,6 +112,7 @@ class Ball
                 GREEN  -> Name.GREEN
 
                 UNKNOWN_COLOR -> Name.UNKNOWN_COLOR
+                NOT_UPDATED   -> Name.NOT_UPDATED
                 else          -> Name.NONE
             }
         fun toInt(name: Name): Int
@@ -110,6 +122,7 @@ class Ball
                 Name.GREEN  -> GREEN
 
                 Name.UNKNOWN_COLOR -> UNKNOWN_COLOR
+                Name.NOT_UPDATED   -> NOT_UPDATED
                 Name.NONE          -> NONE
             }
         fun toBall(name: BallRequest): Name
