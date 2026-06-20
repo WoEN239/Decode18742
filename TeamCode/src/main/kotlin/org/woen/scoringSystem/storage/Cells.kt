@@ -226,7 +226,7 @@ class Cells
     }
     fun updateAfterShot()
     {
-        hwSortingM.timeSinceLastShotUpdateMs = hwSortingM.rotatingBeltsTimer.milliseconds()
+        hwSortingM.lastUpdateTimestampMS = hwSortingM.rotatingBeltsTimer.milliseconds()
 
         _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
         _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
@@ -275,7 +275,7 @@ class Cells
         logM.logMd("finished readjusting", Debug.END)
         return false
     }
-    fun hwReAdjustStorage(initialBeltPush: Long = 0): Boolean
+    fun hwReAdjustStorage(initialBeltPush: Long = 0, voltage: Double): Boolean
     {
         if (_cms.calibrationPhase.isActive())
         {
@@ -295,14 +295,14 @@ class Cells
         {
             if (_cms.sortingPhase.remainingRotations > 1)
             {
-                hwSortingM.timeSinceLastShotUpdateMs =
+                hwSortingM.lastUpdateTimestampMS =
                     _cms.collector.eventBus.invoke(
                         SMC_GetCurrentGameTimerEvent()
                     ).timeMs + beltPushTime
 
-                hwSortingM.hwMotors.forwardBelts(onTime = false)
+                hwSortingM.hwMotors.forwardBelts(onTime = false, voltage)
             }
-            else hwSortingM.reinstantiableForward(beltPushTime)
+            else hwSortingM.reinstantiableForward(beltPushTime, voltage)
         }
 
         return !requireAligning

@@ -25,7 +25,7 @@ class HwSortingManager
 
     var targetPushTime: Long = 0
     var targetBrushTime: Long = 0
-    var timeSinceLastShotUpdateMs: Double = 0.0
+    var lastUpdateTimestampMS: Double = 0.0
     val rotatingBeltsTimer = ElapsedTime()
     val rotatingBrushTimer = ElapsedTime()
 
@@ -75,7 +75,7 @@ class HwSortingManager
 
 
     fun wasShotFired()
-            = rotatingBeltsTimer.milliseconds() - timeSinceLastShotUpdateMs >
+            = rotatingBeltsTimer.milliseconds() - lastUpdateTimestampMS >
                 if (_cms.shootingPhase.shotBeltsVoltage
                     == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
                      Delay.MS.SHOOTING.FAST_CONSIDER_SHOT_FIRED

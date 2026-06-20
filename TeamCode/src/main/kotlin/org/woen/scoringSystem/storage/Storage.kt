@@ -254,7 +254,7 @@ class Storage
                 _cms.shootingPhase.shotBeltsVoltage)
             if (shotCount == -1) cells.hwSortingM.hwMotors.openLaunch()
 
-            cells.hwSortingM.timeSinceLastShotUpdateMs =
+            cells.hwSortingM.lastUpdateTimestampMS =
                 cells.hwSortingM.rotatingBeltsTimer.milliseconds()
             logM.logMd("StreamDrum P2, shots: $shotCount, firingMS: $beltPushTime", Debug.LOGIC)
         }
@@ -343,13 +343,14 @@ class Storage
     }
     fun sortingPhaseRealignment(
         ifDoneSkipToPhase3: Boolean,
-        initialBeltPush: Long = 0)
+        initialBeltPush: Long = 0,
+        voltage: Double = Hardware.MOTOR.BELTS_FORWARD)
     {
         _cms.sortingPhase.switchToNextPhase()
         logM.logMd(if (ifDoneSkipToPhase3) "Sorting HW ReAdjustment (P2)"
             else "Sorting HW ReAdjustment (P9)", Debug.LOGIC)
 
-        if (cells.hwReAdjustStorage(initialBeltPush))
+        if (cells.hwReAdjustStorage(initialBeltPush, voltage))
         {
             if (ifDoneSkipToPhase3) sortingPhase3()
             else if (_cms.sortingPhase.remainingRotations < 2)
@@ -401,7 +402,7 @@ class Storage
         if (Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0)
             return sortingPhase8()
 
-        cells.hwSortingM.timeSinceLastShotUpdateMs =
+        cells.hwSortingM.lastUpdateTimestampMS =
             _cms.collector.eventBus.invoke(
                 SMC_GetCurrentGameTimerEvent()).timeMs
     }
@@ -409,20 +410,19 @@ class Storage
     {
         _cms.sortingPhase.switchToNextPhase()
 
-//        cells.hwSortingM.hwMotors.reverseBelts(onTime = false)
-        cells.hwSortingM.hwMotors.forwardBelts(onTime = false, 9.0)
-
-        if (_cms.pushStatus.isClosed() && (
-            _cms.gateStatus.isClosed() ||
-            _cms.sortingPhase.remainingRotations > 1))
-                sortingPhaseRealignment(
-                    ifDoneSkipToPhase3 = false,
-                    Delay.MS.PUSH.PART)
-
         logM.logMd("Sorting P8, closing " +
             if (_cms.sortingPhase.remainingRotations < 2)
                  cells.hwSortingM.hwMotors.closeGateWithPush()
             else cells.hwSortingM.hwMotors.closePush() +
         " push (Rotations: ${_cms.sortingPhase.remainingRotations})", Debug.LOGIC)
+
+        cells.hwSortingM.hwMotors.forwardBelts(onTime = false, 9.0)
+
+        if (_cms.pushStatus.isClosed() && (
+              _cms.gateStatus.isClosed() ||
+              _cms.sortingPhase.remainingRotations > 1))
+            sortingPhaseRealignment(
+                ifDoneSkipToPhase3 = false,
+                Delay.MS.PUSH.PART, 9.0)
     }
 }

@@ -1,3 +1,4 @@
+@file:Suppress("ClassName", "ArrayInDataClass")
 package org.woen.scoringSystem
 
 
@@ -510,7 +511,7 @@ class ScoringModulesConnector
                 if (Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0
                     || (_gameTimer.milliseconds() -
                         Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 >
-                        _storage.cells.hwSortingM.timeSinceLastShotUpdateMs))
+                        _storage.cells.hwSortingM.lastUpdateTimestampMS))
                     _storage.sortingPhase8()
 
             SortingPhase.Name.P8_CLOSING_GATE_AND_PUSH ->
@@ -529,7 +530,7 @@ class ScoringModulesConnector
                 if (_cms.beltsStatus.isIdle()
                     || (_cms.sortingPhase.remainingRotations > 1 &&
                         _gameTimer.milliseconds() >
-                        _storage.cells.hwSortingM.timeSinceLastShotUpdateMs))
+                        _storage.cells.hwSortingM.lastUpdateTimestampMS))
                 {
                     _cms.sortingPhase.remainingRotations--
                     if  (_cms.sortingPhase.remainingRotations > 0)
