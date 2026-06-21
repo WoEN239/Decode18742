@@ -33,13 +33,13 @@ internal object DRIVE_TRAIN_CONFIG {
     var H_DEATH_ZONE = 0.05
 
     @JvmField
-    var VELOCITY_FORWARD_REGULATOR = RegulatorParameters(kF = 6.0, kP = 5.0)
+    var VELOCITY_FORWARD_REGULATOR = RegulatorParameters(kF = 6.5, kP = 8.5)
 
     @JvmField
-    var VELOCITY_SIDE_REGULATOR = RegulatorParameters(kF = 10.0, kP = 5.0)
+    var VELOCITY_SIDE_REGULATOR = RegulatorParameters(kF = 12.0, kP = 15.0)
 
     @JvmField
-    var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 1.6, kP = 1.8)
+    var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 1.7, kP = 1.9)
 }
 
 enum class DriveMode {
@@ -98,15 +98,17 @@ fun attachDriveTrain(collector: Collector) {
         rightForwardMotor.power = rfPower
     }
 
-    val driveMode =
-        if (collector.runMode == RunMode.MANUAL) DriveMode.POWER else DriveMode.REGULATOR
+    val driveMode = DriveMode.REGULATOR
+//        if (collector.runMode == RunMode.MANUAL) DriveMode.POWER else DriveMode.REGULATOR
 
     var targetLinearVelocity = Vec2.ZERO
     var targetHeadingVelocity = 0.0
 
+    var targetPowerVelocity = Vec2.ZERO
+
     collector.eventBus.invoke(AddGamepad1ListenerEvent(object : IGamepadListener {
         override fun update(gamepadData: Gamepad) {
-            if (driveMode == DriveMode.POWER) {
+//            if (driveMode == DriveMode.POWER) {
                 var ly = -gamepadData.left_stick_y.toDouble()
                 var lx = -gamepadData.left_stick_x.toDouble()
 
@@ -133,17 +135,14 @@ fun attachDriveTrain(collector: Collector) {
                 val direction = Vec2(ly, lx)
                     .turn(-odometry.orientation.angle + (if (GameSettings.startOrientation.gameColor == GameColor.BLUE) -PI else PI) / 2.0)
 
-                direction.x = if(speed > 0.01) sign(ly) else direction.x
-                direction.y = if(speed > 0.01) 0.0 else direction.y
+                direction.x = if (speed > 0.01) sign(ly) else direction.x
+                direction.y = if (speed > 0.01) 0.0 else direction.y
 
-                setPowers(
-                    direction.x - direction.y - rx,
-                    direction.x - direction.y + rx,
-                    direction.x + direction.y - rx,
-                    direction.x + direction.y + rx
-                )
+                targetPowerVelocity = direction
+                targetLinearVelocity = direction * 2.2
+                targetHeadingVelocity = rx * 10.0
             }
-        }
+//        }
     }))
 
     val forwardRegulator = Regulator(DRIVE_TRAIN_CONFIG.VELOCITY_FORWARD_REGULATOR)
@@ -164,9 +163,9 @@ fun attachDriveTrain(collector: Collector) {
     }
 
     collector.updateEvent += {
-        if (driveMode == DriveMode.REGULATOR) {
-            val odometry = collector.eventBus.invoke(GetRobotOdometry())
+        val odometry = collector.eventBus.invoke(GetRobotOdometry())
 
+        if (driveMode == DriveMode.REGULATOR) {
             val velocityErr = targetLinearVelocity - odometry.linearVelocity
 
             val direction = Vec2(
@@ -197,7 +196,21 @@ fun attachDriveTrain(collector: Collector) {
 
             collector.telemetry.addData("target x vel", targetLinearVelocity.x)
             collector.telemetry.addData("target y vel", targetLinearVelocity.y)
-            collector.telemetry.addData("target h vel", targetHeadingVelocity)
+        } else {
+            val rotate = rotateRegulator.update(
+                targetHeadingVelocity - odometry.headingVelocity,
+                targetHeadingVelocity,
+                collector.battery.currentVoltage
+            )
+
+            setPowers(
+                targetPowerVelocity.x - targetPowerVelocity.y - battery.voltageToPower(rotate),
+                targetPowerVelocity.x - targetPowerVelocity.y + battery.voltageToPower(rotate),
+                targetPowerVelocity.x + targetPowerVelocity.y - battery.voltageToPower(rotate),
+                targetPowerVelocity.x + targetPowerVelocity.y + battery.voltageToPower(rotate)
+            )
         }
+
+        collector.telemetry.addData("target h vel", targetHeadingVelocity)
     }
 }

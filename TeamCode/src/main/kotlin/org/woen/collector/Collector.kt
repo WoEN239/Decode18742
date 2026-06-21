@@ -57,7 +57,7 @@ class Collector {
         attachGamepad(this)
         attachOdometry(this)
         attachDriveTrain(this)
-//        attachTurret(this)
+        attachTurret(this)
 //        attachLimelight(this)
 
         if(runMode == RunMode.AUTO){

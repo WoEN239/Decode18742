@@ -41,9 +41,6 @@ class HwSortingManager
 
     fun update()
     {
-//        hwMotors.logM.logMd("belt status: ${_cms.beltsStatus.name}", Debug.LOGIC)
-//        hwMotors.logM.logMd("belt timer: ${rotatingBeltsTimer.milliseconds()}", Debug.LOGIC)
-//        hwMotors.logM.logMd("target time: $targetPushTime", Debug.LOGIC)
         if ((_cms.beltsStatus.isOnTime()) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
         {

@@ -277,8 +277,8 @@ class Storage
         else if (CONTROLS.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
         else cells.anyBallCount()
     private fun calcShootingTimeForP2(shotCount: Int): Long
-        = if (_cms.collector.runMode == RunMode.AUTO) 0
-        else Delay.MS.SHOOTING.ADDITIONAL_TOLERANCE_FOR_TELEOP +
+        = (if (_cms.collector.runMode == RunMode.AUTO) 0
+        else Delay.MS.SHOOTING.ADDITIONAL_TOLERANCE_FOR_TELEOP) +
             if (_cms.shootingPhase.shotBeltsVoltage == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
                 when (shotCount) {
                     3 -> Delay.MS.SHOOTING.FAST_3

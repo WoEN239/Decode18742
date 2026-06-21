@@ -18,139 +18,34 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
 
     val colorK = if (GameSettings.startOrientation.gameColor == GameColor.BLUE) 1.0 else -1.0
 
-    val shootPosition = Vec2(-0.476, -0.725 * colorK)
+    val shootPosition = Vec2(-0.516, -0.649 * colorK)
 
-    val actions = arrayListOf<IAction>(
-//        DriveAction(eventBus, MoveSegment(shootPosition)),
-//        ShootAction(eventBus),
-//        DriveAction(
-//            eventBus,
-//            DriveSegment(
-//                Orientation(Vec2(0.426, -0.582 * colorK), Angle.ofDeg(-90.0 * colorK)),
-//                positionWindow = 0.4,
-//                headingWindow = toRadians(40.0)
-//            )
-//        ),
-//        StartEatAction(eventBus),
-//        DriveAction(eventBus, MoveSegment(Vec2(0.426, -1.62 * colorK), 1.2)),
-//        WaitAction(0.5),
-//        StopEatAction(eventBus),
-//        DriveAction(eventBus, MoveSegment(Vec2(0.426, -1.283 * colorK), positionWindow = 0.4)),
-//        ParallelActions(
-//            arrayOf(
-//                arrayListOf(
-//                    DriveAction(eventBus, TurnSegment(Angle.ZERO))
-//                ),
-//                arrayListOf(
-//                    DriveAction(
-//                        eventBus, MoveSegment(Vec2(0.206, -0.55 * colorK), positionWindow = 0.4),
-//                        MoveSegment(shootPosition)
-//                    )
-//                )
-//            ), ParallelActions.ExitType.AND
-//        ),
-//        ShootAction(eventBus),
-////    )
-//
-////    repeat(3) {
-////    actions.addAll(
-////        arrayOf(
-//        DriveAction(
-//            eventBus,
-//            DriveSegment(
-//                Orientation(Vec2(0.306, -0.582 * colorK), Angle.ofDeg(-90.0 * colorK)),
-//                positionWindow = 0.4,
-//                headingWindow = toRadians(40.0)
-//            ),
-//        ),
-//        StartEatAction(eventBus),
-//        DriveAction(
-//            eventBus,
-//            DriveSegment(
-//                Orientation(
-//                    Vec2(0.264, -1.557 * colorK),
-//                    Angle.ofDeg(-129.679 * colorK)
-//                ),
-//                positionWindow = 0.4
-//            )
-//        ),
-//        WaitAction(2.2),
-//        DriveAction(
-//            eventBus,
-//            DriveSegment(Orientation(Vec2(0.0, -1.393 * colorK), Angle.ofDeg(-90.0 * colorK)))
-//        ),
-//        WaitAction(0.1),
-//        StopEatAction(eventBus),
-//        SortingAction(eventBus, StockPattern.Storage.GPP),
-//        DriveAction(eventBus, MoveSegment(Vec2(0.252, -1.233 * colorK), positionWindow = 0.4)),
-//        ParallelActions(
-//            arrayOf(
-//                arrayListOf(
-//                    DriveAction(eventBus, TurnSegment(Angle.ZERO))
-//                ),
-//                arrayListOf(
-//                    DriveAction(
-//                        eventBus,
-//                        MoveSegment(Vec2(0.206, -0.55 * colorK), positionWindow = 0.4),
-//                        MoveSegment(shootPosition)
-//                    )
-//                )
-//            ), ParallelActions.ExitType.AND
-//        ),
-//        WaitForSortingEndAction(eventBus),
-//        ShootAction(eventBus),
-//        DriveAction(
-//            eventBus,
-//            DriveSegment(
-//                Orientation(Vec2(0.914, -0.726 * colorK), Angle.ofDeg(-90.0 * colorK)),
-//                positionWindow = 0.4
-//            )
-//        ),
-//        StartEatAction(eventBus),
-//        DriveAction(eventBus, MoveSegment(Vec2(0.914, -1.5 * colorK), 1.2)),
-//        WaitAction(0.2),
-//        StopEatAction(eventBus),
-//        SortingAction(eventBus, StockPattern.Storage.GPP),
-//        DriveAction(
-//            eventBus,
-//            DriveSegment(
-//                Orientation(Vec2(0.202, -0.705 * colorK), Angle.ZERO),
-//                positionWindow = 0.4
-//            )
-//        ),
-//        DriveAction(eventBus, MoveSegment(shootPosition)),
-//        WaitForSortingEndAction(eventBus),
-//        ShootAction(eventBus),
-//        DriveAction(
-//            eventBus,
-//            DriveSegment(
-//                Orientation(Vec2(-0.265, -0.751 * colorK), Angle.ofDeg(-90.0 * colorK)),
-//                positionWindow = 0.4
-//            )
-//        ),
-//        StartEatAction(eventBus),
-//        DriveAction(
-//            eventBus,
-//            MoveSegment(Vec2(-0.289, -1.413 * colorK), 1.2)
-//        ),
-//        WaitAction(0.5),
-//        StopEatAction(eventBus),
-//        SortingAction(eventBus, StockPattern.Storage.PPG),
-//        DriveAction(eventBus, DriveSegment(Orientation(shootPosition, Angle.ZERO))),
-//        WaitForSortingEndAction(eventBus),
-//        ShootAction(eventBus),
-//        DriveAction(eventBus, MoveSegment(Vec2(shootPosition.x + 0.5, shootPosition.y)))
-////        )
-//    )
-////    }
+    val actions = arrayListOf(
+        DriveAction(
+            eventBus,
+            DriveSegment(
+                Orientation(shootPosition, Angle.ofDeg(45.0 * colorK)),
+                linearVelocityConstrain = 1.0,
+                positionWindow = 0.1
+            )
+        ),
+        ShootAction(eventBus),
+        DriveAction(
+            eventBus,
+            DriveSegment(Orientation(Vec2(-0.342, -0.675 * colorK), Angle.ofDeg(-90.0 * colorK)))
+        ),
+        StartEatAction(eventBus),
+        DriveAction(eventBus, MoveSegment(Vec2(-0.342, -1.4 * colorK), velocityConstrain = 0.5)),
+        StopEatAction(eventBus),
+        DriveAction(
+            eventBus,
+            DriveSegment(
+                Orientation(shootPosition, Angle.ofDeg(45.0 * colorK)),
+                linearVelocityConstrain = 1.0,
+                positionWindow = 0.1
+            )
+        )
     )
-
-    repeat(100){
-        actions.add(DriveAction(eventBus, DriveSegment(Orientation(Vec2(-1.0, 1.0), Angle.ofDeg(-90.0)))))
-        actions.add(DriveAction(eventBus, DriveSegment(Orientation(Vec2(-1.0, -1.0), Angle.ofDeg(180.0)))))
-        actions.add(DriveAction(eventBus, DriveSegment(Orientation(Vec2(-1.0, 1.0), Angle.ofDeg(90.0)))))
-        actions.add(DriveAction(eventBus, DriveSegment(Orientation(Vec2(1.0, 1.0), Angle.ofDeg(0.0)))))
-    }
 
     return Array(actions.size) { actions[it] }
 }

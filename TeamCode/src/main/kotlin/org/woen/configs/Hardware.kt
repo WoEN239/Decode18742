@@ -85,9 +85,9 @@ internal object Hardware
     internal object SERVO
     {
         @JvmField
-        var GATE_OPEN = 0.83
+        var GATE_OPEN = 0.9
         @JvmField
-        var GATE_CLOSE = 0.2
+        var GATE_CLOSE = 0.33
 
 
         @JvmField
