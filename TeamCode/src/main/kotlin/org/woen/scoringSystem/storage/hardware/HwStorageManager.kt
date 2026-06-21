@@ -44,10 +44,12 @@ class HwSortingManager
         if ((_cms.beltsStatus.isOnTime()) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
         {
-            hwMotors.logM.logMd("Stopping belts on time", Debug.LOGIC)
-            hwMotors.stopBelts()
-
             if (_cms.calibrationPhase.isCalibrationPhase1()) calibrationPhase2()
+            else
+            {
+                hwMotors.logM.logMd("Stopping belts on time", Debug.LOGIC)
+                hwMotors.stopBelts()
+            }
         }
 
         if (_cms.brushStatus.isOnTime() &&
@@ -128,7 +130,7 @@ class HwSortingManager
     }
     fun calibrationPhase3()
     {
-        extendableForward(Delay.MS.PUSH.FULL)
+        extendableForward(Delay.MS.PUSH.HALF)
 
         hwMotors.logM.logMd("Calibration P3, forward realignment", Debug.LOGIC)
         _cms.colorResults.reactivateColorTargetsForIntake()

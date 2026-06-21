@@ -5,6 +5,7 @@ import org.woen.collector.RunMode
 import org.woen.enumerators.Ball
 import org.woen.enumerators.BallRequest
 import org.woen.enumerators.Shooting
+import org.woen.enumerators.StorageSlot
 import org.woen.enumerators.RequestResult
 
 import org.woen.utils.debug.Debug
@@ -21,7 +22,7 @@ import org.woen.configs.Hardware
 import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
-import org.woen.enumerators.StorageSlot
+
 
 
 class Storage
@@ -54,7 +55,7 @@ class Storage
         {
             if (_cms.colorResults.parsedResults[StorageSlot.BOTTOM] == Ball.Name.NONE) return
 
-            if (!_cms.shootingPhase.isActive())
+            if (_cms.shootingPhase.isInactive())
                 cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
 
             _cms.colorResults.reactivateAllColorTargets()
@@ -276,9 +277,10 @@ class Storage
               _cms.shootingPhase.ballCountForPhase1
         else if (CONTROLS.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
         else cells.anyBallCount()
-    private fun calcShootingTimeForP2(shotCount: Int): Long
-        = (if (_cms.collector.runMode == RunMode.AUTO) 0
-        else Delay.MS.SHOOTING.ADDITIONAL_TOLERANCE_FOR_TELEOP) +
+    private fun calcShootingTimeForP2(shotCount: Int)
+        = ( if (_cms.collector.runMode == RunMode.AUTO) 0
+            else Delay.MS.SHOOTING.ADDITIONAL_TOLERANCE_FOR_TELEOP
+        ) + (
             if (_cms.shootingPhase.shotBeltsVoltage == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
                 when (shotCount) {
                     3 -> Delay.MS.SHOOTING.FAST_3
@@ -291,8 +293,7 @@ class Storage
                     2 -> Delay.MS.SHOOTING.SLOW_2
                     1 -> Delay.MS.SHOOTING.SLOW_1
                     else -> Delay.MS.SHOOTING.SLOW_LAST_WITH_LAUNCHER
-                }
-
+            }   )
 
 
     fun finishCalibration()

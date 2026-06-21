@@ -359,18 +359,14 @@ class Cells
     fun alreadyFull() = anyBallCount() >= MAX_BALL_COUNT
     fun notFullYet()  = anyBallCount() <  MAX_BALL_COUNT
 
-    fun isEmpty(): Boolean
-    {
-        return _storageCells[StorageSlot.BOTTOM].isEmpty()
-                && _storageCells[StorageSlot.CENTER].isEmpty()
-                && _storageCells[StorageSlot.TURRET].isEmpty()
-                && _storageCells[StorageSlot.MOBILE].isEmpty()
-    }
-    fun isNotEmpty(): Boolean
-    {
-        return _storageCells[StorageSlot.BOTTOM].isFilled()
-                || _storageCells[StorageSlot.CENTER].isFilled()
-                || _storageCells[StorageSlot.TURRET].isFilled()
-                || _storageCells[StorageSlot.MOBILE].isFilled()
-    }
+    fun isEmpty()
+        =  _storageCells[StorageSlot.BOTTOM].isEmpty()
+        && _storageCells[StorageSlot.CENTER].isEmpty()
+        && _storageCells[StorageSlot.TURRET].isEmpty()
+        && _storageCells[StorageSlot.MOBILE].isEmpty()
+    fun isNotEmpty()
+        =  _storageCells[StorageSlot.BOTTOM].isFilled()
+        || _storageCells[StorageSlot.CENTER].isFilled()
+        || _storageCells[StorageSlot.TURRET].isFilled()
+        || _storageCells[StorageSlot.MOBILE].isFilled()
 }
