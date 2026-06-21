@@ -41,6 +41,9 @@ class HwSortingManager
 
     fun update()
     {
+//        hwMotors.logM.logMd("belt status: ${_cms.beltsStatus.name}", Debug.LOGIC)
+//        hwMotors.logM.logMd("belt timer: ${rotatingBeltsTimer.milliseconds()}", Debug.LOGIC)
+//        hwMotors.logM.logMd("target time: $targetPushTime", Debug.LOGIC)
         if ((_cms.beltsStatus.isOnTime()) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
         {
@@ -60,12 +63,10 @@ class HwSortingManager
         hwMotors.updateServos()
     }
 
-    fun tryUpdateColors()
-    {
-        if ((_cms.collector.runMode == RunMode.AUTO && !AUTONOMOUS.IGNORE_COLOR_SENSORS) ||
-            (_cms.collector.runMode == RunMode.MANUAL && !TELEOP.IGNORE_COLOR_SENSORS))
-            _hwSensors.update()
-    }
+    fun tryUpdateColors() { if (canUpdateColors()) _hwSensors.update() }
+    fun canUpdateColors()
+        = (_cms.collector.runMode == RunMode.AUTO   && !AUTONOMOUS.IGNORE_COLOR_SENSORS) ||
+          (_cms.collector.runMode == RunMode.MANUAL && !TELEOP.IGNORE_COLOR_SENSORS)
 
 
 
@@ -134,7 +135,7 @@ class HwSortingManager
 
         hwMotors.logM.logMd("Calibration P3, forward realignment", Debug.LOGIC)
         _cms.colorResults.reactivateColorTargetsForIntake()
-        _cms.canTriggerIntake = true
+        _cms.canTriggerIntake = canUpdateColors()
         _cms.calibrationPhase.startPhase3()
     }
 

@@ -54,13 +54,13 @@ internal object RobotSettings
         var TRY_AUTO_SORT_WHEN_FULL_IN_ENDGAME = false
 
         @JvmField
-        var USE_LAUNCHER_FOR_LAST_BALL = true
+        var USE_LAUNCHER_FOR_LAST_BALL = false
         @JvmField
-        var USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT = true
+        var USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT = false
 
 
         @JvmField
-        var HOLD_FOR_MANUAL_SHOOTING = false
+        var HOLD_FOR_MANUAL_SHOOTING = true
         @JvmField
         var HOLD_FOR_LAZY_INTAKE = true
 

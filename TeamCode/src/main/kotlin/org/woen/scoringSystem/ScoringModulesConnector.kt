@@ -97,8 +97,11 @@ class ScoringModulesConnector
     constructor(collector: Collector)
     {
         _cms = ConnectorModuleStatus(collector)
-        _storage = Storage(_cms)
+        _cms.canTriggerIntake = _cms.canTriggerIntake &&
+                (_cms.collector.runMode == RunMode.AUTO   && !AUTONOMOUS.IGNORE_COLOR_SENSORS) ||
+                (_cms.collector.runMode == RunMode.MANUAL && !TELEOP.IGNORE_COLOR_SENSORS)
 
+        _storage = Storage(_cms)
         logM = LogManager(collector.telemetry, DebugSettings.SMC)
 
 
@@ -600,7 +603,6 @@ class ScoringModulesConnector
             {
                 if (_storage.cells.hwSortingM.wasShotFired())
                     _storage.cells.updateAfterShot()
-                //TODO("Improve by using color sensors, or maybe even just clear storage after shooting")
 
                 if (CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
                 {

@@ -54,7 +54,9 @@ class Storage
         {
             if (_cms.colorResults.parsedResults[StorageSlot.BOTTOM] == Ball.Name.NONE) return
 
-            cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+            if (!_cms.shootingPhase.isActive())
+                cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+
             _cms.colorResults.reactivateAllColorTargets()
             _cms.colorResults.intakePredictions.clearAll()
         }
@@ -307,7 +309,7 @@ class Storage
         if (cells.notFullYet() && _cms.sortingPhase.isInactive())
         {
             _cms.colorResults.reactivateColorTargetsForIntake()
-            _cms.canTriggerIntake = true
+            _cms.canTriggerIntake = cells.hwSortingM.canUpdateColors()
 
             if (CONTROLS.AUTO_PRESERVE_LAZY_INTAKE_STATUS
                 && _cms.lazyIntakeIsActive)
