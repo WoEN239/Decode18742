@@ -1,12 +1,7 @@
 package org.woen.scoringSystem.storage.hardware
 
 
-import kotlin.math.max
-import kotlin.math.min
-
-import com.qualcomm.robotcore.util.ElapsedTime
 import com.qualcomm.hardware.rev.RevColorSensorV3
-
 import org.woen.configs.Hardware
 import org.woen.enumerators.Ball
 import org.woen.scoringSystem.ConnectorModuleStatus
@@ -16,26 +11,10 @@ import org.woen.scoringSystem.ConnectorModuleStatus
 class HwSensors
 {
     private var _cms: ConnectorModuleStatus
-//    private var _rightColor: RevColorSensorV3
-//    private var _leftColor: RevColorSensorV3
-
-    private var _oldCombinedGreen = false
-    private var _oldCombinedPurple = false
-
-    private val _greenTimer = ElapsedTime()
-    private val _purpleTimer = ElapsedTime()
-
-
-    private var _leftR = 0.0
-    private var _leftG = 0.0
-    private var _leftB = 0.0
-    private var _rightR = 0.0
-    private var _rightG = 0.0
-    private var _rightB = 0.0
-    private var _rightH = 0.0
-    private var _leftH = 0.0
 
     private var _doubleCounter = 0
+//    private var _rightColor: RevColorSensorV3
+//    private var _leftColor: RevColorSensorV3
 
 
     constructor(cms: ConnectorModuleStatus) {
@@ -76,7 +55,21 @@ class HwSensors
 //        }
     }
 
-    fun update(): Ball.Name {
+    fun update()
+    {
+        if (_cms.colorResults.updateTargetsBCT.bottom)
+        {
+
+        }
+        if (_cms.colorResults.updateTargetsBCT.center)
+        {
+
+        }
+        if (_cms.colorResults.updateTargetsBCT.turret)
+        {
+
+        }
+
 //        try {
 //            val leftColor = _leftColor.normalizedColors
 //            val rightColor = _rightColor.normalizedColors
@@ -155,6 +148,5 @@ class HwSensors
 //
 //            _oldCombinedPurple = combinedPurple
 //        } catch (_: Exception) { }
-        return Ball.Name.NONE
     }
 }
