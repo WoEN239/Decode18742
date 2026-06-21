@@ -4,6 +4,7 @@ package org.woen.scoringSystem.storage.hardware
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import org.woen.configs.Hardware
 import org.woen.enumerators.Ball
+import org.woen.enumerators.StorageSlot
 import org.woen.scoringSystem.ConnectorModuleStatus
 
 
@@ -61,14 +62,19 @@ class HwSensors
         {
 
         }
+        else _cms.colorResults.parsedResults[StorageSlot.BOTTOM] = Ball.Name.NOT_UPDATED
+
         if (_cms.colorResults.updateTargetsBCT.center)
         {
 
         }
+        else _cms.colorResults.parsedResults[StorageSlot.CENTER] = Ball.Name.NOT_UPDATED
+
         if (_cms.colorResults.updateTargetsBCT.turret)
         {
 
         }
+        else _cms.colorResults.parsedResults[StorageSlot.TURRET] = Ball.Name.NOT_UPDATED
 
 //        try {
 //            val leftColor = _leftColor.normalizedColors

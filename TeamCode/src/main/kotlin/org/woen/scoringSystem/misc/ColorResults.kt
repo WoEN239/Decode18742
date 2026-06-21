@@ -8,7 +8,7 @@ import org.woen.scoringSystem.storage.MAX_BALL_COUNT
 
 
 class StorageSlotsUpdates(
-    var bottom: Boolean = true,
+    var bottom: Boolean = false,
     var center: Boolean = false,
     var turret: Boolean = false)
 
@@ -110,6 +110,7 @@ class ColorResults
         updateTargetsBCT.bottom = true
         updateTargetsBCT.center = true
         updateTargetsBCT.turret = true
+        colorIntakeIsActive = true
     }
     fun reactivateColorTargetsForIntake() { updateTargetsBCT.bottom = true }
     fun reactivateColorTargetsForShooting(isLastBall: Boolean)
@@ -122,7 +123,11 @@ class ColorResults
     {
         if (!isShooting)
         {
-            if (!updateTargetsBCT.center) updateTargetsBCT.bottom = false
+            if (!updateTargetsBCT.center)
+            {
+                updateTargetsBCT.bottom = false
+                colorIntakeIsActive = false
+            }
             if (!updateTargetsBCT.turret) updateTargetsBCT.center = false
             updateTargetsBCT.turret = false
         }

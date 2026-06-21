@@ -57,7 +57,6 @@ class Storage
             cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
             _cms.colorResults.reactivateAllColorTargets()
             _cms.colorResults.intakePredictions.clearAll()
-            _cms.colorResults.colorIntakeIsActive = true
         }
 
         cells.updateStorageWithIntake()
