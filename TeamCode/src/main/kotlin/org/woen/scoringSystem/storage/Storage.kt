@@ -21,7 +21,7 @@ import org.woen.configs.Hardware
 import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
-
+import org.woen.enumerators.StorageSlot
 
 
 class Storage
@@ -45,16 +45,22 @@ class Storage
 
     fun tryHandleIntake()
     {
-        if (_cms.sortingPhase.isActive() ||
-            _cms.shootingPhase.isShootingPhase3() ||
-            _cms.shootingPhase.isShootingPhase4() ||
-           !_cms.canTriggerIntake ||
+        if (!_cms.canTriggerIntake ||
+            _cms.sortingPhase.isActive() ||
+            _cms.shootingPhase.isSensitivePhase() ||
             cells.alreadyFull()) return
 
-        val inputBall = cells.hwSortingM.updateColors()
-        if (inputBall == Ball.Name.NONE) return
+        if (!_cms.colorResults.colorIntakeIsActive)
+        {
+            if (_cms.colorResults.parsedResults[StorageSlot.BOTTOM] == Ball.Name.NONE) return
 
-        cells.handleIntake(inputBall)
+            cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+            _cms.colorResults.reactivateAllColorTargets()
+            _cms.colorResults.intakePredictions.clearAll()
+            _cms.colorResults.colorIntakeIsActive = true
+        }
+
+        cells.updateStorageWithIntake()
 
         if (cells.alreadyFull())
         {
@@ -188,7 +194,7 @@ class Storage
         val targetSorting = predictSortResult ?:
             cells.predictSortSearch(requested, onlyInSequence)
 
-        if (targetSorting.totalMatches == 0)
+        if (targetSorting.matches == 0)
         {
             _cms.sortingPhase.setInactive()
             return RequestResult.FAIL_COLORS_NOT_PRESENT
@@ -196,53 +202,50 @@ class Storage
 
         if (shootAfterSorting) _cms.shootingPhase.startPhase0()
 
-        if (targetSorting.totalRotations == 0)
+        if (targetSorting.rotations == 0)
         {
             _cms.sortingPhase.setInactive()
             return RequestResult.SORTING_IGNORED_PATTERN_ALREADY_ALIGNED
         }
 
-        sortingPhase1(targetSorting.totalRotations)
+        sortingPhase1(targetSorting.rotations)
         return RequestResult.ROGER_STARTING_SORTING
     }
 
 
 
-    fun streamDrumPhase1(
-        laterGamepadHold: Boolean = false,
-        ballCount: Int = 0): RequestResult
+    fun tryStartStreamDrum(laterGamepadHold: Boolean = false, ballCount: Int = 0)
+        =    if (_cms.shootingPhase.isPhase0()) RequestResult.FAIL_AWAITING_SORTING
+        else if (_cms.shootingPhase.isActive()) RequestResult.FAIL_IGNORE_DUPLICATE_COMMAND
+        else streamDrumPhase1(laterGamepadHold, ballCount)
+    private fun streamDrumPhase1(laterGamepadHold: Boolean = false, ballCount: Int = 0): RequestResult
     {
-        if (_cms.shootingPhase.isShootingPhase0())
-            return RequestResult.FAIL_AWAITING_SORTING
-        if (_cms.shootingPhase.isActive())
-            return RequestResult.FAIL_IGNORE_DUPLICATE_COMMAND
-
-        _cms.shootingPhase.startPhase1(laterGamepadHold)
-        _cms.shootingPhase.ballCountForPhase1 =
-            if (ballCount == 1 && cells.isLastBall()
-                && CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
-                -1 else ballCount
-
-        if (_cms.lazyIntakeIsActive) cells.hwSortingM.hwMotors.stopBelts()
-
-        logM.logMd("StreamDrum P1, debug ballCount: $ballCount", Debug.LOGIC)
         cells.hwSortingM.hwMotors.forwardBelts(onTime = false, _cms.shootingPhase.shotBeltsVoltage)
         cells.hwSortingM.hwMotors.openTurretGate()
+
+        logM.logMd("StreamDrum P1, debug ballCount: $ballCount", Debug.LOGIC)
+        _cms.shootingPhase.startPhase1(laterGamepadHold)
+        _cms.shootingPhase.ballCountForPhase1 =
+            if (ballCount == 1 && cells.isLastBall() &&
+                CONTROLS.USE_LAUNCHER_FOR_LAST_BALL) -1 else ballCount
 
         return RequestResult.ROGER_STARTING_SHOOTING
     }
     fun streamDrumPhase2()
     {
-        _cms.shootingPhase.startPhase2(
-            CONTROLS.USE_COLOR_SENSORS_FOR_SHOOTING)
+        _cms.shootingPhase.startPhase2(useColorSensors = CONTROLS.USE_COLOR_SENSORS_FOR_SHOOTING)
 
         if (_cms.shootingPhase.isNotOnTimePhase2())
         {
             cells.hwSortingM.hwMotors.forwardBelts(
                 onTime = false, _cms.shootingPhase.shotBeltsVoltage)
 
-            if (cells.isLastBall() && CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
-                cells.hwSortingM.hwMotors.openLaunch()
+            val isLastBall = cells.isLastBall()
+            if (isLastBall && CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
+                cells.hwSortingM.streamDrumPhase3()
+            else if (_cms.shootingPhase.isUntilColorsPhase2())
+                _cms.colorResults.reactivateColorTargetsForShooting(isLastBall)
+
             logM.logMd("StreamDrum P2 (not on time)", Debug.LOGIC)
         }
         else
@@ -359,63 +362,67 @@ class Storage
     }
     fun sortingPhase3()
     {
-        logM.logMd("Sorting P3, forwards realignment", Debug.LOGIC)
-        _cms.sortingPhase.switchToNextPhase()
         val timeMs = Delay.MS.REALIGNMENT.SORTING_FORWARD
-
         if (timeMs <= 0) sortingPhase4()
-        else cells.hwSortingM.reinstantiableForward(timeMs)
+        else
+        {
+            cells.hwSortingM.reinstantiableForward(timeMs)
+            logM.logMd("Sorting P3, forwards realignment", Debug.LOGIC)
+            _cms.sortingPhase.startPhase3()
+        }
     }
     fun sortingPhase4()
     {
-        logM.logMd("Sorting P4, reverse realignment", Debug.LOGIC)
-        _cms.sortingPhase.switchToNextPhase()
         val timeMs = Delay.MS.REALIGNMENT.SORTING_REVERSE
-
         if (timeMs <= 0) sortingPhase5()
-        else cells.hwSortingM.reinstantiableReverse(
-            timeMs, Hardware.MOTOR.BELTS_REVERSE)
+        else
+        {
+            cells.hwSortingM.reinstantiableReverse(timeMs, Hardware.MOTOR.BELTS_REVERSE)
+            logM.logMd("Sorting P4, reverse realignment", Debug.LOGIC)
+            _cms.sortingPhase.startPhase4()
+        }
     }
     fun sortingPhase5()
     {
-        logM.logMd("Sorting P5, opening gate", Debug.LOGIC)
-        _cms.sortingPhase.switchToNextPhase()
-
-        if (_cms.gateStatus.isOpened())
-            sortingPhase6()
-        else cells.hwSortingM.hwMotors.openGate()
+        if (_cms.gateStatus.isOpened()) sortingPhase6()
+        else
+        {
+            cells.hwSortingM.hwMotors.openGate()
+            logM.logMd("Sorting P5, opening gate", Debug.LOGIC)
+            _cms.sortingPhase.startPhase5()
+        }
     }
     fun sortingPhase6()
     {
-        logM.logMd("Sorting P6, opening push", Debug.LOGIC)
-        _cms.sortingPhase.switchToNextPhase()
-        if (_cms.pushStatus.isOpened())
-            sortingPhase7()
-        else cells.hwSortingM.hwMotors.openPush()
+        if (_cms.pushStatus.isOpened()) sortingPhase7()
+        else
+        {
+            cells.hwSortingM.hwMotors.openPush()
+            logM.logMd("Sorting P6, opening push", Debug.LOGIC)
+            _cms.sortingPhase.startPhase6()
+        }
     }
     fun sortingPhase7()
     {
-        cells.rotateSwStorage()
-        logM.logMd("Sorting P7, waiting for ball to fly in MOBILE position", Debug.LOGIC)
-        _cms.sortingPhase.switchToNextPhase()
-
-        if (Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0)
-            return sortingPhase8()
+        if (Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0) return sortingPhase8()
 
         cells.hwSortingM.lastUpdateTimestampMS =
             _cms.collector.eventBus.invoke(
                 SMC_GetCurrentGameTimerEvent()).timeMs
+
+        logM.logMd("Sorting P7, waiting for ball to fly in MOBILE position", Debug.LOGIC)
+        _cms.sortingPhase.startPhase7()
     }
     fun sortingPhase8()
     {
-        _cms.sortingPhase.switchToNextPhase()
-
         logM.logMd("Sorting P8, closing " +
             if (_cms.sortingPhase.remainingRotations < 2)
                  cells.hwSortingM.hwMotors.closeGateWithPush()
             else cells.hwSortingM.hwMotors.closePush() +
         " push (Rotations: ${_cms.sortingPhase.remainingRotations})", Debug.LOGIC)
 
+        _cms.sortingPhase.startPhase8()
+        cells.rotateSwStorage()
         cells.hwSortingM.hwMotors.forwardBelts(onTime = false, 9.0)
 
         if (_cms.pushStatus.isClosed() && (

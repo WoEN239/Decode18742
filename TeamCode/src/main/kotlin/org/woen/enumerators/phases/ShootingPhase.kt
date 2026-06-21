@@ -51,7 +51,7 @@ class ShootingPhase
     }
     fun startPhase2(useColorSensors: Boolean)
     {
-        _name =  if (isGamepadHoldPhase1())
+        _name =  if (isHoldPhase1())
                  Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD
             else if (useColorSensors)
                  Name.P2_SHOOT_UNTIL_EMPTY_USING_COLORS
@@ -61,22 +61,21 @@ class ShootingPhase
     fun startPhase4() { _name = Name.P4_CALIBRATING }
 
 
-    fun isInactive() = _name == Name.NOT_ACTIVE
     fun isActive()   = _name != Name.NOT_ACTIVE
-    fun isNotShooting() = isInactive() || isShootingPhase4()
+    fun isInactive() = _name == Name.NOT_ACTIVE
+    fun isNotShooting() = isInactive() || isCalibratingAfterShot()
 
 
-    fun isShootingPhase0()    = _name == Name.P0_AWAITING_SORTING
-    fun isGamepadHoldPhase1() = _name == Name.P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD
+    fun isPhase0()     = _name == Name.P0_AWAITING_SORTING
+    fun isHoldPhase1() = _name == Name.P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD
 
 
-    fun isAnyPhase2() = isRegularPhase2() || isNotOnTimePhase2()
-    fun isNotOnTimePhase2() = isGamepadHoldPhase2() || isUntilColorsPhase2()
     fun isRegularPhase2()     = _name == Name.P2_SHOOT_BELTS_ON_TIME
     fun isUntilColorsPhase2() = _name == Name.P2_SHOOT_UNTIL_EMPTY_USING_COLORS
     fun isGamepadHoldPhase2() = _name == Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD
+    fun isNotOnTimePhase2() = isGamepadHoldPhase2() || isUntilColorsPhase2()
 
 
-    fun isShootingPhase3() = _name == Name.P3_OPENING_LAUNCHER
-    fun isShootingPhase4() = _name == Name.P4_CALIBRATING
+    fun isCalibratingAfterShot() = _name == Name.P4_CALIBRATING
+    fun isSensitivePhase() = _name == Name.P3_OPENING_LAUNCHER || isCalibratingAfterShot()
 }

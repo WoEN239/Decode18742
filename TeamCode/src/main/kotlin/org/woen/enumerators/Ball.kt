@@ -21,7 +21,7 @@ class Ball
     private var _name = Name.NONE
 
 
-    constructor() { empty() }
+    constructor() { setEmpty() }
     constructor(id:   Int,  name: Name = toName(id))  { set(id, name) }
     constructor(name: Name, id:   Int  = toInt(name)) { set(id, name) }
 
@@ -37,7 +37,7 @@ class Ball
     }
 
 
-    fun empty() = set(NONE, Name.NONE)
+    fun setEmpty() = set(NONE, Name.NONE)
 
     fun set(name: Name,  id: Int  = toInt(name)) = set(id, name)
     fun set(id:   Int, name: Name = toName(id))
@@ -104,7 +104,11 @@ class Ball
         const val NONE:          Int = 4
 
 
-        fun isMaskEmpty (mask: Name) = mask == Name.NONE || mask == Name.NOT_UPDATED
+        fun isNotDirectOpposite(n1: Name, n2: Name) = when (n1) {
+                Name.PURPLE -> n2 != Name.GREEN
+                Name.GREEN  -> n2 != Name.PURPLE else -> true }
+        fun isTrueColor(name: Name) = name == Name.PURPLE || name == Name.GREEN
+        fun isMaskEmpty(mask: Name) = mask == Name.NONE || mask == Name.NOT_UPDATED
         fun toName(id:  Int): Name
             = when (id)
             {

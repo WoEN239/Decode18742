@@ -55,10 +55,7 @@ const val STORAGE_SLOT_COUNT = 4
 
 
 
-class PredictSortResult(
-    var totalRotations: Int,
-    var maxSequenceScore: Double,
-    var totalMatches: Int)
+class PredictSortResult(var rotations: Int, var maxSequenceScore: Double, var matches: Int)
 
 
 
@@ -159,8 +156,7 @@ class Cells
     {
         val trimmedRequestSize = min(requested.size, MAX_BALL_COUNT)
         if (trimmedRequestSize == 0)
-            return PredictSortResult(0,
-                0.0, 0)
+            return PredictSortResult(rotations = 0, maxSequenceScore = 0.0, matches = 0)
 
         val patternString = requested.joinToString(", ")
         logM.logMd("Start predict sort search, PATTERN: $patternString", Debug.START)
@@ -177,8 +173,7 @@ class Cells
         var    curSlot  = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.MOBILE)
         {
-            _storageCells[curSlot].set(
-                fullStorage[curSlot])
+            _storageCells[curSlot].set(fullStorage[curSlot])
             curSlot++
         }
 
@@ -192,8 +187,7 @@ class Cells
         var    curSlot  = StorageSlot.BOTTOM
         while (curSlot <= StorageSlot.TURRET)
         {
-            _storageCells[ROBOT.INTAKE_INPUT_ORDER[curSlot]].set(
-                pattern[curSlot])
+            _storageCells[ROBOT.INTAKE_INPUT_ORDER[curSlot]].set(pattern[curSlot])
             curSlot++
         }
 
@@ -202,27 +196,35 @@ class Cells
     }
 
 
-    fun handleIntake(inputBall: Ball.Name)
+    fun updateStorageWithIntake()
     {
-        logM.logMd("Color sensors triggered intake: $inputBall", Debug.START)
         var curSlot = StorageSlot.BOTTOM
-        var rotationTime = Delay.MS.PUSH.PART
-        while (curSlot < StorageSlot.MOBILE && _storageCells[curSlot].isEmpty())
+        while (curSlot < StorageSlot.MOBILE && _storageCells[curSlot].isEmpty()) curSlot++
+
+        if (--curSlot >= StorageSlot.BOTTOM)
         {
-            curSlot++
-            rotationTime += Delay.MS.PUSH.PART
+            _cms.colorResults.intakePredictions.update(_cms.colorResults, curSlot)
+
+            var finished = curSlot + 1 - MAX_BALL_COUNT +
+                _cms.colorResults.finishedIntakeCountByColors()
+
+            while (finished > 0)
+            {
+                val ballFinalGuess = _cms.colorResults.intakePredictions.calcFinal(curSlot)
+                if (Ball.isTrueColor(ballFinalGuess))
+                {
+                    _storageCells[curSlot].set(ballFinalGuess)
+                    _cms.colorResults.deactivateNextColorTarget(
+                        _cms.shootingPhase.isActive())
+                    _cms.colorResults.intakePredictions.clearForSlot(curSlot)
+
+                    curSlot--
+                    finished--
+                }
+                else finished -= MAX_BALL_COUNT
+            }
+            updateBallCountForLEDLINE(MAX_BALL_COUNT - curSlot)
         }
-        curSlot--
-
-        if (curSlot >= StorageSlot.BOTTOM) _storageCells[curSlot].set(inputBall)
-        updateBallCountForLEDLINE(MAX_BALL_COUNT - curSlot)
-
-        logM.logMd("Storage after intake: ", Debug.GENERIC)
-        logAllStorageData()
-
-        if (_cms.shootingPhase.isActive())
-             hwSortingM.extendableForward(rotationTime)
-        else hwSortingM.reinstantiableForward(rotationTime)
     }
     fun updateAfterShot()
     {
@@ -231,7 +233,7 @@ class Cells
         _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
         _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
         _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
-        _storageCells[StorageSlot.MOBILE].empty()
+        _storageCells[StorageSlot.MOBILE].setEmpty()
 
         val ballCount = anyBallCount()
         logM.logMd("Considering shot fired, ballCount after update: $ballCount", Debug.STATUS)
@@ -242,7 +244,7 @@ class Cells
         _storageCells[StorageSlot.MOBILE].set(_storageCells[StorageSlot.TURRET])
         _storageCells[StorageSlot.TURRET].set(_storageCells[StorageSlot.CENTER])
         _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
-        _storageCells[StorageSlot.BOTTOM].empty()
+        _storageCells[StorageSlot.BOTTOM].setEmpty()
     }
 
 
@@ -261,14 +263,14 @@ class Cells
         {
             _storageCells[StorageSlot.CENTER].set(_storageCells[StorageSlot.BOTTOM])
             _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
-            _storageCells[StorageSlot.MOBILE].empty()
+            _storageCells[StorageSlot.MOBILE].setEmpty()
             return true
         }
         else if (_storageCells[StorageSlot.BOTTOM].isEmpty()
             && _storageCells[StorageSlot.MOBILE].isFilled())
         {
             _storageCells[StorageSlot.BOTTOM].set(_storageCells[StorageSlot.MOBILE])
-            _storageCells[StorageSlot.MOBILE].empty()
+            _storageCells[StorageSlot.MOBILE].setEmpty()
             return true
         }
 

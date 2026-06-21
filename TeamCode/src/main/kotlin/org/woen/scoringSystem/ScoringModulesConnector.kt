@@ -328,34 +328,34 @@ class ScoringModulesConnector
         else logM.logMd("Init settings: DISABLE LazyIntake", Debug.GAMEPAD)
 
 
-        if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_COLOR_INTAKE)
-        {
-            _cms.collector.eventBus.invoke(
-                AddGamepad1ListenerEvent(
-                    ClickGamepadListener(
-                        { it.square },
-                        {
-                            logM.logMd("Gamepad - GREEN intake", Debug.GAMEPAD)
-                            _storage.cells.hwSortingM.startBrushTime(
-                                forward = true, Delay.MS.BRUSH_FORWARD)
-                            _storage.cells.handleIntake(Ball.Name.GREEN)
-                        }
-            )   )   )
-            _cms.collector.eventBus.invoke(
-                AddGamepad1ListenerEvent(
-                    ClickGamepadListener(
-                        { it.circle },
-                        {
-                            logM.logMd("Gamepad - PURPLE intake", Debug.GAMEPAD)
-                            _storage.cells.hwSortingM.startBrushTime(
-                                forward = true, Delay.MS.BRUSH_FORWARD)
-                            _storage.cells.handleIntake(Ball.Name.PURPLE)
-                        }
-            )   )   )
+//        if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_COLOR_INTAKE)
+//        {
+//            _cms.collector.eventBus.invoke(
+//                AddGamepad1ListenerEvent(
+//                    ClickGamepadListener(
+//                        { it.square },
+//                        {
+//                            logM.logMd("Gamepad - GREEN intake", Debug.GAMEPAD)
+//                            _storage.cells.hwSortingM.startBrushTime(
+//                                forward = true, Delay.MS.BRUSH_FORWARD)
+//                            _storage.cells.updateStorageWithIntake(Ball.Name.GREEN)
+//                        }
+//            )   )   )
+//            _cms.collector.eventBus.invoke(
+//                AddGamepad1ListenerEvent(
+//                    ClickGamepadListener(
+//                        { it.circle },
+//                        {
+//                            logM.logMd("Gamepad - PURPLE intake", Debug.GAMEPAD)
+//                            _storage.cells.hwSortingM.startBrushTime(
+//                                forward = true, Delay.MS.BRUSH_FORWARD)
+//                            _storage.cells.updateStorageWithIntake(Ball.Name.PURPLE)
+//                        }
+//            )   )   )
 
-            logM.logMd("Init settings: ENABLE Manual color sensors imitation", Debug.GAMEPAD)
-        }
-        else logM.logMd("Init settings: DISABLE Manual color sensors imitation", Debug.GAMEPAD)
+//            logM.logMd("Init settings: ENABLE Manual color sensors imitation", Debug.GAMEPAD)
+//        }
+//        else logM.logMd("Init settings: DISABLE Manual color sensors imitation", Debug.GAMEPAD)
 
 
         if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_SORTING_SWAPS)
@@ -467,7 +467,10 @@ class ScoringModulesConnector
         tryUpdateBallCountOnBeltsCurrent()
         //  Comment if you don't use this for better performance
 
+        _storage.cells.hwSortingM.updateColors()
+
         _storage.tryHandleIntake()
+
         _storage.cells.hwSortingM.update()
 
         updateSorting()
@@ -546,9 +549,7 @@ class ScoringModulesConnector
                             CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE)
                         {
                             _cms.shootingPhase.setInactive()
-                            logM.logMd(
-                                _storage.streamDrumPhase1()
-                                    .toString(), Debug.START)
+                            logM.logMd(_storage.tryStartStreamDrum().toString(), Debug.START)
                         }
                         else _cms.shootingPhase.setInactive()
                     }
@@ -564,10 +565,8 @@ class ScoringModulesConnector
             ShootingPhase.Name.NOT_ACTIVE ->
                 if (canStartAutoShooting())
                 {
-                    if (!(CONTROLS.DISABLE_AUTO_SHOOTING_IN_END_GAME
-                        && isEndGame)) logM.logMd(
-                        _storage.streamDrumPhase1()
-                            .toString(), Debug.START)
+                    if (!(CONTROLS.DISABLE_AUTO_SHOOTING_IN_END_GAME && isEndGame))
+                        logM.logMd(_storage.tryStartStreamDrum().toString(), Debug.START)
                     else
                     {
                         val requestResult = autoShootCustomisablePattern(
@@ -575,8 +574,7 @@ class ScoringModulesConnector
                         val resultString  =
                             if (requestResult == RequestResult.ROGER_STARTING_SORTING)
                                 requestResult.toString() +
-                                ", rotations: " +
-                                _cms.sortingPhase.remainingRotations
+                                ", rotations: " + _cms.sortingPhase.remainingRotations
                             else requestResult.toString()
 
                         logM.logMd(resultString, Debug.START)
@@ -588,9 +586,7 @@ class ScoringModulesConnector
                 if (isFullyIdle())
                 {
                     _cms.shootingPhase.setInactive()
-                    logM.logMd(
-                        _storage.streamDrumPhase1()
-                            .toString(), Debug.START)
+                    logM.logMd(_storage.tryStartStreamDrum().toString(), Debug.START)
                 }
 
             ShootingPhase.Name.P1_OPENING_TURRET_GATE,
@@ -745,7 +741,7 @@ class ScoringModulesConnector
     {
         val canStart = _cms.shootingPhase.isInactive() && isFullyIdle()
 
-        if (canStart) logM.logMd(_storage.streamDrumPhase1(laterGamepadHold).toString(), Debug.START)
+        if (canStart) logM.logMd(_storage.tryStartStreamDrum(laterGamepadHold).toString(), Debug.START)
         else logStartingError("Gamepad/ExtEvent Shooting")
 
         return canStart

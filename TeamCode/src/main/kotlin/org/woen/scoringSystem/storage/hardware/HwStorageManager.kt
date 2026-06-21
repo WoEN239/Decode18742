@@ -48,8 +48,7 @@ class HwSortingManager
             hwMotors.logM.logMd("Stopping belts on time", Debug.LOGIC)
             hwMotors.stopBelts()
 
-            if (_cms.calibrationPhase.isCalibrationPhase1())
-                calibrationPhase2()
+            if (_cms.calibrationPhase.isCalibrationPhase1()) calibrationPhase2()
         }
 
         if (_cms.brushStatus.isOnTime() &&
@@ -117,28 +116,30 @@ class HwSortingManager
 
     fun calibrationPhase1()
     {
+        extendableReverse(Delay.MS.PUSH.HALF)
+
         hwMotors.logM.logMd("Calibration P1, reversing belts", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase1()
-        extendableReverse(Delay.MS.PUSH.HALF)
     }
     fun calibrationPhase2()
     {
-        hwMotors.logM.logMd("Calibration P2, closing servos", Debug.LOGIC)
-        _cms.canTriggerIntake = false
-        _cms.calibrationPhase.startPhase2()
-
         hwMotors.reverseBelts(onTime = false)
         hwMotors.closeLaunch()
         hwMotors.closeTurretGate()
         hwMotors.closeGateWithPush()
+
+        hwMotors.logM.logMd("Calibration P2, closing servos", Debug.LOGIC)
+        _cms.canTriggerIntake = false
+        _cms.calibrationPhase.startPhase2()
     }
     fun calibrationPhase3()
     {
+        extendableForward(Delay.MS.PUSH.FULL)
+
         hwMotors.logM.logMd("Calibration P3, forward realignment", Debug.LOGIC)
         _cms.canTriggerIntake = false
         _cms.calibrationPhase.startPhase3()
-        extendableForward(Delay.MS.PUSH.FULL)
     }
 
     fun closedAllServos()
