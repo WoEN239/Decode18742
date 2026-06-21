@@ -307,6 +307,7 @@ class Storage
 
         if (cells.notFullYet() && _cms.sortingPhase.isInactive())
         {
+            _cms.colorResults.reactivateColorTargetsForIntake()
             _cms.canTriggerIntake = true
 
             if (CONTROLS.AUTO_PRESERVE_LAZY_INTAKE_STATUS

@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.RunMode
 import org.woen.scoringSystem.ConnectorModuleStatus
 
-import org.woen.enumerators.Ball
 import org.woen.utils.debug.Debug
 
 import org.woen.configs.Delay
@@ -61,16 +60,12 @@ class HwSortingManager
         hwMotors.updateServos()
     }
 
-    fun updateColors(): Ball.Name
-        = if (_cms.canTriggerIntake && (
-                _cms.collector.runMode == RunMode.AUTO
-                && !AUTONOMOUS.IGNORE_COLOR_SENSORS
-            ) || (
-                _cms.collector.runMode == RunMode.MANUAL
-                && !TELEOP.IGNORE_COLOR_SENSORS))
+    fun tryUpdateColors()
+    {
+        if ((_cms.collector.runMode == RunMode.AUTO && !AUTONOMOUS.IGNORE_COLOR_SENSORS) ||
+            (_cms.collector.runMode == RunMode.MANUAL && !TELEOP.IGNORE_COLOR_SENSORS))
             _hwSensors.update()
-        else Ball.Name.NONE
-    //TODO("Optimise color sensor updating using targets in _cms.colorResults")
+    }
 
 
 
@@ -138,7 +133,8 @@ class HwSortingManager
         extendableForward(Delay.MS.PUSH.FULL)
 
         hwMotors.logM.logMd("Calibration P3, forward realignment", Debug.LOGIC)
-        _cms.canTriggerIntake = false
+        _cms.colorResults.reactivateColorTargetsForIntake()
+        _cms.canTriggerIntake = true
         _cms.calibrationPhase.startPhase3()
     }
 

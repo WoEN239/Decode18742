@@ -31,7 +31,7 @@ class IntakePredictions
     {
         intakePredictionB.clear()
         intakePredictionC.clear()
-        intakePredictionC.clear()
+        intakePredictionT.clear()
     }
 
     fun update(colorResults: ColorResults, curSlot: Int)
@@ -56,7 +56,7 @@ class IntakePredictions
         addPrediction(resultC, StorageSlot.CENTER, updateSlotForSensorC)
         addPrediction(resultT, StorageSlot.TURRET, curSlot)
     }
-    fun addPrediction(ballColor: Ball.Name, sensorSlot: Int, intakeSlot: Int)
+    private fun addPrediction(ballColor: Ball.Name, sensorSlot: Int, intakeSlot: Int)
     {
         val sensorRelation = MAX_BALL_COUNT - intakeSlot + sensorSlot
         when (intakeSlot)
@@ -111,12 +111,12 @@ class ColorResults
         updateTargetsBCT.center = true
         updateTargetsBCT.turret = true
     }
+    fun reactivateColorTargetsForIntake() { updateTargetsBCT.bottom = true }
     fun reactivateColorTargetsForShooting(isLastBall: Boolean)
     {
-        updateTargetsBCT.turret = true
         updateTargetsBCT.bottom = true
         if (!isLastBall) updateTargetsBCT.center = true
-
+        updateTargetsBCT.turret = true
     }
     fun deactivateNextColorTarget(isShooting: Boolean)
     {

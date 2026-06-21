@@ -467,7 +467,7 @@ class ScoringModulesConnector
         tryUpdateBallCountOnBeltsCurrent()
         //  Comment if you don't use this for better performance
 
-        _storage.cells.hwSortingM.updateColors()
+        _storage.cells.hwSortingM.tryUpdateColors()
 
         _storage.tryHandleIntake()
 
