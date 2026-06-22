@@ -5,6 +5,7 @@ import org.woen.collector.Collector
 import org.woen.collector.GamePosition
 import org.woen.collector.GameSettings
 import org.woen.collector.StartOrientation
+import org.woen.configs.Hardware
 import org.woen.enumerators.Ball
 import org.woen.modules.BallColor
 import org.woen.modules.GetCurrentStorageStateEvent
@@ -122,12 +123,12 @@ class ParallelActions(
 }
 
 class ShootAction(private val _eventBus: EventBus) : IAction {
-    val timer = ElapsedTime()
+//    val timer = ElapsedTime()
 
     override fun start() {
 //        _eventBus.invoke(ShootEvent())
         _eventBus.invoke(SMC_TryStartShootingEvent())
-        timer.reset()
+//        timer.reset()
     }
 
     override fun isEnd() =
@@ -137,11 +138,13 @@ class ShootAction(private val _eventBus: EventBus) : IAction {
 
 class SlowShootAction(private val _eventBus: EventBus) : IAction {
     override fun start() {
-        _eventBus.invoke(SlowShootEvent())
+//        _eventBus.invoke(SlowShootEvent())
+        _eventBus.invoke(SMC_TryStartShootingEvent(
+            Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING))
     }
 
-    override fun isEnd() =
-        _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
+    override fun isEnd() = _eventBus.invoke(SMC_ShootingStatus()).isFinished
+//        _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
 }
 
 class StartEatAction(private val _eventBus: EventBus) : IAction {

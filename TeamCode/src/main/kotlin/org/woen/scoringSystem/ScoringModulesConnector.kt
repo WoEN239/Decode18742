@@ -62,6 +62,7 @@ data class SMC_TryStartCustomisableShootingEvent(
     var shootAfterSorting: Boolean = true,
     var startingResult: Boolean = false)
 data class SMC_TryStartShootingEvent(
+    var shotVoltage: Double = Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING,
     var startingResult: Boolean = false)
 
 
@@ -184,7 +185,7 @@ class ScoringModulesConnector
         }
         _cms.collector.eventBus.subscribe(SMC_TryStartShootingEvent::class)
         {
-            it.startingResult = tryStartShooting(laterGamepadHold = false)
+            it.startingResult = tryStartShooting(laterGamepadHold = false, it.shotVoltage)
         }
         _cms.collector.eventBus.subscribe(SMC_TryStartCustomisableShootingEvent::class)
         {
@@ -634,14 +635,14 @@ class ScoringModulesConnector
     }
     fun updateCalibrationPhase()
     {
-        if (_cms.calibrationPhase.isCalibrationPhase2() &&
+        if (_cms.calibrationPhase.isPhase2() &&
             _storage.cells.hwSortingM.closedAllServos())
         {
             if (_storage.cells.isNotEmpty())
                 _storage.cells.hwSortingM.calibrationPhase3()
             else _storage.finishCalibration()
         }
-        if (_cms.calibrationPhase.isCalibrationPhase3() &&
+        if (_cms.calibrationPhase.isPhase3() &&
             _cms.beltsStatus.notOnTime())
             _storage.finishCalibration()
     }
@@ -739,11 +740,16 @@ class ScoringModulesConnector
 
         return canStart
     }
-    private fun tryStartShooting(laterGamepadHold: Boolean = false): Boolean
+    private fun tryStartShooting(laterGamepadHold: Boolean = false,
+        shotVoltage: Double = Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING): Boolean
     {
-        val canStart = _cms.shootingPhase.isInactive() && isFullyIdle()
+        val canStart = isFullyIdle()
 
-        if (canStart) logM.logMd(_storage.tryStartStreamDrum(laterGamepadHold).toString(), Debug.START)
+        if (canStart)
+        {
+            _cms.shootingPhase.shotBeltsVoltage = shotVoltage
+            logM.logMd(_storage.tryStartStreamDrum(laterGamepadHold).toString(), Debug.START)
+        }
         else logStartingError("Gamepad/ExtEvent Shooting")
 
         return canStart

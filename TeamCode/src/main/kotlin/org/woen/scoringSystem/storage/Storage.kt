@@ -217,8 +217,10 @@ class Storage
 
 
     fun tryStartStreamDrum(laterGamepadHold: Boolean = false, ballCount: Int = 0)
-        =    if (_cms.shootingPhase.isPhase0()) RequestResult.FAIL_AWAITING_SORTING
-        else if (_cms.shootingPhase.isActive()) RequestResult.FAIL_IGNORE_DUPLICATE_COMMAND
+        = if (_cms.shootingPhase.isPhase0() || _cms.sortingPhase.isActive())
+             RequestResult.FAIL_AWAITING_SORTING
+        else if (_cms.shootingPhase.isActive())
+             RequestResult.FAIL_IGNORE_DUPLICATE_COMMAND
         else streamDrumPhase1(laterGamepadHold, ballCount)
     private fun streamDrumPhase1(laterGamepadHold: Boolean = false, ballCount: Int = 0): RequestResult
     {

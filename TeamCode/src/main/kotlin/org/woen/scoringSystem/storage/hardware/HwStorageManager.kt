@@ -44,7 +44,7 @@ class HwSortingManager
         if ((_cms.beltsStatus.isOnTime()) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
         {
-            if (_cms.calibrationPhase.isCalibrationPhase1()) calibrationPhase2()
+            if (_cms.calibrationPhase.isPhase1()) calibrationPhase2()
             else
             {
                 hwMotors.logM.logMd("Stopping belts on time", Debug.LOGIC)
@@ -80,10 +80,10 @@ class HwSortingManager
             _cms.beltsStatus.isForwardOnTime() &&
             _cms.launchStatus.isClosingOrClosed() &&
             rotatingBeltsTimer.milliseconds() >
-            targetPushTime - if (_cms.shootingPhase.shotBeltsVoltage
+            targetPushTime - (if (_cms.shootingPhase.shotBeltsVoltage
                 == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
                      Delay.MS.SHOOTING.FAST_LAST_WITH_LAUNCHER
-                else Delay.MS.SHOOTING.SLOW_LAST_WITH_LAUNCHER)
+                else Delay.MS.SHOOTING.SLOW_LAST_WITH_LAUNCHER))
     fun streamDrumPhase3()
     {
         hwMotors.logM.logMd("StreamDrum P3, opening launch", Debug.LOGIC)
