@@ -60,7 +60,7 @@ internal object RobotSettings
 
 
         @JvmField
-        var HOLD_FOR_MANUAL_SHOOTING = true
+        var HOLD_FOR_MANUAL_SHOOTING = false
         @JvmField
         var HOLD_FOR_LAZY_INTAKE = true
 

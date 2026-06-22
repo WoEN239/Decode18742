@@ -33,8 +33,8 @@ fun attachLimelight(collector: Collector) {
     }
 
     collector.startEvent += {
-        collector.eventBus.invoke(
-            OnPatternDetectedEvent(StockPattern.Request.GPP))
+//        collector.eventBus.invoke(
+//            OnPatternDetectedEvent(StockPattern.Request.GPP))
     }
 
     collector.updateEvent += {

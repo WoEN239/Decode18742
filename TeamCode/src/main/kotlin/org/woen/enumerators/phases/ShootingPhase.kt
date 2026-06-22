@@ -70,10 +70,10 @@ class ShootingPhase
     fun isHoldPhase1() = _name == Name.P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD
 
 
-    fun isRegularPhase2()     = _name == Name.P2_SHOOT_BELTS_ON_TIME
+    fun isHoldPhase2()    = _name == Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD
+    fun isRegularPhase2() = _name == Name.P2_SHOOT_BELTS_ON_TIME
     fun isUntilColorsPhase2() = _name == Name.P2_SHOOT_UNTIL_EMPTY_USING_COLORS
-    fun isGamepadHoldPhase2() = _name == Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD
-    fun isNotOnTimePhase2() = isGamepadHoldPhase2() || isUntilColorsPhase2()
+    fun isNotOnTimePhase2() = isHoldPhase2() || isUntilColorsPhase2()
 
 
     fun isCalibratingAfterShot() = _name == Name.P4_CALIBRATING

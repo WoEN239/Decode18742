@@ -32,13 +32,13 @@ internal object Delay
 
 
             @JvmField
-            var FAST_3: Long = 100
+            var FAST_3: Long = 150
 
             @JvmField
-            var FAST_2: Long = 60
+            var FAST_2: Long = 100
 
             @JvmField
-            var FAST_1: Long = 20
+            var FAST_1: Long = 50
 
             @JvmField
             var FAST_LAST_WITH_LAUNCHER: Long = 40

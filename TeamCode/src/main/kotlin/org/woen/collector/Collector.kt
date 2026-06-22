@@ -3,7 +3,9 @@ package org.woen.collector
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
+import org.woen.enumerators.StockPattern
 import org.woen.modules.Battery
+import org.woen.modules.OnPatternDetectedEvent
 import org.woen.modules.Telemetry
 import org.woen.modules.actions.attachActionRunner
 import org.woen.modules.drivetrain.attachDriveTrain
@@ -48,6 +50,11 @@ class Collector {
         for(i in hubs)
             i.bulkCachingMode = LynxModule.BulkCachingMode.AUTO
 
+
+        startEvent += {
+            eventBus.invoke(OnPatternDetectedEvent(
+                StockPattern.Request.GPP))
+        }
         stopEvent += {
             for (i in opMode.hardwareMap.servoController) i.pwmDisable()
         }
@@ -58,7 +65,7 @@ class Collector {
         attachOdometry(this)
         attachDriveTrain(this)
         attachTurret(this)
-        attachLimelight(this)
+//        attachLimelight(this)
 
         if(runMode == RunMode.AUTO){
             attachRunner(this)

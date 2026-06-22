@@ -271,6 +271,7 @@ class Storage
     fun streamDrumPhase4()
     {
         logM.logMd("StreamDrum P4, starting calibration", Debug.LOGIC)
+        _cms.shootingPhase.startPhase4()
         _cms.shootingPhase.shotBeltsVoltage = Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING
 
         if (cells.isNotEmpty()) cells.hwSortingM.calibrationPhase1()
@@ -282,7 +283,7 @@ class Storage
         else if (CONTROLS.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
         else cells.anyBallCount()
     private fun calcShootingTimeForP2(shotCount: Int)
-        = ( if (_cms.collector.runMode == RunMode.AUTO) 0
+        = ( if (_cms.collector.runMode == RunMode.AUTO) 100
             else Delay.MS.SHOOTING.ADDITIONAL_TOLERANCE_FOR_TELEOP
         ) + (
             if (_cms.shootingPhase.shotBeltsVoltage == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)

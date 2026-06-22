@@ -249,10 +249,13 @@ class ScoringModulesConnector
                         onTriggered = {
                             if (_cms.sortingPhase.isInactive())
                             {
-                                if (_cms.shootingPhase.isGamepadHoldPhase2() &&
-                                    CONTROLS.USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT)
-                                    _storage.cells.hwSortingM.streamDrumPhase3()
-                                else _cms.shootingPhase.startPhase4()
+                                if (_cms.shootingPhase.isHoldPhase1() ||
+                                    _cms.shootingPhase.isHoldPhase2())
+                                {
+                                    if (CONTROLS.USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT)
+                                        _storage.cells.hwSortingM.streamDrumPhase3()
+                                    else _storage.streamDrumPhase4()
+                                }
                         }   }
             )   )   )
 
@@ -616,21 +619,18 @@ class ScoringModulesConnector
                 }
 
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
-                    _cms.shootingPhase.startPhase4()
+                    _storage.streamDrumPhase4()
             }
 
             ShootingPhase.Name.P3_OPENING_LAUNCHER ->
             {
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
-                {
-                    _storage.cells.hwSortingM.hwMotors.stopBelts()
-                    _cms.shootingPhase.startPhase4()
-                }
+                    _storage.streamDrumPhase4()
             }
 
-            ShootingPhase.Name.P4_CALIBRATING ->
-                if (canStartCalibrationAfterShooting())
-                    _storage.streamDrumPhase4()
+            ShootingPhase.Name.P4_CALIBRATING -> { }
+//                if (canStartCalibrationAfterShooting())
+//                    _storage.streamDrumPhase4()
         }
     }
     fun updateCalibrationPhase()
