@@ -1,6 +1,7 @@
 package org.woen.modules
 
 import com.qualcomm.hardware.limelightvision.Limelight3A
+import com.qualcomm.robotcore.util.RobotLog
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.woen.collector.Collector
 import org.woen.enumerators.BallRequest
@@ -32,8 +33,8 @@ fun attachLimelight(collector: Collector) {
     }
 
     collector.startEvent += {
-//        collector.eventBus.invoke(
-//            OnPatternDetectedEvent(StockPattern.Request.PGP))
+        collector.eventBus.invoke(
+            OnPatternDetectedEvent(StockPattern.Request.GPP))
     }
 
     collector.updateEvent += {

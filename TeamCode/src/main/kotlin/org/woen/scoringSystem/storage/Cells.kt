@@ -239,6 +239,13 @@ class Cells
         logM.logMd("Considering shot fired, ballCount after update: $ballCount", Debug.STATUS)
         updateBallCountForLEDLINE(ballCount)
     }
+    fun clearStorageAfterShooting()
+    {
+        _storageCells[StorageSlot.TURRET].setEmpty()
+        _storageCells[StorageSlot.CENTER].setEmpty()
+        _storageCells[StorageSlot.BOTTOM].setEmpty()
+        _storageCells[StorageSlot.MOBILE].setEmpty()
+    }
     fun rotateSwStorage()
     {
         _storageCells[StorageSlot.MOBILE].set(_storageCells[StorageSlot.TURRET])

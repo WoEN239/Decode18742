@@ -98,8 +98,8 @@ fun attachDriveTrain(collector: Collector) {
         rightForwardMotor.power = rfPower
     }
 
-    val driveMode = DriveMode.REGULATOR
-//        if (collector.runMode == RunMode.MANUAL) DriveMode.POWER else DriveMode.REGULATOR
+    val driveMode =
+        if (collector.runMode == RunMode.MANUAL) DriveMode.POWER else DriveMode.REGULATOR
 
     var targetLinearVelocity = Vec2.ZERO
     var targetHeadingVelocity = 0.0
@@ -108,7 +108,7 @@ fun attachDriveTrain(collector: Collector) {
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(object : IGamepadListener {
         override fun update(gamepadData: Gamepad) {
-//            if (driveMode == DriveMode.POWER) {
+            if (driveMode == DriveMode.POWER) {
                 var ly = -gamepadData.left_stick_y.toDouble()
                 var lx = -gamepadData.left_stick_x.toDouble()
 
@@ -142,7 +142,7 @@ fun attachDriveTrain(collector: Collector) {
                 targetLinearVelocity = direction * 2.2
                 targetHeadingVelocity = rx * 10.0
             }
-//        }
+        }
     }))
 
     val forwardRegulator = Regulator(DRIVE_TRAIN_CONFIG.VELOCITY_FORWARD_REGULATOR)

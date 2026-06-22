@@ -54,9 +54,9 @@ internal object RobotSettings
         var TRY_AUTO_SORT_WHEN_FULL_IN_ENDGAME = false
 
         @JvmField
-        var USE_LAUNCHER_FOR_LAST_BALL = false
+        var USE_LAUNCHER_FOR_LAST_BALL = true
         @JvmField
-        var USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT = false
+        var USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT = true
 
 
         @JvmField
@@ -94,9 +94,6 @@ internal object RobotSettings
         var DO_RUMBLE_GAMEPAD_WHEN_STORAGE_FULL_BY_CURRENT = true
 
 
-
-        @JvmField
-        var AUTO_PRESERVE_LAZY_INTAKE_STATUS = false
         @JvmField
         var REVERSE_BRUSHES_AFTER_LAZY_INTAKE = false
         @JvmField
@@ -124,6 +121,9 @@ internal object RobotSettings
     internal object AUTONOMOUS
     {
         @JvmField
+        var PRESERVE_LAZY_INTAKE_STATUS_AFTER_SHOOTING = true
+
+        @JvmField
         var AUTOCORRECT_REQUEST_PATTERN = true
         @JvmField
         var AUTOCORRECT_FAILSAFE_PATTERN = false
@@ -145,6 +145,9 @@ internal object RobotSettings
     @Config
     internal object TELEOP
     {
+        @JvmField
+        var PRESERVE_LAZY_INTAKE_STATUS_AFTER_SHOOTING = false
+
         @JvmField
         var AUTOCORRECT_REQUEST_PATTERN  = true
         @JvmField

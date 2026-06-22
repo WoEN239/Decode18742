@@ -82,7 +82,7 @@ class WaitAction(val time: Double) : IAction {
 
 class ParallelActions(
     private val _actions: Array<ArrayList<IAction>>,
-    private val _exitType: ExitType
+    private val _exitType: ExitType = ExitType.AND
 ) : IAction {
     enum class ExitType {
         AND, OR
@@ -175,9 +175,9 @@ class SortingAction(
             isAuto = true, shootAfterSorting = false))
     }
 
-    override fun isEnd() = true
+    override fun isEnd() =
 //        _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
-//        _eventBus.invoke(SMC_SortingStatus()).isFinished
+        _eventBus.invoke(SMC_SortingStatus()).isFinished
 }
 class WaitForSortingEndAction(
     private val _eventBus: EventBus

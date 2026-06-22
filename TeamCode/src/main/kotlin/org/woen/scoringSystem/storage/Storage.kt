@@ -20,6 +20,7 @@ import org.woen.scoringSystem.SMC_GetCurrentGameTimerEvent
 import org.woen.configs.Delay
 import org.woen.configs.Hardware
 import org.woen.configs.DebugSettings
+import org.woen.configs.RobotSettings.AUTONOMOUS
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 
@@ -261,6 +262,7 @@ class Storage
                 _cms.shootingPhase.shotBeltsVoltage)
             if (shotCount == -1) cells.hwSortingM.hwMotors.openLaunch()
 
+            cells.clearStorageAfterShooting()
             cells.hwSortingM.lastUpdateTimestampMS =
                 cells.hwSortingM.rotatingBeltsTimer.milliseconds()
             logM.logMd("StreamDrum P2, shots: $shotCount, firingMS: $beltPushTime", Debug.LOGIC)
@@ -314,8 +316,11 @@ class Storage
             _cms.colorResults.reactivateColorTargetsForIntake()
             _cms.canTriggerIntake = cells.hwSortingM.canUpdateColors()
 
-            if (CONTROLS.AUTO_PRESERVE_LAZY_INTAKE_STATUS
-                && _cms.lazyIntakeIsActive)
+            if (_cms.lazyIntakeIsActive &&
+                ((_cms.collector.runMode == RunMode.AUTO &&
+                AUTONOMOUS.PRESERVE_LAZY_INTAKE_STATUS_AFTER_SHOOTING) ||
+                 (_cms.collector.runMode == RunMode.MANUAL &&
+                TELEOP.PRESERVE_LAZY_INTAKE_STATUS_AFTER_SHOOTING)))
             {
                 cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
                 cells.hwSortingM.hwMotors.forwardBelts(onTime = false)

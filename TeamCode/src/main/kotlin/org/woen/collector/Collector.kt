@@ -58,7 +58,7 @@ class Collector {
         attachOdometry(this)
         attachDriveTrain(this)
         attachTurret(this)
-//        attachLimelight(this)
+        attachLimelight(this)
 
         if(runMode == RunMode.AUTO){
             attachRunner(this)

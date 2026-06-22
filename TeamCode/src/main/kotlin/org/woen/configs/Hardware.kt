@@ -85,15 +85,15 @@ internal object Hardware
     internal object SERVO
     {
         @JvmField
-        var GATE_OPEN = 0.9
+        var GATE_OPEN = 0.8
         @JvmField
-        var GATE_CLOSE = 0.33
+        var GATE_CLOSE = 0.42
 
 
         @JvmField
         var PUSH_OPEN = 0.27
         @JvmField
-        var PUSH_CLOSE = 0.065
+        var PUSH_CLOSE = 0.08
 
 
         @JvmField
@@ -124,7 +124,7 @@ internal object Hardware
         var BRUSH_DIRECTION = DcMotorSimple.Direction.FORWARD
 
         @JvmField
-        var BELTS_FORWARD = 11.0
+        var BELTS_FORWARD = 11.0//8.9
         @JvmField
         var BELTS_REVERSE  = 10.0
 
@@ -132,7 +132,7 @@ internal object Hardware
         @JvmField
         var BELTS_FOR_FAST_SHOOTING = 12.0
         @JvmField
-        var BELTS_FOR_SLOW_SHOOTING = 10.0
+        var BELTS_FOR_SLOW_SHOOTING = 8.9
 
 
         @JvmField

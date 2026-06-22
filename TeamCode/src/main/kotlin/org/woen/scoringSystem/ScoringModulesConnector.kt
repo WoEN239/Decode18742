@@ -34,7 +34,7 @@ import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-
+import org.woen.modules.drivetrain.GetRobotOdometry
 
 
 data class SMC_IsEndGameEvent(var isEndGame: Boolean = false)
@@ -602,8 +602,8 @@ class ScoringModulesConnector
             ShootingPhase.Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD,
             ShootingPhase.Name.P2_SHOOT_UNTIL_EMPTY_USING_COLORS ->
             {
-                if (_storage.cells.hwSortingM.wasShotFired())
-                    _storage.cells.updateAfterShot()
+//                if (_storage.cells.hwSortingM.wasShotFired())
+//                    _storage.cells.updateAfterShot()
 
                 if (CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
                 {
@@ -740,8 +740,7 @@ class ScoringModulesConnector
 
         return canStart
     }
-    private fun tryStartShooting(laterGamepadHold: Boolean = false,
-        shotVoltage: Double = Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING): Boolean
+    private fun tryStartShooting(laterGamepadHold: Boolean, shotVoltage: Double): Boolean
     {
         val canStart = isFullyIdle()
 
@@ -754,6 +753,12 @@ class ScoringModulesConnector
 
         return canStart
     }
+    private fun tryStartShooting(laterGamepadHold: Boolean = false)
+        = tryStartShooting(laterGamepadHold,
+        if (_cms.collector.eventBus.invoke(
+                GetRobotOdometry()).orientation.x > 0.5)
+            Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING else
+            Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
 
 
 
