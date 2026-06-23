@@ -71,13 +71,13 @@ internal object TURRET_CONFIG {
     var ANGULAR_VELOCITY_HEADING_COMPENSATE_K = 0.0
 
     @JvmField
-    var CLOSE_PULLEY_VELOCITY = 10.0
+    var CLOSE_PULLEY_VELOCITY = 11.0
 
     @JvmField
     var CLOSE_ANGLE_POSITION = 0.35
 
     @JvmField
-    var SHORT_FAR_PULLEY_VELOCITY = 12.5
+    var SHORT_FAR_PULLEY_VELOCITY = 13.5
 
     @JvmField
     var SHORT_FAR_ANGLE_POSITION = 0.4
@@ -218,8 +218,10 @@ fun attachTurret(collector: Collector) {
 //            anglePosition = TURRET_CONFIG.ANGLE_POSITION//TURRET_CONFIG.ANGLE_POSITION// 0.3
 //            targetPulleyVelocity = TURRET_CONFIG.PULLEY_VELOCITY//TURRET_CONFIG.PULLEY_VELOCITY//10.4
 
-        pulleyMotor.velocity =
-            targetPulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION / TURRET_CONFIG.PULLEY_RATION
+//        pulleyMotor.velocity =
+//            targetPulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION / TURRET_CONFIG.PULLEY_RATION
+
+        pulleyMotor.power = 1.0
 
         if (timer.seconds() < 4.0 && collector.runMode == RunMode.AUTO) {
             angleServo.position = 0.43

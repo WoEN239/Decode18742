@@ -90,7 +90,7 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
         ShootAction(eventBus),
     )
 
-    repeat(10) {
+    repeat(4) {
         actions.addAll(
             arrayOf(
                 ParallelActions(
@@ -107,7 +107,7 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
                             StartEatAction(eventBus),
                             DriveAction(
                                 eventBus,
-                                MoveSegment(Vec2(0.341, -1.493 * colorK), velocityConstrain = 1.1)
+                                MoveSegment(Vec2(0.311, -1.493 * colorK), velocityConstrain = 1.1)
                             )
                         ),
                         arrayListOf(
@@ -119,7 +119,7 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
                 DriveAction(
                     eventBus,
                     DriveSegment(
-                        Orientation(Vec2(0.256, -1.354 * colorK), Angle.ofDeg(-90.0 * colorK)),
+                        Orientation(Vec2(0.216, -1.354 * colorK), Angle.ofDeg(-90.0 * colorK)),
                         linearVelocityConstrain = 1.1
                     )
                 ),
@@ -135,6 +135,17 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
             )
         )
     }
+
+    actions.add(
+        DriveAction(
+            eventBus,
+            MoveSegment(
+                Vec2(shootPosition.x + 0.5, shootPosition.y),
+                velocityConstrain = 1.1,
+                positionWindow = 0.2
+            )
+        ),
+    )
 
     return Array(actions.size) { actions[it] }
 }
