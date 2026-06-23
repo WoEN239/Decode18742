@@ -51,7 +51,7 @@ class RobotExitShootingAreaEvent()
 fun attachOdometry(collector: Collector) {
     val pinpoint = collector.hardwareMap.get("odometry") as GoBildaPinpointDriver
 
-    val zeroingOrientation = Orientation(Vec2(0.37 / 2.0 + 0.01, -(0.615 + 0.39 / 2.0)), Angle.ofDeg(0.0))
+    val zeroingOrientation = Orientation(Vec2(0.37 / 2.0 + 0.01, (0.615 + 0.39 / 2.0)), Angle.ofDeg(0.0))
 
     pinpoint.setOffsets(
         ODOMETRY_CONFIG.X_ODOMETER_POSITION, ODOMETRY_CONFIG.Y_ODOMETER_POSITION,

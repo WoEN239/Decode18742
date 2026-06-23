@@ -81,7 +81,7 @@ internal object Hardware
         @JvmField
         var GATE_OPEN = 0.8
         @JvmField
-        var GATE_CLOSE = 0.42
+        var GATE_CLOSE = 0.25
 
 
         @JvmField

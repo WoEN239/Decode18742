@@ -330,7 +330,8 @@ class Storage
             _cms.colorResults.reactivateColorTargetsForIntake()
             _cms.canTriggerIntake = cells.hwSortingM.canUpdateColors()
 
-            if (_cms.lazyIntakeIsActive &&
+            if (
+//                _cms.lazyIntakeIsActive &&
                 ((_cms.collector.runMode == RunMode.AUTO &&
                 AUTONOMOUS.PRESERVE_LAZY_INTAKE_STATUS_AFTER_SHOOTING) ||
                  (_cms.collector.runMode == RunMode.MANUAL &&

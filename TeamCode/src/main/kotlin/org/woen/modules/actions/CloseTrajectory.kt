@@ -25,7 +25,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
             eventBus,
             DriveSegment(
                 Orientation(shootPosition, Angle.ofDeg(45.0 * colorK)),
-                linearVelocityConstrain = 1.0
+                linearVelocityConstrain = 1.1
             )
         ),
         ShootAction(eventBus),
@@ -43,30 +43,40 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
                 Vec2(-0.342, -1.35 * colorK),
                 velocityConstrain = 0.5,
                 positionWindow = 0.2
-            ),
-            MoveSegment(
-                Vec2(-0.342, -1.185 * colorK),
-                velocityConstrain = 1.0,
-                positionWindow = 0.2
-            ),
-            MoveSegment(Vec2(-0.1, -1.402 * colorK), velocityConstrain = 1.0)
-        ),
-        StopEatAction(eventBus),
-        SortingAction(eventBus, StockPattern.Storage.PPG),
-        WaitAction(2.0),
-        DriveAction(
-            eventBus,
-            DriveSegment(
-                Orientation(shootPosition, Angle.ofDeg(-45.0 * colorK)),
-                linearVelocityConstrain = 1.0
             )
         ),
-        ShootAction(eventBus),
+        WaitAction(0.4),
+        StopEatAction(eventBus),
+        ParallelActions(
+            arrayOf(
+                arrayListOf(
+                    DriveAction(
+                        eventBus,
+                        MoveSegment(
+                            Vec2(-0.342, -0.9 * colorK),
+                            velocityConstrain = 1.1,
+                            positionWindow = 0.2
+                        ),
+                        MoveSegment(Vec2(-0.1, -1.402 * colorK), velocityConstrain = 1.1)
+                    ),
+                    WaitAction(2.0),
+                    DriveAction(
+                        eventBus,
+                        DriveSegment(
+                            Orientation(shootPosition, Angle.ofDeg(-45.0 * colorK)),
+                            linearVelocityConstrain = 1.1
+                        )
+                    ),
+                ),
+                arrayListOf(SortingAction(eventBus, StockPattern.Storage.PPG))
+            )
+        ),
+        SlowShootAction(eventBus),
         DriveAction(
             eventBus,
             DriveSegment(
                 Orientation(Vec2(0.241, -0.641 * colorK), Angle.ofDeg(-90.0 * colorK)),
-                linearVelocityConstrain = 1.0,
+                linearVelocityConstrain = 1.1,
                 positionWindow = 0.2
             )
         ),
@@ -77,20 +87,31 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
                 Vec2(0.241, -1.185 * colorK),
                 velocityConstrain = 0.5,
                 positionWindow = 0.2
-            ),
-            DriveSegment(
-                Orientation(shootPosition, Angle.ofDeg(-45.0 * colorK)),
-                linearVelocityConstrain = 1.0
             )
         ),
+        WaitAction(0.4),
         StopEatAction(eventBus),
-        SortingAction(eventBus, StockPattern.Storage.PGP),
-        ShootAction(eventBus),
+        ParallelActions(
+            arrayOf(
+                arrayListOf(
+                    SortingAction(eventBus, StockPattern.Storage.PGP)
+                ), arrayListOf(
+                    DriveAction(
+                        eventBus,
+                        DriveSegment(
+                            Orientation(shootPosition, Angle.ofDeg(-45.0 * colorK)),
+                            linearVelocityConstrain = 1.1
+                        )
+                    )
+                )
+            )
+        ),
+        SlowShootAction(eventBus),
         DriveAction(
             eventBus,
             DriveSegment(
                 Orientation(Vec2(0.884, -0.641 * colorK), Angle.ofDeg(-90.0 * colorK)),
-                linearVelocityConstrain = 1.0,
+                linearVelocityConstrain = 1.1,
                 positionWindow = 0.2
             )
         ),
@@ -101,15 +122,34 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
                 Vec2(0.884, -1.185 * colorK),
                 velocityConstrain = 0.5,
                 positionWindow = 0.2
-            ),
-            DriveSegment(
-                Orientation(shootPosition, Angle.ofDeg(-45.0 * colorK)),
-                linearVelocityConstrain = 1.0
             )
         ),
+        WaitAction(0.4),
         StopEatAction(eventBus),
-        SortingAction(eventBus, StockPattern.Storage.GPP),
-        ShootAction(eventBus)
+        ParallelActions(
+            arrayOf(
+                arrayListOf(
+                    SortingAction(eventBus, StockPattern.Storage.GPP)
+                ), arrayListOf(
+                    DriveAction(
+                        eventBus,
+                        DriveSegment(
+                            Orientation(shootPosition, Angle.ofDeg(-45.0 * colorK)),
+                            linearVelocityConstrain = 1.1
+                        )
+                    )
+                )
+            )
+        ),
+        SlowShootAction(eventBus),
+        DriveAction(
+            eventBus,
+            MoveSegment(
+                Vec2(shootPosition.x + 0.5, shootPosition.y),
+                velocityConstrain = 1.1,
+                positionWindow = 0.2
+            )
+        ),
     )
 
     return Array(actions.size) { actions[it] }
