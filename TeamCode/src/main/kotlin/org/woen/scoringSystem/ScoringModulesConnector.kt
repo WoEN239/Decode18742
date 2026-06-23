@@ -581,7 +581,7 @@ class ScoringModulesConnector
 
             ShootingPhase.Name.P1_OPENING_TURRET_GATE,
             ShootingPhase.Name.P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD ->
-                if (_cms.turretGateStatus.isFinished()) _storage.streamDrumP2()
+                if (_cms.turretGateStatus.isOpened()) _storage.streamDrumP2()
 
             ShootingPhase.Name.P2_SHOOT_BELTS_ON_TIME,
             ShootingPhase.Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD,
@@ -707,7 +707,7 @@ class ScoringModulesConnector
     }
     private fun tryStartShooting(laterGamepadHold: Boolean, shotVoltage: Double): Boolean
     {
-        val canStart = isStateMachineIdle()
+        val canStart = _cms.sortingPhase.isInactive() && _cms.launchStatus.isClosed()
 
         if (canStart)
         {

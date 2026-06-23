@@ -221,11 +221,21 @@ class Storage
 
 
     fun tryStartStreamDrum(laterGamepadHold: Boolean = false, ballCount: Int = 0)
-        = if (_cms.shootingPhase.isWaitingP0() || _cms.sortingPhase.isActive())
-             RequestResult.FAIL_AWAITING_SORTING
-        else if (_cms.shootingPhase.isActive())
-             RequestResult.FAIL_IGNORE_DUPLICATE_COMMAND
+        =    if (_cms.shootingPhase.isWaitingP0() || _cms.sortingPhase.isActive())
+            RequestResult.FAIL_AWAITING_SORTING
+        else if (_cms.shootingPhase.isActive() &&
+            !CONTROLS.EXTEND_MANUAL_SHOOTING_ON_DOUBLE_PRESS)
+            RequestResult.FAIL_IGNORE_DUPLICATE_COMMAND
+        else if (_cms.turretGateStatus.isOpened())
+             restartStreamDrumP2(laterGamepadHold, ballCount)
         else streamDrumP1(laterGamepadHold, ballCount)
+    private fun startStreamDrumState(laterGamepadHold: Boolean = false, ballCount: Int = 0)
+    {
+        _cms.shootingPhase.startP1(laterGamepadHold)
+        _cms.shootingPhase.ballCountForPhase1 =
+            if (ballCount == 1 && cells.isLastBall() &&
+                CONTROLS.USE_LAUNCHER_FOR_LAST_BALL) -1 else ballCount
+    }
     private fun streamDrumP1(laterGamepadHold: Boolean = false, ballCount: Int = 0): RequestResult
     {
         cells.hwSortingM.hwMotors.forwardBelts(onTime = false, _cms.shootingPhase.shotBeltsVoltage)
@@ -233,12 +243,15 @@ class Storage
         cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
 
         logM.logMd("StreamDrum P1, debug ballCount: $ballCount", Debug.LOGIC)
-        _cms.shootingPhase.startP1(laterGamepadHold)
-        _cms.shootingPhase.ballCountForPhase1 =
-            if (ballCount == 1 && cells.isLastBall() &&
-                CONTROLS.USE_LAUNCHER_FOR_LAST_BALL) -1 else ballCount
+        startStreamDrumState(laterGamepadHold, ballCount)
 
         return RequestResult.ROGER_STARTING_SHOOTING
+    }
+    private fun restartStreamDrumP2(laterGamepadHold: Boolean = false, ballCount: Int = 0): RequestResult
+    {
+        startStreamDrumState(laterGamepadHold, ballCount)
+        streamDrumP2()
+        return RequestResult.ROGER_RESTARTED_SHOOTING
     }
     fun streamDrumP2()
     {
@@ -330,11 +343,11 @@ class Storage
             _cms.colorResults.reactivateColorTargetsForIntake()
             _cms.canTriggerIntake = cells.hwSortingM.canUpdateColors()
 
-            if (
-//                _cms.lazyIntakeIsActive &&
-                ((_cms.collector.runMode == RunMode.AUTO &&
-                AUTONOMOUS.PRESERVE_LAZY_INTAKE_STATUS_AFTER_SHOOTING) ||
-                 (_cms.collector.runMode == RunMode.MANUAL &&
+            if (((_cms.collector.runMode == RunMode.AUTO &&
+                AUTONOMOUS.PRESERVE_LAZY_INTAKE_STATUS_AFTER_SHOOTING
+                ) || (
+                _cms.lazyIntakeIsActive &&
+                _cms.collector.runMode == RunMode.MANUAL &&
                 TELEOP.PRESERVE_LAZY_INTAKE_STATUS_AFTER_SHOOTING)))
             {
                 cells.hwSortingM.hwMotors.forwardBrush(onTime = false)

@@ -87,7 +87,7 @@ internal object Hardware
         @JvmField
         var PUSH_OPEN = 0.27
         @JvmField
-        var PUSH_CLOSE = 0.08
+        var PUSH_CLOSE = 0.095
 
 
         @JvmField
