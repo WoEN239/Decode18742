@@ -227,6 +227,7 @@ class Storage
     {
         cells.hwSortingM.hwMotors.forwardBelts(onTime = false, _cms.shootingPhase.shotBeltsVoltage)
         cells.hwSortingM.hwMotors.openTurretGate()
+        cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
 
         logM.logMd("StreamDrum P1, debug ballCount: $ballCount", Debug.LOGIC)
         _cms.shootingPhase.startPhase1(laterGamepadHold)
@@ -317,7 +318,8 @@ class Storage
             _cms.colorResults.reactivateColorTargetsForIntake()
             _cms.canTriggerIntake = cells.hwSortingM.canUpdateColors()
 
-            if (_cms.lazyIntakeIsActive &&
+            if (
+//                _cms.lazyIntakeIsActive &&
                 ((_cms.collector.runMode == RunMode.AUTO &&
                 AUTONOMOUS.PRESERVE_LAZY_INTAKE_STATUS_AFTER_SHOOTING) ||
                  (_cms.collector.runMode == RunMode.MANUAL &&
