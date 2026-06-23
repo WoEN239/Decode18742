@@ -44,14 +44,14 @@ internal object RobotSettings
         @JvmField
         var USE_LAZY_VERSION_OF_STREAM_DRUM = true
 
-        @JvmField
-        var USE_AUTO_SHOOTING_WHEN_IN_ZONE = false
-        @JvmField
-        var DISABLE_AUTO_SHOOTING_IN_END_GAME = true
+//        @JvmField
+//        var USE_AUTO_SHOOTING_WHEN_IN_ZONE = false
+//        @JvmField
+//        var DISABLE_AUTO_SHOOTING_IN_END_GAME = true
 
 
-        @JvmField
-        var TRY_AUTO_SORT_WHEN_FULL_IN_ENDGAME = false
+//        @JvmField
+//        var TRY_AUTO_SORT_WHEN_FULL_IN_ENDGAME = false
 
         @JvmField
         var USE_LAUNCHER_FOR_LAST_BALL = true
@@ -66,16 +66,16 @@ internal object RobotSettings
 
 
         @JvmField
-        var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = true
+        var USE_SECOND_DRIVER_FOR_PATTERN_CALIBRATION = false
 
 
 
-        @JvmField
-        var ENABLE_BALL_COUNT_PREDICTION_IN_LAZY_INTAKE = true
+//        @JvmField
+//        var ENABLE_BALL_COUNT_PREDICTION_IN_LAZY_INTAKE = true
         @JvmField
         var ENABLE_GAMEPAD_CONTROLLED_LAZY_INTAKE = true
-        @JvmField
-        var ENABLE_GAMEPAD_CONTROLLED_COLOR_INTAKE = false
+//        @JvmField
+//        var ENABLE_GAMEPAD_CONTROLLED_COLOR_INTAKE = false
 
         @JvmField
         var ENABLE_GAMEPAD_CUSTOMISABLE_SHOOTING = false
@@ -91,7 +91,9 @@ internal object RobotSettings
         @JvmField
         var DO_RUMBLE_GAMEPAD_AFTER_SHOT = true
         @JvmField
-        var DO_RUMBLE_GAMEPAD_WHEN_STORAGE_FULL_BY_CURRENT = true
+        var DO_RUMBLE_GAMEPAD_WHEN_STORAGE_FULL_BY_COLORS = true
+//        @JvmField
+//        var DO_RUMBLE_GAMEPAD_WHEN_STORAGE_FULL_BY_CURRENT = true
 
 
         @JvmField

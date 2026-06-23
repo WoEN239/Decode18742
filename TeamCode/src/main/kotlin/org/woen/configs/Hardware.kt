@@ -49,17 +49,11 @@ internal object Hardware
     internal object DEVICE_NAMES
     {
         @JvmField
-        var COLOR_SENSOR_L = "leftColor"
-
+        var COLOR_SENSOR_BOTTOM = "bottomColor"
         @JvmField
-        var COLOR_SENSOR_R = "rightColor"
-
-
+        var COLOR_SENSOR_CENTER = "centerColor"
         @JvmField
-        var TURRET_OPTIC_L = "leftOptic"
-
-        @JvmField
-        var TURRET_OPTIC_R = "rightOptic"
+        var COLOR_SENSOR_TURRET = "turretColor"
 
 
         @JvmField
