@@ -12,13 +12,13 @@ import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
 
 import org.woen.collector.RunMode
-import org.woen.modules.BallCountUpdateEvent
+//import org.woen.modules.BallCountUpdateEvent
 import org.woen.scoringSystem.SMC_GetCurrentGameTimerEvent
 
 import org.woen.scoringSystem.ConnectorModuleStatus
 import org.woen.scoringSystem.storage.hardware.HwSortingManager
 
-import org.woen.configs.Delay
+import org.woen.configs.DelayMS
 import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.ROBOT
 import org.woen.configs.RobotSettings.SORTING
@@ -74,14 +74,13 @@ class Cells
         _cms = cms
         logM = LogManager(_cms.collector.telemetry, DebugSettings.CELLS)
 
-        forceSet(
-            if (_cms.collector.runMode == RunMode.AUTO)
+        forceSet(if (_cms.collector.runMode == RunMode.AUTO)
                  ROBOT.AUTONOMOUS_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM
             else ROBOT.TELEOP_INITIAL_LOAD_FROM_TURRET_TO_BOTTOM)
 
         hwSortingM = HwSortingManager(_cms)
 
-        updateBallCountForLEDLINE()
+//        updateBallCountForLEDLINE()
     }
 
 
@@ -177,7 +176,7 @@ class Cells
             curSlot++
         }
 
-        updateBallCountForLEDLINE()
+//        updateBallCountForLEDLINE()
         logAllStorageData()
     }
     fun forceSet(pattern: Array<Ball.Name>)
@@ -191,7 +190,7 @@ class Cells
             curSlot++
         }
 
-        updateBallCountForLEDLINE()
+//        updateBallCountForLEDLINE()
         logAllStorageData()
     }
 
@@ -220,10 +219,12 @@ class Cells
 
                     curSlot--
                     finished--
+
+                    logAllStorageData()
                 }
                 else finished -= MAX_BALL_COUNT
             }
-            updateBallCountForLEDLINE(MAX_BALL_COUNT - curSlot)
+//            updateBallCountForLEDLINE(MAX_BALL_COUNT - curSlot)
         }
     }
     fun updateAfterShot()
@@ -237,7 +238,7 @@ class Cells
 
         val ballCount = anyBallCount()
         logM.logMd("Considering shot fired, ballCount after update: $ballCount", Debug.STATUS)
-        updateBallCountForLEDLINE(ballCount)
+//        updateBallCountForLEDLINE(ballCount)
     }
     fun clearStorageAfterShooting()
     {
@@ -286,7 +287,7 @@ class Cells
     }
     fun hwReAdjustStorage(initialBeltPush: Long = 0, voltage: Double): Boolean
     {
-        if (_cms.calibrationPhase.isActive())
+        if (_cms.shootingPhase.isActive())
         {
             logM.logMd("-!- Failed to perform storage ReAdjustment", Debug.ERROR)
             return true
@@ -294,9 +295,8 @@ class Cells
 
         _cms.canTriggerIntake = false
 
-        var beltPushTime: Long = initialBeltPush
-        while (swReAdjustStorage())
-            beltPushTime += Delay.MS.PUSH.READJUSTING
+        var beltPushTime = initialBeltPush
+        while (swReAdjustStorage()) beltPushTime += DelayMS.PUSH.READJUSTING
 
         logM.logMd("Realigning time: $beltPushTime", Debug.LOGIC)
         val requireAligning = beltPushTime > 0
@@ -325,15 +325,15 @@ class Cells
                 "\n_______________________________________________         _________________" +
                 "\n[:  [↓] BTM #0  |  [→] CTR #1  |  [↑] TRT #2  |---   ---|  [←] MBL #3  :]" +
                 "\n|:  ${_storageCells[StorageSlot.BOTTOM].formattedName()}  "
-                + "|  ${_storageCells[StorageSlot.CENTER].formattedName()}  "
-                + "|  ${_storageCells[StorageSlot.TURRET].formattedName()}  |  -----  "
-                + "|  ${_storageCells[StorageSlot.MOBILE].formattedName()}  :|" +
+                 + "|  ${_storageCells[StorageSlot.CENTER].formattedName()}  "
+                 + "|  ${_storageCells[StorageSlot.TURRET].formattedName()}  |  -----  "
+                 + "|  ${_storageCells[StorageSlot.MOBILE].formattedName()}  :|" +
                 "\n[:  BALL COUNT: ${anyBallCount()}" +
                 "                             |---   ---|              :]" +
                 "\n===============================================         =================\n ",
             Debug.STATUS)
     }
-    fun updateBallCountForLEDLINE(
+    /*fun updateBallCountForLEDLINE(
         ballCount: Int = -1,
         infoIsGuaranteed: Boolean = true)
     {
@@ -346,7 +346,7 @@ class Cells
         _cms.collector.eventBus.invoke(
             BallCountUpdateEvent(
                 finalBallCount))
-    }
+    }*/
 
     fun anyBallCount(): Int
     {

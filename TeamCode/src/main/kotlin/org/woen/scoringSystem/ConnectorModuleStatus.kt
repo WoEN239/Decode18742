@@ -2,7 +2,7 @@ package org.woen.scoringSystem
 
 
 import org.woen.collector.Collector
-import org.woen.scoringSystem.misc.BallCountForLED
+//import org.woen.scoringSystem.misc.BallCountForLED
 import org.woen.scoringSystem.misc.ColorResults
 import org.woen.scoringSystem.misc.DynamicPattern
 
@@ -10,13 +10,12 @@ import org.woen.enumerators.status.MotorStatus
 import org.woen.enumerators.status.ServoStatus
 import org.woen.enumerators.phases.SortingPhase
 import org.woen.enumerators.phases.ShootingPhase
-import org.woen.enumerators.phases.CalibrationPhase
 
 
 
 class ConnectorModuleStatus(var collector: Collector)
 {
-    var ballCountForLED = BallCountForLED()
+//    var ballCountForLED = BallCountForLED()
     var dynamicMemoryPattern = DynamicPattern()
     var colorResults = ColorResults()
 
@@ -26,10 +25,8 @@ class ConnectorModuleStatus(var collector: Collector)
     var lazyIntakeIsActive  = false
 
 
-    var sortingPhase     = SortingPhase()
-    var shootingPhase    = ShootingPhase()
-    var calibrationPhase = CalibrationPhase()
-
+    var sortingPhase  = SortingPhase()
+    var shootingPhase = ShootingPhase()
 
 
     var beltsStatus = MotorStatus()

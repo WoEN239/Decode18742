@@ -9,11 +9,12 @@ import org.woen.scoringSystem.ConnectorModuleStatus
 
 import org.woen.utils.debug.Debug
 
-import org.woen.configs.Delay
+import org.woen.configs.DelayMS
 import org.woen.configs.Hardware
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
 import org.woen.enumerators.phases.ShootingPhase
+
 
 
 class HwSortingManager
@@ -44,12 +45,10 @@ class HwSortingManager
         if ((_cms.beltsStatus.isOnTime()) &&
             rotatingBeltsTimer.milliseconds() > targetPushTime)
         {
-            if (_cms.calibrationPhase.isPhase1()) calibrationPhase2()
-            else
-            {
-                hwMotors.logM.logMd("Stopping belts on time", Debug.LOGIC)
-                hwMotors.stopBelts()
-            }
+            hwMotors.logM.logMd("Stopping belts on time", Debug.LOGIC)
+
+            if (_cms.shootingPhase.isCalibrationP4()) calibrationP5()
+            else hwMotors.stopBelts()
         }
 
         if (_cms.brushStatus.isOnTime() &&
@@ -61,20 +60,12 @@ class HwSortingManager
 
         hwMotors.updateServos()
     }
-
-    fun tryUpdateColors() { if (canUpdateColors()) _hwSensors.update() }
+    fun tryFastUpdateColors() { if (canUpdateColors()) _hwSensors.update() }
     fun canUpdateColors()
         = (_cms.collector.runMode == RunMode.AUTO   && !AUTONOMOUS.IGNORE_COLOR_SENSORS) ||
           (_cms.collector.runMode == RunMode.MANUAL && !TELEOP.IGNORE_COLOR_SENSORS)
 
 
-
-    fun wasShotFired()
-        = rotatingBeltsTimer.milliseconds() - lastUpdateTimestampMS >
-            if (_cms.shootingPhase.shotBeltsVoltage
-                == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
-                 Delay.MS.SHOOTING.FAST_CONSIDER_SHOT_FIRED
-            else Delay.MS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED
     fun isReadyForShootingPhase3()
         =   _cms.beltsStatus.isIdle() || (
             _cms.beltsStatus.isForwardOnTime() &&
@@ -82,18 +73,8 @@ class HwSortingManager
             rotatingBeltsTimer.milliseconds() >
             targetPushTime - (if (_cms.shootingPhase.shotBeltsVoltage
                 == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
-                     Delay.MS.SHOOTING.FAST_LAST_WITH_LAUNCHER
-                else Delay.MS.SHOOTING.SLOW_LAST_WITH_LAUNCHER))
-    fun streamDrumPhase3()
-    {
-        hwMotors.logM.logMd("StreamDrum P3, opening launch", Debug.LOGIC)
-        _cms.canTriggerIntake = false
-        _cms.shootingPhase.startPhase3()
-
-        hwMotors.reverseBrush(onTime = false)
-        hwMotors.openLaunch()
-        hwMotors.forwardBelts(onTime = false)
-    }
+                     DelayMS.SHOOTING.FAST_LAST_WITH_LAUNCHER
+                else DelayMS.SHOOTING.SLOW_LAST_WITH_LAUNCHER))
     fun isReadyForShootingPhase4()
         = when (_cms.shootingPhase.name)
         {
@@ -109,46 +90,37 @@ class HwSortingManager
 
 
 
-    fun calibrationPhase1()
+    fun calibrationP4()
     {
-        extendableReverse(Delay.MS.PUSH.HALF)
+        extendableReverse(DelayMS.PUSH.HALF)
 
-        hwMotors.logM.logMd("Calibration P1, reversing belts", Debug.LOGIC)
+        hwMotors.logM.logMd("Calibration P4, reversing belts", Debug.LOGIC)
         _cms.canTriggerIntake = false
-        _cms.calibrationPhase.startPhase1()
+        _cms.shootingPhase.startCalibrateP4()
     }
-    fun calibrationPhase2()
+    fun calibrationP5()
     {
         hwMotors.reverseBelts(onTime = false)
         hwMotors.closeLaunch()
         hwMotors.closeTurretGate()
-        hwMotors.closeGateWithPush()
+//        hwMotors.closeGateWithPush()
 
-        hwMotors.logM.logMd("Calibration P2, closing servos", Debug.LOGIC)
+        hwMotors.logM.logMd("Calibration P5, closing servos", Debug.LOGIC)
         _cms.canTriggerIntake = false
-        _cms.calibrationPhase.startPhase2()
+        _cms.shootingPhase.startCalibrateP5()
     }
-    fun calibrationPhase3()
+    fun calibrationP6()
     {
-        extendableForward(Delay.MS.PUSH.HALF)
+        extendableForward(DelayMS.PUSH.HALF)
 
         hwMotors.logM.logMd("Calibration P3, forward realignment", Debug.LOGIC)
         _cms.colorResults.reactivateColorTargetsForIntake()
         _cms.canTriggerIntake = canUpdateColors()
-        _cms.calibrationPhase.startPhase3()
+        _cms.shootingPhase.startCalibrateP6()
     }
-
-    fun closedAllServos()
-        =   _cms.gateStatus.isClosed() &&
-            _cms.pushStatus.isClosed() &&
-            _cms.launchStatus.isClosed() &&
-            _cms.turretGateStatus.isClosed()
-    fun isHardwareIdle()
-        =   _cms.beltsStatus.notOnTime() &&
-            _cms.gateStatus.isFinished() &&
-            _cms.pushStatus.isFinished() &&
-            _cms.launchStatus.isFinished() &&
-            _cms.turretGateStatus.isFinished()
+    fun closedShootingServos()
+        =  _cms.launchStatus.isClosed()
+        && _cms.turretGateStatus.isClosed()
 
 
 
@@ -186,7 +158,6 @@ class HwSortingManager
         rotatingBeltsTimer.reset()
         targetPushTime = timeMs
     }
-
     fun startBrushTime(forward: Boolean, timeMs: Long)
     {
         if (forward) hwMotors.forwardBrush(onTime = true)

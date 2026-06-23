@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
 
 import org.woen.utils.debug.Debug
 import org.woen.utils.debug.LogManager
-import org.woen.utils.exponentialFilter.ExponentialFilter
+//import org.woen.utils.exponentialFilter.ExponentialFilter
 
 import org.woen.collector.Collector
 import org.woen.collector.RunMode
@@ -18,26 +18,26 @@ import org.woen.enumerators.StockPattern
 import org.woen.enumerators.RequestResult
 import org.woen.enumerators.phases.SortingPhase
 import org.woen.enumerators.phases.ShootingPhase
-import org.woen.enumerators.phases.CalibrationPhase
 
 import org.woen.modules.ClickGamepadListener
 import org.woen.modules.AddGamepad1ListenerEvent
 import org.woen.modules.AddGamepad2ListenerEvent
 
 import org.woen.modules.OnPatternDetectedEvent
-import org.woen.modules.drivetrain.RobotExitShootingAreaEvent
-import org.woen.modules.drivetrain.RobotEnterShootingAreaEvent
+import org.woen.modules.drivetrain.GetRobotOdometry
+//import org.woen.modules.drivetrain.RobotExitShootingAreaEvent
+//import org.woen.modules.drivetrain.RobotEnterShootingAreaEvent
 
-import org.woen.configs.Delay
+import org.woen.configs.DelayMS
 import org.woen.configs.Hardware
 import org.woen.configs.DebugSettings
 import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
-import org.woen.modules.drivetrain.GetRobotOdometry
 
 
-data class SMC_IsEndGameEvent(var isEndGame: Boolean = false)
+
+//data class SMC_IsEndGameEvent(var isEndGame: Boolean = false)
 data class SMC_GetCurrentGameTimerEvent(var timeMs: Double = 0.0)
 
 
@@ -72,9 +72,6 @@ data class SMC_ShootingStatus(
 data class SMC_SortingStatus(
     var isFinished: Boolean = false,
     var phase: SortingPhase = SortingPhase())
-data class SMC_CalibrationStatus(
-    var isFinished: Boolean = false,
-    var phase: CalibrationPhase = CalibrationPhase())
 
 
 
@@ -86,12 +83,12 @@ class ScoringModulesConnector
     var logM: LogManager
 
     private val _gameTimer = ElapsedTime()
-    private var _inShootingZone = false
-    private var _enteredShootingZoneTimeStamp: Double = 0.0
-
-    private var _beltR: Double = 10.0
-    private val _rFilter = ExponentialFilter(
-        org.woen.modules.SIMPLE_STORAGE_CONFIG.R_FILTER_K)
+//    private var _inShootingZone = false
+//    private var _enteredShootingZoneTimeStamp: Double = 0.0
+//
+//    private var _beltR: Double = 10.0
+//    private val _rFilter = ExponentialFilter(
+//        org.woen.modules.SIMPLE_STORAGE_CONFIG.R_FILTER_K)
 
 
 
@@ -106,10 +103,10 @@ class ScoringModulesConnector
         logM = LogManager(collector.telemetry, DebugSettings.SMC)
 
 
-        subscribeToOdometry()
+//        subscribeToOdometry()
         subscribeToCameraPattern()
-
         subscribeToIsEndGameEvent()
+
         subscribeToOutsideControlEvents()
         subscribeToGiveStatusInfoEvents()
 
@@ -120,7 +117,7 @@ class ScoringModulesConnector
 
         collector.startEvent  += {
             _gameTimer.reset()
-            _rFilter.start()
+//            _rFilter.start()
         }
         collector.updateEvent += {
             update()
@@ -129,7 +126,7 @@ class ScoringModulesConnector
 
 
 
-    private fun subscribeToOdometry()
+    /*private fun subscribeToOdometry()
     {
         _cms.collector.eventBus.subscribe(RobotEnterShootingAreaEvent::class)
         {
@@ -141,7 +138,7 @@ class ScoringModulesConnector
         {
             _inShootingZone = false
         }
-    }
+    }*/
     private fun subscribeToCameraPattern()
     {
         _cms.collector.eventBus.subscribe(OnPatternDetectedEvent::class)
@@ -157,10 +154,10 @@ class ScoringModulesConnector
     }
     private fun subscribeToIsEndGameEvent()
     {
-        _cms.collector.eventBus.subscribe(SMC_IsEndGameEvent::class)
-        {
-            it.isEndGame = isEndGame
-        }
+//        _cms.collector.eventBus.subscribe(SMC_IsEndGameEvent::class)
+//        {
+//            it.isEndGame = isEndGame
+//        }
         _cms.collector.eventBus.subscribe(SMC_GetCurrentGameTimerEvent::class)
         {
             it.timeMs = _gameTimer.milliseconds()
@@ -189,7 +186,7 @@ class ScoringModulesConnector
         }
         _cms.collector.eventBus.subscribe(SMC_TryStartCustomisableShootingEvent::class)
         {
-            it.startingResult = isFullyIdle()
+            it.startingResult = isStateMachineIdle()
             logM.logMd("Try start CustomisableShooting: ${it.startingResult}")
             if (it.startingResult) autoShootCustomisablePattern(it.isAuto, it.shootAfterSorting)
             else logStartingError("CustomisableShooting")
@@ -206,11 +203,6 @@ class ScoringModulesConnector
         {
             it.phase = ShootingPhase(_cms.shootingPhase)
             it.isFinished = _cms.shootingPhase.isNotShooting()
-        }
-        _cms.collector.eventBus.subscribe(SMC_CalibrationStatus::class)
-        {
-            it.phase = CalibrationPhase(_cms.calibrationPhase)
-            it.isFinished = _cms.calibrationPhase.isInactive()
         }
     }
     private fun subscribeToDriverShootingGamepad1()
@@ -247,15 +239,13 @@ class ScoringModulesConnector
                         buttonSuppler = { it.right_bumper },
                         activationState = false,
                         onTriggered = {
-                            if (_cms.sortingPhase.isInactive())
+                            if (_cms.sortingPhase.isInactive() &&
+                                _cms.shootingPhase.isHoldP1() ||
+                                _cms.shootingPhase.isHoldP2())
                             {
-                                if (_cms.shootingPhase.isHoldPhase1() ||
-                                    _cms.shootingPhase.isHoldPhase2())
-                                {
-                                    if (CONTROLS.USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT)
-                                        _storage.cells.hwSortingM.streamDrumPhase3()
-                                    else _storage.streamDrumPhase4()
-                                }
+                                if (CONTROLS.USE_LAUNCHER_AFTER_GAMEPAD_HOLD_SHOOT)
+                                     _storage.streamDrumP3()
+                                else _storage.streamDrumCalibrationP4P5()
                         }   }
             )   )   )
 
@@ -272,8 +262,7 @@ class ScoringModulesConnector
                         buttonSuppler = { it.triangle },
                         activationState = true,
                         onTriggered = {
-                            if (_cms.shootingPhase.isInactive()
-                                && isFullyIdle())
+                            if (isStateMachineIdle())
                             {
                                 val requestResult = autoShootCustomisablePattern(false)
                                 val resultString  =
@@ -471,18 +460,16 @@ class ScoringModulesConnector
 
     fun update()
     {
-        tryUpdateBallCountOnBeltsCurrent()
+//        tryUpdateBallCountOnBeltsCurrent()
         //  Comment if you don't use this for better performance
 
-        _storage.cells.hwSortingM.tryUpdateColors()
+        _storage.cells.hwSortingM.tryFastUpdateColors()
 
         _storage.tryHandleIntake()
-
         _storage.cells.hwSortingM.update()
 
         updateSorting()
         updateShooting()
-        updateCalibrationPhase()
 
         _storage.cells.hwSortingM.hwMotors.updateMotorsAccelerations()
     }
@@ -498,31 +485,26 @@ class ScoringModulesConnector
                         ifDoneSkipToPhase3 = true)
 
             SortingPhase.Name.P2_REALIGN_STORAGE ->
-                if (_cms.beltsStatus.notOnTime())
-                    _storage.sortingPhase3()
+                if (_cms.beltsStatus.notOnTime()) _storage.sortingP3()
 
             SortingPhase.Name.P3_REALIGNING_UPWARDS ->
-                if (_cms.beltsStatus.notOnTime())
-                    _storage.sortingPhase4()
+                if (_cms.beltsStatus.notOnTime()) _storage.sortingP4()
 
             SortingPhase.Name.P4_REALIGNING_DOWNWARDS ->
-                if (_cms.beltsStatus.isIdle())
-                    _storage.sortingPhase5()
+                if (_cms.beltsStatus.isIdle()) _storage.sortingP5()
 
             SortingPhase.Name.P5_OPENING_GATE ->
-                if (_cms.gateStatus.isOpened())
-                    _storage.sortingPhase6()
+                if (_cms.gateStatus.isOpened()) _storage.sortingP6()
 
             SortingPhase.Name.P6_OPENING_PUSH ->
-                if (_cms.pushStatus.isOpened())
-                    _storage.sortingPhase7()
+                if (_cms.pushStatus.isOpened()) _storage.sortingP7()
 
             SortingPhase.Name.P7_WAIT_SOME_TIME ->
-                if (Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0
+                if (DelayMS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 <= 0
                     || (_gameTimer.milliseconds() -
-                        Delay.MS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 >
+                        DelayMS.REALIGNMENT.WAITING_IN_SORTING_PASE_7 >
                         _storage.cells.hwSortingM.lastUpdateTimestampMS))
-                    _storage.sortingPhase8()
+                    _storage.sortingP8()
 
             SortingPhase.Name.P8_CLOSING_GATE_AND_PUSH ->
                 if (_cms.pushStatus.isClosed())
@@ -544,7 +526,7 @@ class ScoringModulesConnector
                 {
                     _cms.sortingPhase.remainingRotations--
                     if  (_cms.sortingPhase.remainingRotations > 0)
-                        _storage.sortingPhase1(
+                        _storage.sortingP1(
                             _cms.sortingPhase.remainingRotations)
                     else
                     {
@@ -552,13 +534,14 @@ class ScoringModulesConnector
                         _storage.cells.hwSortingM.hwMotors.stopBelts()
 
 //                        if (canStartAutoShooting())
-                        if (isFullyIdle() &&
+                        /*if (isFullyIdle() &&
                             CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE)
                         {
                             _cms.shootingPhase.setInactive()
                             logM.logMd(_storage.tryStartStreamDrum().toString(), Debug.START)
                         }
-                        else _cms.shootingPhase.setInactive()
+                        else*/
+                        _cms.shootingPhase.setInactive()
                     }
                 }
 
@@ -569,8 +552,8 @@ class ScoringModulesConnector
     {
         when (_cms.shootingPhase.name)
         {
-            ShootingPhase.Name.NOT_ACTIVE ->
-                if (canStartAutoShooting())
+            ShootingPhase.Name.NOT_ACTIVE -> { }
+                /*if (canStartAutoShooting())
                 {
                     if (!(CONTROLS.DISABLE_AUTO_SHOOTING_IN_END_GAME && isEndGame))
                         logM.logMd(_storage.tryStartStreamDrum().toString(), Debug.START)
@@ -586,11 +569,11 @@ class ScoringModulesConnector
 
                         logM.logMd(resultString, Debug.START)
                     }
-                }
+                }*/
 
             ShootingPhase.Name.P0_AWAITING_SORTING ->
 //                if (canStartAutoShooting())
-                if (isFullyIdle())
+                if (isStateMachineIdle())
                 {
                     _cms.shootingPhase.setInactive()
                     logM.logMd(_storage.tryStartStreamDrum().toString(), Debug.START)
@@ -598,57 +581,47 @@ class ScoringModulesConnector
 
             ShootingPhase.Name.P1_OPENING_TURRET_GATE,
             ShootingPhase.Name.P1_OPENING_TURRET_GATE_LATER_GAMEPAD_HOLD ->
-                if (_cms.turretGateStatus.isFinished())
-                    _storage.streamDrumPhase2()
+                if (_cms.turretGateStatus.isOpened()) _storage.streamDrumP2()
 
             ShootingPhase.Name.P2_SHOOT_BELTS_ON_TIME,
             ShootingPhase.Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD,
             ShootingPhase.Name.P2_SHOOT_UNTIL_EMPTY_USING_COLORS ->
             {
-//                if (_storage.cells.hwSortingM.wasShotFired())
-//                    _storage.cells.updateAfterShot()
-
                 if (CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
                 {
-                    if ((_cms.shootingPhase.isRegularPhase2() &&
+                    if ((_cms.shootingPhase.isRegularP2() &&
                          _storage.cells.hwSortingM.isReadyForShootingPhase3()
                         ) || (
-                        _cms.shootingPhase.isUntilColorsPhase2() &&
+                        _cms.shootingPhase.isUntilColorsP2() &&
                         _cms.colorResults.onlyLastBallForShooting()))
-                        _storage.cells.hwSortingM.streamDrumPhase3()
+                        _storage.streamDrumP3()
                 }
 
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
-                    _storage.streamDrumPhase4()
+                    _storage.streamDrumCalibrationP4P5()
             }
 
             ShootingPhase.Name.P3_OPENING_LAUNCHER ->
-            {
                 if (_storage.cells.hwSortingM.isReadyForShootingPhase4())
-                    _storage.streamDrumPhase4()
+                    _storage.streamDrumCalibrationP4P5()
+
+            ShootingPhase.Name.P4_CALIBRATE_REVERSING_BELTS    -> { }
+            ShootingPhase.Name.P5_CALIBRATE_CLOSING_ALL_SERVOS ->
+            {
+                if (_storage.cells.hwSortingM.closedShootingServos())
+                {
+                    if (_storage.cells.isNotEmpty())
+                        _storage.cells.hwSortingM.calibrationP6()
+                    else _storage.finishCalibration()
+                }
             }
-
-            ShootingPhase.Name.P4_CALIBRATING -> { }
-//                if (canStartCalibrationAfterShooting())
-//                    _storage.streamDrumPhase4()
+            ShootingPhase.Name.P6_REALIGNING_FORWARDS ->
+                if (_cms.beltsStatus.notOnTime()) _storage.finishCalibration()
         }
     }
-    fun updateCalibrationPhase()
-    {
-        if (_cms.calibrationPhase.isPhase2() &&
-            _storage.cells.hwSortingM.closedAllServos())
-        {
-            if (_storage.cells.isNotEmpty())
-                _storage.cells.hwSortingM.calibrationPhase3()
-            else _storage.finishCalibration()
-        }
-        if (_cms.calibrationPhase.isPhase3() &&
-            _cms.beltsStatus.notOnTime())
-            _storage.finishCalibration()
-    }
 
 
-    fun tryUpdateBallCountOnBeltsCurrent()
+    /*fun tryUpdateBallCountOnBeltsCurrent()
     {
         if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_LAZY_INTAKE &&
             CONTROLS.ENABLE_BALL_COUNT_PREDICTION_IN_LAZY_INTAKE &&
@@ -677,14 +650,11 @@ class ScoringModulesConnector
             else -1
 
             if (ballCount < countBasedOnCurrent) ballCount = countBasedOnCurrent
-
             if (ballCount > _cms.ballCountForLED.count)
                 _storage.cells.updateBallCountForLEDLINE(
                     ballCount, infoIsGuaranteed = false)
         }
-    }
-
-
+    }*/
 
     private fun hardStartLazyIntake(intakeTaskName: String)
     {
@@ -704,14 +674,11 @@ class ScoringModulesConnector
 
         if (CONTROLS.REVERSE_BRUSHES_AFTER_LAZY_INTAKE)
             _storage.cells.hwSortingM.startBrushTime(
-                forward = false, Delay.MS.BRUSH_REVERSE)
+                forward = false, DelayMS.BRUSH_REVERSE)
     }
     private fun tryUpdateLazyIntake(intakeTask: LazyIntakeTask): Boolean
     {
-        val canManage = _cms.sortingPhase.isInactive() &&
-            _cms.shootingPhase.isInactive() &&
-            _cms.calibrationPhase.isInactive()
-
+        val canManage = isStateMachineIdle()
 
         if (canManage) when (intakeTask)
         {
@@ -731,18 +698,16 @@ class ScoringModulesConnector
 
     private fun tryStartSorting(swapCount: Int): Boolean
     {
-        val canStart = _cms.sortingPhase.isInactive()  &&
-                _cms.shootingPhase.isInactive() &&
-                _cms.calibrationPhase.isInactive()
+        val canStart = isStateMachineIdle()
 
-        if (canStart) _storage.sortingPhase1(swapCount)
+        if (canStart) _storage.sortingP1(swapCount)
         else logStartingError("Gamepad/ExtEvent SortingSwaps (${swapCount})")
 
         return canStart
     }
     private fun tryStartShooting(laterGamepadHold: Boolean, shotVoltage: Double): Boolean
     {
-        val canStart = isFullyIdle()
+        val canStart = _cms.sortingPhase.isInactive() && _cms.launchStatus.isClosed()
 
         if (canStart)
         {
@@ -762,16 +727,15 @@ class ScoringModulesConnector
 
 
 
-    fun canStartAutoShooting()
+    /*fun canStartAutoShooting()
         =   _inShootingZone &&
             CONTROLS.USE_AUTO_SHOOTING_WHEN_IN_ZONE &&
             _gameTimer.milliseconds() - _enteredShootingZoneTimeStamp >
                 Delay.MS.SHOOTING.BEFORE_AUTOSHOT &&
-            isFullyIdle()
-    fun isFullyIdle()
+            isStateMachineIdle()*/
+    fun isStateMachineIdle()
         =   _cms.sortingPhase.isInactive() &&
-            _cms.shootingPhase.isInactive() &&
-            _cms.calibrationPhase.isInactive()
+            _cms.shootingPhase.isInactive()
     fun autoShootCustomisablePattern(
         isAuto: Boolean,
         shootAfterSorting: Boolean = true): RequestResult
@@ -801,21 +765,14 @@ class ScoringModulesConnector
                 TELEOP.AUTOCORRECT_FAILSAFE_PATTERN)
     }
 
-    fun canStartCalibrationAfterShooting()
-        =   _cms.calibrationPhase.isInactive() &&
-            _cms.sortingPhase.isInactive() &&
-            _storage.cells.hwSortingM.isHardwareIdle()
-
 
 
     fun logStartingError(processName: String)
     {
         logM.logMd("Unable to start $processName, " +
                 "another process is unfinished", Debug.ERROR)
-        logM.logMd("Shooting: ${_cms.shootingPhase.name}, " +
-                "Sorting: ${_cms.sortingPhase.name}, " +
-                "Calibration: ${_cms.calibrationPhase.name}", Debug.GENERIC)
+        logM.logMd("[STATUS]   |   Shooting: ${_cms.shootingPhase.name}" +
+                "   |   Sorting: ${_cms.sortingPhase.name}", Debug.GENERIC)
     }
-
-    val isEndGame get() = _gameTimer.seconds() > 90.0
+//    val isEndGame get() = _gameTimer.seconds() > 90.0
 }
