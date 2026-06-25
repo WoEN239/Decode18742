@@ -357,7 +357,7 @@ class ScoringModulesConnector
         if (CONTROLS.ENABLE_GAMEPAD_CONTROLLED_SORTING_SWAPS)
         {
             _cms.collector.eventBus.invoke(
-                AddGamepad1ListenerEvent(
+                AddGamepad2ListenerEvent(
                     ClickGamepadListener(
                         { it.right_trigger > 0.5 },
                         {

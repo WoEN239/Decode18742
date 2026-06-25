@@ -130,6 +130,8 @@ fun attachTurret(collector: Collector) {
     val headingServo1 = collector.hardwareMap.get("turretRotateServo1") as ServoImplEx
     val headingServo2 = collector.hardwareMap.get("turretRotateServo2") as ServoImplEx
 
+    var shootingDif = Vec2.ZERO
+
     pulleyMotor.direction = DcMotorSimple.Direction.REVERSE
 
     pulleyMotor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
@@ -160,6 +162,34 @@ fun attachTurret(collector: Collector) {
         it.normal = turretHeading in TURRET_CONFIG.MIN_HEADING..TURRET_CONFIG.MAX_HEADING
     }
 
+    collector.eventBus.invoke(AddGamepad2ListenerEvent(ClickGamepadListener({ it.dpad_down }, {
+        if(GameSettings.startOrientation.gameColor == GameColor.RED)
+            shootingDif.y -= 0.05
+        else
+            shootingDif.y += 0.05
+    })))
+
+    collector.eventBus.invoke(AddGamepad2ListenerEvent(ClickGamepadListener({ it.dpad_up }, {
+        if(GameSettings.startOrientation.gameColor == GameColor.RED)
+            shootingDif.y += 0.05
+        else
+            shootingDif.y -= 0.05
+    })))
+
+    collector.eventBus.invoke(AddGamepad2ListenerEvent(ClickGamepadListener({ it.dpad_left }, {
+        if(GameSettings.startOrientation.gameColor == GameColor.RED)
+            shootingDif.x -= 0.05
+        else
+            shootingDif.x += 0.05
+    })))
+
+    collector.eventBus.invoke(AddGamepad2ListenerEvent(ClickGamepadListener({ it.dpad_right }, {
+        if(GameSettings.startOrientation.gameColor == GameColor.RED)
+            shootingDif.x += 0.05
+        else
+            shootingDif.x -= 0.05
+    })))
+
     collector.startEvent += {
         timer.reset()
     }
@@ -173,7 +203,7 @@ fun attachTurret(collector: Collector) {
         val odometry = collector.eventBus.invoke(GetRobotOdometry())
 
         val basketErrPulley =
-            ((if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke() -
+            ((if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke() - shootingDif -
                     odometry.linearVelocity.turn(odometry.orientation.angle) * if (collector.runMode == RunMode.AUTO) 0.0 else TURRET_CONFIG.VELOCITY_PULLEY_COMPENSATE_K) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
                 .turn(odometry.orientation.angle))
 
@@ -267,7 +297,7 @@ fun attachTurret(collector: Collector) {
             pulleyMotor.velocity / TURRET_CONFIG.PULLEY_TICKS_REVOLUTION * 2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS * TURRET_CONFIG.PULLEY_RATION
         )
         collector.telemetry.drawCircle(
-            (if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke(),
+            (if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke() + shootingDif,
             0.1,
             Color.ORANGE
         )
