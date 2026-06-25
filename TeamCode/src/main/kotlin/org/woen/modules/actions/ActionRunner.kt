@@ -123,17 +123,24 @@ class ParallelActions(
 }
 
 class ShootAction(private val _eventBus: EventBus) : IAction {
-//    val timer = ElapsedTime()
+    val timer = ElapsedTime()
+    var isShoot = false
 
     override fun start() {
 //        _eventBus.invoke(ShootEvent())
-        _eventBus.invoke(SMC_TryStartShootingEvent())
-//        timer.reset()
+        timer.reset()
+    }
+
+    override fun update() {
+        if(timer.seconds() > 0.1 && !isShoot) {
+            _eventBus.invoke(SMC_TryStartShootingEvent())
+            isShoot = true
+        }
     }
 
     override fun isEnd() =
 //    _eventBus.invoke(GetCurrentStorageStateEvent()).state == StorageState.STOP
-        _eventBus.invoke(SMC_ShootingStatus()).isFinished
+        _eventBus.invoke(SMC_ShootingStatus()).isFinished && isShoot
 }
 
 class SlowShootAction(private val _eventBus: EventBus) : IAction {

@@ -80,7 +80,7 @@ fun attachOdometry(collector: Collector) {
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.dpad_down }, {
         val orient =
-            GameSettings.startOrientation.odometryCalibratePosition.turn(-zeroingOrientation.angle) - zeroingOrientation.pos
+            GameSettings.startOrientation.odometryCalibrateOrientation - zeroingOrientation
 
         pinpoint.position =
             Pose2D(
@@ -88,7 +88,7 @@ fun attachOdometry(collector: Collector) {
                 orient.x,
                 orient.y,
                 AngleUnit.RADIANS,
-                (orientation.angl - zeroingOrientation.angl).angle
+                orient.angle
             )
     })))
 

@@ -24,16 +24,16 @@ internal object GAME_CONFIGS {
         Orientation(Vec2(0.01 + 1.35 + 0.38 / 2.0, -0.225 - 0.38 / 2.0 - 0.01), Angle.ofDeg(0.0))
 
     @JvmField
-    var BLUE_BASKET_POSITION = Vec2(-1.65, -1.7)
+    var BLUE_BASKET_POSITION = Vec2(-1.7, -1.65)
 
     @JvmField
-    var RED_BASKET_POSITION = Vec2(-1.7, 1.7)
+    var RED_BASKET_POSITION = Vec2(-1.7, 1.65)
 
     @JvmField
     var BLUE_FAR_BASKET_POSITION = Vec2(-1.7, -1.55)
 
     @JvmField
-    var RED_FAR_BASKET_POSITION = Vec2(-1.7, 1.65)
+    var RED_FAR_BASKET_POSITION = Vec2(-1.7, 1.55)
 
     @JvmField
     var RED_PARKING_ORIENTATION = Orientation(Vec2(0.0, 0.0), Angle.ofDeg(0.0))
@@ -48,10 +48,10 @@ internal object GAME_CONFIGS {
     var BLUE_OBELISK_POSITION = Vec2(-3.66 / 2.0, -1.0)
 
     @JvmField
-    var CALIBRATE_ODOMETRY_BLUE_POSITION = Vec2(-0.794, -0.791)
+    var CALIBRATE_ODOMETRY_BLUE_ORIENTATION = Orientation(Vec2(-0.181, -1.348), Angle.ofDeg(-90.0))
 
     @JvmField
-    var CALIBRATE_ODOMETRY_RED_POSITION = Vec2(-0.794, 0.791)
+    var CALIBRATE_ODOMETRY_RED_ORIENTATION = Orientation(Vec2(-0.181, 1.348), Angle.ofDeg(90.0))
 }
 
 enum class GameColor {
@@ -69,7 +69,7 @@ enum class StartOrientation(
     val parkingOrientation: Orientation,
     val gameColor: GameColor,
     val gamePosition: GamePosition,
-    val odometryCalibratePosition: Vec2
+    val odometryCalibrateOrientation: Orientation
 ) {
     RED_CLOSE(
         GAME_CONFIGS.START_RED_CLOSE_ORIENTATION,
@@ -78,7 +78,7 @@ enum class StartOrientation(
         GAME_CONFIGS.RED_PARKING_ORIENTATION,
         GameColor.RED,
         GamePosition.CLOSE,
-        GAME_CONFIGS.CALIBRATE_ODOMETRY_RED_POSITION
+        GAME_CONFIGS.CALIBRATE_ODOMETRY_RED_ORIENTATION
     ),
     RED_FAR(
         GAME_CONFIGS.START_RED_FAR_ORIENTATION,
@@ -87,7 +87,7 @@ enum class StartOrientation(
         GAME_CONFIGS.RED_PARKING_ORIENTATION,
         GameColor.RED,
         GamePosition.FAR,
-        GAME_CONFIGS.CALIBRATE_ODOMETRY_RED_POSITION
+        GAME_CONFIGS.CALIBRATE_ODOMETRY_RED_ORIENTATION
     ),
     BLUE_CLOSE(
         GAME_CONFIGS.START_BLUE_CLOSE_ORIENTATION,
@@ -96,7 +96,7 @@ enum class StartOrientation(
         GAME_CONFIGS.BLUE_PARKING_ORIENTATION,
         GameColor.BLUE,
         GamePosition.CLOSE,
-        GAME_CONFIGS.CALIBRATE_ODOMETRY_BLUE_POSITION
+        GAME_CONFIGS.CALIBRATE_ODOMETRY_BLUE_ORIENTATION
     ),
     BLUE_FAR(
         GAME_CONFIGS.START_BLUE_FAR_ORIENTATION,
@@ -105,7 +105,7 @@ enum class StartOrientation(
         GAME_CONFIGS.BLUE_PARKING_ORIENTATION,
         GameColor.BLUE,
         GamePosition.FAR,
-        GAME_CONFIGS.CALIBRATE_ODOMETRY_BLUE_POSITION
+        GAME_CONFIGS.CALIBRATE_ODOMETRY_BLUE_ORIENTATION
     ),
     BLUE_ULT(
         GAME_CONFIGS.START_BLUE_CLOSE_ORIENTATION,
@@ -114,7 +114,7 @@ enum class StartOrientation(
         GAME_CONFIGS.BLUE_PARKING_ORIENTATION,
         GameColor.BLUE,
         GamePosition.CLOSE,
-        GAME_CONFIGS.CALIBRATE_ODOMETRY_BLUE_POSITION
+        GAME_CONFIGS.CALIBRATE_ODOMETRY_BLUE_ORIENTATION
     ),
     RED_ULT(
         GAME_CONFIGS.START_RED_CLOSE_ORIENTATION,
@@ -123,10 +123,10 @@ enum class StartOrientation(
         GAME_CONFIGS.RED_PARKING_ORIENTATION,
         GameColor.RED,
         GamePosition.CLOSE,
-        GAME_CONFIGS.CALIBRATE_ODOMETRY_RED_POSITION
+        GAME_CONFIGS.CALIBRATE_ODOMETRY_RED_ORIENTATION
     ),
 }
 
 object GameSettings {
-    var startOrientation = StartOrientation.BLUE_ULT
+    var startOrientation = StartOrientation.RED_ULT
 }

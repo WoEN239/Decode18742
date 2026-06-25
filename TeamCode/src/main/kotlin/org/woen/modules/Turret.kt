@@ -71,16 +71,16 @@ internal object TURRET_CONFIG {
     var ANGULAR_VELOCITY_HEADING_COMPENSATE_K = 0.0
 
     @JvmField
-    var CLOSE_PULLEY_VELOCITY = 11.0
+    var CLOSE_PULLEY_VELOCITY = 10.5
 
     @JvmField
-    var CLOSE_ANGLE_POSITION = 0.35
+    var CLOSE_ANGLE_POSITION = 0.38
 
     @JvmField
-    var SHORT_FAR_PULLEY_VELOCITY = 13.5
+    var SHORT_FAR_PULLEY_VELOCITY = 13.0
 
     @JvmField
-    var SHORT_FAR_ANGLE_POSITION = 0.4
+    var SHORT_FAR_ANGLE_POSITION = 0.42
 
     @JvmField
     var SHORT_FAR_DISTANCE = 2.58
@@ -98,16 +98,16 @@ internal object TURRET_CONFIG {
     var LONG_CLOSE_DISTANCE = 3.0
 
     @JvmField
-    var FAR_DISTANCE = 3.93
+    var FAR_DISTANCE = 3.7
 
     @JvmField
     var LONG_CLOSE_PULLEY_VELOCITY = 14.0
 
     @JvmField
-    var FAR_PULLEY_VELOCITY = 16.0
+    var FAR_PULLEY_VELOCITY = 16.5
 
     @JvmField
-    var LONG_CLOSE_ANGLE_POSITION = 0.4
+    var LONG_CLOSE_ANGLE_POSITION = 0.43
 
     @JvmField
     var FAR_ANGLE_POSITION = 0.47
@@ -218,15 +218,13 @@ fun attachTurret(collector: Collector) {
 //            anglePosition = TURRET_CONFIG.ANGLE_POSITION//TURRET_CONFIG.ANGLE_POSITION// 0.3
 //            targetPulleyVelocity = TURRET_CONFIG.PULLEY_VELOCITY//TURRET_CONFIG.PULLEY_VELOCITY//10.4
 
-//        pulleyMotor.velocity =
-//            targetPulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION / TURRET_CONFIG.PULLEY_RATION
-
-        pulleyMotor.power = 1.0
+        pulleyMotor.velocity =
+            targetPulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION / TURRET_CONFIG.PULLEY_RATION
 
         if (timer.seconds() < 4.0 && collector.runMode == RunMode.AUTO) {
-            angleServo.position = 0.43
-            headingServo1.position = 0.48
-            headingServo2.position = 0.48
+            angleServo.position = 0.41
+            headingServo1.position = 0.5
+            headingServo2.position = 0.5
         } else {
             angleServo.position = clamp(
                 anglePosition,

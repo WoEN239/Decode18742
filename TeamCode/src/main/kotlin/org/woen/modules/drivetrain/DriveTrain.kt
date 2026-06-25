@@ -39,7 +39,7 @@ internal object DRIVE_TRAIN_CONFIG {
     var VELOCITY_SIDE_REGULATOR = RegulatorParameters(kF = 12.0, kP = 15.0)
 
     @JvmField
-    var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 1.7, kP = 1.9)
+    var VELOCITY_ROTATE_REGULATOR = RegulatorParameters(kF = 1.7, kI = 0.4, kP = 1.9)
 }
 
 enum class DriveMode {

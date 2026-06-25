@@ -40,7 +40,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
         DriveAction(
             eventBus,
             MoveSegment(
-                Vec2(-0.342, -1.35 * colorK),
+                Vec2(-0.342, -1.38 * colorK),
                 velocityConstrain = 0.5,
                 positionWindow = 0.2
             )
@@ -53,7 +53,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
                     DriveAction(
                         eventBus,
                         MoveSegment(
-                            Vec2(-0.342, -0.9 * colorK),
+                            Vec2(-0.342, -1.0 * colorK),
                             velocityConstrain = 1.1,
                             positionWindow = 0.2
                         ),
@@ -84,7 +84,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
         DriveAction(
             eventBus,
             MoveSegment(
-                Vec2(0.241, -1.185 * colorK),
+                Vec2(0.241, -1.225 * colorK),
                 velocityConstrain = 0.5,
                 positionWindow = 0.2
             )
@@ -110,7 +110,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
         DriveAction(
             eventBus,
             DriveSegment(
-                Orientation(Vec2(0.884, -0.641 * colorK), Angle.ofDeg(-90.0 * colorK)),
+                Orientation(Vec2(0.864, -0.641 * colorK), Angle.ofDeg(-90.0 * colorK)),
                 linearVelocityConstrain = 1.1,
                 positionWindow = 0.2
             )
@@ -119,7 +119,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
         DriveAction(
             eventBus,
             MoveSegment(
-                Vec2(0.884, -1.185 * colorK),
+                Vec2(0.864, -1.225 * colorK),
                 velocityConstrain = 0.5,
                 positionWindow = 0.2
             )
