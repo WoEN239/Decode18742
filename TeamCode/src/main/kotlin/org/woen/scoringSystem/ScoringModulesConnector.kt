@@ -587,6 +587,8 @@ class ScoringModulesConnector
             ShootingPhase.Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD,
             ShootingPhase.Name.P2_SHOOT_UNTIL_EMPTY_USING_COLORS ->
             {
+                _storage.cells.hwSortingM.tryDelayBetweenShots()
+
                 if (CONTROLS.USE_LAUNCHER_FOR_LAST_BALL)
                 {
                     if ((_cms.shootingPhase.isRegularP2() &&

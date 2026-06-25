@@ -11,6 +11,7 @@ import org.woen.utils.debug.Debug
 
 import org.woen.configs.DelayMS
 import org.woen.configs.Hardware
+import org.woen.configs.RobotSettings.CONTROLS
 import org.woen.configs.RobotSettings.TELEOP
 import org.woen.configs.RobotSettings.AUTONOMOUS
 import org.woen.enumerators.phases.ShootingPhase
@@ -23,11 +24,11 @@ class HwSortingManager
     val hwMotors  : HwMotors
     private val _cms: ConnectorModuleStatus
 
-    var targetBeltTime: Long = 0
-    var targetBrushTime: Long = 0
+    private var targetBeltTime: Long = 0
+    private var targetBrushTime: Long = 0
     var lastUpdateTimestampMS: Double = 0.0
     val rotatingBeltsTimer = ElapsedTime()
-    val rotatingBrushTimer = ElapsedTime()
+    private val rotatingBrushTimer = ElapsedTime()
 
 
 
@@ -66,6 +67,27 @@ class HwSortingManager
           (_cms.collector.runMode == RunMode.MANUAL && !TELEOP.IGNORE_COLOR_SENSORS)
 
 
+    fun tryDelayBetweenShots()
+    {
+        if (CONTROLS.WAIT_BETWEEN_SHOTS_WHEN_SLOW_SHOOTING &&
+            _cms.shootingPhase.shotBeltsVoltage == Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING)
+        {
+            val shotFiredTime = rotatingBeltsTimer.milliseconds() -
+                    lastUpdateTimestampMS - DelayMS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED
+
+            if (shotFiredTime > 0 && !_cms.beltsStatus.isIdle())
+            {
+                targetBeltTime += DelayMS.SHOOTING.BETWEEN_SHOTS
+                hwMotors.stopBelts()
+            }
+            else if (shotFiredTime > DelayMS.SHOOTING.BETWEEN_SHOTS && _cms.beltsStatus.isIdle())
+            {
+                startBeltsTime(forward = true, targetBeltTime,
+                    Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING)
+                lastUpdateTimestampMS = rotatingBeltsTimer.milliseconds()
+            }
+        }
+    }
     fun calcUnfinishedShootingTime() = max(0, targetBeltTime - rotatingBeltsTimer.milliseconds().toLong())
     fun isReadyForShootingPhase3()
         =   _cms.beltsStatus.isIdle() || (

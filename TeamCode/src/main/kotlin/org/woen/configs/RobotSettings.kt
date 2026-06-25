@@ -43,6 +43,8 @@ internal object RobotSettings
         var USE_COLOR_SENSORS_FOR_SHOOTING = false
         @JvmField
         var USE_LAZY_VERSION_OF_STREAM_DRUM = true
+        @JvmField
+        var WAIT_BETWEEN_SHOTS_WHEN_SLOW_SHOOTING = true
 
 //        @JvmField
 //        var USE_AUTO_SHOOTING_WHEN_IN_ZONE = false
