@@ -10,6 +10,7 @@ class ShootingPhase
     private var _name: Name
     var ballCountForPhase1: Int = 0
     var shotBeltsVoltage: Double = Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING
+    var additionalShotTimeMS: Long = 0
 
 
     constructor(name: Name = Name.NOT_ACTIVE) { _name = name }

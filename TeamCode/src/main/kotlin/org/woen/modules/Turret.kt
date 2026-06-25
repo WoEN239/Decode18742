@@ -204,7 +204,7 @@ fun attachTurret(collector: Collector) {
 
         val basketErrPulley =
             ((if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke() - shootingDif -
-                    odometry.linearVelocity.turn(odometry.orientation.angle) * if (collector.runMode == RunMode.AUTO) 0.0 else TURRET_CONFIG.VELOCITY_PULLEY_COMPENSATE_K) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
+                    odometry.linearVelocity.turn(odometry.orientation.angle) * if (collector.runMode == RunMode.AUTO && timer.seconds() < 4.0) 0.0 else TURRET_CONFIG.VELOCITY_PULLEY_COMPENSATE_K) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
                 .turn(odometry.orientation.angle))
 
         var l = basketErrPulley.length()
@@ -252,7 +252,7 @@ fun attachTurret(collector: Collector) {
             targetPulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION / TURRET_CONFIG.PULLEY_RATION
 
         if (timer.seconds() < 4.0 && collector.runMode == RunMode.AUTO) {
-            angleServo.position = 0.41
+            angleServo.position = 0.4
             headingServo1.position = 0.5
             headingServo2.position = 0.5
         } else {
@@ -270,9 +270,9 @@ fun attachTurret(collector: Collector) {
 
 
         val basketErrHeading =
-            ((if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke() - odometry.linearVelocity.turn(
+            ((if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke() + shootingDif - odometry.linearVelocity.turn(
                 odometry.orientation.angle
-            ) * if (collector.runMode == RunMode.MANUAL) TURRET_CONFIG.LINEAR_VELOCITY_HEADING_COMPENSATE_K else 0.0) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
+            ) * TURRET_CONFIG.LINEAR_VELOCITY_HEADING_COMPENSATE_K) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
                 .turn(odometry.orientation.angle))
 
         turretHeading = if (state != TurretState.CALIBRATE_ODOMETRY) {

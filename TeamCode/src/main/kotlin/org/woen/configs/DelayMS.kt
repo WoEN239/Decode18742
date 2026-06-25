@@ -26,6 +26,8 @@ internal object DelayMS
     internal object SHOOTING
     {
         @JvmField
+        var ADDITIONAL_TOLERANCE_FOR_AUTONOMOUS: Long = 100
+        @JvmField
         var ADDITIONAL_TOLERANCE_FOR_TELEOP: Long = 20
 
 

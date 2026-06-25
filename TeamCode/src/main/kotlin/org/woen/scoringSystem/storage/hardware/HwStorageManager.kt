@@ -23,7 +23,7 @@ class HwSortingManager
     val hwMotors  : HwMotors
     private val _cms: ConnectorModuleStatus
 
-    var targetPushTime: Long = 0
+    var targetBeltTime: Long = 0
     var targetBrushTime: Long = 0
     var lastUpdateTimestampMS: Double = 0.0
     val rotatingBeltsTimer = ElapsedTime()
@@ -43,7 +43,7 @@ class HwSortingManager
     fun update()
     {
         if ((_cms.beltsStatus.isOnTime()) &&
-            rotatingBeltsTimer.milliseconds() > targetPushTime)
+            rotatingBeltsTimer.milliseconds() > targetBeltTime)
         {
             hwMotors.logM.logMd("Stopping belts on time", Debug.LOGIC)
 
@@ -66,12 +66,13 @@ class HwSortingManager
           (_cms.collector.runMode == RunMode.MANUAL && !TELEOP.IGNORE_COLOR_SENSORS)
 
 
+    fun calcUnfinishedShootingTime() = max(0, targetBeltTime - rotatingBeltsTimer.milliseconds().toLong())
     fun isReadyForShootingPhase3()
         =   _cms.beltsStatus.isIdle() || (
             _cms.beltsStatus.isForwardOnTime() &&
             _cms.launchStatus.isClosingOrClosed() &&
             rotatingBeltsTimer.milliseconds() >
-            targetPushTime - (if (_cms.shootingPhase.shotBeltsVoltage
+            targetBeltTime - (if (_cms.shootingPhase.shotBeltsVoltage
                 == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
                      DelayMS.SHOOTING.FAST_LAST_WITH_LAUNCHER
                 else DelayMS.SHOOTING.SLOW_LAST_WITH_LAUNCHER))
@@ -141,13 +142,13 @@ class HwSortingManager
             = startBeltsTime(forward,
                 if (!((forward && _cms.beltsStatus.isForwardOnTime())
                            || (!forward && _cms.beltsStatus.isReverseOnTime()))) timeMs
-                else timeMs + targetPushTime
+                else timeMs + targetBeltTime
                     - rotatingBeltsTimer.milliseconds().toLong(), voltage)
     private fun reinstantiable(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
             = startBeltsTime(forward,
                 if (!((forward && _cms.beltsStatus.isForwardOnTime())
                            || (!forward && _cms.beltsStatus.isReverseOnTime()))) timeMs
-                else max(timeMs, targetPushTime
+                else max(timeMs, targetBeltTime
                     - rotatingBeltsTimer.milliseconds().toLong()), voltage)
 
     fun startBeltsTime(forward: Boolean, timeMs: Long, voltage: Double = 12.0)
@@ -156,7 +157,7 @@ class HwSortingManager
         else hwMotors.reverseBelts(onTime = true, voltage)
         hwMotors.logM.logMd("Rotate belts period: $timeMs", Debug.HW)
         rotatingBeltsTimer.reset()
-        targetPushTime = timeMs
+        targetBeltTime = timeMs
     }
     fun startBrushTime(forward: Boolean, timeMs: Long)
     {

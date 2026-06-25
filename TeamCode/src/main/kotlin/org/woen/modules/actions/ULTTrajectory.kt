@@ -23,7 +23,7 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
             eventBus,
             DriveSegment(
                 Orientation(shootPosition, Angle.ofDeg(45.0 * colorK)),
-                linearVelocityConstrain = 1.3
+                linearVelocityConstrain = 2.0
             )
         ),
         ShootAction(eventBus),
@@ -49,7 +49,8 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
             eventBus,
             DriveSegment(
                 Orientation(shootPosition, Angle.ofDeg(-45.0 * colorK)),
-                linearVelocityConstrain = 1.3
+                linearVelocityConstrain = 2.2,
+                positionWindow = 0.3
             )
         ),
         ShootAction(eventBus),
@@ -57,7 +58,7 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
             eventBus,
             DriveSegment(
                 Orientation(Vec2(0.241, -0.641 * colorK), Angle.ofDeg(-90.0 * colorK)),
-                linearVelocityConstrain = 1.3,
+                linearVelocityConstrain = 2.2,
                 positionWindow = 0.2
             )
         ),
@@ -76,15 +77,16 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
             eventBus,
             DriveSegment(
                 Orientation(Vec2(0.256, -1.354 * colorK), Angle.ofDeg(-90.0 * colorK)),
-                linearVelocityConstrain = 1.3
+                linearVelocityConstrain = 2.2
             )
         ),
-        WaitAction(0.5),
+        WaitAction(0.2),
         DriveAction(
             eventBus,
             DriveSegment(
                 Orientation(shootPosition, Angle.ofDeg(-45.0 * colorK)),
-                linearVelocityConstrain = 1.3
+                linearVelocityConstrain = 2.2,
+                positionWindow = 0.3
             )
         ),
         ShootAction(eventBus),
@@ -100,14 +102,14 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
                                 eventBus,
                                 MoveSegment(
                                     Vec2(0.341, -1.093 * colorK),
-                                    velocityConstrain = 1.9,
+//                                    velocityConstrain = 2.2,
                                     positionWindow = 0.2
                                 )
                             ),
                             StartEatAction(eventBus),
                             DriveAction(
                                 eventBus,
-                                MoveSegment(Vec2(0.331, -1.493 * colorK), velocityConstrain = 1.9)
+                                MoveSegment(Vec2(0.331, -1.493 * colorK), velocityConstrain = 2.2)
                             )
                         ),
                         arrayListOf(
@@ -115,20 +117,20 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
                         )
                     )
                 ),
-                WaitAction(2.25),
+                WaitAction(2.05),
                 DriveAction(
                     eventBus,
                     DriveSegment(
                         Orientation(Vec2(0.216, -1.354 * colorK), Angle.ofDeg(-90.0 * colorK)),
-                        linearVelocityConstrain = 1.9
+                        linearVelocityConstrain = 2.2
                     )
                 ),
-                WaitAction(0.2),
                 DriveAction(
                     eventBus,
                     DriveSegment(
                         Orientation(shootPosition, Angle.ofDeg(-45.0 * colorK)),
-                        linearVelocityConstrain = 1.9
+                        linearVelocityConstrain = 2.2,
+                        positionWindow = 0.3
                     )
                 ),
                 ShootAction(eventBus)
@@ -141,7 +143,6 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
             eventBus,
             MoveSegment(
                 Vec2(shootPosition.x + 0.5, shootPosition.y),
-                velocityConstrain = 1.1,
                 positionWindow = 0.2
             )
         ),

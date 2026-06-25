@@ -273,6 +273,7 @@ class Storage
         {
             val shotCount = calcShotCount()
             val beltPushTime = calcShootingTimeForP2(shotCount)
+            _cms.shootingPhase.additionalShotTimeMS = 0
 
             cells.hwSortingM.extendableForward(beltPushTime,
                 _cms.shootingPhase.shotBeltsVoltage)
@@ -310,7 +311,8 @@ class Storage
         else if (CONTROLS.USE_LAZY_VERSION_OF_STREAM_DRUM) 3
         else cells.anyBallCount()
     private fun calcShootingTimeForP2(shotCount: Int)
-        = ( if (_cms.collector.runMode == RunMode.AUTO) 100
+        = ( if (_cms.collector.runMode == RunMode.AUTO)
+                 DelayMS.SHOOTING.ADDITIONAL_TOLERANCE_FOR_AUTONOMOUS
             else DelayMS.SHOOTING.ADDITIONAL_TOLERANCE_FOR_TELEOP
         ) + (
             if (_cms.shootingPhase.shotBeltsVoltage == Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING)
@@ -325,7 +327,7 @@ class Storage
                     2 -> DelayMS.SHOOTING.SLOW_2
                     1 -> DelayMS.SHOOTING.SLOW_1
                     else -> DelayMS.SHOOTING.SLOW_LAST_WITH_LAUNCHER
-            }   )
+            }   ) + _cms.shootingPhase.additionalShotTimeMS
 
 
     fun finishCalibration()

@@ -132,7 +132,7 @@ class ShootAction(private val _eventBus: EventBus) : IAction {
     }
 
     override fun update() {
-        if(timer.seconds() > 0.1 && !isShoot) {
+        if(timer.seconds() > 0.05 && !isShoot) {
             _eventBus.invoke(SMC_TryStartShootingEvent())
             isShoot = true
         }

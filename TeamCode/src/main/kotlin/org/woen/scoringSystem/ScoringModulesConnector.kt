@@ -712,6 +712,7 @@ class ScoringModulesConnector
         if (canStart)
         {
             _cms.shootingPhase.shotBeltsVoltage = shotVoltage
+            _cms.shootingPhase.additionalShotTimeMS = _storage.cells.hwSortingM.calcUnfinishedShootingTime()
             logM.logMd(_storage.tryStartStreamDrum(laterGamepadHold).toString(), Debug.START)
         }
         else logStartingError("Gamepad/ExtEvent Shooting")
