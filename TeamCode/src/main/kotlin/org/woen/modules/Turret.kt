@@ -68,13 +68,13 @@ internal object TURRET_CONFIG {
     var LINEAR_VELOCITY_HEADING_COMPENSATE_K = 0.45
 
     @JvmField
-    var ANGULAR_VELOCITY_HEADING_COMPENSATE_K = 0.0
+    var ANGULAR_VELOCITY_HEADING_COMPENSATE_K = 0.05
 
     @JvmField
     var CLOSE_PULLEY_VELOCITY = 10.5
 
     @JvmField
-    var CLOSE_ANGLE_POSITION = 0.38
+    var CLOSE_ANGLE_POSITION = 0.385
 
     @JvmField
     var SHORT_FAR_PULLEY_VELOCITY = 13.0
@@ -253,20 +253,18 @@ fun attachTurret(collector: Collector) {
 
         if (timer.seconds() < 4.0 && collector.runMode == RunMode.AUTO) {
             angleServo.position = 0.4
-            headingServo1.position = 0.5
-            headingServo2.position = 0.5
         } else {
             angleServo.position = clamp(
                 anglePosition,
                 TURRET_CONFIG.MIN_ANGLE_SERVO,
                 TURRET_CONFIG.MAX_ANGLE_SERVO
             )
-
-            headingServo1.position = (clamp(
-                turretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING
-            ) + TURRET_CONFIG.ZERO_HEADING_POS.angle) / TURRET_CONFIG.HEADING_SERVO_RATIO / TURRET_CONFIG.HEADING_SERVO_MAX_ANGLE
-            headingServo2.position = headingServo1.position
         }
+
+        headingServo1.position = (clamp(
+            turretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING
+        ) + TURRET_CONFIG.ZERO_HEADING_POS.angle) / TURRET_CONFIG.HEADING_SERVO_RATIO / TURRET_CONFIG.HEADING_SERVO_MAX_ANGLE
+        headingServo2.position = headingServo1.position
 
 
         val basketErrHeading =
