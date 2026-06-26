@@ -22,6 +22,8 @@ fun attachLimelight(collector: Collector) {
 
     ll.start()
 
+    ll.pipelineSwitch(0)
+
     var isPatternDetected = false
     var pattern: Array<BallColor> = arrayOf()
     var patternReq: Array<BallRequest> = arrayOf()
@@ -38,8 +40,6 @@ fun attachLimelight(collector: Collector) {
     }
 
     collector.updateEvent += {
-        ll.pipelineSwitch(0)
-
         val result = ll.latestResult
 
         if (result.isValid) {
@@ -71,19 +71,19 @@ fun attachLimelight(collector: Collector) {
                         OnPatternDetectedEvent(patternReq))
             }
 
-            val position = result.botpose.position
-            val rotation = Angle(
-                result.botpose.orientation.getYaw(
-                    AngleUnit.RADIANS
-            )   )
-
-            collector.eventBus.invoke(
-                OnCameraUpdateEvent(
-                    Orientation(Vec2(position.x, position.y), rotation)
-            )   )
+//            val position = result.botpose.position
+//            val rotation = Angle(
+//                result.botpose.orientation.getYaw(
+//                    AngleUnit.RADIANS
+//            )   )
+//
+//            collector.eventBus.invoke(
+//                OnCameraUpdateEvent(
+//                    Orientation(Vec2(position.x, position.y), rotation)
+//            )   )
         }
 
-        ll.pipelineSwitch(1)
+//        ll.pipelineSwitch(1)
 
         if(isPatternDetected)
             telemetry.addLine("pattern: " + pattern[0] + " " + pattern[1] + " " + pattern[2])

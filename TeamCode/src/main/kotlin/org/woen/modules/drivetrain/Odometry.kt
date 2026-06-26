@@ -38,6 +38,9 @@ internal object ODOMETRY_CONFIG {
 
     @JvmField
     var SHOOT_LONG_TRIANGLE = Triangle(Vec2(1.83, 0.61), Vec2(1.22, 0.0), Vec2(1.83, -0.61))
+
+    @JvmField
+    var GYRO_UPDATE_HZ = 10.0
 }
 
 class GetRobotOdometry(
@@ -59,6 +62,8 @@ fun attachOdometry(collector: Collector) {
     val imu = collector.hardwareMap.get("imu") as IMU
 
     imu.initialize(IMU.Parameters(RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)))
+
+    var imuDif = zeroingOrientation.angle
 
     pinpoint.setOffsets(
         ODOMETRY_CONFIG.X_ODOMETER_POSITION, ODOMETRY_CONFIG.Y_ODOMETER_POSITION,
@@ -103,6 +108,9 @@ fun attachOdometry(collector: Collector) {
                 AngleUnit.RADIANS,
                 orient.angle
             )
+
+        imu.resetYaw()
+        imuDif = orient.angle
     })))
 
     collector.eventBus.subscribe(GetRobotOdometry::class) {
@@ -118,12 +126,12 @@ fun attachOdometry(collector: Collector) {
 
         val pinpointOrientation = pinpoint.position
 
-//        if(gyroGetTimer.seconds() > 1.0 / 10.0){
-//            pinpoint.position = Pose2D(DistanceUnit.METER, pinpointOrientation.getX(DistanceUnit.METER), pinpointOrientation.getY(DistanceUnit.METER),
-//                AngleUnit.RADIANS, imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS))
-//
-//            gyroGetTimer.reset()
-//        }
+        if(gyroGetTimer.seconds() > 1.0 / ODOMETRY_CONFIG.GYRO_UPDATE_HZ){
+            pinpoint.position = Pose2D(DistanceUnit.METER, pinpointOrientation.getX(DistanceUnit.METER), pinpointOrientation.getY(DistanceUnit.METER),
+                AngleUnit.RADIANS, (Angle(imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)) - Angle(imuDif)).angle)
+
+            gyroGetTimer.reset()
+        }
 
         orientation = Orientation(
             Vec2(

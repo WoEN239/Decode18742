@@ -51,10 +51,11 @@ class Collector {
             i.bulkCachingMode = LynxModule.BulkCachingMode.AUTO
 
 
-        startEvent += {
-            eventBus.invoke(OnPatternDetectedEvent(
-                StockPattern.Request.GPP))
-        }
+//        startEvent += {
+//            eventBus.invoke(OnPatternDetectedEvent(
+//                StockPattern.Request.GPP))
+//        }
+
         stopEvent += {
             for (i in opMode.hardwareMap.servoController) i.pwmDisable()
         }
