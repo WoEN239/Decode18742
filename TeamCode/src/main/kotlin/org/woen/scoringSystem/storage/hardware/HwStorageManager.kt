@@ -84,6 +84,7 @@ class HwSortingManager
                 {
                     hwMotors.stopBelts()
                     lastUpdateTimestampMS = curMS
+                    hwMotors.logM.logMd("Delay between: STOPPED", Debug.LOGIC)
                 }
                 else if ( _cms.beltsStatus.isIdle() && shotFiredTime > DelayMS.SHOOTING.BETWEEN_SHOTS)
                 {
@@ -91,6 +92,8 @@ class HwSortingManager
                         timeMs  = targetBeltTime - DelayMS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED,
                         voltage = Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING)
                     lastUpdateTimestampMS = curMS
+                    _cms.shootingPhase.waitedBetweenShotsCount++
+                    hwMotors.logM.logMd("Delay between: STARTED", Debug.LOGIC)
                 }
             }
         }
