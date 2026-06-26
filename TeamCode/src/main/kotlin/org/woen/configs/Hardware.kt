@@ -114,7 +114,7 @@ internal object Hardware
         @JvmField
         var LAUNCH_OPEN = 0.6
         @JvmField
-        var LAUNCH_CLOSE = 0.955
+        var LAUNCH_CLOSE = 0.94
 
 
         @JvmField

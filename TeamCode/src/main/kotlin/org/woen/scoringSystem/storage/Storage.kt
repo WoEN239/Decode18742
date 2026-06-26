@@ -291,13 +291,13 @@ class Storage
     }
     fun streamDrumP3()
     {
-        cells.hwSortingM.hwMotors.logM.logMd("StreamDrum P3, opening launch", Debug.LOGIC)
-        _cms.canTriggerIntake = false
-        _cms.shootingPhase.startP3()
-
+        cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
         cells.hwSortingM.hwMotors.reverseBrush(onTime = false)
         cells.hwSortingM.hwMotors.openLaunch()
-        cells.hwSortingM.hwMotors.forwardBelts(onTime = false)
+
+        _cms.shootingPhase.startP3()
+        cells.hwSortingM.hwMotors.logM.logMd("StreamDrum P3, opening launch", Debug.LOGIC)
+        _cms.canTriggerIntake = false
     }
     fun streamDrumCalibrationP4P5()
     {
