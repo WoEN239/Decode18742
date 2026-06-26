@@ -20,7 +20,7 @@ import org.woen.enumerators.phases.ShootingPhase
 
 class HwSortingManager
 {
-    private val _hwSensors  : HwSensors
+//    private val _hwSensors  : HwSensors
     val hwMotors  : HwMotors
     private val _cms: ConnectorModuleStatus
 
@@ -36,7 +36,7 @@ class HwSortingManager
     {
         _cms = cms
         hwMotors   = HwMotors(cms)
-        _hwSensors = HwSensors(cms)
+//        _hwSensors = HwSensors(cms)
     }
 
 
@@ -61,7 +61,9 @@ class HwSortingManager
 
         hwMotors.updateServos()
     }
-    fun tryFastUpdateColors() { if (canUpdateColors()) _hwSensors.update() }
+    fun tryFastUpdateColors() {
+//        if (canUpdateColors()) _hwSensors.update()
+    }
     fun canUpdateColors()
         = (_cms.collector.runMode == RunMode.AUTO   && !AUTONOMOUS.IGNORE_COLOR_SENSORS) ||
           (_cms.collector.runMode == RunMode.MANUAL && !TELEOP.IGNORE_COLOR_SENSORS)
@@ -69,28 +71,31 @@ class HwSortingManager
 
     fun tryDelayBetweenShots()
     {
+        val curMS = rotatingBeltsTimer.milliseconds()
         if (CONTROLS.WAIT_BETWEEN_SHOTS_WHEN_SLOW_SHOOTING &&
-            _cms.shootingPhase.shotBeltsVoltage == Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING)
+            _cms.shootingPhase.shotBeltsVoltage == Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING
+            && curMS < targetBeltTime)
         {
-            val shotFiredTime = rotatingBeltsTimer.milliseconds() -
-                    lastUpdateTimestampMS - DelayMS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED
+            val shotFiredTime = curMS - lastUpdateTimestampMS
 
-            if (shotFiredTime > 0 && !_cms.beltsStatus.isIdle())
+            if (shotFiredTime > DelayMS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED && !_cms.beltsStatus.isIdle())
             {
-                targetBeltTime += DelayMS.SHOOTING.BETWEEN_SHOTS
                 hwMotors.stopBelts()
+                lastUpdateTimestampMS = curMS
             }
             else if (shotFiredTime > DelayMS.SHOOTING.BETWEEN_SHOTS && _cms.beltsStatus.isIdle())
             {
-                startBeltsTime(forward = true, targetBeltTime,
+                startBeltsTime(forward = true, targetBeltTime - curMS.toLong(),
                     Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING)
-                lastUpdateTimestampMS = rotatingBeltsTimer.milliseconds()
+                lastUpdateTimestampMS = curMS
             }
         }
     }
     fun calcUnfinishedShootingTime() = max(0, targetBeltTime - rotatingBeltsTimer.milliseconds().toLong())
     fun isReadyForShootingPhase3()
-        =   _cms.beltsStatus.isIdle() || (
+        =  (_cms.beltsStatus.isIdle() &&
+            rotatingBeltsTimer.milliseconds() > targetBeltTime
+            ) || (
             _cms.beltsStatus.isForwardOnTime() &&
             _cms.launchStatus.isClosingOrClosed() &&
             rotatingBeltsTimer.milliseconds() >
@@ -103,7 +108,7 @@ class HwSortingManager
         {
             ShootingPhase.Name.P2_SHOOT_BELTS_ON_TIME,
             ShootingPhase.Name.P2_SHOOT_BELTS_ON_GAMEPAD_HOLD
-                 -> _cms.beltsStatus.isIdle()
+                 -> _cms.beltsStatus.isIdle() && rotatingBeltsTimer.milliseconds() > targetBeltTime
             ShootingPhase.Name.P2_SHOOT_UNTIL_EMPTY_USING_COLORS
                  -> _cms.colorResults.isEmptyBySensors()
             ShootingPhase.Name.P3_OPENING_LAUNCHER

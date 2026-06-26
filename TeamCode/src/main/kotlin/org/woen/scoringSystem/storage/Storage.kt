@@ -238,7 +238,9 @@ class Storage
     }
     private fun streamDrumP1(laterGamepadHold: Boolean = false, ballCount: Int = 0): RequestResult
     {
-        cells.hwSortingM.hwMotors.forwardBelts(onTime = false, _cms.shootingPhase.shotBeltsVoltage)
+        if (_cms.shootingPhase.shotBeltsVoltage != Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING)
+            cells.hwSortingM.hwMotors.forwardBelts(onTime = false, _cms.shootingPhase.shotBeltsVoltage)
+
         cells.hwSortingM.hwMotors.openTurretGate()
         cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
 
@@ -274,6 +276,7 @@ class Storage
             val shotCount = calcShotCount()
             val beltPushTime = calcShootingTimeForP2(shotCount)
             _cms.shootingPhase.additionalShotTimeMS = 0
+            cells.hwSortingM.lastUpdateTimestampMS = 0.0
 
             cells.hwSortingM.extendableForward(beltPushTime,
                 _cms.shootingPhase.shotBeltsVoltage)
