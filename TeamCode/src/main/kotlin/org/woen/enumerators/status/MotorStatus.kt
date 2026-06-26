@@ -14,7 +14,7 @@ import org.woen.configs.Hardware
 class MotorStatus
 {
     private var _name : Name
-     var _accelerationPhase: Double = 0.0  // 0 = stop, Positive = Forward, Negative = Backward
+    private var _accelerationPhase: Double = 0.0  // 0 = stop, Positive = Forward, Negative = Backward
     var motorSpeed: Double = 0.0
 
 

@@ -235,12 +235,13 @@ class Storage
         _cms.shootingPhase.ballCountForPhase1 =
             if (ballCount == 1 && cells.isLastBall() &&
                 CONTROLS.USE_LAUNCHER_FOR_LAST_BALL) -1 else ballCount
+
+        _cms.shootingPhase.additionalShotTimeMS    = 0
+        _cms.shootingPhase.waitedBetweenShotsCount = 0
     }
     private fun streamDrumP1(laterGamepadHold: Boolean = false, ballCount: Int = 0): RequestResult
     {
-        if (_cms.shootingPhase.shotBeltsVoltage != Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING)
-            cells.hwSortingM.hwMotors.forwardBelts(onTime = false, _cms.shootingPhase.shotBeltsVoltage)
-
+        cells.hwSortingM.hwMotors.forwardBelts(onTime = false, _cms.shootingPhase.shotBeltsVoltage)
         cells.hwSortingM.hwMotors.openTurretGate()
         cells.hwSortingM.hwMotors.forwardBrush(onTime = false)
 
@@ -275,8 +276,6 @@ class Storage
         {
             val shotCount = calcShotCount()
             val beltPushTime = calcShootingTimeForP2(shotCount)
-            _cms.shootingPhase.additionalShotTimeMS = 0
-            cells.hwSortingM.lastUpdateTimestampMS = 0.0
 
             cells.hwSortingM.extendableForward(beltPushTime,
                 _cms.shootingPhase.shotBeltsVoltage)

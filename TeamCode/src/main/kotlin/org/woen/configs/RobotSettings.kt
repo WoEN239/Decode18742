@@ -44,6 +44,8 @@ internal object RobotSettings
         @JvmField
         var USE_LAZY_VERSION_OF_STREAM_DRUM = true
         @JvmField
+        var MAX_WAIT_BETWEEN_SHOTS_COUNT = 2
+        @JvmField
         var WAIT_BETWEEN_SHOTS_WHEN_SLOW_SHOOTING = true
 
 //        @JvmField

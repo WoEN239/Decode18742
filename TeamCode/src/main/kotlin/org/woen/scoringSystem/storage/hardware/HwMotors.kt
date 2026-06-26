@@ -95,9 +95,9 @@ class HwMotors
     }
     fun updateMotorsAccelerations()
     {
-        logM.logMd("Hw update motors accelerations: " +
-                "${_cms.beltsStatus._accelerationPhase} = " +
-                "${_cms.beltsStatus.motorSpeedForAcceleration}", Debug.HW_LOW)
+//        logM.logMd("Hw update motors accelerations: " +
+//                "${_cms.beltsStatus._accelerationPhase} = " +
+//                "${_cms.beltsStatus.motorSpeedForAcceleration}", Debug.HW_LOW)
         _beltMotor .power = _cms.beltsStatus.motorSpeedForAcceleration
 //        _brushMotor.power = _cms.brushStatus.motorSpeedForAcceleration
 
@@ -206,7 +206,5 @@ class HwMotors
         _brushMotor.power = 0.0
     }
 
-
-    fun getBeltsCurrent()
-        = _beltMotor.getCurrent(CurrentUnit.AMPS)
+//    fun getBeltsCurrent() = _beltMotor.getCurrent(CurrentUnit.AMPS)
 }

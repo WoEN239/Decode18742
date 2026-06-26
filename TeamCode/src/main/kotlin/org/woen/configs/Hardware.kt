@@ -1,3 +1,4 @@
+@file:Suppress("ClassName")
 package org.woen.configs
 
 
@@ -146,7 +147,7 @@ internal object Hardware
         @JvmField
         var BELTS_FOR_FAST_SHOOTING = 12.0
         @JvmField
-        var BELTS_FOR_SLOW_SHOOTING = 8.9
+        var BELTS_FOR_SLOW_SHOOTING = 10.5
 
 
         @JvmField

@@ -71,23 +71,27 @@ class HwSortingManager
 
     fun tryDelayBetweenShots()
     {
-        val curMS = rotatingBeltsTimer.milliseconds()
         if (CONTROLS.WAIT_BETWEEN_SHOTS_WHEN_SLOW_SHOOTING &&
-            _cms.shootingPhase.shotBeltsVoltage == Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING
-            && curMS < targetBeltTime)
+            _cms.shootingPhase.shotBeltsVoltage == Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING &&
+            _cms.shootingPhase.waitedBetweenShotsCount < CONTROLS.MAX_WAIT_BETWEEN_SHOTS_COUNT)
         {
-            val shotFiredTime = curMS - lastUpdateTimestampMS
+            val curMS = rotatingBeltsTimer.milliseconds()
+            if (curMS < targetBeltTime)
+            {
+                val shotFiredTime = curMS - lastUpdateTimestampMS
 
-            if (shotFiredTime > DelayMS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED && !_cms.beltsStatus.isIdle())
-            {
-                hwMotors.stopBelts()
-                lastUpdateTimestampMS = curMS
-            }
-            else if (shotFiredTime > DelayMS.SHOOTING.BETWEEN_SHOTS && _cms.beltsStatus.isIdle())
-            {
-                startBeltsTime(forward = true, targetBeltTime - curMS.toLong(),
-                    Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING)
-                lastUpdateTimestampMS = curMS
+                if (!_cms.beltsStatus.isIdle() && shotFiredTime > DelayMS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED)
+                {
+                    hwMotors.stopBelts()
+                    lastUpdateTimestampMS = curMS
+                }
+                else if ( _cms.beltsStatus.isIdle() && shotFiredTime > DelayMS.SHOOTING.BETWEEN_SHOTS)
+                {
+                    startBeltsTime(forward = true,
+                        timeMs  = targetBeltTime - DelayMS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED,
+                        voltage = Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING)
+                    lastUpdateTimestampMS = curMS
+                }
             }
         }
     }

@@ -11,6 +11,7 @@ class ShootingPhase
     var ballCountForPhase1: Int = 0
     var shotBeltsVoltage: Double = Hardware.MOTOR.BELTS_FOR_FAST_SHOOTING
     var additionalShotTimeMS: Long = 0
+    var waitedBetweenShotsCount = 0
 
 
     constructor(name: Name = Name.NOT_ACTIVE) { _name = name }
@@ -18,7 +19,9 @@ class ShootingPhase
     {
         _name = shootingPhase._name
         ballCountForPhase1 = shootingPhase.ballCountForPhase1
-        shotBeltsVoltage = shootingPhase.shotBeltsVoltage
+        shotBeltsVoltage   = shootingPhase.shotBeltsVoltage
+        additionalShotTimeMS    = shootingPhase.additionalShotTimeMS
+        waitedBetweenShotsCount = shootingPhase.waitedBetweenShotsCount
     }
 
 
