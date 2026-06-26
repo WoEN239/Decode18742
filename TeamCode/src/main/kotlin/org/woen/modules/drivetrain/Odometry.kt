@@ -2,6 +2,9 @@ package org.woen.modules.drivetrain
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
+import com.qualcomm.robotcore.hardware.IMU
+import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D
@@ -53,6 +56,10 @@ fun attachOdometry(collector: Collector) {
 
     val zeroingOrientation = Orientation(Vec2(0.37 / 2.0 + 0.01, (0.615 + 0.39 / 2.0)), Angle.ofDeg(0.0))
 
+    val imu = collector.hardwareMap.get("imu") as IMU
+
+    imu.initialize(IMU.Parameters(RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)))
+
     pinpoint.setOffsets(
         ODOMETRY_CONFIG.X_ODOMETER_POSITION, ODOMETRY_CONFIG.Y_ODOMETER_POSITION,
         DistanceUnit.METER
@@ -64,9 +71,13 @@ fun attachOdometry(collector: Collector) {
         GoBildaPinpointDriver.EncoderDirection.FORWARD
     )
 
+    pinpoint.setBulkReadScope(GoBildaPinpointDriver.Register.X_POSITION, GoBildaPinpointDriver.Register.Y_POSITION, GoBildaPinpointDriver.Register.X_VELOCITY, GoBildaPinpointDriver.Register.Y_VELOCITY,
+        GoBildaPinpointDriver.Register.H_ORIENTATION,
+        GoBildaPinpointDriver.Register.H_VELOCITY)
+
     if (collector.runMode == RunMode.AUTO) {
-        pinpoint.recalibrateIMU()
         pinpoint.resetPosAndIMU()
+        imu.resetYaw()
     }
 
     var orientation = zeroingOrientation
@@ -77,6 +88,8 @@ fun attachOdometry(collector: Collector) {
     var locateInShootingArea = false
     var oldLocateInShootingArea = false
     var longLocate = false
+
+    val gyroGetTimer = ElapsedTime()
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.dpad_down }, {
         val orient =
@@ -104,6 +117,13 @@ fun attachOdometry(collector: Collector) {
         pinpoint.update()
 
         val pinpointOrientation = pinpoint.position
+
+//        if(gyroGetTimer.seconds() > 1.0 / 10.0){
+//            pinpoint.position = Pose2D(DistanceUnit.METER, pinpointOrientation.getX(DistanceUnit.METER), pinpointOrientation.getY(DistanceUnit.METER),
+//                AngleUnit.RADIANS, imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS))
+//
+//            gyroGetTimer.reset()
+//        }
 
         orientation = Orientation(
             Vec2(

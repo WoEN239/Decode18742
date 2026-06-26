@@ -13,7 +13,6 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import org.woen.collector.Collector
 import org.woen.collector.GAME_CONFIGS
 import org.woen.collector.GameColor
-import org.woen.collector.GamePosition
 import org.woen.collector.GameSettings
 import org.woen.collector.RunMode
 import org.woen.modules.drivetrain.GetRobotOdometry
@@ -32,10 +31,10 @@ internal object TURRET_CONFIG {
     var MIN_ANGLE_SERVO = 0.31
 
     @JvmField
-    var MAX_HEADING = toRadians(120.0)
+    var MAX_HEADING = toRadians(130.0)
 
     @JvmField
-    var MIN_HEADING = toRadians(-120.0)
+    var MIN_HEADING = toRadians(-130.0)
 
     @JvmField
     var HEADING_SERVO_MAX_ANGLE = PI * 1.5
@@ -62,28 +61,28 @@ internal object TURRET_CONFIG {
     var PULLEY_RATION = 38.0 / 33.0
 
     @JvmField
-    var VELOCITY_PULLEY_COMPENSATE_K = 1.1
+    var VELOCITY_PULLEY_COMPENSATE_K = 1.9
 
     @JvmField
     var LINEAR_VELOCITY_HEADING_COMPENSATE_K = 0.45
 
     @JvmField
-    var ANGULAR_VELOCITY_HEADING_COMPENSATE_K = 0.05
+    var ANGULAR_VELOCITY_HEADING_COMPENSATE_K = 0.0
 
     @JvmField
-    var CLOSE_PULLEY_VELOCITY = 10.5
+    var CLOSE_PULLEY_VELOCITY = 10.7
 
     @JvmField
-    var CLOSE_ANGLE_POSITION = 0.385
+    var CLOSE_ANGLE_POSITION = 0.32
 
     @JvmField
-    var SHORT_FAR_PULLEY_VELOCITY = 13.0
+    var SHORT_FAR_PULLEY_VELOCITY = 14.5
 
     @JvmField
-    var SHORT_FAR_ANGLE_POSITION = 0.42
+    var SHORT_FAR_ANGLE_POSITION = 0.41
 
     @JvmField
-    var SHORT_FAR_DISTANCE = 2.58
+    var SHORT_FAR_DISTANCE = 2.7
 
     @JvmField
     var CLOSE_DISTANCE = 1.1
@@ -101,16 +100,19 @@ internal object TURRET_CONFIG {
     var FAR_DISTANCE = 3.7
 
     @JvmField
-    var LONG_CLOSE_PULLEY_VELOCITY = 14.0
+    var LONG_CLOSE_PULLEY_VELOCITY = 15.0
 
     @JvmField
-    var FAR_PULLEY_VELOCITY = 16.5
+    var FAR_PULLEY_VELOCITY = 17.4
 
     @JvmField
     var LONG_CLOSE_ANGLE_POSITION = 0.43
 
     @JvmField
     var FAR_ANGLE_POSITION = 0.47
+
+    @JvmField
+    var TURRET_ROTATE_P = 0.5
 }
 
 enum class TurretState {
@@ -121,8 +123,8 @@ enum class TurretState {
 
 data class SetTurretStateEvent(val state: TurretState)
 data class GetTurretStateEvent(var state: TurretState = TurretState.TO_BASKET)
-data class GetTurretHeadingEvent(var heading: Angle = Angle.ZERO)
-data class GetTurretHeadingIsNormalEvent(var normal: Boolean = false)
+data class GettargetTurretHeadingEvent(var heading: Angle = Angle.ZERO)
+data class GettargetTurretHeadingIsNormalEvent(var normal: Boolean = false)
 
 fun attachTurret(collector: Collector) {
     val angleServo = collector.hardwareMap.get("angleServo") as Servo
@@ -138,11 +140,16 @@ fun attachTurret(collector: Collector) {
     pulleyMotor.mode = DcMotor.RunMode.RUN_USING_ENCODER
 
     var state = TurretState.TO_BASKET
+    
+    var headingVelocity = 0.0
+    var turretHeading = 0.0
+
+    val deltaTime = ElapsedTime()
 
     headingServo1.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
     headingServo2.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
 
-    var turretHeading = 0.0
+    var targetTurretHeading = 0.0
     val timer = ElapsedTime()
 
     collector.eventBus.subscribe(GetTurretStateEvent::class) {
@@ -153,13 +160,13 @@ fun attachTurret(collector: Collector) {
         state = it.state
     }
 
-    collector.eventBus.subscribe(GetTurretHeadingEvent::class) {
+    collector.eventBus.subscribe(GettargetTurretHeadingEvent::class) {
         it.heading =
-            Angle(clamp(turretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING))
+            Angle(clamp(targetTurretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING))
     }
 
-    collector.eventBus.subscribe(GetTurretHeadingIsNormalEvent::class) {
-        it.normal = turretHeading in TURRET_CONFIG.MIN_HEADING..TURRET_CONFIG.MAX_HEADING
+    collector.eventBus.subscribe(GettargetTurretHeadingIsNormalEvent::class) {
+        it.normal = targetTurretHeading in TURRET_CONFIG.MIN_HEADING..TURRET_CONFIG.MAX_HEADING
     }
 
     collector.eventBus.invoke(AddGamepad2ListenerEvent(ClickGamepadListener({ it.dpad_down }, {
@@ -192,6 +199,7 @@ fun attachTurret(collector: Collector) {
 
     collector.startEvent += {
         timer.reset()
+        deltaTime.reset()
     }
 
     collector.updateEvent += {
@@ -252,7 +260,7 @@ fun attachTurret(collector: Collector) {
             targetPulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION / TURRET_CONFIG.PULLEY_RATION
 
         if (timer.seconds() < 4.0 && collector.runMode == RunMode.AUTO) {
-            angleServo.position = 0.4
+            angleServo.position = 0.42
         } else {
             angleServo.position = clamp(
                 anglePosition,
@@ -260,6 +268,12 @@ fun attachTurret(collector: Collector) {
                 TURRET_CONFIG.MAX_ANGLE_SERVO
             )
         }
+
+        headingVelocity = (targetTurretHeading - turretHeading) * TURRET_CONFIG.TURRET_ROTATE_P
+
+        turretHeading += headingVelocity * deltaTime.seconds()
+
+        deltaTime.reset()
 
         headingServo1.position = (clamp(
             turretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING
@@ -273,7 +287,7 @@ fun attachTurret(collector: Collector) {
             ) * TURRET_CONFIG.LINEAR_VELOCITY_HEADING_COMPENSATE_K) - (odometry.orientation.pos + TURRET_CONFIG.TURRET_CENTER_POS
                 .turn(odometry.orientation.angle))
 
-        turretHeading = if (state != TurretState.CALIBRATE_ODOMETRY) {
+        targetTurretHeading = if (state != TurretState.CALIBRATE_ODOMETRY) {
             (when (state) {
                 TurretState.TO_OBELISK -> Angle(
                     ((if (GameSettings.startOrientation.gameColor == GameColor.RED) GAME_CONFIGS.RED_OBELISK_POSITION else GAME_CONFIGS.BLUE_OBELISK_POSITION) - (odometry.orientation.pos +

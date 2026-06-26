@@ -24,7 +24,7 @@ internal object GAME_CONFIGS {
         Orientation(Vec2(0.01 + 1.35 + 0.38 / 2.0, -0.225 - 0.38 / 2.0 - 0.01), Angle.ofDeg(0.0))
 
     @JvmField
-    var BLUE_BASKET_POSITION = Vec2(-1.6, -1.7)
+    var BLUE_BASKET_POSITION = Vec2(-1.7, -1.65)
 
     @JvmField
     var RED_BASKET_POSITION = Vec2(-1.7, 1.65)

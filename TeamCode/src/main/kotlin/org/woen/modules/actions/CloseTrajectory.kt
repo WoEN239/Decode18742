@@ -5,6 +5,7 @@ import org.woen.collector.GameColor
 import org.woen.collector.GameSettings
 import org.woen.enumerators.StockPattern
 import org.woen.modules.BallColor
+import org.woen.modules.TurretState
 import org.woen.modules.drivetrain.DriveSegment
 import org.woen.modules.drivetrain.MoveSegment
 import org.woen.modules.drivetrain.TurnSegment
@@ -29,6 +30,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
             )
         ),
         ShootAction(eventBus),
+        TurretStateSwapAction(eventBus, TurretState.TO_OBELISK),
         DriveAction(
             eventBus,
             DriveSegment(
@@ -59,6 +61,7 @@ fun closeTrajectory(collector: Collector): Array<IAction> {
                         ),
                         MoveSegment(Vec2(-0.1, -1.402 * colorK), velocityConstrain = 1.1)
                     ),
+                    TurretStateSwapAction(eventBus, TurretState.TO_BASKET),
                     WaitAction(2.0),
                     DriveAction(
                         eventBus,
