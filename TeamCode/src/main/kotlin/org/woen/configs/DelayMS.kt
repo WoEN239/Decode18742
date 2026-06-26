@@ -46,19 +46,19 @@ internal object DelayMS
 
 
         @JvmField
-        var SLOW_3: Long = 300
+        var SLOW_3: Long = 240
 
         @JvmField
-        var SLOW_2: Long = 200
+        var SLOW_2: Long = 160
 
         @JvmField
-        var SLOW_1: Long = 100
+        var SLOW_1: Long = 80
 
 
         @JvmField
         var SLOW_CONSIDER_SHOT_FIRED: Long = 80
         @JvmField
-        var BETWEEN_SHOTS: Long = 800
+        var BETWEEN_SHOTS: Long = 100
 
         @JvmField
         var SLOW_LAST_WITH_LAUNCHER: Long = 50

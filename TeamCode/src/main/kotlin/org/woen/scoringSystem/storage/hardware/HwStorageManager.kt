@@ -84,16 +84,17 @@ class HwSortingManager
                 {
                     hwMotors.stopBelts()
                     lastUpdateTimestampMS = curMS
-                    hwMotors.logM.logMd("Delay between: STOPPED", Debug.LOGIC)
+//                    hwMotors.logM.logMd("Delay between: STOPPED", Debug.LOGIC)
+                    targetBeltTime += DelayMS.SHOOTING.BETWEEN_SHOTS
                 }
                 else if ( _cms.beltsStatus.isIdle() && shotFiredTime > DelayMS.SHOOTING.BETWEEN_SHOTS)
                 {
                     startBeltsTime(forward = true,
-                        timeMs  = targetBeltTime - DelayMS.SHOOTING.SLOW_CONSIDER_SHOT_FIRED,
+                        timeMs  = targetBeltTime - curMS.toLong(),
                         voltage = Hardware.MOTOR.BELTS_FOR_SLOW_SHOOTING)
                     lastUpdateTimestampMS = curMS
                     _cms.shootingPhase.waitedBetweenShotsCount++
-                    hwMotors.logM.logMd("Delay between: STARTED", Debug.LOGIC)
+//                    hwMotors.logM.logMd("Delay between: STARTED", Debug.LOGIC)
                 }
             }
         }
