@@ -13,36 +13,56 @@ internal object Hardware
     @Config
     internal object SENSORS
     {
-        @JvmField
-        var MAXIMUM_READING = (65535.coerceAtMost(
+        val MAXIMUM_READING = (65535.coerceAtMost(
             1024 * (256 - max(
                 0,
                 256 - ceil((24 / 2.4f).toDouble()).toInt()
         )   )   )   ).toDouble()
 
         @JvmField
-        var GREEN_THRESHOLD_RIGHT = 80.0
+        var GREEN_THRESHOLD_BOTTOM = 80.0
+        @JvmField
+        var GREEN_THRESHOLD_CENTER = 80.0
+        @JvmField
+        var GREEN_THRESHOLD_TURRET = 80.0
+
 
         @JvmField
-        var GREEN_THRESHOLD_LEFT = 80.0
+        var MIN_PURPLE_H_BOTTOM = 2.8
+        @JvmField
+        var MIN_PURPLE_H_CENTER = 2.8
+        @JvmField
+        var MIN_PURPLE_H_TURRET = 2.8
+
 
         @JvmField
-        var MIN_PURPLE_H_RIGHT = 2.8
+        var MAX_PURPLE_H_BOTTOM = 4.0
+        @JvmField
+        var MAX_PURPLE_H_CENTER = 4.0
+        @JvmField
+        var MAX_PURPLE_H_TURRET = 4.0
+
 
         @JvmField
-        var MAX_PURPLE_H_RIGHT = 4.0
+        var UNKNOWN_MIN_R_BOTTOM = 100
+        @JvmField
+        var UNKNOWN_MIN_G_BOTTOM = 100
+        @JvmField
+        var UNKNOWN_MIN_B_BOTTOM = 100
 
         @JvmField
-        var MIN_PURPLE_H_LEFT = 2.8
+        var UNKNOWN_MIN_R_CENTER = 100
+        @JvmField
+        var UNKNOWN_MIN_G_CENTER = 100
+        @JvmField
+        var UNKNOWN_MIN_B_CENTER = 100
 
         @JvmField
-        var MAX_PURPLE_H_LEFT = 4.0
-
+        var UNKNOWN_MIN_R_TURRET = 100
         @JvmField
-        var DOUBLE_DETECT_TIMER = 0.5
-
+        var UNKNOWN_MIN_G_TURRET = 100
         @JvmField
-        var DOUBLE_DETECT_COUNT_MAX = 2
+        var UNKNOWN_MIN_B_TURRET = 100
     }
 
     @Config
