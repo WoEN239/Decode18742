@@ -16,11 +16,14 @@ import org.woen.collector.GameColor
 import org.woen.collector.GameSettings
 import org.woen.collector.RunMode
 import org.woen.modules.drivetrain.GetRobotOdometry
+import org.woen.modules.drivetrain.ResetOdometryEvent
 import org.woen.utils.units.Angle
 import org.woen.utils.units.Color
 import org.woen.utils.units.Vec2
 import java.lang.Math.toRadians
 import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.sign
 
 @Config
 internal object TURRET_CONFIG {
@@ -55,7 +58,7 @@ internal object TURRET_CONFIG {
     var PULLEY_TICKS_REVOLUTION = 28.0
 
     @JvmField
-    var PULLEY_REGULATOR = PIDFCoefficients(35.0, 0.0, 0.0, 16.0)
+    var PULLEY_REGULATOR = PIDFCoefficients(40.0, 0.0, 0.0, 16.0)
 
     @JvmField
     var PULLEY_RATION = 38.0 / 33.0
@@ -73,16 +76,16 @@ internal object TURRET_CONFIG {
     var CLOSE_PULLEY_VELOCITY = 10.7
 
     @JvmField
-    var CLOSE_ANGLE_POSITION = 0.32
+    var CLOSE_ANGLE_POSITION = 0.35
 
     @JvmField
-    var SHORT_FAR_PULLEY_VELOCITY = 14.5
+    var SHORT_FAR_PULLEY_VELOCITY = 13.7
 
     @JvmField
-    var SHORT_FAR_ANGLE_POSITION = 0.41
+    var SHORT_FAR_ANGLE_POSITION = 0.47
 
     @JvmField
-    var SHORT_FAR_DISTANCE = 2.7
+    var SHORT_FAR_DISTANCE = 2.58
 
     @JvmField
     var CLOSE_DISTANCE = 1.1
@@ -97,13 +100,13 @@ internal object TURRET_CONFIG {
     var LONG_CLOSE_DISTANCE = 3.0
 
     @JvmField
-    var FAR_DISTANCE = 3.7
+    var FAR_DISTANCE = 3.9
 
     @JvmField
-    var LONG_CLOSE_PULLEY_VELOCITY = 15.0
+    var LONG_CLOSE_PULLEY_VELOCITY = 13.5
 
     @JvmField
-    var FAR_PULLEY_VELOCITY = 17.4
+    var FAR_PULLEY_VELOCITY = 17.0
 
     @JvmField
     var LONG_CLOSE_ANGLE_POSITION = 0.43
@@ -112,7 +115,10 @@ internal object TURRET_CONFIG {
     var FAR_ANGLE_POSITION = 0.47
 
     @JvmField
-    var TURRET_ROTATE_P = 0.5
+    var TURRET_ROTATE_VELOCITY = 0.5
+    
+    @JvmField
+    var PULLEY_DIF_SENS = 1.0
 }
 
 enum class TurretState {
@@ -133,6 +139,7 @@ fun attachTurret(collector: Collector) {
     val headingServo2 = collector.hardwareMap.get("turretRotateServo2") as ServoImplEx
 
     var shootingDif = Vec2.ZERO
+    var pulleyDif = 0.0
 
     pulleyMotor.direction = DcMotorSimple.Direction.REVERSE
 
@@ -141,20 +148,21 @@ fun attachTurret(collector: Collector) {
 
     var state = TurretState.TO_BASKET
     
-    var headingVelocity = 0.0
-    var turretHeading = 0.0
-
-    val deltaTime = ElapsedTime()
-
     headingServo1.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
     headingServo2.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
 
     var targetTurretHeading = 0.0
     val timer = ElapsedTime()
+    val deltaTime = ElapsedTime()
 
     collector.eventBus.subscribe(GetTurretStateEvent::class) {
         it.state = state
     }
+    
+    collector.eventBus.subscribe(ResetOdometryEvent::class, {
+        shootingDif = Vec2.ZERO
+        pulleyDif = 0.0
+    })
 
     collector.eventBus.subscribe(SetTurretStateEvent::class) {
         state = it.state
@@ -220,66 +228,65 @@ fun attachTurret(collector: Collector) {
         val targetPulleyVelocity: Double
         val anglePosition: Double
 
-//        if (odometry.orientation.x < 0.5) {
-//            l = clamp(l, TURRET_CONFIG.CLOSE_DISTANCE, TURRET_CONFIG.SHORT_FAR_DISTANCE)
-//
-//            targetPulleyVelocity = (TURRET_CONFIG.CLOSE_PULLEY_VELOCITY + clamp(
-//                (l - TURRET_CONFIG.CLOSE_DISTANCE) /
-//                        (TURRET_CONFIG.SHORT_FAR_DISTANCE - TURRET_CONFIG.CLOSE_DISTANCE),
-//                0.0,
-//                1.0
-//            ) * (TURRET_CONFIG.SHORT_FAR_PULLEY_VELOCITY - TURRET_CONFIG.CLOSE_PULLEY_VELOCITY))
-//
-//            anglePosition = TURRET_CONFIG.CLOSE_ANGLE_POSITION + clamp(
-//                (l - TURRET_CONFIG.CLOSE_DISTANCE) /
-//                        (TURRET_CONFIG.SHORT_FAR_DISTANCE - TURRET_CONFIG.CLOSE_DISTANCE),
-//                0.0,
-//                1.0
-//            ) * (TURRET_CONFIG.SHORT_FAR_ANGLE_POSITION - TURRET_CONFIG.CLOSE_ANGLE_POSITION)
-//        } else {
-//            l = clamp(l, TURRET_CONFIG.LONG_CLOSE_DISTANCE, TURRET_CONFIG.FAR_DISTANCE)
-//
-//            targetPulleyVelocity = (TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY + clamp(
-//                (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
-//                        (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
-//                0.0,
-//                1.0
-//            ) * (TURRET_CONFIG.FAR_PULLEY_VELOCITY - TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY))
-//
-//            anglePosition = TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION + clamp(
-//                (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
-//                        (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
-//                0.0,
-//                1.0
-//            ) * (TURRET_CONFIG.FAR_ANGLE_POSITION - TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION)
-//        }
-            anglePosition = TURRET_CONFIG.ANGLE_POSITION//TURRET_CONFIG.ANGLE_POSITION// 0.3
-            targetPulleyVelocity = TURRET_CONFIG.PULLEY_VELOCITY//TURRET_CONFIG.PULLEY_VELOCITY//10.4
+        if (odometry.orientation.x < 0.5) {
+            l = clamp(l, TURRET_CONFIG.CLOSE_DISTANCE, TURRET_CONFIG.SHORT_FAR_DISTANCE)
 
-        pulleyMotor.velocity =
-            targetPulleyVelocity / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION / TURRET_CONFIG.PULLEY_RATION
+            targetPulleyVelocity = (TURRET_CONFIG.CLOSE_PULLEY_VELOCITY + clamp(
+                (l - TURRET_CONFIG.CLOSE_DISTANCE) /
+                        (TURRET_CONFIG.SHORT_FAR_DISTANCE - TURRET_CONFIG.CLOSE_DISTANCE),
+                0.0,
+                1.0
+            ) * (TURRET_CONFIG.SHORT_FAR_PULLEY_VELOCITY - TURRET_CONFIG.CLOSE_PULLEY_VELOCITY))
+
+            anglePosition = TURRET_CONFIG.CLOSE_ANGLE_POSITION + clamp(
+                (l - TURRET_CONFIG.CLOSE_DISTANCE) /
+                        (TURRET_CONFIG.SHORT_FAR_DISTANCE - TURRET_CONFIG.CLOSE_DISTANCE),
+                0.0,
+                1.0
+            ) * (TURRET_CONFIG.SHORT_FAR_ANGLE_POSITION - TURRET_CONFIG.CLOSE_ANGLE_POSITION)
+        } else {
+            l = clamp(l, TURRET_CONFIG.LONG_CLOSE_DISTANCE, TURRET_CONFIG.FAR_DISTANCE)
+
+            targetPulleyVelocity = (TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY + clamp(
+                (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
+                        (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
+                0.0,
+                1.0
+            ) * (TURRET_CONFIG.FAR_PULLEY_VELOCITY - TURRET_CONFIG.LONG_CLOSE_PULLEY_VELOCITY))
+
+            anglePosition = TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION + clamp(
+                (l - TURRET_CONFIG.LONG_CLOSE_DISTANCE) /
+                        (TURRET_CONFIG.FAR_DISTANCE - TURRET_CONFIG.LONG_CLOSE_DISTANCE),
+                0.0,
+                1.0
+            ) * (TURRET_CONFIG.FAR_ANGLE_POSITION - TURRET_CONFIG.LONG_CLOSE_ANGLE_POSITION)
+        }
+//            anglePosition = TURRET_CONFIG.ANGLE_POSITION//TURRET_CONFIG.ANGLE_POSITION// 0.3
+//            targetPulleyVelocity = TURRET_CONFIG.PULLEY_VELOCITY//TURRET_CONFIG.PULLEY_VELOCITY//10.4
 
         if (timer.seconds() < 4.0 && collector.runMode == RunMode.AUTO) {
-            angleServo.position = 0.42
+            angleServo. position = 0.47
+            pulleyMotor.power = 0.4
         } else {
             angleServo.position = clamp(
                 anglePosition,
                 TURRET_CONFIG.MIN_ANGLE_SERVO,
                 TURRET_CONFIG.MAX_ANGLE_SERVO
             )
+
+            pulleyMotor.velocity =
+                (targetPulleyVelocity + pulleyDif) / (2.0 * PI * TURRET_CONFIG.PULLEY_RADIUS) * TURRET_CONFIG.PULLEY_TICKS_REVOLUTION / TURRET_CONFIG.PULLEY_RATION
         }
 
-        headingVelocity = (targetTurretHeading - turretHeading) * TURRET_CONFIG.TURRET_ROTATE_P
-
-        turretHeading += headingVelocity * deltaTime.seconds()
-
-        deltaTime.reset()
-
+//        if(abs((Angle(targetTurretHeading) - Angle(turretHeading)).angle) < 1.0)
+//            turretHeading = targetTurretHeading
+//        else
+//            turretHeading += (Angle(targetTurretHeading) - Angle(turretHeading)).angle / 10.0
+        
         headingServo1.position = (clamp(
-            turretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING
+            targetTurretHeading, TURRET_CONFIG.MIN_HEADING, TURRET_CONFIG.MAX_HEADING
         ) + TURRET_CONFIG.ZERO_HEADING_POS.angle) / TURRET_CONFIG.HEADING_SERVO_RATIO / TURRET_CONFIG.HEADING_SERVO_MAX_ANGLE
         headingServo2.position = headingServo1.position
-
 
         val basketErrHeading =
             ((if (odometry.orientation.x < 0.5) GameSettings.startOrientation.basketPosition else GameSettings.startOrientation.farBasketPosition).invoke() + shootingDif - odometry.linearVelocity.turn(
@@ -302,7 +309,7 @@ fun attachTurret(collector: Collector) {
             0.0
 
         collector.telemetry.addData("length", basketErrPulley.length())
-        collector.telemetry.addData("target pulley velocity", targetPulleyVelocity)
+        collector.telemetry.addData("target pulley velocity", targetPulleyVelocity + pulleyDif)
         collector.telemetry.addData("anglePos", angleServo.position)
         collector.telemetry.addData(
             "current pulley velocity",
@@ -313,5 +320,9 @@ fun attachTurret(collector: Collector) {
             0.1,
             Color.ORANGE
         )
+
+        pulleyDif += (collector.opMode.gamepad2.right_trigger - collector.opMode.gamepad2.left_trigger) * TURRET_CONFIG.PULLEY_DIF_SENS * deltaTime.seconds()
+        
+        deltaTime.reset()
     }
 }

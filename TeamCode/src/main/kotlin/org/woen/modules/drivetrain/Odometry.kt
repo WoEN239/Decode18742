@@ -53,17 +53,12 @@ class GetRobotOdometry(
 
 class RobotEnterShootingAreaEvent()
 class RobotExitShootingAreaEvent()
+class ResetOdometryEvent()
 
 fun attachOdometry(collector: Collector) {
     val pinpoint = collector.hardwareMap.get("odometry") as GoBildaPinpointDriver
 
     val zeroingOrientation = Orientation(Vec2(0.37 / 2.0 + 0.01, (0.615 + 0.39 / 2.0)), Angle.ofDeg(0.0))
-
-    val imu = collector.hardwareMap.get("imu") as IMU
-
-    imu.initialize(IMU.Parameters(RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)))
-
-    var imuDif = zeroingOrientation.angle
 
     pinpoint.setOffsets(
         ODOMETRY_CONFIG.X_ODOMETER_POSITION, ODOMETRY_CONFIG.Y_ODOMETER_POSITION,
@@ -80,10 +75,8 @@ fun attachOdometry(collector: Collector) {
         GoBildaPinpointDriver.Register.H_ORIENTATION,
         GoBildaPinpointDriver.Register.H_VELOCITY)
 
-    if (collector.runMode == RunMode.AUTO) {
+    if (collector.runMode == RunMode.AUTO)
         pinpoint.resetPosAndIMU()
-        imu.resetYaw()
-    }
 
     var orientation = zeroingOrientation
 
@@ -93,8 +86,6 @@ fun attachOdometry(collector: Collector) {
     var locateInShootingArea = false
     var oldLocateInShootingArea = false
     var longLocate = false
-
-    val gyroGetTimer = ElapsedTime()
 
     collector.eventBus.invoke(AddGamepad1ListenerEvent(ClickGamepadListener({ it.dpad_down }, {
         val orient =
@@ -109,8 +100,7 @@ fun attachOdometry(collector: Collector) {
                 orient.angle
             )
 
-        imu.resetYaw()
-        imuDif = orient.angle
+        collector.eventBus.invoke(ResetOdometryEvent())
     })))
 
     collector.eventBus.subscribe(GetRobotOdometry::class) {
@@ -125,13 +115,6 @@ fun attachOdometry(collector: Collector) {
         pinpoint.update()
 
         val pinpointOrientation = pinpoint.position
-
-        if(gyroGetTimer.seconds() > 1.0 / ODOMETRY_CONFIG.GYRO_UPDATE_HZ){
-            pinpoint.position = Pose2D(DistanceUnit.METER, pinpointOrientation.getX(DistanceUnit.METER), pinpointOrientation.getY(DistanceUnit.METER),
-                AngleUnit.RADIANS, (Angle(imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)) - Angle(imuDif)).angle)
-
-            gyroGetTimer.reset()
-        }
 
         orientation = Orientation(
             Vec2(

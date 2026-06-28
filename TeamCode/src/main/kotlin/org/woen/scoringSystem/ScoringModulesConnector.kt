@@ -359,7 +359,7 @@ class ScoringModulesConnector
             _cms.collector.eventBus.invoke(
                 AddGamepad2ListenerEvent(
                     ClickGamepadListener(
-                        { it.right_trigger > 0.5 },
+                        { it.right_bumper },
                         {
                             tryStartSorting(CONTROLS.SWAPS_PER_MANUAL_BUTTON_SWITCH)
                         }
