@@ -32,10 +32,10 @@ internal object DelayMS
 
 
         @JvmField
-        var FAST_3: Long = 150
+        var FAST_3: Long = 120
 
         @JvmField
-        var FAST_2: Long = 100
+        var FAST_2: Long = 80
 
         @JvmField
         var FAST_1: Long = 50
