@@ -40,7 +40,7 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
             MoveSegment(
                 Vec2(-0.342, -1.4 * colorK),
                 velocityConstrain = 0.5,
-                positionWindow = 0.2
+                positionWindow = 0.4
             )
         ),
         WaitAction(0.2),
@@ -101,7 +101,7 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
                             DriveAction(
                                 eventBus,
                                 MoveSegment(
-                                    Vec2(0.33, -1.093 * colorK),
+                                    Vec2(0.325, -1.093 * colorK),
 //                                    velocityConstrain = 2.2,
                                     positionWindow = 0.2
                                 )
@@ -109,7 +109,7 @@ fun ultTrajectory(collector: Collector): Array<IAction> {
                             StartEatAction(eventBus),
                             DriveAction(
                                 eventBus,
-                                MoveSegment(Vec2(0.33, -1.493 * colorK), velocityConstrain = 2.2)
+                                MoveSegment(Vec2(0.325, -1.533 * colorK), velocityConstrain = 2.2)
                             )
                         ),
                         arrayListOf(
